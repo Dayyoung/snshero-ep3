@@ -453,8 +453,8 @@ export const PromoApp: React.FC = () => {
           className="pointer-events-none absolute -bottom-4 -left-10 h-[250px] w-auto object-contain opacity-30 drop-shadow-[0_18px_36px_rgba(0,0,0,0.95)] sm:-left-6 sm:h-[340px] sm:opacity-55 lg:left-[-2%] lg:h-[470px] lg:opacity-95 xl:left-[2%] xl:h-[540px]"
         />
         <img
-          src={CLASSIC_HEROES.WARRIOR.heroCutoutUrl}
-          alt={getLocalizedHeroInfo('WARRIOR', lang).name}
+          src="/hs-assets/characters/cutouts/011_Ignis.webp"
+          alt={tr('이그니스', 'Ignis')}
           className="pointer-events-none absolute -bottom-4 -right-12 h-[250px] w-auto object-contain opacity-30 drop-shadow-[0_18px_36px_rgba(0,0,0,0.95)] sm:-right-6 sm:h-[340px] sm:opacity-55 lg:right-[-2%] lg:h-[470px] lg:opacity-95 xl:right-[2%] xl:h-[540px]"
         />
 
