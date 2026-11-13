@@ -1,0 +1,103 @@
+# ==========================================
+# SNSHero.com Robots.txt
+# Optimized for SEO + AEO + GEO (AI Search Engines)
+# ==========================================
+
+# ------------------
+# General Crawlers
+# ------------------
+User-agent: *
+Allow: /
+Disallow: /setting
+Disallow: /*?lang=*
+Disallow: /test/
+
+Crawl-delay: 1
+
+# ------------------
+# Google News & Search & AdSense Specific Crawlers
+# ------------------
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+User-agent: Googlebot-Video
+Allow: /
+Allow: /movie
+Allow: /cinema
+
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+# ------------------
+# AI / LLM Crawlers (GEO Optimization)
+# ------------------
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Ollama
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: Omgili
+Allow: /
+
+User-agent: Omgilibot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+# ------------------
+# Sitemaps & LLM Meta
+# ------------------
+Sitemap: https://snshero.com/sitemap.xml
+Sitemap: https://snshero.com/sitemap-video.xml
+Sitemap: https://snshero.com/sitemap-news.xml
+Sitemap: https://snshero.com/news-feed.xml
+Sitemap: https://snshero.com/rss.xml
+Allow: /movie
+Allow: /cinema
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /.well-known/mcp.json

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1b120b" />
+  <meta name="background-color" content="#090604" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="눈히어로" />
+  <meta name="application-name" content="눈히어로" />
+  <link rel="manifest" href="/game-manifest.json" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/hs-assets/pwa-icon-192.png" />
+  <title>눈히어로 — 엘윈마을 카드 배틀</title>
+  <meta name="description" content="눈히어로(SNSHero) 공식 전체화면 웹 카드 배틀 — 랭킹대전 · AI대전 · 스토리모드" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6937094123258335" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --hs-font-sans: 'Nanum Gothic', '나눔고딕', 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      font-family: var(--hs-font-sans);
+    }
+
+    html, body, #hs-root {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      min-height: 100dvh;
+      overflow: hidden;
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+      background: radial-gradient(ellipse at center, #1b120b 0%, #090604 100%);
+      color: #f8ebd2;
+      font-family: var(--hs-font-sans) !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      cursor: default;
+    }
+
+    @media all and (display-mode: fullscreen), all and (display-mode: standalone) {
+      html, body, #hs-root {
+        width: 100vw;
+        height: 100dvh;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding-left: env(safe-area-inset-left, 0px);
+        padding-right: env(safe-area-inset-right, 0px);
+      }
+    }
+
+    button, input, select, textarea, [role="button"], .hs-clickable {
+      font-family: var(--hs-font-sans) !important;
+      cursor: pointer;
+    }
+
+    input, textarea {
+      user-select: text;
+      -webkit-user-select: text;
+      cursor: text;
+    }
+
+    .hs-grabbable {
+      cursor: grab;
+    }
+
+    /* High-legibility Nanum Gothic stat numbers (white fill + crisp dark outline) */
+    .hs-num {
+      font-family: var(--hs-font-sans) !important;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow:
+        -1.8px -1.8px 0 #000,
+         1.8px -1.8px 0 #000,
+        -1.8px  1.8px 0 #000,
+         1.8px  1.8px 0 #000,
+         0px -2px 0 #000,
+         0px  2px 0 #000,
+        -2px  0px 0 #000,
+         2px  0px 0 #000,
+         0 2px 5px rgba(0,0,0,0.85);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .hs-num-buffed {
+      color: #4ade80 !important;
+    }
+
+    .hs-num-damaged {
+      color: #ff4d4d !important;
+    }
+
+    .hs-title, .hs-title-stroke {
+      font-family: var(--hs-font-sans) !important;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      text-shadow:
+        -1.4px -1.4px 0 #160c04,
+         1.4px -1.4px 0 #160c04,
+        -1.4px  1.4px 0 #160c04,
+         1.4px  1.4px 0 #160c04,
+         0 3px 8px rgba(0,0,0,0.9);
+    }
+
+    .hs-outline {
+      text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000,
+         0 4px 10px rgba(0,0,0,0.92);
+    }
+
+    .hs-outline-sm {
+      text-shadow:
+        -1.4px -1.4px 0 #000,
+         1.4px -1.4px 0 #000,
+        -1.4px  1.4px 0 #000,
+         1.4px  1.4px 0 #000,
+         0 2px 5px rgba(0,0,0,0.88);
+    }
+
+    @keyframes hsCardPop {
+      0% { transform: scale(0.55) rotateY(90deg); opacity: 0; }
+      70% { transform: scale(1.06) rotateY(0deg); opacity: 1; }
+      100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+    }
+
+    @keyframes hsShakeLight {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      20% { transform: translate3d(-7px, 5px, 0); }
+      50% { transform: translate3d(7px, -5px, 0); }
+      80% { transform: translate3d(-4px, 3px, 0); }
+    }
+
+    @keyframes hsShakeHeavy {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      15% { transform: translate3d(-14px, 10px, 0) rotate(-0.6deg); }
+      35% { transform: translate3d(14px, -10px, 0) rotate(0.6deg); }
+      60% { transform: translate3d(-10px, -7px, 0) rotate(-0.4deg); }
+      85% { transform: translate3d(8px, 6px, 0); }
+    }
+
+    /* Damage-proportional dynamic screen shake (pure hardware-accelerated translate3d for 60fps on low-end devices) */
+    @keyframes hsDamageShakeA {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      14% { transform: translate3d(calc(var(--hs-shake-x, 6px) * -1), var(--hs-shake-y, 4px), 0); }
+      32% { transform: translate3d(var(--hs-shake-x, 6px), calc(var(--hs-shake-y, 4px) * -0.9), 0); }
+      52% { transform: translate3d(calc(var(--hs-shake-x, 6px) * -0.72), calc(var(--hs-shake-y, 4px) * -0.65), 0); }
+      72% { transform: translate3d(calc(var(--hs-shake-x, 6px) * 0.48), calc(var(--hs-shake-y, 4px) * 0.45), 0); }
+      88% { transform: translate3d(calc(var(--hs-shake-x, 6px) * -0.22), calc(var(--hs-shake-y, 4px) * 0.2), 0); }
+    }
+
+    @keyframes hsDamageShakeB {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      14% { transform: translate3d(var(--hs-shake-x, 6px), calc(var(--hs-shake-y, 4px) * -1), 0); }
+      32% { transform: translate3d(calc(var(--hs-shake-x, 6px) * -1), var(--hs-shake-y, 4px), 0); }
+      52% { transform: translate3d(calc(var(--hs-shake-x, 6px) * 0.72), calc(var(--hs-shake-y, 4px) * 0.65), 0); }
+      72% { transform: translate3d(calc(var(--hs-shake-x, 6px) * -0.48), calc(var(--hs-shake-y, 4px) * -0.45), 0); }
+      88% { transform: translate3d(calc(var(--hs-shake-x, 6px) * 0.22), calc(var(--hs-shake-y, 4px) * -0.2), 0); }
+    }
+
+    .hs-damage-shake-a {
+      animation: hsDamageShakeA var(--hs-shake-dur, 280ms) cubic-bezier(.36,.07,.19,.97) both;
+      will-change: transform;
+    }
+
+    .hs-damage-shake-b {
+      animation: hsDamageShakeB var(--hs-shake-dur, 280ms) cubic-bezier(.36,.07,.19,.97) both;
+      will-change: transform;
+    }
+
+    @keyframes hsFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
+    }
+
+    @keyframes hsPulseGlow {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.65)); }
+      50% { filter: drop-shadow(0 0 20px rgba(56, 189, 248, 1)); }
+    }
+
+    @keyframes hsScreenShake {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      15% { transform: translate3d(-9px, 6px, 0) rotate(-0.4deg); }
+      30% { transform: translate3d(8px, -7px, 0) rotate(0.4deg); }
+      45% { transform: translate3d(-7px, -4px, 0) rotate(-0.3deg); }
+      60% { transform: translate3d(6px, 5px, 0) rotate(0.2deg); }
+      75% { transform: translate3d(-4px, 2px, 0); }
+    }
+
+    @keyframes hsBigShake {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      10% { transform: translate3d(-16px, 11px, 0) rotate(-0.8deg); }
+      25% { transform: translate3d(15px, -12px, 0) rotate(0.8deg); }
+      40% { transform: translate3d(-13px, -9px, 0) rotate(-0.6deg); }
+      55% { transform: translate3d(11px, 9px, 0) rotate(0.5deg); }
+      70% { transform: translate3d(-8px, 5px, 0) rotate(-0.3deg); }
+      85% { transform: translate3d(5px, -4px, 0); }
+    }
+
+    @keyframes hsZzz {
+      0% { opacity: 0; transform: translate(0, 4px) scale(0.6) rotate(-10deg); }
+      30% { opacity: 1; }
+      100% { opacity: 0; transform: translate(18px, -28px) scale(1.25) rotate(12deg); }
+    }
+
+    @keyframes hsLegendarySlam {
+      0% { transform: scale(1.75) translateY(-60px); opacity: 0; filter: brightness(2.2); }
+      65% { transform: scale(0.95) translateY(4px); opacity: 1; filter: brightness(1.3); }
+      82% { transform: scale(1.04) translateY(-2px); }
+      100% { transform: scale(1) translateY(0); opacity: 1; filter: brightness(1); }
+    }
+
+    @keyframes hsMinionSummon {
+      0% { transform: scale(1.38) translateY(-28px); opacity: 0; }
+      70% { transform: scale(0.96) translateY(2px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    @keyframes hsDamagePop {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+      25% { transform: translate(-50%, -50%) scale(1.28); opacity: 1; }
+      75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -62%) scale(0.85); opacity: 0; }
+    }
+
+    .hs-shake-sm { animation: hsScreenShake 0.42s cubic-bezier(.36,.07,.19,.97) both; }
+    .hs-shake-lg { animation: hsBigShake 0.65s cubic-bezier(.36,.07,.19,.97) both; }
+
+    /* Custom warm scrollbar inside deck tray & modals */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: rgba(20, 12, 6, 0.7); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #b88a44, #6e4c1e); border-radius: 4px; border: 1px solid #2b1a08; }
+
+    /* Google AdSense containment & rescue button */
+    ins.adsbygoogle[data-anchor-status],
+    ins.adsbygoogle[data-ad-status="unfilled"],
+    body > ins.adsbygoogle,
+    body > .google-auto-placed,
+    body > div[id^="aswift_"],
+    body > iframe[id^="aswift_"],
+    .grippy-host {
+      display: none !important;
+      pointer-events: none !important;
+    }
+    #adsense-mobile-top,
+    #adsense-desktop-left,
+    #adsense-desktop-right {
+      position: relative !important;
+      z-index: 1 !important;
+      overflow: hidden !important;
+      contain: layout paint !important;
+      transform: translateZ(0);
+    }
+    #adsense-mobile-top ins.adsbygoogle,
+    #adsense-mobile-top div[id^="aswift_"],
+    #adsense-mobile-top iframe {
+      max-height: 50px !important;
+      position: relative !important;
+    }
+    #hs-game-viewport {
+      position: relative;
+      z-index: 20;
+    }
+    .snshero-vignette-rescue-btn {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 2147483647;
+      min-height: 40px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 2px solid #d4af63;
+      background: #1b120b;
+      color: #f8ebd2;
+      font-weight: 800;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="hs-root"></div>
+  <script>
+    (function () {
+      function redirectLegacyHash() {
+        var h = (window.location.hash || '').toLowerCase();
+        if (h === '#book' || h.indexOf('#book?') === 0 || h === '#novel' || h.indexOf('#novel?') === 0) {
+          var bq = h.indexOf('?') >= 0 ? h.slice(h.indexOf('?')) : '';
+          window.location.replace('/book.html' + bq);
+        } else if (h === '#webtoon' || h.indexOf('#webtoon?') === 0) {
+          var wq = h.indexOf('?') >= 0 ? h.slice(h.indexOf('?')) : '';
+          window.location.replace('/webtoon.html' + wq);
+        }
+      }
+      redirectLegacyHash();
+      window.addEventListener('hashchange', redirectLegacyHash);
+    })();
+  </script>
+  <script type="module" src="/src/hearthstone/main.tsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+@import "tailwindcss";
+
+:root {
+  --hs-font-sans: 'Nanum Gothic', '나눔고딕', 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+*, *::before, *::after {
+  font-family: var(--hs-font-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #120b06;
+  color: #f8ebd2;
+  font-family: var(--hs-font-sans) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Exact game.html Nanum Gothic stat numbers & title outlines */
+.hs-num {
+  font-family: var(--hs-font-sans) !important;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow:
+    -1.8px -1.8px 0 #000,
+     1.8px -1.8px 0 #000,
+    -1.8px  1.8px 0 #000,
+     1.8px  1.8px 0 #000,
+     0px -2px 0 #000,
+     0px  2px 0 #000,
+    -2px  0px 0 #000,
+     2px  0px 0 #000,
+     0 2px 5px rgba(0,0,0,0.85);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.hs-num-buffed {
+  color: #4ade80 !important;
+}
+
+.hs-num-damaged {
+  color: #ff4d4d !important;
+}
+
+.hs-title, .hs-title-stroke {
+  font-family: var(--hs-font-sans) !important;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-shadow:
+    -1.4px -1.4px 0 #160c04,
+     1.4px -1.4px 0 #160c04,
+    -1.4px  1.4px 0 #160c04,
+     1.4px  1.4px 0 #160c04,
+     0 3px 8px rgba(0,0,0,0.9);
+}
+
+.hs-outline {
+  text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000,
+     0 4px 10px rgba(0,0,0,0.92);
+}
+
+.hs-outline-sm {
+  text-shadow:
+    -1.4px -1.4px 0 #000,
+     1.4px -1.4px 0 #000,
+    -1.4px  1.4px 0 #000,
+     1.4px  1.4px 0 #000,
+     0 2px 5px rgba(0,0,0,0.88);
+}
+
+.promo-outline {
+  text-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.92),
+    0 1px 3px rgba(0, 0, 0, 0.95);
+}
+
+.promo-outline-dark {
+  text-shadow: 0 1px 0 rgba(255, 250, 232, 0.72);
+}
+
+/* Sticky Tavern Wood Top Navigation */
+.hs-promo-nav {
+  background:
+    linear-gradient(180deg, rgba(64, 38, 19, 0.97) 0%, rgba(36, 20, 10, 0.98) 65%, rgba(22, 12, 6, 0.99) 100%);
+  border-bottom: 2px solid #b88a44;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.78),
+    inset 0 1px 0 rgba(255, 235, 185, 0.28);
+}
+
+/* Parchment Texture Surface (Classic Hearthstone Light Section) */
+.hs-promo-parchment {
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(255, 252, 240, 0.65) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(196, 152, 86, 0.25) 0%, transparent 58%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(130, 88, 35, 0.025) 0px,
+      rgba(130, 88, 35, 0.025) 2px,
+      transparent 2px,
+      transparent 10px
+    ),
+    linear-gradient(180deg, #f4e6c7 0%, #ead6ab 50%, #e1c690 100%);
+  color: #2f1b0c;
+}
+
+/* Cosmic Purple/Navy Surface (Gameplay Pillars Section) */
+.hs-promo-cosmic {
+  background:
+    radial-gradient(circle at 20% 25%, rgba(99, 102, 241, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(168, 85, 247, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.14) 0%, transparent 55%),
+    linear-gradient(180deg, #16112b 0%, #0d0a1c 55%, #120d24 100%);
+}
+
+/* Tavern Dark Wood Section */
+.hs-promo-tavern {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.14) 0%, transparent 60%),
+    linear-gradient(180deg, #211309 0%, #150b05 52%, #1d1007 100%);
+}
+
+/* Carved Wood & Gold Molding Section Divider */
+.hs-promo-divider {
+  position: relative;
+  height: 16px;
+  width: 100%;
+  background: linear-gradient(180deg, #5e3b1e 0%, #2b180b 50%, #140a04 100%);
+  border-top: 2px solid #d4a857;
+  border-bottom: 2px solid #754e20;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+}
+
+/* Hearthstone Official Purple/Indigo Pill CTA */
+.hs-promo-cta-purple {
+  background:
+    radial-gradient(ellipse at 50% 10%, rgba(216, 180, 254, 0.45) 0%, transparent 55%),
+    linear-gradient(180deg, #8b5cf6 0%, #6d28d9 54%, #4c1d95 100%);
+  border: 2px solid #f5d078;
+  color: #ffffff;
+  box-shadow:
+    0 8px 24px rgba(76, 29, 149, 0.55),
+    0 0 18px rgba(139, 92, 246, 0.42),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.65);
+  transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+}
+.hs-promo-cta-purple:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow:
+    0 12px 30px rgba(76, 29, 149, 0.72),
+    0 0 28px rgba(167, 139, 250, 0.7),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* Hearthstone Teal Outline Button */
+.hs-promo-cta-teal {
+  background: linear-gradient(180deg, rgba(13, 148, 136, 0.16) 0%, rgba(15, 118, 110, 0.28) 100%);
+  border: 2px solid #14b8a6;
+  color: #0f766e;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+.hs-promo-cta-teal:hover {
+  background: linear-gradient(180deg, #14b8a6 0%, #0f766e 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.hs-promo-cta-teal-dark {
+  background: rgba(20, 184, 166, 0.12);
+  border: 2px solid #2dd4bf;
+  color: #99f6e4;
+  transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+.hs-promo-cta-teal-dark:hover {
+  background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Gold Engraved Picture/Card Frame */
+.hs-promo-gold-frame {
+  border: 3px solid #d4a857;
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(69, 36, 8, 0.9),
+    inset 0 1px 0 rgba(255, 247, 214, 0.72);
+}
+
+@keyframes promoEmberRise {
+  0% { transform: translate3d(0, 0, 0) scale(0.7); opacity: 0; }
+  20% { opacity: 0.9; }
+  80% { opacity: 0.75; }
+  100% { transform: translate3d(var(--dx, 14px), -100vh, 0) scale(1.1); opacity: 0; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #140c06; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #b88a44, #6e4c1e);
+  border-radius: 4px;
+}
