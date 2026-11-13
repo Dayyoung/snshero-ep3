@@ -2,6 +2,27 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-13 16:33 KST] [카드게임 대결 화면(`/game.html`) 저사양 기기 프레임 끊김 해소 및 렌더링 성능 최적화 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. `BattleScreen.tsx` 포인터 이동 리렌더링·레이아웃 스래싱 제거 및 타깃 화살표 격리 (`TargetingArrowOverlay`)**:
+    - 기존 전역 `window.pointermove`마다 `setPointerPos` + DOM 전체 좌표 탐색(`querySelectorAll`/`getBoundingClientRect`)으로 배틀 화면 전체가 60~120fps 재렌더링되던 병목을 `TargetingArrowOverlay` 별도 `React.memo` 컴포넌트로 분리하고 `requestAnimationFrame` 기반 쓰로틀링 + 타깃 선택 중 한정 리스너 등록으로 개선.
+    - 타깃 화살표 `<svg>` 내 전체 화면 `<feGaussianBlur>` 필터를 제거하고 2중 스트로크 패스로 대체해 모바일 GPU 필레이트 부하 제거.
+    - 소환 위치 미리보기(`insertPreviewIdx`) 리스너도 `isPlacingMinion`일 때만 `requestAnimationFrame` 쓰로틀 + 동일 인덱스 early return으로 격리.
+    - `BoardMinionToken` 및 `HeroPortraitZone` 인라인 화살표 클로저를 `useCallback` + ref 기반 안정 핸들러(`handleMinionSelectCb`, `handleMinionHoverCb`, `handleOpponentHeroClickCb`, `handlePlayerHeroClickCb`, `handlePlayerHeroPowerCb`)로 교체해 `React.memo` 무력화 해소.
+    - 핸드 카드 래퍼 `transition-all` ➔ `transition-transform` 전환 및 모달 7곳의 풀스크린 `backdrop-blur-*`를 단색 반투명 배경(`bg-black/88`, `bg-red-950/84`)으로 교체.
+    - 미지정 `boardTheme`(예: `?mode=ai_battle` 진입 시) 크래시 방지를 위해 `BOARD_CORNER_TOYS` 및 `BOARD_BG_URL`에 `STORMWIND` 폴백 추가.
+  - **2. `BoardVfxCanvas.tsx` · `CardVisual.tsx` · `hearthstone.css` · `heroLang.ts` GPU/CPU 경량화**:
+    - `BoardVfxCanvas`: `React.memo` 래핑, 저사양 기기 자동 감지(`detectLowPowerDevice`: DPR 1.25 상한, 파티클 34개 상한), `stageSizeRef` 리사이즈 캐싱, 투사체 프레임당 `createRadialGradient` 할당 제거.
+    - `CardVisual.tsx`: 초상화 `decoding="async"`, 클리핑 내부 중첩 `drop-shadow` 및 수면/타깃 `animate-bounce`·`animate-pulse` 제거.
+    - `hearthstone.css`: `.hs-card-glow-*` / `.hs-card-shadow-base`의 3~4겹 `drop-shadow` 체인을 단일 패스 + `contain: layout style`로 단순화.
+    - `heroLang.ts`: 컴포넌트당 2개씩 붙던 `window` 언어 리스너(~50개)를 모듈 단일 Pub/Sub(`langListeners` + `ensureGlobalLangListener`)로 통합.
+  - **3. 타입체크 · 빌드 · Playwright 저사양 성능 검증 완료**:
+    - `npx tsc --noEmit` (`src/stone/` 제외 에러 0건) 및 `npm run build` 정상 완료.
+    - Playwright(`http://localhost:3000/game.html?mode=ai_battle`):
+      - 데스크톱(`1280x800`, 1x CPU): 684프레임 `avgFrameMs=8.66`, `p95FrameMs=9.3`, `jankFramesOver50ms=0`, `longTaskCount=0`, 콘솔/페이지/HTTP 에러 0건.
+      - 모바일 저사양(`430x932`, 4x CPU 스로틀링): 711프레임 `avgFrameMs=9.32`, `p95FrameMs=9.4`, `jankFramesOver50ms=4`, `longTaskCount=3`, 콘솔/페이지/HTTP 에러 0건.
+
 ## [2026-11-13 15:19 KST] [에피소드 0 튜토리얼 웹툰 영문 전용 슬라이드 5종 제작 및 EN/KO 분기 연동 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

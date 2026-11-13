@@ -224,6 +224,128 @@ const EndTurnLeverPlate: React.FC<{
   );
 };
 
+const TargetingArrowOverlay = React.memo<{ selection: PendingSelection | null }>(({ selection }) => {
+  const needsArrow = Boolean(
+    selection &&
+      ((selection.kind === 'HAND_CARD' && selection.needsTarget) ||
+        selection.kind === 'CHOOSE_OPTION_TARGET' ||
+        selection.kind === 'HERO_POWER' ||
+        selection.kind === 'ATTACKER'),
+  );
+
+  const [arrowPts, setArrowPts] = useState<{
+    sx: number;
+    sy: number;
+    ex: number;
+    ey: number;
+  } | null>(null);
+  const startRef = useRef<{ sx: number; sy: number }>({ sx: 0, sy: 0 });
+  const pendingPtRef = useRef<{ x: number; y: number } | null>(null);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!needsArrow || !selection) {
+      setArrowPts(null);
+      return;
+    }
+
+    const { width: stageW, height: stageH } = getStageSize();
+    let sx = stageW * 0.5;
+    let sy = stageH * 0.82;
+    if (selection.kind === 'ATTACKER') {
+      const el = document.querySelector(`[data-hs-entity="${selection.attackerId}"]`);
+      if (el) {
+        const c = elementCenterInStage(el);
+        sx = c.x;
+        sy = c.y;
+      }
+    } else if (selection.kind === 'HERO_POWER') {
+      sx = stageW * 0.58;
+      sy = stageH * 0.77;
+    } else if (selection.kind === 'HAND_CARD') {
+      const el = document.querySelector(`[data-hand-uid="${selection.handUid}"]`);
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const pt = clientToStagePoint(r.left + r.width / 2, r.top + 24);
+        sx = pt.x;
+        sy = pt.y;
+      }
+    }
+    startRef.current = { sx, sy };
+    setArrowPts({ sx, sy, ex: sx, ey: sy - 40 });
+
+    const onMove = (e: PointerEvent) => {
+      pendingPtRef.current = clientToStagePoint(e.clientX, e.clientY);
+      if (rafRef.current !== 0) return;
+      rafRef.current = window.requestAnimationFrame(() => {
+        rafRef.current = 0;
+        const pt = pendingPtRef.current;
+        if (!pt) return;
+        setArrowPts({ sx: startRef.current.sx, sy: startRef.current.sy, ex: pt.x, ey: pt.y });
+      });
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      if (rafRef.current !== 0) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
+    };
+  }, [needsArrow, selection]);
+
+  if (!arrowPts) return null;
+
+  const ctrlY = Math.min(arrowPts.sy, arrowPts.ey) - 85;
+  const pathD = `M ${arrowPts.sx} ${arrowPts.sy} Q ${(arrowPts.sx + arrowPts.ex) / 2} ${ctrlY} ${arrowPts.ex} ${arrowPts.ey}`;
+
+  return (
+    <svg className="pointer-events-none absolute inset-0 z-[75] h-full w-full">
+      <path
+        d={pathD}
+        fill="none"
+        stroke="rgba(239,68,68,0.34)"
+        strokeWidth={16}
+        strokeDasharray="18 10"
+        strokeLinecap="round"
+      />
+      <path
+        d={pathD}
+        fill="none"
+        stroke="#ef4444"
+        strokeWidth={8}
+        strokeDasharray="18 10"
+        strokeLinecap="round"
+      />
+      <circle
+        cx={arrowPts.ex}
+        cy={arrowPts.ey}
+        r={22}
+        fill="rgba(239,68,68,0.22)"
+        stroke="#fecaca"
+        strokeWidth={3.5}
+      />
+      <line
+        x1={arrowPts.ex - 28}
+        y1={arrowPts.ey}
+        x2={arrowPts.ex + 28}
+        y2={arrowPts.ey}
+        stroke="#ef4444"
+        strokeWidth={3}
+      />
+      <line
+        x1={arrowPts.ex}
+        y1={arrowPts.ey - 28}
+        x2={arrowPts.ex}
+        y2={arrowPts.ey + 28}
+        stroke="#ef4444"
+        strokeWidth={3}
+      />
+    </svg>
+  );
+});
+
 export const BattleScreen: React.FC<BattleScreenProps> = ({
   mode,
   playerDeck,
@@ -367,7 +489,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       window.innerWidth < 640 &&
       window.innerHeight >= window.innerWidth,
   );
-  const [pointerPos, setPointerPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [insertPreviewIdx, setInsertPreviewIdx] = useState<number>(0);
 
   const [hoveredBoardMinion, setHoveredBoardMinion] = useState<MinionInstance | null>(null);
@@ -1603,38 +1724,48 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     describeEp0Action,
   ]);
 
-  // Pointer Move & Escape Cancel
+  const isPlacingMinion =
+    selection?.kind === 'HAND_CARD' && !selection.needsTarget && selection.isMinion;
+
+  // Escape Cancel always active; minion placement pointermove listener ONLY runs while placing a minion!
   useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      setPointerPos(clientToStagePoint(e.clientX, e.clientY));
-      if (friendlyRowRef.current) {
-        const children = Array.from(
-          friendlyRowRef.current.querySelectorAll('[data-hs-entity]'),
-        ) as HTMLElement[];
-        let idx = children.length;
-        for (let i = 0; i < children.length; i++) {
-          const rect = children[i].getBoundingClientRect();
-          if (e.clientX < rect.left + rect.width / 2) {
-            idx = i;
-            break;
-          }
-        }
-        setInsertPreviewIdx(idx);
-      }
-    };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setSelection(null);
         setEmoteMenuOpen(false);
       }
     };
-    window.addEventListener('pointermove', onMove, { passive: true });
     window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  useEffect(() => {
+    if (!isPlacingMinion) return;
+    let rafId = 0;
+    const onMove = (e: PointerEvent) => {
+      const cx = e.clientX;
+      if (rafId !== 0) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        if (!friendlyRowRef.current) return;
+        const children = friendlyRowRef.current.querySelectorAll('[data-hs-entity]');
+        let idx = children.length;
+        for (let i = 0; i < children.length; i++) {
+          const rect = (children[i] as HTMLElement).getBoundingClientRect();
+          if (cx < rect.left + rect.width / 2) {
+            idx = i;
+            break;
+          }
+        }
+        setInsertPreviewIdx((prev) => (prev === idx ? prev : idx));
+      });
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
     return () => {
       window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('keydown', onKey);
+      if (rafId !== 0) window.cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [isPlacingMinion]);
 
   const handleConcede = useCallback(() => {
     if (matchState.phase === 'GAME_OVER') return;
@@ -1909,40 +2040,27 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }, 1500);
   };
 
-  // Compute live Targeting Arrow source coordinates
-  const targetingArrow = useMemo(() => {
-    if (!selection) return null;
-    const needsArrow =
-      (selection.kind === 'HAND_CARD' && selection.needsTarget) ||
-      selection.kind === 'CHOOSE_OPTION_TARGET' ||
-      selection.kind === 'HERO_POWER' ||
-      selection.kind === 'ATTACKER';
-    if (!needsArrow) return null;
+  const handleEntityClickRef = useRef(handleEntityClick);
+  handleEntityClickRef.current = handleEntityClick;
+  const handlePlayerHeroPowerRef = useRef(handlePlayerHeroPower);
+  handlePlayerHeroPowerRef.current = handlePlayerHeroPower;
 
-    const { width: stageW, height: stageH } = getStageSize();
-    let sx = stageW * 0.5;
-    let sy = stageH * 0.82;
-    if (selection.kind === 'ATTACKER') {
-      const el = document.querySelector(`[data-hs-entity="${selection.attackerId}"]`);
-      if (el) {
-        const c = elementCenterInStage(el);
-        sx = c.x;
-        sy = c.y;
-      }
-    } else if (selection.kind === 'HERO_POWER') {
-      sx = stageW * 0.58;
-      sy = stageH * 0.77;
-    } else if (selection.kind === 'HAND_CARD') {
-      const el = document.querySelector(`[data-hand-uid="${selection.handUid}"]`);
-      if (el) {
-        const r = el.getBoundingClientRect();
-        const pt = clientToStagePoint(r.left + r.width / 2, r.top + 24);
-        sx = pt.x;
-        sy = pt.y;
-      }
-    }
-    return { sx, sy, ex: pointerPos.x, ey: pointerPos.y };
-  }, [selection, pointerPos]);
+  const handleMinionSelectCb = useCallback((uid: string, isFriendly: boolean) => {
+    handleEntityClickRef.current(uid, isFriendly);
+  }, []);
+  const handleMinionHoverCb = useCallback((minion: MinionInstance, hov: boolean) => {
+    setHoveredBoardMinion((prev) => (hov ? minion : prev?.uid === minion.uid ? null : prev));
+  }, []);
+  const handleOpponentHeroClickCb = useCallback(() => {
+    handleEntityClickRef.current('OPPONENT_HERO', false);
+  }, []);
+  const handlePlayerHeroClickCb = useCallback(() => {
+    handleEntityClickRef.current('PLAYER_HERO', true);
+  }, []);
+  const handlePlayerHeroPowerCb = useCallback(() => {
+    handlePlayerHeroPowerRef.current();
+  }, []);
+  const noopHeroPowerCb = useCallback(() => {}, []);
 
   const activeValidTargetSet = useMemo(() => {
     if (!selection) return new Set<string>();
@@ -1952,7 +2070,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const isPlayerTurn = matchState.phase === 'PLAYING' && matchState.activeSide === 'PLAYER';
   const noMovesLeft = isPlayerTurn && !engine.hasAnyAvailableMove('PLAYER');
-  const cornerToys = BOARD_CORNER_TOYS[matchState.boardTheme];
+  const cornerToys = BOARD_CORNER_TOYS[matchState.boardTheme] ?? BOARD_CORNER_TOYS.STORMWIND;
 
   const buildMinionStatusPills = (m: MinionInstance): string[] => {
     const pills: string[] = [];
@@ -2292,7 +2410,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }}
       style={
         {
-          backgroundImage: `url(${BOARD_BG_URL[matchState.boardTheme]})`,
+          backgroundImage: `url(${BOARD_BG_URL[matchState.boardTheme] ?? BOARD_BG_URL.STORMWIND})`,
           '--hs-shake-x': `${shakeState.ampX}px`,
           '--hs-shake-y': `${shakeState.ampY}px`,
           '--hs-shake-dur': `${shakeState.durationMs}ms`,
@@ -2363,53 +2481,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         </div>
       )}
 
-      {/* Curved Red Targeting Bezier Arrow + Crosshair Reticle */}
-      {targetingArrow && (
-        <svg className="pointer-events-none absolute inset-0 z-[75] h-full w-full">
-          <defs>
-            <filter id="hsArrowGlow">
-              <feGaussianBlur stdDeviation="3.5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <path
-            d={`M ${targetingArrow.sx} ${targetingArrow.sy} Q ${(targetingArrow.sx + targetingArrow.ex) / 2} ${Math.min(targetingArrow.sy, targetingArrow.ey) - 85} ${targetingArrow.ex} ${targetingArrow.ey}`}
-            fill="none"
-            stroke="#ef4444"
-            strokeWidth={9}
-            strokeDasharray="18 10"
-            strokeLinecap="round"
-            filter="url(#hsArrowGlow)"
-          />
-          <circle
-            cx={targetingArrow.ex}
-            cy={targetingArrow.ey}
-            r={22}
-            fill="rgba(239,68,68,0.22)"
-            stroke="#fecaca"
-            strokeWidth={3.5}
-          />
-          <line
-            x1={targetingArrow.ex - 28}
-            y1={targetingArrow.ey}
-            x2={targetingArrow.ex + 28}
-            y2={targetingArrow.ey}
-            stroke="#ef4444"
-            strokeWidth={3}
-          />
-          <line
-            x1={targetingArrow.ex}
-            y1={targetingArrow.ey - 28}
-            x2={targetingArrow.ex}
-            y2={targetingArrow.ey + 28}
-            stroke="#ef4444"
-            strokeWidth={3}
-          />
-        </svg>
-      )}
+      {/* Curved Red Targeting Bezier Arrow + Crosshair Reticle (Isolated RAF-throttled Overlay) */}
+      <TargetingArrowOverlay selection={selection} />
 
       {/* ==================== ORIGINAL HEARTHSTONE PHYSICAL CARD LUNGE / SLAM COMBAT LAYER ==================== */}
       {attackAnim &&
@@ -2959,8 +3032,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             canUseHeroPower={false}
             isHeroPowerSelected={false}
             emoteBubbleText={opponentEmoteText}
-            onClickHero={() => handleEntityClick('OPPONENT_HERO', false)}
-            onClickHeroPower={() => {}}
+            onClickHero={handleOpponentHeroClickCb}
+            onClickHeroPower={noopHeroPowerCb}
           />
         </div>
       </header>
@@ -3097,15 +3170,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             <BoardMinionToken
               key={m.uid}
               minion={m}
+              isFriendly={false}
               canAttack={false}
               isSelectedAttacker={false}
               isValidTarget={activeValidTargetSet.has(m.uid)}
               isAttackingHidden={attackAnim?.attackerId === m.uid}
               isIncomingAttackTarget={attackAnim?.defenderId === m.uid}
-              onSelect={() => handleEntityClick(m.uid, false)}
-              onHoverChange={(hov) =>
-                setHoveredBoardMinion((prev) => (hov ? m : prev?.uid === m.uid ? null : prev))
-              }
+              onSelectEntity={handleMinionSelectCb}
+              onHoverMinion={handleMinionHoverCb}
             />
           ))}
           {matchState.opponent.board.length === 0 && (
@@ -3235,6 +3307,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 )}
               <BoardMinionToken
                 minion={m}
+                isFriendly
                 canAttack={isPlayerTurn && !attackAnim && engine.canAttackerSwing('PLAYER', m.uid).ok}
                 isSelectedAttacker={
                   selection?.kind === 'ATTACKER' && selection.attackerId === m.uid
@@ -3242,10 +3315,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 isValidTarget={activeValidTargetSet.has(m.uid)}
                 isAttackingHidden={attackAnim?.attackerId === m.uid}
                 isIncomingAttackTarget={attackAnim?.defenderId === m.uid}
-                onSelect={() => handleEntityClick(m.uid, true)}
-                onHoverChange={(hov) =>
-                setHoveredBoardMinion((prev) => (hov ? m : prev?.uid === m.uid ? null : prev))
-              }
+                onSelectEntity={handleMinionSelectCb}
+                onHoverMinion={handleMinionHoverCb}
               />
             </React.Fragment>
           ))}
@@ -3315,8 +3386,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               canUseHeroPower={isPlayerTurn && !attackAnim && engine.inspectHeroPower('PLAYER').canUse}
               isHeroPowerSelected={selection?.kind === 'HERO_POWER'}
               emoteBubbleText={playerEmoteText}
-              onClickHero={() => handleEntityClick('PLAYER_HERO', true)}
-              onClickHeroPower={handlePlayerHeroPower}
+              onClickHero={handlePlayerHeroClickCb}
+              onClickHeroPower={handlePlayerHeroPowerCb}
             />
 
             {/* 6-Petal Korean Emote Radial Menu */}
@@ -3389,7 +3460,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       ? 'translateY(-18px) scale(1.08)'
                       : `translateY(${liftY}px) rotate(${angle}deg)`,
                   }}
-                  className={`transition-all duration-150 ${
+                  className={`transition-transform duration-150 ${
                     isSelectedCard
                       ? 'z-50'
                       : 'hover:z-50 sm:hover:-translate-y-7 sm:hover:rotate-0 sm:hover:scale-110'
@@ -3486,7 +3557,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {mobileHistoryOpen && (
         <div
           onClick={() => setMobileHistoryOpen(false)}
-          className="fixed inset-0 z-[105] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm sm:hidden"
+          className="fixed inset-0 z-[105] flex items-center justify-center bg-black/88 p-4 sm:hidden"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -3705,7 +3776,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               : (matchState.opponent.heroNameKo || oHeroInfo.name);
 
           return (
-            <div className="absolute inset-0 z-[92] flex flex-col items-center justify-center bg-black/84 px-3 backdrop-blur-sm">
+            <div className="absolute inset-0 z-[92] flex flex-col items-center justify-center bg-black/88 px-3">
               <div className="flex items-center gap-3 sm:gap-14">
                 <div className="flex flex-col items-center text-center">
                   <div
@@ -3776,7 +3847,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* 2. Mulligan (시작 손패 교체) Overlay — Tap Card to Enlarge & Toggle Replace! */}
       {storyPhase === 'CLOSED' && !vsIntroActive && matchState.phase === 'MULLIGAN' && (
-        <div className="absolute inset-0 z-[88] flex flex-col items-center justify-center overflow-y-auto bg-black/82 p-3 text-center backdrop-blur-sm sm:p-4">
+        <div className="absolute inset-0 z-[88] flex flex-col items-center justify-center overflow-y-auto bg-black/88 p-3 text-center sm:p-4">
           <h2 className="hs-title hs-outline text-xl font-extrabold text-amber-200 sm:text-3xl">
             {tr('시작 카드 선택', 'Starting Hand')} (
             {matchState.firstPlayer === 'PLAYER'
@@ -3820,7 +3891,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     size={isCompactMobile ? 'XS' : 'MD'}
                   />
                   {marked && (
-                    <div className="absolute inset-x-2 inset-y-2.5 z-40 flex flex-col items-center justify-center rounded-2xl border-2 border-red-400/75 bg-red-950/75 backdrop-blur-[1px]">
+                    <div className="absolute inset-x-2 inset-y-2.5 z-40 flex flex-col items-center justify-center rounded-2xl border-2 border-red-400/75 bg-red-950/84">
                       <span className="hs-outline text-4xl font-black text-red-400 sm:text-6xl">✕</span>
                       <span className="mt-0.5 rounded-md border border-red-300/60 bg-red-900 px-2 py-0.5 text-[10px] font-extrabold text-white sm:text-xs">
                         {tr('교체 예정', 'Replacing')}
@@ -3881,7 +3952,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* 3. Choose One (선택) Modal — Tap Option Card to Enlarge & Confirm! */}
       {matchState.chooseOnePrompt && (
-        <div className="absolute inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/82 p-3 text-center backdrop-blur-sm sm:p-4">
+        <div className="absolute inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/88 p-3 text-center sm:p-4">
           <h3 className="hs-title hs-outline mb-3 text-xl font-extrabold text-amber-200 sm:mb-4 sm:text-2xl">
             {tr('운명의 선택 — 카드를 터치해 확대 후 선택하세요', 'Choose One — Tap a card to inspect and choose')}
           </h3>
@@ -3915,7 +3986,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* 4. Tracking (정찰 추적) 3-Card Picker Modal — Tap Card to Enlarge & Pick! */}
       {matchState.trackingPrompt && (
-        <div className="absolute inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/82 p-3 text-center backdrop-blur-sm sm:p-4">
+        <div className="absolute inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/88 p-3 text-center sm:p-4">
           <h3 className="hs-title hs-outline mb-1.5 text-xl font-extrabold text-emerald-300 sm:mb-2 sm:text-2xl">
             {tr('정찰 추적 — 카드를 터치해 확대 후 1장을 가져오세요',
               'Tracking — Tap a card to inspect and draw 1',
@@ -3944,7 +4015,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* 5. Victory / Defeat Heraldry Banner, 3s Auto-Advance & Defeat Pack Purchase -> 5-Card Open -> Auto-Retry Loop */}
       {matchState.phase === 'GAME_OVER' && (
-        <div className="absolute inset-0 z-[94] flex items-center justify-center overflow-y-auto bg-black/84 p-3 backdrop-blur-md sm:p-4">
+        <div className="absolute inset-0 z-[94] flex items-center justify-center overflow-y-auto bg-black/88 p-3 sm:p-4">
           {defeatPackResult ? (
             <div
               data-testid="defeat-pack-reinforcement-modal"

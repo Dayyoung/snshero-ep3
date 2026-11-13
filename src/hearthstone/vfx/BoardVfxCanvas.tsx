@@ -70,7 +70,15 @@ function getEntityCenter(entityId?: string): { x: number; y: number } {
   return { x: w * 0.5, y: h * 0.46 };
 }
 
-const MAX_ACTIVE_PARTICLES = 60;
+function detectLowPowerDevice(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  const cores = navigator.hardwareConcurrency || 4;
+  const mem = (navigator as { deviceMemory?: number }).deviceMemory ?? 8;
+  return cores <= 4 || mem <= 4 || window.innerWidth < 640;
+}
+
+const LOW_POWER_DEVICE = detectLowPowerDevice();
+const MAX_ACTIVE_PARTICLES = LOW_POWER_DEVICE ? 34 : 60;
 // Pre-calculated 8-point blood splat polygon vertices for zero-trig damage pop render
 const DAMAGE_SPLAT_OCTAGON = [
   { x: 26, y: 0 },
@@ -83,7 +91,7 @@ const DAMAGE_SPLAT_OCTAGON = [
   { x: 12, y: -12 },
 ];
 
-export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamageImpact }) => {
+export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ events, onDamageImpact }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const seenIdsRef = useRef<Set<string>>(new Set());
   const particlesRef = useRef<Particle[]>([]);
@@ -107,7 +115,8 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
   ) => {
     const curLen = particlesRef.current.length;
     if (curLen >= MAX_ACTIVE_PARTICLES) return;
-    const allowed = Math.min(count, MAX_ACTIVE_PARTICLES - curLen);
+    const scaled = LOW_POWER_DEVICE ? Math.max(4, Math.round(count * 0.6)) : count;
+    const allowed = Math.min(scaled, MAX_ACTIVE_PARTICLES - curLen);
 
     for (let i = 0; i < allowed; i++) {
       const angle = Math.random() * Math.PI * 2;
@@ -516,20 +525,26 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const stageSizeRef = { width: 1280, height: 720 };
     const syncSize = () => {
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const lowPower = detectLowPowerDevice();
+      const maxDpr = lowPower ? 1.25 : 1.75;
+      const dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
       const { width, height } = getStageSize();
+      stageSizeRef.width = width;
+      stageSizeRef.height = height;
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     syncSize();
     window.addEventListener('resize', syncSize);
+    window.addEventListener('orientationchange', syncSize);
 
     let frameTick = 0;
     const render = () => {
       frameTick += 1;
-      const { width, height } = getStageSize();
+      const { width, height } = stageSizeRef;
 
       // Check if all queues are empty => clear & go to IDLE (0% CPU/GPU)
       if (
@@ -544,7 +559,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Update & Draw Projectiles
+      // 1. Update & Draw Projectiles (zero-allocation layered discs instead of per-frame RadialGradient)
       const nextProj: Projectile[] = [];
       for (const pr of projectilesRef.current) {
         pr.t = Math.min(1, pr.t + pr.speed);
@@ -553,8 +568,9 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
         const cx = pr.x0 + (pr.x1 - pr.x0) * pr.t;
         const cy = pr.y0 + (pr.y1 - pr.y0) * pr.t + arc;
 
-        // Spawn trail particle (every 2 frames to halve draw-calls)
-        if (frameTick % 2 === 0 && particlesRef.current.length < MAX_ACTIVE_PARTICLES) {
+        // Spawn trail particle (throttled every 2-3 frames to slash draw calls on low-end GPUs)
+        const trailStep = LOW_POWER_DEVICE ? 3 : 2;
+        if (frameTick % trailStep === 0 && particlesRef.current.length < MAX_ACTIVE_PARTICLES) {
           particlesRef.current.push({
             x: cx + (Math.random() * 6 - 3),
             y: cy + (Math.random() * 6 - 3),
@@ -569,16 +585,18 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
           });
         }
 
-        ctx.save();
-        const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, pr.radius * 1.9);
-        grad.addColorStop(0, pr.colorCore);
-        grad.addColorStop(0.45, pr.colorGlow);
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = grad;
+        ctx.globalAlpha = 0.36;
+        ctx.fillStyle = pr.colorGlow;
         ctx.beginPath();
-        ctx.arc(cx, cy, pr.radius * 1.9, 0, Math.PI * 2);
+        ctx.arc(cx, cy, pr.radius * 1.85, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
+
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = pr.colorCore;
+        ctx.beginPath();
+        ctx.arc(cx, cy, pr.radius * 0.85, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
 
         if (pr.t >= 1) {
           const pDmg = pr.kind === 'FIREBALL' ? 6 : pr.kind === 'SHADOW_BOLT' ? 4 : 3;
@@ -748,4 +766,4 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
       className="pointer-events-none absolute inset-0 z-[70] h-full w-full"
     />
   );
-};
+});

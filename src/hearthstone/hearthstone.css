@@ -132,45 +132,33 @@
 }
 
 .hs-card-shadow-base {
-  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.82));
+  contain: layout style;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.72));
 }
 
 .hs-card-glow-green {
-  filter:
-    drop-shadow(0 0 3px #86efac)
-    drop-shadow(0 0 8px #22c55e)
-    drop-shadow(0 0 15px rgba(34, 197, 94, 0.88))
-    drop-shadow(0 10px 14px rgba(0, 0, 0, 0.78));
+  contain: layout style;
+  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.92));
 }
 
 .hs-card-glow-combo {
-  filter:
-    drop-shadow(0 0 3px #fef08a)
-    drop-shadow(0 0 9px #eab308)
-    drop-shadow(0 0 18px rgba(250, 204, 21, 0.92))
-    drop-shadow(0 10px 14px rgba(0, 0, 0, 0.78));
+  contain: layout style;
+  filter: drop-shadow(0 0 9px rgba(250, 204, 21, 0.94));
 }
 
 .hs-card-glow-rare {
-  filter:
-    drop-shadow(0 0 5px #60a5fa)
-    drop-shadow(0 0 16px rgba(37, 99, 235, 0.95))
-    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.85));
+  contain: layout style;
+  filter: drop-shadow(0 0 9px rgba(37, 99, 235, 0.92));
 }
 
 .hs-card-glow-epic {
-  filter:
-    drop-shadow(0 0 6px #e879f9)
-    drop-shadow(0 0 18px rgba(168, 85, 247, 0.98))
-    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.85));
+  contain: layout style;
+  filter: drop-shadow(0 0 9px rgba(168, 85, 247, 0.94));
 }
 
 .hs-card-glow-legendary {
-  filter:
-    drop-shadow(0 0 6px #fde047)
-    drop-shadow(0 0 20px rgba(249, 115, 22, 1))
-    drop-shadow(0 0 34px rgba(234, 179, 8, 0.85))
-    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.85));
+  contain: layout style;
+  filter: drop-shadow(0 0 11px rgba(245, 158, 11, 0.96));
 }
 
 @keyframes hsEmberRise {

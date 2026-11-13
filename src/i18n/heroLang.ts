@@ -75,8 +75,29 @@ export function t(en: string, ko: string): string {
   return getCurrentLanguage() === 'ko' ? ko : en;
 }
 
+const langListeners = new Set<(lang: HeroLanguage) => void>();
+let globalLangListenerAttached = false;
+
+function ensureGlobalLangListener(): void {
+  if (globalLangListenerAttached || typeof window === 'undefined') return;
+  globalLangListenerAttached = true;
+  const notifyAll = (explicit?: HeroLanguage) => {
+    const resolved = explicit === 'ko' || explicit === 'en' ? explicit : getCurrentLanguage();
+    langListeners.forEach((cb) => cb(resolved));
+  };
+  window.addEventListener(HERO_LANG_EVENT, (e: Event) => {
+    notifyAll((e as CustomEvent<HeroLanguage>).detail);
+  });
+  window.addEventListener('storage', (e: StorageEvent) => {
+    if (e.key === HERO_LANG_STORAGE_KEY) {
+      notifyAll();
+    }
+  });
+}
+
 /**
  * React hook that subscribes to language changes from OptionsModal, Promo footer, or storage.
+ * Uses a single module-level window listener so card-heavy screens avoid N*2 listener churn.
  */
 export function useHeroLanguage(): {
   lang: HeroLanguage;
@@ -91,24 +112,10 @@ export function useHeroLanguage(): {
     if (typeof document !== 'undefined' && document.documentElement) {
       document.documentElement.lang = getCurrentLanguage();
     }
-    const onCustom = (e: Event) => {
-      const detail = (e as CustomEvent<HeroLanguage>).detail;
-      if (detail === 'ko' || detail === 'en') {
-        setLangState(detail);
-      } else {
-        setLangState(getCurrentLanguage());
-      }
-    };
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === HERO_LANG_STORAGE_KEY) {
-        setLangState(getCurrentLanguage());
-      }
-    };
-    window.addEventListener(HERO_LANG_EVENT, onCustom);
-    window.addEventListener('storage', onStorage);
+    ensureGlobalLangListener();
+    langListeners.add(setLangState);
     return () => {
-      window.removeEventListener(HERO_LANG_EVENT, onCustom);
-      window.removeEventListener('storage', onStorage);
+      langListeners.delete(setLangState);
     };
   }, []);
 

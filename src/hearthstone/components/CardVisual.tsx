@@ -744,12 +744,13 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             src={portraitSrc}
             alt={card.name}
             draggable={false}
+            decoding="async"
             onError={() => {
               if (!useBustFallback) setUseBustFallback(true);
             }}
             className={
               isCutoutArt
-                ? 'absolute left-1/2 top-[3%] h-[156%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top drop-shadow-[0_8px_12px_rgba(0,0,0,0.82)]'
+                ? 'absolute left-1/2 top-[3%] h-[156%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top'
                 : 'absolute inset-0 h-full w-full scale-[1.04] object-cover object-center'
             }
           />
@@ -1309,8 +1310,11 @@ export interface BoardMinionTokenProps {
   isValidTarget: boolean;
   isAttackingHidden?: boolean;
   isIncomingAttackTarget?: boolean;
-  onSelect: () => void;
+  isFriendly?: boolean;
+  onSelect?: () => void;
   onHoverChange?: (hovering: boolean) => void;
+  onSelectEntity?: (uid: string, isFriendly: boolean) => void;
+  onHoverMinion?: (minion: MinionInstance, hovering: boolean) => void;
 }
 
 export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
@@ -1320,19 +1324,27 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
   isValidTarget,
   isAttackingHidden = false,
   isIncomingAttackTarget = false,
+  isFriendly = false,
   onSelect,
   onHoverChange,
+  onSelectEntity,
+  onHoverMinion,
 }) => {
   const { lang } = useHeroLanguage();
   const [imgErr, setImgErr] = useState(false);
   const isHoveredRef = useRef(false);
   const onHoverChangeRef = useRef(onHoverChange);
   onHoverChangeRef.current = onHoverChange;
+  const onHoverMinionRef = useRef(onHoverMinion);
+  onHoverMinionRef.current = onHoverMinion;
+  const latestMinionRef = useRef(minion);
+  latestMinionRef.current = minion;
 
   useEffect(() => {
     if (isAttackingHidden && isHoveredRef.current) {
       isHoveredRef.current = false;
       onHoverChangeRef.current?.(false);
+      onHoverMinionRef.current?.(latestMinionRef.current, false);
     }
   }, [isAttackingHidden]);
 
@@ -1341,6 +1353,7 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
       if (isHoveredRef.current) {
         isHoveredRef.current = false;
         onHoverChangeRef.current?.(false);
+        onHoverMinionRef.current?.(latestMinionRef.current, false);
       }
     };
   }, []);
@@ -1383,17 +1396,20 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
       data-hs-entity={minion.uid}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect();
+        if (onSelectEntity) onSelectEntity(minion.uid, isFriendly);
+        else onSelect?.();
       }}
       onPointerEnter={(e) => {
         if (e.pointerType !== 'mouse' || isAttackingHidden) return;
         isHoveredRef.current = true;
+        onHoverMinion?.(minion, true);
         onHoverChange?.(true);
       }}
       onPointerLeave={(e) => {
         if (e.pointerType !== 'mouse') return;
         if (isHoveredRef.current) {
           isHoveredRef.current = false;
+          onHoverMinion?.(minion, false);
           onHoverChange?.(false);
         }
       }}
@@ -1409,27 +1425,27 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
     >
       {/* Sculpted Taunt Shield Frame */}
       {isTaunt && (
-        <SnsTauntShieldSvg className="absolute -inset-1.5 z-0 h-[calc(100%+12px)] w-[calc(100%+12px)] drop-shadow-[0_6px_12px_rgba(0,0,0,0.92)] sm:-inset-2.5 sm:h-[calc(100%+20px)] sm:w-[calc(100%+20px)]" />
+        <SnsTauntShieldSvg className="absolute -inset-1.5 z-0 h-[calc(100%+12px)] w-[calc(100%+12px)] sm:-inset-2.5 sm:h-[calc(100%+20px)] sm:w-[calc(100%+20px)]" />
       )}
 
       {/* Ready-to-Attack / Valid Target / Incoming Attack Lock Aura */}
       {(canAttack || isValidTarget || isSelectedAttacker || isIncomingAttackTarget) && (
         <div
-          className={`pointer-events-none absolute -inset-0.5 z-0 rounded-[50%] transition-all sm:-inset-1 ${
+          className={`pointer-events-none absolute -inset-0.5 z-0 rounded-[50%] sm:-inset-1 ${
             isIncomingAttackTarget
-              ? 'shadow-[0_0_0_3.5px_#f97316,0_0_24px_8px_rgba(239,68,68,0.98)] sm:shadow-[0_0_0_4.5px_#f97316,0_0_30px_10px_rgba(239,68,68,0.98)]'
+              ? 'shadow-[0_0_0_3.5px_#f97316,0_0_16px_4px_rgba(239,68,68,0.92)] sm:shadow-[0_0_0_4.5px_#f97316,0_0_20px_6px_rgba(239,68,68,0.92)]'
               : isSelectedAttacker
-                ? 'shadow-[0_0_0_3px_#fde047,0_0_18px_5px_rgba(250,204,21,0.95)] sm:shadow-[0_0_0_4px_#fde047,0_0_26px_8px_rgba(250,204,21,0.95)]'
+                ? 'shadow-[0_0_0_3px_#fde047,0_0_14px_4px_rgba(250,204,21,0.92)] sm:shadow-[0_0_0_4px_#fde047,0_0_18px_5px_rgba(250,204,21,0.92)]'
                 : isValidTarget
-                  ? 'animate-pulse shadow-[0_0_0_3px_#ef4444,0_0_18px_5px_rgba(239,68,68,0.92)] sm:shadow-[0_0_0_4px_#ef4444,0_0_24px_7px_rgba(239,68,68,0.92)]'
-                  : 'shadow-[0_0_0_2.5px_#4ade80,0_0_14px_4px_rgba(34,197,94,0.88)] sm:shadow-[0_0_0_3.5px_#4ade80,0_0_20px_6px_rgba(34,197,94,0.88)]'
+                  ? 'shadow-[0_0_0_3px_#ef4444,0_0_14px_4px_rgba(239,68,68,0.88)] sm:shadow-[0_0_0_4px_#ef4444,0_0_18px_5px_rgba(239,68,68,0.88)]'
+                  : 'shadow-[0_0_0_2.5px_#4ade80,0_0_12px_3px_rgba(34,197,94,0.85)] sm:shadow-[0_0_0_3.5px_#4ade80,0_0_15px_4px_rgba(34,197,94,0.85)]'
           }`}
         />
       )}
 
       {/* Sculpted Legendary Crown Crest */}
       {minion.rarity === 'LEGENDARY' && (
-        <SnsLegendaryCrestSvg className="absolute -top-2.5 left-1/2 z-30 w-[108%] -translate-x-1/2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] sm:-top-4" />
+        <SnsLegendaryCrestSvg className="absolute -top-2.5 left-1/2 z-30 w-[108%] -translate-x-1/2 sm:-top-4" />
       )}
 
       {/* Oval Portrait + Atmospheric Faction Sky + Character Portrait */}
@@ -1437,7 +1453,7 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
         style={{
           background: `radial-gradient(circle at 50% 35%, ${pal.halo} 0%, ${pal.skyMid} 55%, ${pal.skyBot} 100%)`,
         }}
-        className={`relative z-10 h-[58px] w-[43px] overflow-hidden rounded-[50%] border-[2.5px] shadow-[0_8px_16px_rgba(0,0,0,0.88),inset_0_0_10px_rgba(0,0,0,0.85)] sm:h-[106px] sm:w-[84px] sm:border-[4px] ${
+        className={`relative z-10 h-[58px] w-[43px] overflow-hidden rounded-[50%] border-[2.5px] shadow-[0_6px_12px_rgba(0,0,0,0.85)] sm:h-[106px] sm:w-[84px] sm:border-[4px] ${
           minion.frozen
             ? 'border-cyan-200 ring-2 ring-sky-400/75 sm:ring-4'
             : isTaunt
@@ -1449,10 +1465,11 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
           <img
             src={artSrc}
             alt={minion.name}
+            decoding="async"
             onError={() => setImgErr(true)}
             className={`${
               isCutoutArt
-                ? 'absolute left-1/2 top-[3%] h-[155%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top drop-shadow-[0_4px_6px_rgba(0,0,0,0.75)]'
+                ? 'absolute left-1/2 top-[3%] h-[155%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top'
                 : 'absolute inset-0 h-full w-full scale-[1.06] object-cover object-center'
             } ${minion.stealth ? 'brightness-50 contrast-125 saturate-50' : ''}`}
           />
@@ -1486,7 +1503,7 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
 
         {minion.silenced && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-purple-950/25">
-            <svg viewBox="0 0 48 48" className="h-7 w-7 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] sm:h-12 sm:w-12">
+            <svg viewBox="0 0 48 48" className="h-7 w-7 sm:h-12 sm:w-12">
               <circle cx="24" cy="24" r="18" fill="none" stroke="#e879f9" strokeWidth="3.2" strokeDasharray="5 3" />
               <line x1="11" y1="11" x2="37" y2="37" stroke="#f0abfc" strokeWidth="4" strokeLinecap="round" />
               <line x1="37" y1="11" x2="11" y2="37" stroke="#f0abfc" strokeWidth="4" strokeLinecap="round" />
@@ -1497,11 +1514,11 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
 
       {/* Divine Shield Golden Barrier Dome */}
       {minion.divineShield && (
-        <SnsDivineBarrierSvg className="absolute -inset-1 z-20 h-[calc(100%+8px)] w-[calc(100%+8px)] drop-shadow-[0_0_14px_rgba(250,204,21,0.9)] sm:-inset-2 sm:h-[calc(100%+16px)] sm:w-[calc(100%+16px)]" />
+        <SnsDivineBarrierSvg className="absolute -inset-1 z-20 h-[calc(100%+8px)] w-[calc(100%+8px)] sm:-inset-2 sm:h-[calc(100%+16px)] sm:w-[calc(100%+16px)]" />
       )}
 
       {showSleepZzz && (
-        <div className="hs-num pointer-events-none absolute -right-1 -top-1.5 z-30 animate-bounce text-[9px] text-sky-200 sm:-top-2 sm:text-xs">
+        <div className="hs-num pointer-events-none absolute -right-1 -top-1.5 z-30 text-[9px] text-sky-200 sm:-top-2 sm:text-xs">
           Zzz
         </div>
       )}
@@ -1717,12 +1734,12 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
           <div
             className={`pointer-events-none absolute -inset-1 rounded-t-[44px] rounded-b-[10px] sm:-inset-1.5 sm:rounded-t-[58px] sm:rounded-b-[14px] ${
               isIncomingAttackTarget
-                ? 'shadow-[0_0_0_3.5px_#f97316,0_0_24px_8px_rgba(239,68,68,0.98)] sm:shadow-[0_0_0_4.5px_#f97316,0_0_30px_10px_rgba(239,68,68,0.98)]'
+                ? 'shadow-[0_0_0_3.5px_#f97316,0_0_18px_5px_rgba(239,68,68,0.92)] sm:shadow-[0_0_0_4.5px_#f97316,0_0_22px_6px_rgba(239,68,68,0.92)]'
                 : isHeroSelectedAttacker
-                  ? 'shadow-[0_0_0_3px_#fde047,0_0_20px_5px_rgba(250,204,21,0.92)] sm:shadow-[0_0_0_4px_#fde047,0_0_26px_7px_rgba(250,204,21,0.92)]'
+                  ? 'shadow-[0_0_0_3px_#fde047,0_0_15px_4px_rgba(250,204,21,0.9)] sm:shadow-[0_0_0_4px_#fde047,0_0_20px_5px_rgba(250,204,21,0.9)]'
                   : isHeroValidTarget
-                    ? 'animate-pulse shadow-[0_0_0_3px_#ef4444,0_0_20px_5px_rgba(239,68,68,0.92)] sm:shadow-[0_0_0_4px_#ef4444,0_0_24px_7px_rgba(239,68,68,0.92)]'
-                    : 'shadow-[0_0_0_3px_#4ade80,0_0_16px_4px_rgba(34,197,94,0.88)] sm:shadow-[0_0_0_3.5px_#4ade80,0_0_18px_5px_rgba(34,197,94,0.88)]'
+                    ? 'shadow-[0_0_0_3px_#ef4444,0_0_15px_4px_rgba(239,68,68,0.88)] sm:shadow-[0_0_0_4px_#ef4444,0_0_20px_5px_rgba(239,68,68,0.88)]'
+                    : 'shadow-[0_0_0_3px_#4ade80,0_0_12px_3px_rgba(34,197,94,0.85)] sm:shadow-[0_0_0_3.5px_#4ade80,0_0_14px_4px_rgba(34,197,94,0.85)]'
             }`}
           />
         )}
@@ -1734,7 +1751,7 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
               ? customHero.frameGradient
               : `radial-gradient(circle at 50% 34%, ${pal.halo} 0%, ${pal.skyMid} 58%, ${pal.skyBot} 100%)`,
           }}
-          className={`relative h-full w-full overflow-hidden rounded-t-[44px] rounded-b-[10px] border-[3px] shadow-[0_10px_24px_rgba(0,0,0,0.92),inset_0_0_14px_rgba(0,0,0,0.85)] sm:rounded-t-[58px] sm:rounded-b-[14px] sm:border-[4.5px] ${
+          className={`relative h-full w-full overflow-hidden rounded-t-[44px] rounded-b-[10px] border-[3px] shadow-[0_8px_16px_rgba(0,0,0,0.88)] sm:rounded-t-[58px] sm:rounded-b-[14px] sm:border-[4.5px] ${
             player.immuneThisTurn
               ? 'border-yellow-200 ring-2 ring-amber-300 sm:ring-4'
               : player.frozen
@@ -1745,9 +1762,10 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
           <img
             src={heroPortraitSrc}
             alt={heroDisplayName}
+            decoding="async"
             className={
               isHeroCutout
-                ? 'absolute left-1/2 top-[2%] h-[154%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top drop-shadow-[0_6px_10px_rgba(0,0,0,0.8)]'
+                ? 'absolute left-1/2 top-[2%] h-[154%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top'
                 : 'absolute inset-0 h-full w-full scale-[1.05] object-cover object-center'
             }
           />
