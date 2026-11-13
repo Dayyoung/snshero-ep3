@@ -1248,6 +1248,7 @@ export function applyEnEpisodeLocalization(
       titleKo: 'Scarecrow Bot Combat Drill',
       titleEn: 'Scarecrow Bot Combat Drill',
       locationKo: 'Elwin Village Training Grounds',
+      coverIllustrationUrl: '/hs-assets/tutorial/ep0_slide_1_en.webp',
       oneLineKo:
         'A hands-on tutorial against a 10-HP Scarecrow Bot to master Minions, Spells, Weapons, and Hero Powers!',
       prevContextKo:
@@ -1272,6 +1273,7 @@ export function applyEnEpisodeLocalization(
         const enSc = EP0_SCENES_EN[idx];
         return {
           ...sc,
+          illustrationUrl: sc.illustrationUrl.replace(/(\.webp)$/, '_en$1'),
           stageLabel: enSc?.stageLabel || sc.stageLabel,
           shortCaption: enSc?.shortCaption || sc.shortCaption,
           shortQuote: enSc?.shortQuote || sc.shortQuote,

@@ -2,6 +2,18 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-13 15:19 KST] [에피소드 0 튜토리얼 웹툰 영문 전용 슬라이드 5종 제작 및 EN/KO 분기 연동 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 영문 UI 기반 실게임 스크린샷 촬영 및 영문 튜토리얼 슬라이드 5종(`ep0_slide_1~5_en.webp`) 제작**:
+    - `locale="en-US"` 실제 `/game.html` 화면(성소 로비·카드첩 382종·카드 확대·멀리건·실시간 전장·빠른 규칙 모달) 6종 캡처.
+    - 1280×720 영문 튜토리얼 웹툰 슬라이드 [`public/hs-assets/tutorial/ep0_slide_1_en.webp`](file:///Users/dayyoung/project/snshero/public/hs-assets/tutorial/ep0_slide_1_en.webp) ~ `ep0_slide_5_en.webp` 5컷 전수 생성 및 시각 검수 완료.
+  - **2. 에피소드 0 영문화 이미지 분기 연동 (`kadanJourneyEnData.ts`)**:
+    - [`src/hearthstone/kadanJourneyEnData.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/kadanJourneyEnData.ts)의 `applyEnEpisodeLocalization()` (`base.episode <= 0`)에서 `coverIllustrationUrl` 및 5컷 `illustrationUrl`을 `_en.webp` 영문 전용 슬라이드로 자동 매핑 (`ko` 모드는 기존 `ep0_slide_1~5.webp` 유지).
+  - **3. 빌드 및 E2E 실브라우저 검증 완료**:
+    - `npx tsc --noEmit` (신규/수정 코드 에러 0건) 및 `npm run build` 정상 통과.
+    - Playwright 실브라우저(`/game.html?mode=story`) 검증: `en-US` 모드에서 `_en.webp` (`1280×720`) 로드 및 한글 노출 `[]` 0건, `ko-KR` 모드에서 `.webp` (`1280×720`) 로드 확인.
+
 ## [2026-11-13 13:21 KST] [전 페이지 영문화·한국어 브라우저 자동 감지·설정/푸터 언어 선택기 연동 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
