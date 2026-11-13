@@ -4,7 +4,7 @@ import { hsAudio } from '../audio';
 import { SNS_LOCATIONS, getSnsLogoUrl, SnsSnowCompassSeal } from '../components/SnsHeroArtKit';
 
 export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnterHub }) => {
-  useHeroLanguage();
+  const { lang } = useHeroLanguage();
   const [opening, setOpening] = useState(false);
 
   const embers = useMemo(

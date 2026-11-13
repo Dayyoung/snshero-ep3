@@ -9,6 +9,7 @@ import {
   SNS_LOCATIONS,
   getSnsLogoUrl,
   SnsBoosterPackArt,
+  SnsQuestScrollIcon,
   SnsSnowCompassSeal,
 } from '../components/SnsHeroArtKit';
 import { getJourneyEpisodeDef } from '../kadanJourneyData';
