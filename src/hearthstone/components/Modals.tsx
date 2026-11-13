@@ -26,9 +26,11 @@ import {
   isFullscreenSupported,
   isStandalonePwa,
   promptInstallGamePwa,
+  shouldShowInstallButton,
   subscribePwaFullscreen,
   toggleBrowserFullscreen,
 } from '../pwaFullscreen';
+import { PwaInstallGuideModal } from './PwaInstallGuideModal';
 import {
   GOLD_PACK_BUNDLES,
   computeOverallStanding,
@@ -1513,6 +1515,7 @@ export const GameOptionsModal: React.FC<{
 
   const [settings, setSettings] = useState<AudioSettings>(() => hsAudio.getSettings());
   const [, setPwaTick] = useState(0);
+  const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [dataNotice, setDataNotice] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
   const vibSupport = useMemo(() => hsAudio.getVibrationSupportInfo(), []);
@@ -1524,7 +1527,7 @@ export const GameOptionsModal: React.FC<{
   const standaloneApp = isStandalonePwa();
   const fullscreenOn = isBrowserFullscreen() || standaloneApp;
   const fullscreenSupported = isFullscreenSupported();
-  const canInstallPwa = canInstallGamePwa();
+  const canInstallPwa = shouldShowInstallButton();
 
   const update = (patch: Partial<AudioSettings>) => {
     hsAudio.updateSettings(patch);
@@ -1692,15 +1695,26 @@ export const GameOptionsModal: React.FC<{
               <button
                 type="button"
                 data-testid="options-install-pwa"
-                onClick={() => {
+                onClick={async () => {
                   hsAudio.playSfx('ui_click', 0.8);
-                  promptInstallGamePwa();
+                  if (canInstallGamePwa()) {
+                    const accepted = await promptInstallGamePwa();
+                    if (!accepted) {
+                      setInstallGuideOpen(true);
+                    }
+                  } else {
+                    setInstallGuideOpen(true);
+                  }
                 }}
                 className="hs-arcane-btn min-h-[38px] shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-extrabold text-white"
               >
-                📲 {tr('앱 설치', 'Install App')}
+                📲 {tr('게임설치', 'Install Game')}
               </button>
             </div>
+          )}
+
+          {installGuideOpen && (
+            <PwaInstallGuideModal onClose={() => setInstallGuideOpen(false)} />
           )}
 
           <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">

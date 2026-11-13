@@ -110,6 +110,17 @@ export function isBrowserFullscreen(): boolean {
   return Boolean(document.fullscreenElement || doc.webkitFullscreenElement);
 }
 
+function triggerViewportRelayout() {
+  if (typeof window === 'undefined') return;
+  const fire = () => {
+    window.dispatchEvent(new Event('resize'));
+    notifyListeners();
+  };
+  window.requestAnimationFrame(fire);
+  window.setTimeout(fire, 120);
+  window.setTimeout(fire, 320);
+}
+
 export async function toggleBrowserFullscreen(): Promise<boolean> {
   if (typeof document === 'undefined') return false;
   const doc = document as FullscreenDoc;
@@ -126,7 +137,7 @@ export async function toggleBrowserFullscreen(): Promise<boolean> {
         wakeLockSentinel.release().catch(() => {});
         wakeLockSentinel = null;
       }
-      notifyListeners();
+      triggerViewportRelayout();
       return false;
     }
 
@@ -136,16 +147,32 @@ export async function toggleBrowserFullscreen(): Promise<boolean> {
       await root.webkitRequestFullscreen();
     }
     acquireWakeLockIfPossible();
-    notifyListeners();
+    triggerViewportRelayout();
     return true;
   } catch {
-    notifyListeners();
+    triggerViewportRelayout();
     return isBrowserFullscreen();
   }
 }
 
+export function getDevicePlatform(): 'ios' | 'android' | 'desktop' {
+  if (typeof navigator === 'undefined') return 'desktop';
+  const ua = navigator.userAgent || '';
+  const isIos =
+    /iPad|iPhone|iPod/i.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIos) return 'ios';
+  if (/Android/i.test(ua)) return 'android';
+  return 'desktop';
+}
+
 export function canInstallGamePwa(): boolean {
   return Boolean(deferredInstallPrompt) && !isStandalonePwa();
+}
+
+export function shouldShowInstallButton(): boolean {
+  if (isStandalonePwa()) return false;
+  return canInstallGamePwa() || !isFullscreenSupported();
 }
 
 export async function promptInstallGamePwa(): Promise<boolean> {

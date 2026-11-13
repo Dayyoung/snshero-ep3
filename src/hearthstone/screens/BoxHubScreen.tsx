@@ -5,6 +5,7 @@ import { hsAudio } from '../audio';
 import { CLASSIC_RANK_NAMES, CLASS_CREST_URL } from '../cardDb';
 import { HsArcaneDustVialIcon, HsGoldCoinIcon } from '../components/CardVisual';
 import { QuickRulesModal, hasSeenQuickRules } from '../components/OnboardingGuideModal';
+import { PwaInstallGuideModal } from '../components/PwaInstallGuideModal';
 import {
   SNS_LOCATIONS,
   getSnsLogoUrl,
@@ -19,6 +20,7 @@ import {
   isFullscreenSupported,
   isStandalonePwa,
   promptInstallGamePwa,
+  shouldShowInstallButton,
   subscribePwaFullscreen,
   toggleBrowserFullscreen,
 } from '../pwaFullscreen';
@@ -47,6 +49,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   const { lang } = useHeroLanguage();
   const [diskSpinning, setDiskSpinning] = useState(false);
   const [quickRulesOpen, setQuickRulesOpen] = useState(false);
+  const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [, setPwaTick] = useState(0);
   const isFirstVisitGuide = !profile.journeyGuideDone;
   const currentEp = getJourneyEpisodeDef(profile.journeyEpisode ?? 0, lang === 'ko');
@@ -58,7 +61,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
   const fullscreenActive = isBrowserFullscreen() || isStandalonePwa();
   const showFullscreenBtn = isFullscreenSupported() && !isStandalonePwa();
-  const showInstallBtn = canInstallGamePwa();
+  const showInstallBtn = shouldShowInstallButton();
 
   const triggerModeTransition = (mode: GameMode) => {
     if (diskSpinning) return;
@@ -141,14 +144,21 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
             <button
               type="button"
               data-testid="hub-pwa-install-btn"
-              onClick={() => {
+              onClick={async () => {
                 hsAudio.playSfx('ui_click');
-                promptInstallGamePwa();
+                if (canInstallGamePwa()) {
+                  const accepted = await promptInstallGamePwa();
+                  if (!accepted) {
+                    setInstallGuideOpen(true);
+                  }
+                } else {
+                  setInstallGuideOpen(true);
+                }
               }}
               className="hs-arcane-btn flex min-h-[42px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-white sm:px-3 sm:py-2"
             >
               <span>📲</span>
-              <span>{tr('앱 설치', 'Install App')}</span>
+              <span>{tr('게임설치', 'Install Game')}</span>
             </button>
           )}
 
@@ -493,6 +503,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
           inBattle={false}
           onClose={() => setQuickRulesOpen(false)}
         />
+      )}
+
+      {installGuideOpen && (
+        <PwaInstallGuideModal onClose={() => setInstallGuideOpen(false)} />
       )}
     </div>
   );

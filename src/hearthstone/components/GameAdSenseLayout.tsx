@@ -136,7 +136,15 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
     };
 
     const handleResize = () => {
+      syncAdSenseRatioLayout('game');
       measureViewport();
+    };
+
+    const handleFullscreenChange = () => {
+      handleResize();
+      window.requestAnimationFrame(handleResize);
+      window.setTimeout(handleResize, 120);
+      window.setTimeout(handleResize, 320);
     };
 
     let ro: ResizeObserver | null = null;
@@ -146,13 +154,19 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
     }
 
     window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
+    window.addEventListener('orientationchange', handleFullscreenChange);
+    window.visualViewport?.addEventListener('resize', handleResize);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     window.addEventListener('storage', handleAdRemovalChange);
     window.addEventListener('snshero_ad_removed_updated', handleAdRemovalChange);
     return () => {
       ro?.disconnect();
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
+      window.removeEventListener('orientationchange', handleFullscreenChange);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       window.removeEventListener('storage', handleAdRemovalChange);
       window.removeEventListener('snshero_ad_removed_updated', handleAdRemovalChange);
     };
@@ -173,7 +187,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
   return (
     <div
       ref={rootRef}
-      className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#070402] text-[#f8ebd2]"
+      className="fixed inset-0 flex h-full w-full flex-col overflow-hidden bg-[#070402] text-[#f8ebd2]"
     >
       {/* Tablet & Smartphone Top Ribbon Banner (320x50 inside 52px safe bar) */}
       {!vipAdRemoved && (
