@@ -357,7 +357,7 @@ export function protectLinksFromVignette(root?: ParentNode): void {
   } catch {}
 }
 
-let rescueButtonEl: HTMLElement | null = null;
+let rescueButtonEl: HTMLButtonElement | null = null;
 let rescueKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
 let currentFallbackView: string = 'home';
 

@@ -132,20 +132,56 @@ export const HearthstoneApp: React.FC = () => {
             setScreen('BOX_HUB');
           }
         } else {
-          // PWA App Shortcuts (`?mode=story` / `?mode=ranked` / `?mode=ai`) or standalone launch
+          // PWA App Shortcuts (`?mode=story` / `?mode=ranked` / `?mode=ai` / `?mode=pack` / `?mode=collection` / `?mode=battle`) or standalone launch
           const params = new URLSearchParams(window.location.search);
           const launchMode = params.get('mode')?.toLowerCase();
+          const decks = hsStorage.getDecks();
+          const kadanDeck = decks.find((d) => d.heroClass === 'PRIEST') || decks[0];
+
           if (launchMode === 'story') {
             hsStorage.markJourneyGuideDone();
-            const decks = hsStorage.getDecks();
-            const kadanDeck = decks.find((d) => d.heroClass === 'PRIEST') || decks[0];
             setActiveBattleParams({
               mode: 'TUTORIAL',
               deck: kadanDeck,
               preferredOpponentClass: 'ROGUE',
-              boardTheme: 'STORMWIND',
+              boardTheme: 'ELWIN_SNOW',
+              skipStoryIntro: params.get('skipIntro') === '1' || params.get('skipIntro') === 'true',
             });
             setScreen('BATTLE');
+          } else if (launchMode === 'story_battle') {
+            hsStorage.markJourneyGuideDone();
+            setActiveBattleParams({
+              mode: 'TUTORIAL',
+              deck: kadanDeck,
+              preferredOpponentClass: 'ROGUE',
+              boardTheme: 'ELWIN_SNOW',
+              skipStoryIntro: true,
+            });
+            setScreen('BATTLE');
+          } else if (launchMode === 'ranked_battle') {
+            hsStorage.markJourneyGuideDone();
+            setActiveBattleParams({
+              mode: 'RANKED',
+              deck: kadanDeck,
+              preferredOpponentClass: 'WARRIOR',
+              boardTheme: 'CRIMSON_FORGE',
+              skipStoryIntro: true,
+            });
+            setScreen('BATTLE');
+          } else if (launchMode === 'ai_battle') {
+            hsStorage.markJourneyGuideDone();
+            setActiveBattleParams({
+              mode: 'PRACTICE_NORMAL',
+              deck: kadanDeck,
+              preferredOpponentClass: 'HUNTER',
+              boardTheme: 'EMERALD_WIND',
+              skipStoryIntro: true,
+            });
+            setScreen('BATTLE');
+          } else if (launchMode === 'pack') {
+            setScreen('PACK_OPENING');
+          } else if (launchMode === 'collection') {
+            setScreen('COLLECTION');
           } else if (launchMode === 'ranked') {
             hsStorage.markJourneyGuideDone();
             setSelectedMode('RANKED');

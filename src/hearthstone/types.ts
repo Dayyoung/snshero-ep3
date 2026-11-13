@@ -19,8 +19,11 @@ export interface ClassicCardDef {
   vanId: string;
   dbfId?: number;
   name: string;
+  nameEn?: string;
   text: string;
+  textEn?: string;
   flavor?: string;
+  flavorEn?: string;
   cardClass: CardClass;
   type: CardType;
   rarity: CardRarity;
@@ -40,8 +43,10 @@ export interface ClassicCardDef {
   snsCharId?: number;
   snsCharCode?: string;
   snsCharName?: string;
+  snsCharNameEn?: string;
   snsFaction?: string;
   snsFactionKo?: string;
+  snsFactionEn?: string;
   artUrl?: string;
   bustUrl?: string;
   chibiUrl?: string;
@@ -143,7 +148,7 @@ export const CLASSIC_HEROES: Record<HeroClass, HeroDef> = {
     heroId: 'HERO_01',
     voKey: 'warrior',
     charId: 20,
-    nameKo: '이그니시우스',
+    nameKo: '이그니스',
     titleKo: '불꽃 궁정의 태양황제',
     classNameKo: '불종족',
     factionRealmKo: '불꽃 궁정',

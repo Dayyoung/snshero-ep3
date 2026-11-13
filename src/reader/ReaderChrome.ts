@@ -33,12 +33,12 @@ export function renderReaderHeader(mode: ReaderMode): string {
         <a href="/promo.html" class="flex items-center gap-2.5 group no-underline">
           <img
             src="/icon.png"
-            alt="눈히어로"
+            alt="${tr('눈히어로', 'SNSHero')}"
             class="h-9 w-9 rounded-lg border border-amber-300/60 shadow transition-transform group-hover:scale-105"
           />
           <img
             src="${SNS_LOGO_URL}"
-            alt="눈히어로 엘윈마을 카드 배틀"
+            alt="${tr('눈히어로 엘윈마을 카드 배틀', 'SNSHero Elwin Village Card Battle')}"
             class="h-8 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-9"
           />
         </a>
@@ -56,8 +56,8 @@ export function renderReaderHeader(mode: ReaderMode): string {
         <!-- Right CTA & Mobile Menu Toggle (matches promo.html) -->
         <div class="flex items-center gap-2 sm:gap-2.5">
           <div class="hidden sm:inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
-            ${langBtn('ko', 'KO')}
             ${langBtn('en', 'EN')}
+            ${langBtn('ko', 'KO')}
           </div>
 
           <a
@@ -115,8 +115,8 @@ export function renderReaderHeader(mode: ReaderMode): string {
             <a href="/game.html" class="rounded-lg border border-purple-400/50 bg-purple-950/60 px-3 py-2.5 text-center transition hover:border-purple-300 no-underline text-purple-100">${tr('게임 바로 시작', 'Play Game', 'ゲーム開始')}</a>
           </div>
           <div class="mt-3 flex items-center justify-center gap-2 sm:hidden">
-            ${langBtn('ko', '한국어 (KO)')}
             ${langBtn('en', 'English (EN)')}
+            ${langBtn('ko', '한국어 (KO)')}
           </div>
         </div>
       `
@@ -127,12 +127,22 @@ export function renderReaderHeader(mode: ReaderMode): string {
 }
 
 export function renderReaderFooter(): string {
+  const lang = getCurrentLanguage();
+  const footerLangBtn = (code: SupportedLanguage, label: string) => {
+    const active = lang === code;
+    return `<button type="button" data-action="reader-set-lang" data-lang="${code}" class="px-3.5 py-1.5 text-xs font-extrabold rounded-full border cursor-pointer transition ${
+      active
+        ? 'border-amber-300 bg-amber-400 text-[#1b120b] shadow-sm'
+        : 'border-amber-500/35 bg-black/40 text-stone-300 hover:border-amber-300 hover:text-amber-100'
+    }">${label}</button>`;
+  };
+
   return `
     <footer class="border-t border-amber-900/50 bg-[#151210] px-4 py-12 text-center text-xs text-stone-400 mt-auto">
       <div class="mx-auto max-w-4xl">
         <img
           src="${SNS_LOGO_URL}"
-          alt="눈히어로"
+          alt="${tr('눈히어로', 'SNSHero')}"
           class="mx-auto h-10 w-auto opacity-90"
         />
         <div class="mt-5 flex flex-wrap justify-center gap-5 font-bold text-stone-300">
@@ -145,6 +155,11 @@ export function renderReaderFooter(): string {
           <a href="/stone.html" class="hover:text-amber-300 no-underline text-stone-300">${tr('오리지널 스톤', 'Classic Stone', 'クラシック')}</a>
           <a href="/book.html" class="hover:text-amber-300 no-underline text-stone-300">${tr('공식 웹소설', 'Web Novel', '公式小説')}</a>
           <a href="/webtoon.html" class="hover:text-amber-300 no-underline text-stone-300">${tr('공식 웹툰', 'Webtoon', '公式ウェブトゥーン')}</a>
+        </div>
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-2" data-testid="footer-language-switcher">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-stone-400 mr-1">${tr('언어 선택', 'Language')}:</span>
+          ${footerLangBtn('en', 'English')}
+          ${footerLangBtn('ko', '한국어')}
         </div>
         <p class="mt-6 leading-relaxed text-stone-500">
           ${tr(
@@ -160,7 +175,10 @@ export function renderReaderFooter(): string {
           )}
         </p>
         <p class="mt-3 text-[11px] text-stone-600">
-          © 2026 눈히어로 (SNSHero.com) · 엘윈마을과 카단의 여정. All rights reserved.
+          ${tr(
+            '© 2026 눈히어로 (SNSHero.com) · 엘윈마을과 카단의 여정. All rights reserved.',
+            "© 2026 SNSHero (SNSHero.com) · Elwin Village & Kadan's Journey. All rights reserved."
+          )}
         </p>
       </div>
     </footer>

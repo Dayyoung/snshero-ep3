@@ -406,7 +406,7 @@ export const CLASSIC_PRESET_DECKS: CustomDeck[] = [
   },
   {
     id: 'preset_warrior',
-    name: '불종족의 이그니시우스',
+    name: '불종족의 이그니스',
     heroClass: 'WARRIOR',
     isPreset: true,
     cards: [

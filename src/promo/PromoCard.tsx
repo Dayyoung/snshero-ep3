@@ -1,8 +1,16 @@
 import React from 'react';
 import { HearthstoneCard, RACE_KO } from '../hearthstone/components/CardVisual';
+import { CARD_RACE_LABELS_EN, CARD_RARITY_LABELS_EN } from '../hearthstone/i18nData';
 import { CardRarity, ClassicCardDef } from '../hearthstone/types';
+import { useHeroLanguage } from '../i18n/heroLang';
 
 export const PROMO_RACE_KO = RACE_KO;
+
+export function getPromoRaceLabel(race: string | undefined, isKo: boolean): string {
+  if (!race) return '';
+  if (isKo) return RACE_KO[race] || race;
+  return CARD_RACE_LABELS_EN[race] || race;
+}
 
 export const PROMO_RARITY_KO: Record<CardRarity, { label: string; gemColor: string; textColor: string }> = {
   FREE: { label: '기본', gemColor: '#cbd5e1', textColor: '#475569' },
@@ -12,12 +20,18 @@ export const PROMO_RARITY_KO: Record<CardRarity, { label: string; gemColor: stri
   LEGENDARY: { label: '전설', gemColor: '#fb923c', textColor: '#ea580c' },
 };
 
+export function getPromoRarityLabel(rarity: CardRarity, isKo: boolean): string {
+  if (isKo) return PROMO_RARITY_KO[rarity]?.label || rarity;
+  return CARD_RARITY_LABELS_EN[rarity] || rarity;
+}
+
 export const PromoCard: React.FC<{
   card: ClassicCardDef;
   isGolden?: boolean;
   onClick?: (card: ClassicCardDef) => void;
   size?: 'sm' | 'md' | 'lg';
 }> = ({ card, isGolden = false, onClick, size = 'md' }) => {
+  useHeroLanguage();
   const hsSize = size === 'lg' ? 'LG' : size === 'sm' ? 'SM' : 'MD';
   const rarityAura =
     card.rarity === 'LEGENDARY' || card.rarity === 'EPIC' || card.rarity === 'RARE'

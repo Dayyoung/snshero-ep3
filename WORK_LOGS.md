@@ -2,7 +2,39 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
-## [2026-11-13 12:15 KST] [/public 용도별 리소스 정리 · WebP/MP4 경량화(533MB->257MB) · /promo.html 유튜브 웹툰 재생목록 임베드 교체 완료]
+## [2026-11-13 12:40 KST] [/promo.html 주인공 카단·이그니스 명칭 정립, 인게임 1920x1080 스크린샷 6종 교체(#latest·#modes), 미디어믹스 4대 섹션(웹소설·웹툰·네이버웹소설·네이버웹툰) 및 신규 네이버 웹툰 URL 갱신 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 주인공 명칭 '카단 / 이그니스' 및 불종족 영웅명 정합성 수정 (`types.ts`, `cardDb.ts`, `aiController.ts`, `PromoApp.tsx`)**:
+    - [`src/hearthstone/types.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/types.ts): `CLASSIC_HEROES.WARRIOR.nameKo`를 `'이그니시우스'`에서 원작 소설/웹툰 주인공 명칭인 **`'이그니스'`**로 수정 (382장 카드 총수 동결 원칙 준수).
+    - [`src/hearthstone/cardDb.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/cardDb.ts): 불종족 프리셋 덱 명칭을 `'불종족의 이그니스'`로 수정.
+    - [`src/hearthstone/engine/aiController.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/aiController.ts): 불종족 AI 덱 명칭을 `'불종족의 이그니스 홍련 중장덱'`으로 수정.
+    - [`src/promo/PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx):
+      - `#hero`: 좌/우 플랭킹 히어로를 카단(좌) & 이그니스(우)로 정립하고 헤드라인 서브타이틀을 `엘윈마을의 영웅들 · 카단과 이그니스의 여정`으로 명시.
+      - `#heroes`: 9대 종족 & 전설 영웅 쇼케이스에서 불종족 대표 영웅명이 자동으로 `'이그니스'`로 렌더링되도록 연동.
+  - **2. 실제 인게임 고화질 1920x1080 스크린샷 6종 캡처 및 `#latest`, `#modes` 이미지 전면 교체**:
+    - 자동 캡처 스크립트([`scripts/capture_promo_screenshots.mjs`](file:///Users/dayyoung/project/snshero/scripts/capture_promo_screenshots.mjs))를 통해 실제 인게임 전장/시스템 화면 6종 생성:
+      - `ingame_ranked_battle.png` (랭킹대전 진홍빛 용광로 전장), `ingame_ai_battle.png` (AI대전 에메랄드 전장), `ingame_story_battle.png` (스토리 엘윈 설원 전장), `ingame_story_theater.png` (40화 웹툰 극장 5컷 상영관), `ingame_collection_awake.png` (내 카드첩 3배 각성 도감), `ingame_pack_altar.png` (황금 천장 카드팩 개봉 제단).
+    - `#latest` (카단의 여정 핵심 시스템 3탭):
+      - `story` ➔ `/hs-assets/screenshots/ingame_story_theater.png` (40화 웹툰 극장)
+      - `awake` ➔ `/hs-assets/screenshots/ingame_collection_awake.png` (여정 전용 3배 각성 도감)
+      - `pack` ➔ `/hs-assets/screenshots/ingame_pack_altar.png` (황금 천장 팩 개봉 제단)
+    - `#modes` (3대 게임 모드 지그재그 쇼케이스):
+      - 랭킹대전 ➔ `/hs-assets/screenshots/ingame_ranked_battle.png`
+      - AI대전 ➔ `/hs-assets/screenshots/ingame_ai_battle.png`
+      - 스토리모드 ➔ `/hs-assets/screenshots/ingame_story_battle.png`
+  - **3. `#universe` 4대 추천 미디어믹스 및 신규 네이버 웹툰 URL 갱신**:
+    - 4대 카드 섹션을 **[웹소설 / 웹툰 / 네이버웹소설 / 네이버웹툰]**으로 재편성:
+      - 웹소설: `/book.html` (40부작 공식 판타지 웹소설)
+      - 웹툰: `/webtoon.html` (카단과 이그니스의 서사 풀컬러 웹툰)
+      - 네이버웹소설: `https://novel.naver.com/challenge/list?novelId=1250635` (네이버 챌린지리그 공식 연재처)
+      - 네이버웹툰: `https://comic.naver.com/challenge/list?titleId=857363` (네이버 도전만화 신규 공식 연재처)
+    - 소셜/연재 목재 배너 내 네이버 웹툰 URL도 신규 주소인 `https://comic.naver.com/challenge/list?titleId=857363`로 업데이트 완료.
+  - **4. 빌드 및 실서버 응답 검증**:
+    - `npx tsc --noEmit` 검증 통과 (에러 0건).
+    - `npm run build` 프로덕션 번들 정상 빌드 완료 (`dist/promo.html`, `dist/assets/promo-*.js` 등).
+    - `curl -I http://localhost:3000/promo.html` 및 신규 스크린샷 이미지 6종 HTTP 200 OK 서빙 검증 완료.
+  - **5. 구글 폼 완료 보고서 제출**: 연동 구글 폼 완료 보고 제출 (`report-ex`).
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
   - **1. `/public` 용도별 디렉토리 재구성**:

@@ -1,9 +1,16 @@
 import './styles.css';
-import { setLanguage, SupportedLanguage } from './i18n';
+import { getCurrentLanguage, setLanguage, SupportedLanguage, tr } from './i18n';
 import { renderReaderHeader, renderReaderFooter, toggleReaderMobileMenu, closeReaderMobileMenu } from './ReaderChrome';
 import { renderBookSection, handleBookAction } from './BookSection';
 
 function renderApp(): void {
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = getCurrentLanguage();
+    document.title = tr(
+      '눈히어로 공식 웹소설 — 카단의 여정 (40부작) | SNSHero.com',
+      "SNSHero Official Web Novel — Kadan's Journey (40 Episodes) | SNSHero.com"
+    );
+  }
   const root = document.getElementById('reader-root');
   if (!root) return;
   root.innerHTML = `

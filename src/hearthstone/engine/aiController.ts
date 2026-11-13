@@ -68,7 +68,7 @@ export const CLASSIC_EXPERT_AI_DECKS: Record<HeroClass, { name: string; cards: s
     ],
   },
   WARRIOR: {
-    name: '불종족의 이그니시우스 홍련 중장덱',
+    name: '불종족의 이그니스 홍련 중장덱',
     cards: [
       'EX1_607', 'EX1_607',
       'CS2_108', 'CS2_108',

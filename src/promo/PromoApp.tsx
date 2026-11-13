@@ -64,7 +64,7 @@ const FEATURE_TABS: {
       '40화 완주 시 +300G & 3팩 지급 + 무한 환생 모드 개방',
       '스마트 자동플레이 기본 탑재로 누구나 부담 없이 감상·전투',
     ],
-    imageUrl: '/hs-assets/bosses/boss_abyss_lucian.webp',
+    imageUrl: '/hs-assets/screenshots/ingame_story_theater.png',
     ctaText: '스토리모드 바로 출정',
     ctaHref: '/game.html?mode=story',
   },
@@ -79,7 +79,7 @@ const FEATURE_TABS: {
       '스토리모드 전용 중복 각성으로 40화·환생 고난이도 돌파',
       '여분 분해 시 여정 3배 배수 영향을 사전에 명확히 안내',
     ],
-    imageUrl: '/hs-assets/bg/arena_elwin_snow.webp',
+    imageUrl: '/hs-assets/screenshots/ingame_collection_awake.png',
     ctaText: '내 덱 강화하러 가기',
     ctaHref: '/game.html',
   },
@@ -94,7 +94,7 @@ const FEATURE_TABS: {
       '첫 10팩 이내 전설 100% 확정 · 40팩 전설 천장 · 중복 방지',
       '불필요한 카드는 신비한 가루로 추출해 원하는 전설 직접 제작',
     ],
-    imageUrl: '/hs-assets/bg/pack_altar_bg.webp',
+    imageUrl: '/hs-assets/screenshots/ingame_pack_altar.png',
     ctaText: '무료 3팩 개봉하기',
     ctaHref: '/game.html',
   },
@@ -347,7 +347,7 @@ export const PromoApp: React.FC = () => {
           ))}
         </div>
 
-        {/* Flanking Hero Key Art: 카단 (Left) & 이그니시우스 (Right) */}
+        {/* Flanking Hero Key Art: 카단 (Left) & 이그니스 (Right) */}
         <img
           src={CLASSIC_HEROES.PRIEST.heroCutoutUrl}
           alt={CLASSIC_HEROES.PRIEST.nameKo}
@@ -378,7 +378,7 @@ export const PromoApp: React.FC = () => {
           <div className="mb-4 flex items-center gap-3">
             <SnsSnowCompassSeal size={36} />
             <span className="promo-outline text-sm font-extrabold tracking-[0.22em] text-amber-200 sm:text-base">
-              엘윈마을의 영웅들 · 카단의 여정
+              엘윈마을의 영웅들 · 카단과 이그니스의 여정
             </span>
             <SnsSnowCompassSeal size={36} />
           </div>
@@ -1056,7 +1056,7 @@ export const PromoApp: React.FC = () => {
               <div className="lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src={SNS_LOCATIONS.BOARD_RED_PALACE}
+                    src="/hs-assets/screenshots/ingame_ranked_battle.png"
                     alt="랭킹대전"
                     className="aspect-video w-full object-cover"
                   />
@@ -1109,7 +1109,7 @@ export const PromoApp: React.FC = () => {
               <div className="order-1 lg:order-2 lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src={SNS_LOCATIONS.BOARD_WIND_ISLE}
+                    src="/hs-assets/screenshots/ingame_ai_battle.png"
                     alt="AI대전"
                     className="aspect-video w-full object-cover"
                   />
@@ -1122,7 +1122,7 @@ export const PromoApp: React.FC = () => {
               <div className="lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src={SNS_LOCATIONS.BOARD_LIGHTHAVEN}
+                    src="/hs-assets/screenshots/ingame_story_battle.png"
                     alt="스토리모드 카단의 여정"
                     className="aspect-video w-full object-cover"
                   />
@@ -1225,36 +1225,42 @@ export const PromoApp: React.FC = () => {
             {[
               {
                 icon: <BookOpen className="h-5 w-5 text-amber-300" />,
-                title: '공식 판타지 웹소설',
-                sub: '40부작 원작 스토리 · /book.html 바로 감상',
+                title: '웹소설',
+                sub: '40부작 공식 판타지 웹소설 · /book.html 바로 감상',
                 img: '/webtoon-assets/episode_01/scene_04.webp',
                 href: '/book.html',
+                external: false,
               },
               {
                 icon: <Layers className="h-5 w-5 text-sky-300" />,
-                title: '풀컬러 공식 웹툰',
-                sub: '카단과 9대 종족의 서사를 /webtoon.html 에서 감상',
+                title: '웹툰',
+                sub: '카단과 이그니스의 서사를 /webtoon.html 에서 감상',
                 img: '/webtoon-assets/episode_01/scene_14.webp',
                 href: '/webtoon.html',
+                external: false,
               },
               {
-                icon: <Shield className="h-5 w-5 text-purple-300" />,
-                title: '오리지널 스톤 클래식',
-                sub: '정통 클래식 382장 1:1 재현 에디션 (/stone.html)',
-                img: '/hs-assets/bg/pack_altar_bg.webp',
-                href: '/stone.html',
+                icon: <BookOpen className="h-5 w-5 text-emerald-300" />,
+                title: '네이버웹소설',
+                sub: '네이버 챌린지리그 공식 연재처 바로가기',
+                img: '/webtoon-assets/episode_01/scene_06.webp',
+                href: 'https://novel.naver.com/challenge/list?novelId=1250635',
+                external: true,
               },
               {
-                icon: <Compass className="h-5 w-5 text-emerald-300" />,
-                title: '눈히어로 즉시 플레이',
-                sub: '루트(/) 접속 즉시 실행 · 40화 스토리모드 & 무료 3팩',
-                img: '/hs-assets/bg/elwin_hub_bg.webp',
-                href: '/',
+                icon: <Layers className="h-5 w-5 text-green-400" />,
+                title: '네이버웹툰',
+                sub: '네이버 도전만화 신규 공식 연재처 바로가기',
+                img: '/webtoon-assets/episode_01/scene_01.webp',
+                href: 'https://comic.naver.com/challenge/list?titleId=857363',
+                external: true,
               },
             ].map((item) => (
               <a
                 key={item.title}
                 href={item.href}
+                target={item.external ? '_blank' : undefined}
+                rel={item.external ? 'noopener noreferrer' : undefined}
                 className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1.5 hover:border-amber-400/70"
               >
                 <div className="aspect-[16/10] overflow-hidden bg-black">
@@ -1288,7 +1294,7 @@ export const PromoApp: React.FC = () => {
                 네이버 웹소설
               </a>
               <a
-                href="https://comic.naver.com/challenge/list?titleId=856677"
+                href="https://comic.naver.com/challenge/list?titleId=857363"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
