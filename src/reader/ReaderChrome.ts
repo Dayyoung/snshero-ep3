@@ -128,6 +128,16 @@ export function renderReaderHeader(mode: ReaderMode): string {
 }
 
 export function renderReaderFooter(): string {
+  const lang = getCurrentLanguage();
+  const footerLangBtn = (code: SupportedLanguage, text: string) => {
+    const active = lang === code;
+    return `<button type="button" data-action="reader-set-lang" data-lang="${code}" class="px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+      active
+        ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+        : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
+    }">${text}</button>`;
+  };
+
   return `
     <footer class="border-t border-amber-900/50 bg-[#151210] px-4 py-12 text-center text-xs text-stone-400 mt-auto">
       <div class="mx-auto max-w-4xl">
@@ -145,6 +155,12 @@ export function renderReaderFooter(): string {
           <a href="/stone.html" class="hover:text-amber-300 no-underline text-stone-300">${tr('오리지널 스톤', 'Classic Stone')}</a>
           <a href="/book" class="hover:text-amber-300 no-underline text-stone-300">${tr('공식 소설', 'Novel')}</a>
           <a href="/webtoon" class="hover:text-amber-300 no-underline text-stone-300">${tr('공식 웹툰', 'Webtoon')}</a>
+        </div>
+        <div class="mt-5 flex justify-center">
+          <div class="inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
+            ${footerLangBtn('ko', 'KO')}
+            ${footerLangBtn('en', 'EN')}
+          </div>
         </div>
         <p class="mt-6 leading-relaxed text-stone-500">
           ${tr(

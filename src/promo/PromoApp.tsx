@@ -349,7 +349,31 @@ export const PromoApp: React.FC = () => {
           </nav>
 
           {/* Right CTA & Mobile Menu Toggle */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="hidden sm:inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
+              <button
+                type="button"
+                onClick={() => setLang('ko')}
+                className={`px-2 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+                  lang === 'ko'
+                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
+                }`}
+              >
+                KO
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang('en')}
+                className={`px-2 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+                  lang === 'en'
+                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
+                }`}
+              >
+                EN
+              </button>
+            </div>
             <a
               href="/book.html"
               className="hidden items-center gap-1 rounded-full border border-amber-300/40 bg-black/30 px-3.5 py-1.5 text-xs font-extrabold text-amber-200 transition hover:border-amber-300 hover:bg-amber-950/60 sm:inline-flex"
@@ -407,6 +431,30 @@ export const PromoApp: React.FC = () => {
                   {item.label}
                 </a>
               ))}
+            </div>
+            <div className="mt-3 flex items-center justify-center gap-2 sm:hidden">
+              <button
+                type="button"
+                onClick={() => setLang('ko')}
+                className={`px-3 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+                  lang === 'ko'
+                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10 border border-amber-400/30'
+                }`}
+              >
+                한국어 (KO)
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang('en')}
+                className={`px-3 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+                  lang === 'en'
+                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10 border border-amber-400/30'
+                }`}
+              >
+                English (EN)
+              </button>
             </div>
           </div>
         )}
@@ -1508,36 +1556,34 @@ export const PromoApp: React.FC = () => {
 
           <div
             data-testid="footer-language-switcher"
-            className="mt-6 flex items-center justify-center gap-2"
+            className="mt-5 flex items-center justify-center"
           >
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-stone-400">
-              <Globe className="h-3.5 w-3.5 text-amber-400" />
-              <span>{tr('언어 선택', 'Language')}:</span>
-            </span>
-            <button
-              type="button"
-              data-testid="footer-lang-en"
-              onClick={() => setLang('en')}
-              className={`rounded-md border px-3 py-1.5 text-[11px] font-extrabold transition ${
-                lang === 'en'
-                  ? 'border-amber-400 bg-amber-500 text-[#1b0f05]'
-                  : 'border-amber-500/30 bg-black/40 text-amber-200 hover:border-amber-400'
-              }`}
-            >
-              English
-            </button>
-            <button
-              type="button"
-              data-testid="footer-lang-ko"
-              onClick={() => setLang('ko')}
-              className={`rounded-md border px-3 py-1.5 text-[11px] font-extrabold transition ${
-                lang === 'ko'
-                  ? 'border-amber-400 bg-amber-500 text-[#1b0f05]'
-                  : 'border-amber-500/30 bg-black/40 text-amber-200 hover:border-amber-400'
-              }`}
-            >
-              한국어
-            </button>
+            <div className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
+              <button
+                type="button"
+                data-testid="footer-lang-ko"
+                onClick={() => setLang('ko')}
+                className={`px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+                  lang === 'ko'
+                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
+                }`}
+              >
+                KO
+              </button>
+              <button
+                type="button"
+                data-testid="footer-lang-en"
+                onClick={() => setLang('en')}
+                className={`px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+                  lang === 'en'
+                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
+                }`}
+              >
+                EN
+              </button>
+            </div>
           </div>
 
           <p className="mt-6 leading-relaxed text-stone-500">
