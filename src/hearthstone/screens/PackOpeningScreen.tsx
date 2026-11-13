@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { HearthstoneCard, HsGoldCoinIcon } from '../components/CardVisual';
 import { CardZoomModal } from '../components/CardZoomModal';
@@ -78,6 +79,8 @@ export const PackOpeningScreen: React.FC<{
   onProfileChanged: () => void;
   onReturnToJourney?: () => void;
 }> = ({ onBack, onOpenShop, onProfileChanged, onReturnToJourney }) => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
   const [profile, setProfile] = useState(() => hsStorage.getProfile());
   const [pityState, setPityState] = useState(() => hsStorage.getPackPityState());
   const [showOddsModal, setShowOddsModal] = useState(false);
@@ -239,7 +242,9 @@ export const PackOpeningScreen: React.FC<{
         if (!opts?.suppressVo) {
           hsAudio.playInnkeeper(item.isGolden ? 'golden_legendary' : 'legendary');
           showCallout(
-            item.isGolden ? '“오~ 황금 전설 카드!”' : '“오~ 전설 카드!”',
+            item.isGolden
+              ? tr('“오~ 황금 전설 카드!”', '“Whoa! Golden Legendary!”')
+              : tr('“오~ 전설 카드!”', '“Whoa! Legendary!”'),
             item.isGolden
               ? 'border-yellow-300 bg-gradient-to-r from-amber-950/95 via-orange-900/95 to-amber-950/95 text-yellow-200 shadow-[0_0_28px_rgba(251,191,36,0.95)]'
               : 'border-orange-400 bg-orange-950/95 text-amber-200 shadow-[0_0_24px_rgba(249,115,22,0.9)]',
@@ -252,7 +257,9 @@ export const PackOpeningScreen: React.FC<{
         if (!opts?.suppressVo) {
           hsAudio.playInnkeeper(item.isGolden ? 'golden_epic' : 'epic');
           showCallout(
-            item.isGolden ? '“황금 특급 카드!”' : '“특급 카드!”',
+            item.isGolden
+              ? tr('“황금 특급 카드!”', '“Golden Epic!”')
+              : tr('“특급 카드!”', '“Epic!”'),
             item.isGolden
               ? 'border-yellow-300 bg-purple-950/95 text-purple-100 shadow-[0_0_24px_rgba(192,132,252,0.95)]'
               : 'border-purple-400 bg-purple-950/95 text-purple-200 shadow-[0_0_22px_rgba(168,85,247,0.88)]',
@@ -263,7 +270,9 @@ export const PackOpeningScreen: React.FC<{
         if (!opts?.suppressVo) {
           hsAudio.playInnkeeper(item.isGolden ? 'golden_rare' : 'rare');
           showCallout(
-            item.isGolden ? '“황금 희귀 카드!”' : '“희귀 카드!”',
+            item.isGolden
+              ? tr('“황금 희귀 카드!”', '“Golden Rare!”')
+              : tr('“희귀 카드!”', '“Rare!”'),
             item.isGolden
               ? 'border-yellow-300 bg-sky-950/95 text-sky-100 shadow-[0_0_22px_rgba(56,189,248,0.92)]'
               : 'border-sky-400 bg-sky-950/95 text-sky-200 shadow-[0_0_20px_rgba(59,130,246,0.85)]',
@@ -274,7 +283,7 @@ export const PackOpeningScreen: React.FC<{
         if (!opts?.suppressVo) {
           hsAudio.playInnkeeper('golden_common');
           showCallout(
-            '“황금 일반 카드!”',
+            tr('“황금 일반 카드!”', '“Golden Common!”'),
             'border-yellow-300 bg-stone-900/95 text-yellow-200 shadow-[0_0_18px_rgba(250,204,21,0.8)]',
           );
         }
@@ -369,7 +378,7 @@ export const PackOpeningScreen: React.FC<{
           }}
           className="hs-brass-btn min-h-[40px] rounded-xl px-3 py-1.5 text-xs font-extrabold text-amber-100 sm:px-4 sm:py-2 sm:text-sm"
         >
-          ← <span className="hidden sm:inline">엘윈마을 </span>로비로
+          ← {isKo ? <><span className="hidden sm:inline">엘윈마을 </span>로비로</> : <><span className="hidden sm:inline">Elwin </span>Hub</>}
         </button>
 
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -382,7 +391,7 @@ export const PackOpeningScreen: React.FC<{
               }}
               className="hs-brass-btn min-h-[40px] rounded-xl border-emerald-300/75 bg-gradient-to-b from-emerald-600 to-emerald-900 px-2.5 py-1.5 text-[11px] font-extrabold text-white sm:px-3.5 sm:text-xs"
             >
-              ⚔ 스토리모드 출진
+              ⚔ {tr('스토리모드 출진', 'Enter Story Mode')}
             </button>
           )}
           <button
@@ -394,11 +403,11 @@ export const PackOpeningScreen: React.FC<{
             }}
             className="hs-brass-btn flex min-h-[40px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold text-amber-200 sm:px-3 sm:text-xs"
           >
-            <span>확률 · 등급 안내</span>
+            <span>{tr('확률 · 등급 안내', 'Drop Rates & Dust')}</span>
           </button>
           <div className="flex min-h-[40px] items-center gap-1.5 rounded-xl border-2 border-[#c8a158] bg-stone-950/90 px-2.5 py-1 text-xs font-extrabold shadow-lg sm:gap-2 sm:px-3.5 sm:py-1.5">
             <HsGoldCoinIcon size={18} />
-            <span className="hidden sm:inline">보유 골드</span>
+            <span className="hidden sm:inline">{tr('보유 골드', 'Gold')}</span>
             <span className="hs-num text-xs text-yellow-300 sm:text-sm">{profile.gold}</span>
           </div>
           <button
@@ -410,7 +419,7 @@ export const PackOpeningScreen: React.FC<{
             className="hs-arcane-btn flex min-h-[40px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold text-white sm:gap-1.5 sm:px-3.5 sm:text-xs"
           >
             <HsGoldCoinIcon size={15} />
-            <span>보급소 · 팩 구매 (골드 / $1·$4)</span>
+            <span>{tr('보급소 · 팩 구매 (골드 / $1·$4)', 'Shop · Buy Packs (Gold / $1·$4)')}</span>
           </button>
         </div>
       </header>
@@ -422,10 +431,10 @@ export const PackOpeningScreen: React.FC<{
             <SnsBoosterPackArt />
           </div>
           <span className="text-xs font-extrabold text-amber-100">
-            미개봉 눈히어로 팩
+            {tr('미개봉 눈히어로 팩', 'Unopened Packs')}
           </span>
           <span className="hs-num rounded-full border border-[#e0bc72] bg-black/70 px-2.5 py-0.5 text-xs text-yellow-300">
-            {profile.packs}개
+            {isKo ? `${profile.packs}개` : profile.packs}
           </span>
         </div>
         {!openedCards && profile.packs > 0 && (
@@ -434,12 +443,12 @@ export const PackOpeningScreen: React.FC<{
             onClick={triggerOpenPack}
             className="hs-brass-btn rounded-lg px-2.5 py-1 text-[11px] font-extrabold text-sky-200"
           >
-            즉시 개봉
+            {tr('즉시 개봉', 'Open Now')}
           </button>
         )}
         {openedCards && (
           <span className="text-[11px] font-bold text-sky-300">
-            뒤집힌 카드 터치 시 확대
+            {tr('뒤집힌 카드 터치 시 확대', 'Tap revealed cards to zoom')}
           </span>
         )}
       </div>
@@ -449,10 +458,10 @@ export const PackOpeningScreen: React.FC<{
         {/* Left: Unopened Pack Stack Tray (Desktop >= md) */}
         <aside className="hs-wood-panel hidden flex-col items-center justify-center rounded-3xl p-4 sm:p-5 md:col-span-3 md:flex">
           <div className="hs-title mb-2 text-sm font-extrabold text-amber-100">
-            미개봉 눈히어로 팩
+            {tr('미개봉 눈히어로 팩', 'Unopened Packs')}
           </div>
           <div className="hs-num mb-3 rounded-full border-2 border-[#e0bc72] bg-stone-950/85 px-4 py-1 text-xl text-yellow-300 shadow-inner">
-            {profile.packs}개
+            {isKo ? `${profile.packs}개` : profile.packs}
           </div>
 
           {profile.packs > 0 ? (
@@ -482,26 +491,45 @@ export const PackOpeningScreen: React.FC<{
             </div>
           ) : (
             <div className="py-10 text-center text-xs font-semibold text-amber-200/70">
-              보유한 눈히어로 팩이 없습니다.
+              {tr('보유한 눈히어로 팩이 없습니다.', 'No unopened packs remaining.')}
               <br />
-              상단 버튼으로 100골드에 구매하세요.
+              {tr('상단 버튼으로 100골드에 구매하세요.', 'Buy packs for 100 Gold in the Shop.')}
             </div>
           )}
 
           <p className="mt-3 text-center text-[11px] font-semibold text-amber-200/80">
-            팩을 천공 제단으로 드래그하거나
-            <br />
-            <b className="text-amber-100">클릭 / 스페이스바</b>로 개봉
+            {isKo ? (
+              <>
+                팩을 천공 제단으로 드래그하거나
+                <br />
+                <b className="text-amber-100">클릭 / 스페이스바</b>로 개봉
+              </>
+            ) : (
+              <>
+                Drag a pack onto the Sky Altar or
+                <br />
+                press <b className="text-amber-100">Click / Spacebar</b> to open
+              </>
+            )}
           </p>
 
           <div className="mt-3 w-full rounded-xl border border-amber-400/35 bg-black/55 px-2.5 py-2 text-center text-[10.5px] font-bold text-amber-200/90">
             <div>
               {!pityState.firstTenLegendaryClaimed
-                ? `첫 전설 확정 천장: ${pityState.packsSinceLegendary} / 10팩`
-                : `전설 천장: ${pityState.packsSinceLegendary} / 40팩`}
+                ? tr(
+                    `첫 전설 확정 천장: ${pityState.packsSinceLegendary} / 10팩`,
+                    `First Legendary Pity: ${pityState.packsSinceLegendary} / 10`,
+                  )
+                : tr(
+                    `전설 천장: ${pityState.packsSinceLegendary} / 40팩`,
+                    `Legendary Pity: ${pityState.packsSinceLegendary} / 40`,
+                  )}
             </div>
             <div className="mt-0.5 text-purple-300">
-              특급 천장: {pityState.packsSinceEpic} / 10팩 · 중복 방지 ON
+              {tr(
+                `특급 천장: ${pityState.packsSinceEpic} / 10팩 · 중복 방지 ON`,
+                `Epic Pity: ${pityState.packsSinceEpic} / 10 · Duplicate Protection ON`,
+              )}
             </div>
           </div>
         </aside>
@@ -600,10 +628,10 @@ export const PackOpeningScreen: React.FC<{
               </div>
               <span className="hs-title hs-outline-sm mt-3 text-center text-base font-extrabold text-sky-200 sm:text-lg">
                 {packBursting
-                  ? '눈히어로 봉인 개방 중!!'
+                  ? tr('눈히어로 봉인 개방 중!!', 'Unsealing SNSHero Pack!!')
                   : profile.packs > 0
-                    ? '터치하여 눈히어로 팩 개봉'
-                    : '개봉할 카드 팩이 없습니다'}
+                    ? tr('터치하여 눈히어로 팩 개봉', 'Tap to Open Card Pack')
+                    : tr('개봉할 카드 팩이 없습니다', 'No Packs Available')}
               </span>
             </div>
           ) : (
@@ -617,7 +645,7 @@ export const PackOpeningScreen: React.FC<{
                     onClick={revealAll}
                     className="hs-arcane-btn min-h-[42px] rounded-xl px-4 py-2 text-xs font-extrabold tracking-wide text-white shadow-[0_8px_24px_rgba(2,132,199,0.75)] sm:px-5 sm:text-sm"
                   >
-                    5장 한 번에 뒤집기
+                    {tr('5장 한 번에 뒤집기', 'Reveal All 5 Cards')}
                   </button>
                 ) : (
                   <>
@@ -626,7 +654,12 @@ export const PackOpeningScreen: React.FC<{
                       onClick={finishPackSession}
                       className="hs-brass-btn min-h-[44px] rounded-2xl border-yellow-200 bg-gradient-to-b from-amber-300 via-amber-500 to-amber-800 px-6 py-2 text-sm font-extrabold text-stone-950 shadow-[0_0_28px_rgba(250,204,21,0.9)] sm:px-8 sm:text-base"
                     >
-                      확인 완료 {profile.packs > 0 ? `(남은 팩 ${profile.packs}개)` : ''}
+                      {tr('확인 완료', 'Done')}{' '}
+                      {profile.packs > 0
+                        ? isKo
+                          ? `(남은 팩 ${profile.packs}개)`
+                          : `(${profile.packs} Left)`
+                        : ''}
                     </button>
                     {onReturnToJourney && profile.packs === 0 && (
                       <button
@@ -637,7 +670,7 @@ export const PackOpeningScreen: React.FC<{
                         }}
                         className="hs-arcane-btn min-h-[44px] rounded-2xl px-5 py-2 text-sm font-extrabold text-white sm:text-base"
                       >
-                        ⚔ 업그레이드 완료 · 스토리모드 도전
+                        ⚔ {tr('업그레이드 완료 · 스토리모드 도전', 'Upgraded · Challenge Story Mode')}
                       </button>
                     )}
                   </>
@@ -806,17 +839,19 @@ export const PackOpeningScreen: React.FC<{
 
                                 {item.isNew && (
                                   <span className="hs-outline-sm pointer-events-none absolute right-0 top-0.5 z-40 rounded border border-yellow-200 bg-gradient-to-b from-amber-400 to-amber-700 px-1.5 py-0.5 text-[8.5px] font-extrabold text-white shadow-lg md:top-1 md:rounded-md md:px-2 md:text-[10px]">
-                                    신규!
+                                    {tr('신규!', 'NEW!')}
                                   </span>
                                 )}
                                 {item.newJourneyMultiplier > 1 && (
                                   <span className="hs-outline-sm pointer-events-none absolute -top-2.5 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full border border-emerald-200 bg-gradient-to-r from-emerald-600 to-teal-800 px-2 py-0.5 text-[8px] font-extrabold text-white shadow-lg md:-top-3 md:px-2.5 md:text-[10px]">
-                                    ⚡스토리 ×{item.newJourneyMultiplier}배 ({item.newOwnedCount}장)
+                                    {isKo
+                                      ? `⚡스토리 ×${item.newJourneyMultiplier}배 (${item.newOwnedCount}장)`
+                                      : `⚡Story ×${item.newJourneyMultiplier} (${item.newOwnedCount})`}
                                   </span>
                                 )}
                                 {item.isGolden && (
                                   <span className="hs-outline-sm pointer-events-none absolute -bottom-1 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded border border-yellow-200 bg-gradient-to-b from-yellow-400 to-amber-700 px-1.5 py-0.5 text-[8px] font-extrabold text-white shadow md:rounded-md md:px-2 md:text-[9.5px]">
-                                    황금 카드
+                                    {tr('황금 카드', 'Golden')}
                                   </span>
                                 )}
                               </div>
@@ -834,7 +869,10 @@ export const PackOpeningScreen: React.FC<{
       </main>
 
       <footer className="relative z-30 shrink-0 text-center text-[10.5px] font-bold text-amber-200/80 sm:text-[11px]">
-        1팩 5장 (최소 희귀 이상 1장 확정) · 전 등급 중복 방지 및 천장(첫 10팩 / 이후 40팩 전설 확정) 적용 · 배수 강화는 스토리모드 전용
+        {tr(
+          '1팩 5장 (최소 희귀 이상 1장 확정) · 전 등급 중복 방지 및 천장(첫 10팩 / 이후 40팩 전설 확정) 적용 · 배수 강화는 스토리모드 전용',
+          '5 Cards per Pack (1 Rare+ Guaranteed) · Duplicate Protection & Pity Timer (1st 10 Packs / 40 Packs) · ×3 Story Awakening',
+        )}
       </footer>
 
       {/* Official Hearthstone Pack Probabilities, Rarity Value & Innkeeper VO Guide Modal */}
@@ -842,7 +880,7 @@ export const PackOpeningScreen: React.FC<{
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="카드 팩 확률 및 등급 안내"
+          aria-label={tr('카드 팩 확률 및 등급 안내', 'Pack Drop Rates & Rarity Guide')}
           onClick={() => setShowOddsModal(false)}
           className="fixed inset-0 z-[140] flex items-center justify-center bg-black/82 p-3 backdrop-blur-sm sm:p-5"
         >
@@ -852,14 +890,17 @@ export const PackOpeningScreen: React.FC<{
           >
             <div className="mb-3 flex items-center justify-between border-b border-amber-400/35 pb-2.5">
               <h2 className="hs-title text-base font-extrabold text-amber-100 sm:text-xl">
-                카드 팩 획득 확률 · 등급 가치 · 여관주인 대사 안내
+                {tr(
+                  '카드 팩 획득 확률 · 등급 가치 · 여관주인 대사 안내',
+                  'Pack Drop Rates · Arcane Dust · Innkeeper Callouts',
+                )}
               </h2>
               <button
                 type="button"
                 onClick={() => setShowOddsModal(false)}
                 className="hs-brass-btn rounded-xl px-2.5 py-1 text-xs font-extrabold text-amber-100"
               >
-                닫기 ✕
+                {tr('닫기 ✕', 'Close ✕')}
               </button>
             </div>
 
@@ -867,72 +908,106 @@ export const PackOpeningScreen: React.FC<{
               {/* 1. Official Hearthstone Pack Drop Rates, Independent Pity Timers & Duplicate Protection */}
               <div className="rounded-2xl border border-sky-400/40 bg-stone-950/85 p-3.5">
                 <div className="mb-1.5 text-sm font-extrabold text-sky-300">
-                  1. 일반 팩 기준 공식 획득 확률 · 독립 천장 · 중복 방지 (382장 기준)
+                  {tr(
+                    '1. 일반 팩 기준 공식 획득 확률 · 독립 천장 · 중복 방지 (382장 기준)',
+                    '1. Standard Pack Drop Rates · Pity Timers · Duplicate Protection (382-Card Pool)',
+                  )}
                 </div>
                 <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <div className="rounded-xl border border-yellow-400/35 bg-black/45 p-2.5">
                     <div className="mb-1 text-xs font-extrabold text-yellow-300">
-                      ✦ 황금 카드 (팩당 확률 · 독립 천장)
+                      {tr('✦ 황금 카드 (팩당 확률 · 독립 천장)', '✦ Golden Cards (Per Pack · Independent Pity)')}
                     </div>
                     <ul className="space-y-0.5 text-[11px] font-semibold text-amber-100/95">
                       <li>
-                        • <b>황금 전설:</b> {PACK_DROP_RATES_SPEC.packGoldenLegendaryPct}% (
-                        {PACK_DROP_RATES_SPEC.goldenLegendaryPityPacks}번째 이내 확정)
+                        • <b>{tr('황금 전설:', 'Golden Legendary:')}</b> {PACK_DROP_RATES_SPEC.packGoldenLegendaryPct}% (
+                        {isKo
+                          ? `${PACK_DROP_RATES_SPEC.goldenLegendaryPityPacks}번째 이내 확정`
+                          : `Guaranteed within ${PACK_DROP_RATES_SPEC.goldenLegendaryPityPacks}`}
+                        )
                       </li>
                       <li>
-                        • <b>황금 특급:</b> {PACK_DROP_RATES_SPEC.packGoldenEpicPct}% (
-                        {PACK_DROP_RATES_SPEC.goldenEpicPityPacks}번째 이내 확정)
+                        • <b>{tr('황금 특급:', 'Golden Epic:')}</b> {PACK_DROP_RATES_SPEC.packGoldenEpicPct}% (
+                        {isKo
+                          ? `${PACK_DROP_RATES_SPEC.goldenEpicPityPacks}번째 이내 확정`
+                          : `Guaranteed within ${PACK_DROP_RATES_SPEC.goldenEpicPityPacks}`}
+                        )
                       </li>
                       <li>
-                        • <b>황금 희귀:</b> {PACK_DROP_RATES_SPEC.packGoldenRarePct}% (
-                        {PACK_DROP_RATES_SPEC.goldenRarePityPacks}번째 이내 확정)
+                        • <b>{tr('황금 희귀:', 'Golden Rare:')}</b> {PACK_DROP_RATES_SPEC.packGoldenRarePct}% (
+                        {isKo
+                          ? `${PACK_DROP_RATES_SPEC.goldenRarePityPacks}번째 이내 확정`
+                          : `Guaranteed within ${PACK_DROP_RATES_SPEC.goldenRarePityPacks}`}
+                        )
                       </li>
                       <li>
-                        • <b>황금 일반:</b> {PACK_DROP_RATES_SPEC.packGoldenCommonPct}% (
-                        {PACK_DROP_RATES_SPEC.goldenCommonPityPacks}번째 이내 확정)
+                        • <b>{tr('황금 일반:', 'Golden Common:')}</b> {PACK_DROP_RATES_SPEC.packGoldenCommonPct}% (
+                        {isKo
+                          ? `${PACK_DROP_RATES_SPEC.goldenCommonPityPacks}번째 이내 확정`
+                          : `Guaranteed within ${PACK_DROP_RATES_SPEC.goldenCommonPityPacks}`}
+                        )
                       </li>
                     </ul>
                   </div>
                   <div className="rounded-xl border border-sky-400/35 bg-black/45 p-2.5">
                     <div className="mb-1 text-xs font-extrabold text-sky-300">
-                      ◆ 일반 카드 (팩당 확률 · 독립 천장)
+                      {tr('◆ 일반 카드 (팩당 확률 · 독립 천장)', '◆ Standard Cards (Per Pack · Independent Pity)')}
                     </div>
                     <ul className="space-y-0.5 text-[11px] font-semibold text-amber-100/95">
                       <li>
-                        • <b>일반 전설:</b> {PACK_DROP_RATES_SPEC.packNormalLegendaryPct}% (첫{' '}
-                        {PACK_DROP_RATES_SPEC.firstLegendaryGuaranteePacks}팩 / 이후{' '}
-                        {PACK_DROP_RATES_SPEC.legendaryPityPacks}번째 이내 확정)
+                        • <b>{tr('일반 전설:', 'Legendary:')}</b> {PACK_DROP_RATES_SPEC.packNormalLegendaryPct}% (
+                        {isKo
+                          ? `첫 ${PACK_DROP_RATES_SPEC.firstLegendaryGuaranteePacks}팩 / 이후 ${PACK_DROP_RATES_SPEC.legendaryPityPacks}번째 이내 확정`
+                          : `1st ${PACK_DROP_RATES_SPEC.firstLegendaryGuaranteePacks} packs / then ${PACK_DROP_RATES_SPEC.legendaryPityPacks}`}
+                        )
                       </li>
                       <li>
-                        • <b>일반 특급:</b> {PACK_DROP_RATES_SPEC.packNormalEpicPct}% (
-                        {PACK_DROP_RATES_SPEC.epicPityPacks}번째 이내 확정)
+                        • <b>{tr('일반 특급:', 'Epic:')}</b> {PACK_DROP_RATES_SPEC.packNormalEpicPct}% (
+                        {isKo
+                          ? `${PACK_DROP_RATES_SPEC.epicPityPacks}번째 이내 확정`
+                          : `Guaranteed within ${PACK_DROP_RATES_SPEC.epicPityPacks}`}
+                        )
                       </li>
                       <li>
-                        • <b>일반 희귀:</b> 팩당 최소 희귀 이상 등급 카드 1장 100% 포함
+                        • <b>{tr('일반 희귀:', 'Rare:')}</b>{' '}
+                        {tr(
+                          '팩당 최소 희귀 이상 등급 카드 1장 100% 포함',
+                          'At least 1 Rare or better card 100% guaranteed per pack',
+                        )}
                       </li>
                       <li>
-                        • <b>일반 등급:</b> 위 조건·확률 외 모든 슬롯 (기본 129장 제외 · 고급 253장 풀)
+                        • <b>{tr('일반 등급:', 'Common:')}</b>{' '}
+                        {tr(
+                          '위 조건·확률 외 모든 슬롯 (기본 129장 제외 · 고급 253장 풀)',
+                          'Remaining slots (253 collectible pack cards excluding 129 Free Basic)',
+                        )}
                       </li>
                     </ul>
                   </div>
                 </div>
                 <div className="text-[11px] font-semibold text-amber-200/85">
-                  ※ 전 등급 중복 방지(미보유 전설·2장 미만 카드 우선 등장) 적용 · 간판 전설(0.6% / 361팩)은 간판 포함 확장팩 전용으로 초기 382장 클래식 풀에는 미포함됩니다.
+                  {tr(
+                    '※ 전 등급 중복 방지(미보유 전설·2장 미만 카드 우선 등장) 적용 · 간판 전설(0.6% / 361팩)은 간판 포함 확장팩 전용으로 초기 382장 클래식 풀에는 미포함됩니다.',
+                    '※ Duplicate protection applies across all rarities (unowned Legendaries and missing playsets prioritized).',
+                  )}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-2.5 gap-y-1 rounded-xl border border-amber-400/30 bg-black/50 px-3 py-1.5 text-[11px] font-extrabold text-amber-200">
-                  <span>누적 개봉: {pityState.totalPacksOpened}팩</span>
+                  <span>
+                    {isKo ? `누적 개봉: ${pityState.totalPacksOpened}팩` : `Packs Opened: ${pityState.totalPacksOpened}`}
+                  </span>
                   <span>·</span>
                   <span>
                     {!pityState.firstTenLegendaryClaimed
-                      ? `첫 전설 천장: ${pityState.packsSinceLegendary}/10`
-                      : `일반 전설 천장: ${pityState.packsSinceLegendary}/40`}
+                      ? tr(`첫 전설 천장: ${pityState.packsSinceLegendary}/10`, `1st Legendary Pity: ${pityState.packsSinceLegendary}/10`)
+                      : tr(`일반 전설 천장: ${pityState.packsSinceLegendary}/40`, `Legendary Pity: ${pityState.packsSinceLegendary}/40`)}
                   </span>
                   <span>·</span>
-                  <span>일반 특급 천장: {pityState.packsSinceEpic}/10</span>
+                  <span>{tr(`일반 특급 천장: ${pityState.packsSinceEpic}/10`, `Epic Pity: ${pityState.packsSinceEpic}/10`)}</span>
                   <span>·</span>
                   <span className="text-yellow-300">
-                    황금 천장(일 {pityState.packsSinceGoldenCommon}/25 · 희 {pityState.packsSinceGoldenRare}/29 · 특{' '}
-                    {pityState.packsSinceGoldenEpic}/142 · 전 {pityState.packsSinceGoldenLegendary}/361)
+                    {isKo
+                      ? `황금 천장(일 ${pityState.packsSinceGoldenCommon}/25 · 희 ${pityState.packsSinceGoldenRare}/29 · 특 ${pityState.packsSinceGoldenEpic}/142 · 전 ${pityState.packsSinceGoldenLegendary}/361)`
+                      : `Golden Pity (C ${pityState.packsSinceGoldenCommon}/25 · R ${pityState.packsSinceGoldenRare}/29 · E ${pityState.packsSinceGoldenEpic}/142 · L ${pityState.packsSinceGoldenLegendary}/361)`}
                   </span>
                 </div>
               </div>
@@ -940,50 +1015,56 @@ export const PackOpeningScreen: React.FC<{
               {/* 2. Arcane Dust Crafting & Disenchant Value Table */}
               <div className="rounded-2xl border border-amber-400/40 bg-stone-950/85 p-3.5">
                 <div className="mb-1.5 text-sm font-extrabold text-amber-300">
-                  2. 등급별 보석 색상 · 신비한 가루 제작 비용 & 마력 추출 획득량
+                  {tr(
+                    '2. 등급별 보석 색상 · 신비한 가루 제작 비용 & 마력 추출 획득량',
+                    '2. Rarity Gem · Arcane Dust Crafting Cost & Disenchant Value',
+                  )}
                 </div>
                 <p className="mb-2 text-[11.5px] font-semibold text-amber-100/90">
-                  전설 카드는 덱에 단 1장만 편성 가능한 핵심 결전 능력을 지니며, 중복·미사용 고등급 카드를 마력 추출하면 훨씬 많은 가루를 얻어 원하는 카드를 직접 제작할 수 있습니다.
+                  {tr(
+                    '전설 카드는 덱에 단 1장만 편성 가능한 핵심 결전 능력을 지니며, 중복·미사용 고등급 카드를 마력 추출하면 훨씬 많은 가루를 얻어 원하는 카드를 직접 제작할 수 있습니다.',
+                    'Legendary cards allow 1 copy per deck with game-changing effects. Disenchant extra cards into Arcane Dust to craft any card you need.',
+                  )}
                 </p>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-center text-[11.5px] font-bold">
                     <thead>
                       <tr className="border-b border-amber-500/35 bg-amber-950/45 text-amber-200">
-                        <th className="px-2 py-1.5">등급</th>
-                        <th className="px-2 py-1.5">보석 색깔</th>
-                        <th className="px-2 py-1.5">직접 제작 비용</th>
-                        <th className="px-2 py-1.5">분해(마력 추출)</th>
-                        <th className="px-2 py-1.5">황금 분해</th>
+                        <th className="px-2 py-1.5">{tr('등급', 'Rarity')}</th>
+                        <th className="px-2 py-1.5">{tr('보석 색깔', 'Gem')}</th>
+                        <th className="px-2 py-1.5">{tr('직접 제작 비용', 'Craft Cost')}</th>
+                        <th className="px-2 py-1.5">{tr('분해(마력 추출)', 'Disenchant')}</th>
+                        <th className="px-2 py-1.5">{tr('황금 분해', 'Golden Disenchant')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-amber-500/20">
                       <tr>
-                        <td className="px-2 py-1.5 text-slate-100">일반</td>
-                        <td className="px-2 py-1.5 text-slate-200">흰색</td>
-                        <td className="px-2 py-1.5">40 가루</td>
-                        <td className="px-2 py-1.5 text-emerald-300">5 가루</td>
-                        <td className="px-2 py-1.5 text-yellow-300">50 가루</td>
+                        <td className="px-2 py-1.5 text-slate-100">{tr('일반', 'Common')}</td>
+                        <td className="px-2 py-1.5 text-slate-200">{tr('흰색', 'White')}</td>
+                        <td className="px-2 py-1.5">{tr('40 가루', '40 Dust')}</td>
+                        <td className="px-2 py-1.5 text-emerald-300">{tr('5 가루', '5 Dust')}</td>
+                        <td className="px-2 py-1.5 text-yellow-300">{tr('50 가루', '50 Dust')}</td>
                       </tr>
                       <tr>
-                        <td className="px-2 py-1.5 text-sky-300">희귀</td>
-                        <td className="px-2 py-1.5 text-sky-300">파란색</td>
-                        <td className="px-2 py-1.5">100 가루</td>
-                        <td className="px-2 py-1.5 text-emerald-300">20 가루</td>
-                        <td className="px-2 py-1.5 text-yellow-300">100 가루</td>
+                        <td className="px-2 py-1.5 text-sky-300">{tr('희귀', 'Rare')}</td>
+                        <td className="px-2 py-1.5 text-sky-300">{tr('파란색', 'Blue')}</td>
+                        <td className="px-2 py-1.5">{tr('100 가루', '100 Dust')}</td>
+                        <td className="px-2 py-1.5 text-emerald-300">{tr('20 가루', '20 Dust')}</td>
+                        <td className="px-2 py-1.5 text-yellow-300">{tr('100 가루', '100 Dust')}</td>
                       </tr>
                       <tr>
-                        <td className="px-2 py-1.5 text-purple-300">특급</td>
-                        <td className="px-2 py-1.5 text-purple-300">보라색</td>
-                        <td className="px-2 py-1.5">400 가루</td>
-                        <td className="px-2 py-1.5 text-emerald-300">100 가루</td>
-                        <td className="px-2 py-1.5 text-yellow-300">400 가루</td>
+                        <td className="px-2 py-1.5 text-purple-300">{tr('특급', 'Epic')}</td>
+                        <td className="px-2 py-1.5 text-purple-300">{tr('보라색', 'Purple')}</td>
+                        <td className="px-2 py-1.5">{tr('400 가루', '400 Dust')}</td>
+                        <td className="px-2 py-1.5 text-emerald-300">{tr('100 가루', '100 Dust')}</td>
+                        <td className="px-2 py-1.5 text-yellow-300">{tr('400 가루', '400 Dust')}</td>
                       </tr>
                       <tr>
-                        <td className="px-2 py-1.5 text-orange-300">전설</td>
-                        <td className="px-2 py-1.5 text-orange-300">주황색</td>
-                        <td className="px-2 py-1.5">1,600 가루</td>
-                        <td className="px-2 py-1.5 text-emerald-300">400 가루</td>
-                        <td className="px-2 py-1.5 text-yellow-300">1,600 가루</td>
+                        <td className="px-2 py-1.5 text-orange-300">{tr('전설', 'Legendary')}</td>
+                        <td className="px-2 py-1.5 text-orange-300">{tr('주황색', 'Orange')}</td>
+                        <td className="px-2 py-1.5">{tr('1,600 가루', '1,600 Dust')}</td>
+                        <td className="px-2 py-1.5 text-emerald-300">{tr('400 가루', '400 Dust')}</td>
+                        <td className="px-2 py-1.5 text-yellow-300">{tr('1,600 가루', '1,600 Dust')}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -993,16 +1074,19 @@ export const PackOpeningScreen: React.FC<{
               {/* 3. Innkeeper Voiceover Preview Buttons */}
               <div className="rounded-2xl border border-orange-400/40 bg-stone-950/85 p-3.5">
                 <div className="mb-1.5 text-sm font-extrabold text-orange-300">
-                  3. 개봉 시 여관주인 실제 대사 & 전설·황금 특수 연출 (터치 시 미리듣기)
+                  {tr(
+                    '3. 개봉 시 여관주인 실제 대사 & 전설·황금 특수 연출 (터치 시 미리듣기)',
+                    '3. Innkeeper Reveal Callouts & Golden FX (Tap to Preview)',
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { key: 'rare' as const, label: '“희귀 카드!” (파랑)', cls: 'border-sky-400 text-sky-200' },
-                    { key: 'epic' as const, label: '“특급 카드!” (보라)', cls: 'border-purple-400 text-purple-200' },
-                    { key: 'legendary' as const, label: '“오~ 전설 카드!” (주황)', cls: 'border-orange-400 text-orange-200' },
-                    { key: 'golden_rare' as const, label: '“황금 희귀 카드!”', cls: 'border-yellow-300 text-yellow-200' },
-                    { key: 'golden_epic' as const, label: '“황금 특급 카드!”', cls: 'border-yellow-300 text-yellow-200' },
-                    { key: 'golden_legendary' as const, label: '“오~ 황금 전설 카드!”', cls: 'border-yellow-300 text-yellow-200' },
+                    { key: 'rare' as const, label: tr('“희귀 카드!” (파랑)', '“Rare!” (Blue)'), cls: 'border-sky-400 text-sky-200' },
+                    { key: 'epic' as const, label: tr('“특급 카드!” (보라)', '“Epic!” (Purple)'), cls: 'border-purple-400 text-purple-200' },
+                    { key: 'legendary' as const, label: tr('“오~ 전설 카드!” (주황)', '“Whoa! Legendary!” (Orange)'), cls: 'border-orange-400 text-orange-200' },
+                    { key: 'golden_rare' as const, label: tr('“황금 희귀 카드!”', '“Golden Rare!”'), cls: 'border-yellow-300 text-yellow-200' },
+                    { key: 'golden_epic' as const, label: tr('“황금 특급 카드!”', '“Golden Epic!”'), cls: 'border-yellow-300 text-yellow-200' },
+                    { key: 'golden_legendary' as const, label: tr('“오~ 황금 전설 카드!”', '“Whoa! Golden Legendary!”'), cls: 'border-yellow-300 text-yellow-200' },
                   ].map((b) => (
                     <button
                       key={b.key}
@@ -1029,16 +1113,22 @@ export const PackOpeningScreen: React.FC<{
           journeyMultiplier={zoomedPackCard.newJourneyMultiplier}
           subtitleBadge={
             zoomedPackCard.newJourneyMultiplier > 1
-              ? `보유 ${zoomedPackCard.newOwnedCount}장 달성! · 카단의 여정 ×${zoomedPackCard.newJourneyMultiplier}배 각성`
+              ? tr(
+                  `보유 ${zoomedPackCard.newOwnedCount}장 달성! · 카단의 여정 ×${zoomedPackCard.newJourneyMultiplier}배 각성`,
+                  `${zoomedPackCard.newOwnedCount} Owned! · Story ×${zoomedPackCard.newJourneyMultiplier} Awakening`,
+                )
               : zoomedPackCard.isNew
-                ? '신규 영웅 카드 획득!'
+                ? tr('신규 영웅 카드 획득!', 'New Hero Card Unlocked!')
                 : zoomedPackCard.isGolden
-                  ? '황금 영웅 카드 획득!'
-                  : `눈히어로 팩 개봉 획득 (보유 ${zoomedPackCard.newOwnedCount}장)`
+                  ? tr('황금 영웅 카드 획득!', 'Golden Card Unlocked!')
+                  : tr(
+                      `눈히어로 팩 개봉 획득 (보유 ${zoomedPackCard.newOwnedCount}장)`,
+                      `Obtained from Pack (Owned: ${zoomedPackCard.newOwnedCount})`,
+                    )
           }
           showFlavor
           primaryAction={{
-            label: '확인 (닫기)',
+            label: tr('확인 (닫기)', 'OK (Close)'),
             variant: 'arcane',
             onClick: () => {
               hsAudio.playSfx('ui_click', 0.65);

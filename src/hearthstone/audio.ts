@@ -1,3 +1,5 @@
+import { isKoreanLanguage } from '../i18n/heroLang';
+import { getLocalizedHeroInfo } from './i18nData';
 import { CLASSIC_HEROES, HeroClass } from './types';
 
 const SETTINGS_KEY = 'hero_hs_settings';
@@ -662,7 +664,12 @@ class SnsHeroCardAudioEngine {
   }
 
   playVoFile(voKey: string): Promise<void> {
-    if (!this.checkWindowActive() || this.settings.muted || this.settings.voVolume <= 0) {
+    if (
+      !isKoreanLanguage() ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.voVolume <= 0
+    ) {
       return Promise.resolve();
     }
     return new Promise((resolve) => {
@@ -755,6 +762,7 @@ class SnsHeroCardAudioEngine {
   playStoryNarration(
     audioUrl: string,
     callbacks?: {
+      fallbackText?: string;
       onProgress?: (progress01: number, remainingSec: number, durationSec: number) => void;
       onEnded?: () => void;
       onFallbackTimer?: () => void;
@@ -773,6 +781,16 @@ class SnsHeroCardAudioEngine {
     ) {
       callbacks?.onFallbackTimer?.();
       return () => {};
+    }
+
+    if (!isKoreanLanguage()) {
+      if (callbacks?.fallbackText) {
+        void this.speakTts(callbacks.fallbackText, 1.0, 0.88);
+      }
+      callbacks?.onFallbackTimer?.();
+      return () => {
+        this.cancelTts();
+      };
     }
 
     let disposed = false;
@@ -963,13 +981,18 @@ class SnsHeroCardAudioEngine {
   }
 
   playCustomVoFile(url: string): Promise<void> {
+    if (!isKoreanLanguage()) return Promise.resolve();
     return this.playCustomVoUrl(url);
   }
 
-  private async announceHeroName(nameKo: string): Promise<void> {
+  private async announceHeroName(nameLocalized: string): Promise<void> {
     if (!this.settings.ttsEnabled) return;
-    const trimmed = nameKo.trim();
+    const trimmed = nameLocalized.trim();
     if (!trimmed) return;
+    if (!isKoreanLanguage()) {
+      await this.speakTts(trimmed, 1.0, 0.86);
+      return;
+    }
     const map = await this.loadHeroNameVoMap();
     const studioUrl = map[trimmed];
     if (studioUrl) {
@@ -995,27 +1018,47 @@ class SnsHeroCardAudioEngine {
     }
     return new Promise((resolve) => {
       try {
+        const isKo = isKoreanLanguage();
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length === 0) {
+          resolve();
+          return;
+        }
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'ko-KR';
+        u.lang = isKo ? 'ko-KR' : 'en-US';
         u.rate = rate;
         u.pitch = pitch;
         u.volume = Math.min(1, this.settings.voVolume);
 
-        const voices = window.speechSynthesis.getVoices();
-        const koVoices = voices.filter(
-          (v) => v.lang.startsWith('ko') || v.lang.includes('KR') || v.lang.includes('Korean'),
-        );
-        const maleKoVoice =
-          koVoices.find((v) =>
-            /InJoon|Hyunsu|BongJin|GookMin|Male|Eddy|Reed|Rocko|Grandpa|Minsu|Jinho/i.test(
-              v.name,
-            ),
-          ) ||
-          koVoices.find((v) => !/Yuna|Sora|SunHi|Heami|Female/i.test(v.name)) ||
-          koVoices[0];
-        if (maleKoVoice) {
-          u.voice = maleKoVoice;
+        if (isKo) {
+          const koVoices = voices.filter(
+            (v) => v.lang.startsWith('ko') || v.lang.includes('KR') || v.lang.includes('Korean'),
+          );
+          const maleKoVoice =
+            koVoices.find((v) =>
+              /InJoon|Hyunsu|BongJin|GookMin|Male|Eddy|Reed|Rocko|Grandpa|Minsu|Jinho/i.test(
+                v.name,
+              ),
+            ) ||
+            koVoices.find((v) => !/Yuna|Sora|SunHi|Heami|Female/i.test(v.name)) ||
+            koVoices[0];
+          if (maleKoVoice) {
+            u.voice = maleKoVoice;
+          }
+        } else {
+          const enVoices = voices.filter((v) => v.lang.startsWith('en'));
+          const maleEnVoice =
+            enVoices.find((v) =>
+              /Daniel|David|Alex|Aaron|Fred|Guy|Christopher|Eric|Arthur|Ryan|Male|Eddy|Reed|Rocko/i.test(
+                v.name,
+              ),
+            ) ||
+            enVoices.find((v) => !/Samantha|Victoria|Karen|Moira|Tessa|Zira|Female/i.test(v.name)) ||
+            enVoices[0];
+          if (maleEnVoice) {
+            u.voice = maleEnVoice;
+          }
         }
 
         let finished = false;
@@ -1054,6 +1097,12 @@ class SnsHeroCardAudioEngine {
     isOpponentCustom = false,
   ) {
     if (!this.checkWindowActive() || this.settings.muted) return;
+    if (!isKoreanLanguage()) {
+      const pLabel = playerName || getLocalizedHeroInfo(playerClass, 'en').name || playerClass;
+      const oLabel = opponentName || getLocalizedHeroInfo(opponentClass, 'en').name || opponentClass;
+      await this.speakTts(`${pLabel} versus ${oLabel}`, 1.0, 0.86);
+      return;
+    }
 
     // 1. 플레이어 영웅 아나운서 발화 (스튜디오 남성 아나운서 MP3 사용)
     const pVo = CLASSIC_HEROES[playerClass]?.voKey || 'priest';

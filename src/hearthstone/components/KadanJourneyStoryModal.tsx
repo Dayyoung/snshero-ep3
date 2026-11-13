@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { useModalDismiss } from '../useModalDismiss';
 import {
   KADAN_JOURNEY_EPISODES,
-  KADAN_TUTORIAL_EPISODE_0,
   getJourneyDifficultySpec,
   getJourneyEpisodeDef,
 } from '../kadanJourneyData';
+import { KADAN_JOURNEY_EPISODES_EN } from '../kadanJourneyEnData';
 
 export interface KadanJourneyStoryModalProps {
   episode: number;
@@ -37,6 +38,8 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
   onStartBattle,
   onCloseReview,
 }) => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
   const [viewingEpisode, setViewingEpisode] = useState<number>(episode);
   const [activeCutIdx, setActiveCutIdx] = useState<number>(0);
   const [cutProgressPct, setCutProgressPct] = useState<number>(0);
@@ -46,14 +49,19 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
   const [useSilentFallbackTimer, setUseSilentFallbackTimer] = useState<boolean>(false);
   const [ttsEnabled, setTtsEnabled] = useState<boolean>(() => hsAudio.getSettings().ttsEnabled);
   const [showVideoPlayer, setShowVideoPlayer] = useState<boolean>(false);
-  const [videoLang, setVideoLang] = useState<'ko' | 'en'>('ko');
+  const [videoLang, setVideoLang] = useState<'ko' | 'en'>(() => (lang === 'ko' ? 'ko' : 'en'));
+
+  useEffect(() => {
+    setVideoLang(lang === 'ko' ? 'ko' : 'en');
+  }, [lang]);
 
   const firedRef = useRef(false);
   const nextStepTimeoutRef = useRef<number | null>(null);
   const onStartBattleRef = useRef(onStartBattle);
   onStartBattleRef.current = onStartBattle;
 
-  const epDef = getJourneyEpisodeDef(viewingEpisode);
+  const epDef = useMemo(() => getJourneyEpisodeDef(viewingEpisode, isKo), [viewingEpisode, isKo]);
+  const ep0Title = isKo ? getJourneyEpisodeDef(0, true).titleKo : getJourneyEpisodeDef(0, false).titleKo;
   const diffSpec = getJourneyDifficultySpec(viewingEpisode, reincarnation);
   const unlockedMax = Math.max(episode, maxClearedEpisode + 1, 1);
 
@@ -131,6 +139,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
     setIsSpeaking(true);
 
     const cleanupAudio = hsAudio.playStoryNarration(currentCut.narrationAudioUrl, {
+      fallbackText: currentCut.shortCaption,
       onProgress: (progress01, remainingSec) => {
         if (cancelled) return;
         setCutProgressPct(Math.min(100, Math.max(0, progress01 * 100)));
@@ -299,8 +308,10 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
           <div className="flex min-w-0 items-center gap-2">
             <span className="shrink-0 rounded-lg border border-amber-300/70 bg-amber-950 px-2 py-0.5 text-[11px] font-extrabold text-amber-200 sm:text-xs">
               {epDef.episode === 0
-                ? '튜토리얼 · 에피소드 0'
-                : `스토리모드 · ${reincarnation > 0 ? `${reincarnation}환생 ` : ''}제${epDef.episode}화`}
+                ? tr('튜토리얼 · 에피소드 0', 'Tutorial · Episode 0')
+                : isKo
+                  ? `스토리모드 · ${reincarnation > 0 ? `${reincarnation}환생 ` : ''}제${epDef.episode}화`
+                  : `Story Mode · ${reincarnation > 0 ? `NG+${reincarnation} ` : ''}EP ${epDef.episode}`}
             </span>
             <h2 className="hs-title truncate text-sm font-extrabold text-amber-100 sm:text-lg">
               {epDef.titleKo}
@@ -312,9 +323,9 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                 className="h-4 w-4 rounded-full border border-amber-300/80 bg-stone-900 object-cover object-top"
               />
               <span>
-                {epDef.episode === 0 ? '상대: ' : '보스: '}
+                {epDef.episode === 0 ? tr('상대: ', 'Foe: ') : tr('보스: ', 'Boss: ')}
                 <strong className="text-red-200">{epDef.bossNameKo}</strong> (+{diffSpec.expectedWinGold}G
-                {diffSpec.isBossMilestone ? ' +1팩' : ''})
+                {diffSpec.isBossMilestone ? tr(' +1팩', ' +1 Pack') : ''})
               </span>
             </span>
           </div>
@@ -341,7 +352,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                       : 'border-stone-500/60 bg-stone-900 text-stone-300'
                   }`}
                 >
-                  {ttsEnabled ? '🔊 낭독 ON' : '🔇 낭독 OFF'}
+                  {ttsEnabled ? tr('🔊 낭독 ON', '🔊 Voice ON') : tr('🔇 낭독 OFF', '🔇 Voice OFF')}
                 </button>
 
                 <button
@@ -355,14 +366,16 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                   }`}
                 >
                   {!autoPaused
-                    ? `⏸ ${activeCutIdx + 1}/${totalCuts}컷 (일시정지)`
-                    : '▶ 이어 듣기'}
+                    ? isKo
+                      ? `⏸ ${activeCutIdx + 1}/${totalCuts}컷 (일시정지)`
+                      : `⏸ Cut ${activeCutIdx + 1}/${totalCuts} (Pause)`
+                    : tr('▶ 이어 듣기', '▶ Resume')}
                 </button>
               </>
             )}
 
             <select
-              aria-label="에피소드 선택"
+              aria-label={tr('에피소드 선택', 'Select Episode')}
               value={viewingEpisode}
               onChange={(e) => {
                 hsAudio.playSfx('card_flip', 0.7);
@@ -372,13 +385,17 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
               className="min-h-[32px] rounded-lg border border-amber-400/60 bg-stone-900 px-2 py-1 text-[11px] font-extrabold text-amber-100 outline-none sm:text-xs"
             >
               <option key={0} value={0}>
-                제0화 · 튜토리얼 ({KADAN_TUTORIAL_EPISODE_0.titleKo})
+                {isKo ? `제0화 · 튜토리얼 (${ep0Title})` : `EP 0 · Tutorial (${ep0Title})`}
               </option>
               {KADAN_JOURNEY_EPISODES.map((ep) => {
                 const locked = ep.episode > unlockedMax && reincarnation === 0;
+                const displayTitle = isKo
+                  ? ep.titleKo
+                  : KADAN_JOURNEY_EPISODES_EN[ep.episode]?.titleEn || ep.titleKo;
                 return (
                   <option key={ep.episode} value={ep.episode} disabled={locked}>
-                    제{ep.episode}화 · {ep.titleKo} {locked ? '🔒' : ''}
+                    {isKo ? `제${ep.episode}화 · ` : `EP ${ep.episode} · `}
+                    {displayTitle} {locked ? '🔒' : ''}
                   </option>
                 );
               })}
@@ -387,7 +404,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
             <button
               type="button"
               onClick={handleCloseOrStart}
-              aria-label="건너뛰기 및 닫기"
+              aria-label={tr('건너뛰기 및 닫기', 'Skip & Close')}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-400/50 bg-stone-900 text-xs font-black text-amber-200 hover:bg-stone-800"
             >
               ✕
@@ -428,7 +445,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                       className="inline-flex items-center gap-1 rounded-md border border-stone-500/70 bg-stone-900/90 px-2 py-0.5 text-[11px] font-bold text-stone-300 shadow"
                     >
                       <span>📖</span>
-                      <span>자막 독서 모드 (TTS 꺼짐)</span>
+                      <span>{tr('자막 독서 모드 (TTS 꺼짐)', 'Subtitle Reading Mode (Voice OFF)')}</span>
                     </span>
                   ) : isSpeaking ? (
                     <span
@@ -436,7 +453,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                       className="inline-flex animate-pulse items-center gap-1 rounded-md border border-emerald-400/70 bg-emerald-950/90 px-2 py-0.5 text-[11px] font-extrabold text-emerald-300 shadow"
                     >
                       <span>🎙</span>
-                      <span>성우 내레이션 낭독 중</span>
+                      <span>{tr('성우 내레이션 낭독 중', 'Narrator Voiceover Playing')}</span>
                     </span>
                   ) : null}
                 </div>
@@ -482,7 +499,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                         : 'border-stone-700 bg-stone-900/90 text-stone-300 hover:border-amber-400/60'
                   }`}
                 >
-                  {idx + 1}컷
+                  {isKo ? `${idx + 1}컷` : `Cut ${idx + 1}`}
                 </button>
               );
             })}
@@ -500,12 +517,13 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                 clearPendingAdvance();
                 hsAudio.pauseStoryNarration();
                 hsAudio.playSfx('ui_click', 0.7);
+                setVideoLang(isKo ? 'ko' : 'en');
                 setShowVideoPlayer(true);
               }}
               className="hs-brass-btn inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border-amber-300/80 px-3.5 py-1.5 text-xs font-extrabold text-yellow-200 sm:px-4 sm:text-sm"
             >
               <span>🎬</span>
-              <span>튜토리얼 동영상 바로보기</span>
+              <span>{tr('튜토리얼 동영상 바로보기', 'Watch Tutorial Video')}</span>
             </button>
 
             {epDef.episode >= 1 && (
@@ -523,7 +541,9 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                   className="hs-brass-btn inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold text-amber-100 sm:px-3.5 sm:text-sm"
                 >
                   <span>🎨</span>
-                  <span>제{epDef.episode}화 웹툰 바로가기 ↗</span>
+                  <span>
+                    {isKo ? `제${epDef.episode}화 웹툰 바로가기 ↗` : `EP ${epDef.episode} Webtoon ↗`}
+                  </span>
                 </a>
 
                 <a
@@ -539,7 +559,9 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                   className="hs-brass-btn inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold text-amber-100 sm:px-3.5 sm:text-sm"
                 >
                   <span>📖</span>
-                  <span>제{epDef.episode}화 소설 바로가기 ↗</span>
+                  <span>
+                    {isKo ? `제${epDef.episode}화 소설 바로가기 ↗` : `EP ${epDef.episode} Novel ↗`}
+                  </span>
                 </a>
               </>
             )}
@@ -552,14 +574,20 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
             className="hs-arcane-btn ml-auto min-h-[42px] rounded-xl px-4 py-2 text-xs font-extrabold tracking-wide text-white sm:px-6 sm:text-base"
           >
             {isMidBattleReview && viewingEpisode === episode
-              ? '⚔ 전장으로 돌아가기'
+              ? tr('⚔ 전장으로 돌아가기', '⚔ Return to Battle')
               : isSequentialRunning
                 ? epDef.episode === 0
-                  ? `⚔ 건너뛰기 · 튜토리얼 실전 시작 (약 ${remainingTotalSec}초)`
-                  : `⚔ 건너뛰기 · 결투 시작 (약 ${remainingTotalSec}초)`
+                  ? isKo
+                    ? `⚔ 건너뛰기 · 튜토리얼 실전 시작 (약 ${remainingTotalSec}초)`
+                    : `⚔ Skip · Start Tutorial Drill (~${remainingTotalSec}s)`
+                  : isKo
+                    ? `⚔ 건너뛰기 · 결투 시작 (약 ${remainingTotalSec}초)`
+                    : `⚔ Skip · Start Duel (~${remainingTotalSec}s)`
                 : epDef.episode === 0
-                  ? '⚔ 에피소드 0 훈련 시작'
-                  : `⚔ 제${epDef.episode}화 결투 시작`}
+                  ? tr('⚔ 에피소드 0 훈련 시작', '⚔ Start Episode 0 Drill')
+                  : isKo
+                    ? `⚔ 제${epDef.episode}화 결투 시작`
+                    : `⚔ Start Episode ${epDef.episode} Duel`}
           </button>
         </footer>
       </div>
@@ -578,7 +606,9 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
               <div className="flex items-center gap-2">
                 <span className="text-base">🎬</span>
                 <h3 className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
-                  눈히어로 초보자 튜토리얼 공식 가이드 영상 (16:9)
+                  {tr('눈히어로 초보자 튜토리얼 공식 가이드 영상 (16:9)',
+                    'SNSHero Official Beginner Tutorial Video (16:9)',
+                  )}
                 </h3>
               </div>
               <div className="flex items-center gap-1.5">

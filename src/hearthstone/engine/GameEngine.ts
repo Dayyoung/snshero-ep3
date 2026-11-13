@@ -1,4 +1,6 @@
+import { isKoreanLanguage } from '../../i18n/heroLang';
 import { cardDb } from '../cardDb';
+import { getCardName, getCardText, getLocalizedHeroInfo } from '../i18nData';
 import {
   ActionHistoryItem,
   BattleMatchState,
@@ -396,17 +398,38 @@ export function createEngine(rawState: BattleMatchState) {
     }
   };
 
+  const ko = isKoreanLanguage();
+  const cardDispName = (cardId: string, fallback?: string): string => {
+    const c = cardDb.getCard(cardId);
+    return c ? getCardName(c) : fallback || cardId;
+  };
+  const heroDispName = (p: PlayerBattleState): string => {
+    if (p.customHero) return ko ? p.customHero.heroNameKo : (p.customHero.heroNameEn || p.name);
+    if (p.isJaraxxus) return ko ? '대장군 아이언포지' : 'Warlord Ironforge';
+    return ko ? p.heroNameKo : getLocalizedHeroInfo(p.heroClass).name;
+  };
+
   const revealSecret = (secretOwnerSide: PlayerSide, secretUid: string): boolean => {
     const p = getPlayer(secretOwnerSide);
     const idx = p.secrets.findIndex((s) => s.uid === secretUid);
     if (idx < 0) return false;
     const [sec] = p.secrets.splice(idx, 1);
-    pushVfx('SECRET_REVEAL', `${secretOwnerSide}_HERO`, undefined, undefined, `비밀 발동: ${sec.name}!`);
+    const secName = cardDispName(sec.cardId, sec.name);
+    const heroTitle = heroDispName(p);
+    pushVfx(
+      'SECRET_REVEAL',
+      `${secretOwnerSide}_HERO`,
+      undefined,
+      undefined,
+      ko ? `비밀 발동: ${secName}!` : `Secret Triggered: ${secName}!`,
+    );
     pushHistory({
       actorSide: secretOwnerSide,
       cardId: sec.cardId,
-      title: `비밀 발동: ${sec.name}`,
-      detail: `${p.heroNameKo}의 비밀 [${sec.name}] 발동!`,
+      title: ko ? `비밀 발동: ${secName}` : `Secret: ${secName}`,
+      detail: ko
+        ? `${heroTitle}의 비밀 [${secName}] 발동!`
+        : `${heroTitle}’s Secret [${secName}] triggered!`,
       kind: 'SECRET_TRIGGER',
     });
     // Eaglehorn Bow (독수리뿔 장궁 EX1_536) gains +1 durability whenever a Secret is revealed!
@@ -429,12 +452,14 @@ export function createEngine(rawState: BattleMatchState) {
   const addCardToHand = (side: PlayerSide, cardId: string, costMod = 0): boolean => {
     const p = getPlayer(side);
     if (p.hand.length >= 10) {
-      const burned = cardDb.getCard(cardId)?.name || cardId;
+      const burned = cardDispName(cardId);
       pushHistory({
         actorSide: side,
         cardId,
-        title: `${burned} 소멸`,
-        detail: `손패가 가득 차서 [${burned}] 카드가 불타 소멸했습니다!`,
+        title: ko ? `${burned} 소멸` : `${burned} Burned`,
+        detail: ko
+          ? `손패가 가득 차서 [${burned}] 카드가 불타 소멸했습니다!`
+          : `Hand is full — [${burned}] was burned!`,
         kind: 'TRIGGER',
       });
       return false;
@@ -453,8 +478,10 @@ export function createEngine(rawState: BattleMatchState) {
         pushHistory({
           actorSide: side,
           cardId: 'GAME_005',
-          title: `탈진 피해 ${fatDmg}`,
-          detail: `덱에 카드가 없어 탈진 피해를 ${fatDmg} 입습니다!`,
+          title: ko ? `탈진 피해 ${fatDmg}` : `Fatigue ${fatDmg}`,
+          detail: ko
+            ? `덱에 카드가 없어 탈진 피해를 ${fatDmg} 입습니다!`
+            : `Out of cards! Took ${fatDmg} Fatigue damage!`,
           kind: 'TRIGGER',
         });
         dealDamage(`${side}_HERO`, fatDmg, side, 'EXPLOSION');
@@ -475,12 +502,12 @@ export function createEngine(rawState: BattleMatchState) {
       if (p.hand.length === 0) break;
       const idx = Math.floor(Math.random() * p.hand.length);
       const [removed] = p.hand.splice(idx, 1);
-      const cname = cardDb.getCard(removed.cardId)?.name || removed.cardId;
+      const cname = cardDispName(removed.cardId);
       pushHistory({
         actorSide: side,
         cardId: removed.cardId,
-        title: `${cname} 버림`,
-        detail: `[${cname}] 카드를 버렸습니다.`,
+        title: ko ? `${cname} 버림` : `${cname} Discarded`,
+        detail: ko ? `[${cname}] 카드를 버렸습니다.` : `Discarded [${cname}].`,
         kind: 'TRIGGER',
       });
     }
@@ -732,7 +759,7 @@ export function createEngine(rawState: BattleMatchState) {
     m.powerOverwhelmingDieAtEndTurn = false;
     m.nightmareDestroyOwnerTurn = null;
     recalculateAuras();
-    pushVfx('SILENCE_RING', m.uid, undefined, undefined, '침묵!');
+    pushVfx('SILENCE_RING', m.uid, undefined, undefined, ko ? '침묵!' : 'Silenced!');
   };
 
   const freezeTarget = (targetId: string) => {
@@ -777,7 +804,14 @@ export function createEngine(rawState: BattleMatchState) {
     const ownerHand = getPlayer(f.side).hand;
     if (ownerHand.length >= 10) {
       // Overfull hand destroys bounced minion!
-      pushVfx('EXPLOSION', `${f.side}_HERO`, undefined, undefined, `${removed.name} 파괴!`);
+      const remName = cardDispName(removed.cardId, removed.name);
+      pushVfx(
+        'EXPLOSION',
+        `${f.side}_HERO`,
+        undefined,
+        undefined,
+        ko ? `${remName} 파괴!` : `${remName} Destroyed!`,
+      );
     } else {
       ownerHand.push({ uid: nextUid('hand'), cardId: removed.cardId, costMod });
     }
@@ -822,7 +856,7 @@ export function createEngine(rawState: BattleMatchState) {
       const heroSide: PlayerSide = targetId === 'PLAYER_HERO' ? 'PLAYER' : 'OPPONENT';
       const hero = getPlayer(heroSide);
       if (hero.immuneThisTurn) {
-        pushVfx('DIVINE_BREAK', targetId, sourceId, 0, '면역');
+        pushVfx('DIVINE_BREAK', targetId, sourceId, 0, ko ? '면역' : 'Immune');
         return { actualDamage: 0, killed: false };
       }
 
@@ -864,7 +898,7 @@ export function createEngine(rawState: BattleMatchState) {
     const m = f.minion;
     if (m.divineShield) {
       m.divineShield = false;
-      pushVfx('DIVINE_BREAK', m.uid, sourceId, 0, '보호막 파괴');
+      pushVfx('DIVINE_BREAK', m.uid, sourceId, 0, ko ? '보호막 파괴' : 'Shield Popped');
       return { actualDamage: 0, killed: false };
     }
 
@@ -1259,27 +1293,77 @@ export function createEngine(rawState: BattleMatchState) {
     const hasChooseOne = Boolean(spec?.chooseOne);
 
     if (state.phase !== 'PLAYING' || state.activeSide !== side) {
-      return { canPlay: false, reason: '내 턴이 아닙니다.', cost, needsTarget: false, validTargets: [], isComboReady, hasChooseOne };
+      return {
+        canPlay: false,
+        reason: ko ? '내 턴이 아닙니다.' : 'Not your turn.',
+        cost,
+        needsTarget: false,
+        validTargets: [],
+        isComboReady,
+        hasChooseOne,
+      };
     }
     if (cost > p.mana) {
-      return { canPlay: false, reason: '마나가 부족합니다!', cost, needsTarget: false, validTargets: [], isComboReady, hasChooseOne };
+      return {
+        canPlay: false,
+        reason: ko ? '마나가 부족합니다!' : 'Not enough Mana!',
+        cost,
+        needsTarget: false,
+        validTargets: [],
+        isComboReady,
+        hasChooseOne,
+      };
     }
     if (def.type === 'MINION' && p.board.length >= 7) {
-      return { canPlay: false, reason: '하수인이 너무 많습니다!', cost, needsTarget: false, validTargets: [], isComboReady, hasChooseOne };
+      return {
+        canPlay: false,
+        reason: ko ? '하수인이 너무 많습니다!' : 'You have too many minions!',
+        cost,
+        needsTarget: false,
+        validTargets: [],
+        isComboReady,
+        hasChooseOne,
+      };
     }
     if (def.mechanics.includes('SECRET')) {
       if (p.secrets.length >= 5 || p.secrets.some((s) => s.cardId === def.id)) {
-        return { canPlay: false, reason: '이미 같은 비밀이 활성화되어 있습니다.', cost, needsTarget: false, validTargets: [], isComboReady, hasChooseOne };
+        return {
+          canPlay: false,
+          reason: ko
+            ? '이미 같은 비밀이 활성화되어 있습니다.'
+            : 'That Secret is already active.',
+          cost,
+          needsTarget: false,
+          validTargets: [],
+          isComboReady,
+          hasChooseOne,
+        };
       }
       return { canPlay: true, cost, needsTarget: false, validTargets: [], isComboReady, hasChooseOne };
     }
     // Special weapon requirements (Deadly Poison / Blade Flurry require equipped weapon!)
     if ((def.id === 'CS2_074' || def.id === 'CS2_233') && !p.weapon) {
-      return { canPlay: false, reason: '장착한 무기가 없습니다!', cost, needsTarget: false, validTargets: [], isComboReady, hasChooseOne };
+      return {
+        canPlay: false,
+        reason: ko ? '장착한 무기가 없습니다!' : 'No weapon equipped!',
+        cost,
+        needsTarget: false,
+        validTargets: [],
+        isComboReady,
+        hasChooseOne,
+      };
     }
     // Cleave / Multi-Shot require >= 2 enemy minions in Classic, Forked Lightning >= 2 (we allow >= 1 for smoother UX, or check >= 1)
     if ((def.id === 'CS2_114' || def.id === 'DS1_183' || def.id === 'EX1_251' || def.id === 'EX1_617') && getPlayer(getEnemySide(side)).board.length === 0) {
-      return { canPlay: false, reason: '적 하수인이 없습니다!', cost, needsTarget: false, validTargets: [], isComboReady, hasChooseOne };
+      return {
+        canPlay: false,
+        reason: ko ? '적 하수인이 없습니다!' : 'No enemy minions!',
+        cost,
+        needsTarget: false,
+        validTargets: [],
+        isComboReady,
+        hasChooseOne,
+      };
     }
 
     if (hasChooseOne && spec?.chooseOne) {
@@ -1295,7 +1379,7 @@ export function createEngine(rawState: BattleMatchState) {
       if (isSpell && validTargets.length === 0) {
         return {
           canPlay: false,
-          reason: '유효한 대상이 없습니다!',
+          reason: ko ? '유효한 대상이 없습니다!' : 'No valid targets!',
           cost,
           needsTarget: true,
           validTargets: [],
@@ -1367,7 +1451,7 @@ export function createEngine(rawState: BattleMatchState) {
     }
     // 2. Doomsayer (파멸의 예언자 NEW1_021)
     if (p.board.some((m) => !m.silenced && m.cardId === 'NEW1_021')) {
-      pushVfx('EXPLOSION', `${side}_HERO`, undefined, undefined, '종말이 다가온다!!');
+      pushVfx('EXPLOSION', `${side}_HERO`, undefined, undefined, ko ? '종말이 다가온다!!' : 'THE END IS COMING!');
       for (const m of [...state.player.board, ...state.opponent.board]) {
         destroyMinion(m.uid);
       }
@@ -1427,7 +1511,7 @@ export function createEngine(rawState: BattleMatchState) {
     resolveDeaths();
     recalculateAuras();
     state.turnSecondsLeft = state.maxTurnSeconds;
-    state.bannerMessage = side === 'PLAYER' ? '내 턴!' : '상대 턴';
+    state.bannerMessage = side === 'PLAYER' ? (ko ? '내 턴!' : 'YOUR TURN!') : (ko ? '상대 턴' : 'ENEMY TURN');
   };
 
   const confirmMulligan = (replaceHandUids: string[]) => {
@@ -1493,7 +1577,7 @@ export function createEngine(rawState: BattleMatchState) {
     const hc = p.hand[hIdx];
     const check = inspectPlayability(side, hc);
     if (!check.canPlay) {
-      state.errorBanner = check.reason || '낼 수 없는 카드입니다.';
+      state.errorBanner = check.reason || (ko ? '낼 수 없는 카드입니다.' : 'Cannot play that card.');
       return state;
     }
 
@@ -1511,8 +1595,8 @@ export function createEngine(rawState: BattleMatchState) {
         return {
           index: idx as 0 | 1,
           optionCardId: sub.optionCardId,
-          title: sub.title,
-          description: sub.description,
+          title: ko ? sub.title : sub.titleEn || sub.title,
+          description: ko ? sub.description : sub.descriptionEn || sub.description,
           needsTarget: sub.targetKind !== 'NONE' && validTargets.length > 0,
           validTargets,
         };
@@ -1581,11 +1665,15 @@ export function createEngine(rawState: BattleMatchState) {
       const counter = enemy.secrets.find((s) => s.cardId === 'EX1_287');
       if (counter) {
         revealSecret(enemySide, counter.uid);
+        const spellName = getCardName(def);
+        const ctrName = cardDispName(counter.cardId, counter.name);
         pushHistory({
           actorSide: side,
           cardId: def.id,
-          title: `${def.name} (차단됨!)`,
-          detail: `상대의 [${counter.name}] 비밀로 인해 [${def.name}] 주문이 무효화되었습니다!`,
+          title: ko ? `${spellName} (차단됨!)` : `${spellName} (Countered!)`,
+          detail: ko
+            ? `상대의 [${ctrName}] 비밀로 인해 [${spellName}] 주문이 무효화되었습니다!`
+            : `Enemy Secret [${ctrName}] countered [${spellName}]!`,
           kind: 'CAST_SPELL',
         });
         recalculateAuras();
@@ -1603,27 +1691,39 @@ export function createEngine(rawState: BattleMatchState) {
       }
 
       if (def.mechanics.includes('SECRET')) {
+        const secTitle = getCardName(def);
+        const heroTitle = heroDispName(p);
         p.secrets.push({
           uid: nextUid('sec'),
           cardId: def.id,
-          name: def.name,
+          name: secTitle,
           heroClass: p.heroClass,
         });
         pushHistory({
           actorSide: side,
           cardId: def.id,
-          title: side === 'PLAYER' ? `비밀: ${def.name}` : `${p.heroNameKo}의 비밀`,
-          detail: side === 'PLAYER' ? `[${def.name}] 비밀을 설치했습니다.` : '상대편이 비밀을 설치했습니다.',
+          title: side === 'PLAYER' ? (ko ? `비밀: ${secTitle}` : `Secret: ${secTitle}`) : (ko ? `${heroTitle}의 비밀` : `${heroTitle}’s Secret`),
+          detail:
+            side === 'PLAYER'
+              ? ko
+                ? `[${secTitle}] 비밀을 설치했습니다.`
+                : `Played Secret [${secTitle}].`
+              : ko
+                ? '상대편이 비밀을 설치했습니다.'
+                : 'Opponent played a Secret.',
           kind: 'CAST_SPELL',
         });
       } else if (spec?.chooseOne && opts?.chooseOptionIndex !== undefined) {
         const sub = spec.chooseOne[opts.chooseOptionIndex];
         sub.run(ops, side, targetId);
+        const cName = getCardName(def);
+        const subTitle = ko ? sub.title : sub.titleEn || sub.title;
+        const subDesc = ko ? sub.description : sub.descriptionEn || sub.description;
         pushHistory({
           actorSide: side,
           cardId: def.id,
-          title: `${def.name} (${sub.title})`,
-          detail: sub.description,
+          title: `${cName} (${subTitle})`,
+          detail: subDesc,
           kind: 'CAST_SPELL',
         });
       } else {
@@ -1631,8 +1731,8 @@ export function createEngine(rawState: BattleMatchState) {
         pushHistory({
           actorSide: side,
           cardId: def.id,
-          title: def.name,
-          detail: def.text.replace(/<[^>]+>/g, '').replace(/\[x\]/g, ''),
+          title: getCardName(def),
+          detail: getCardText(def).replace(/<[^>]+>/g, '').replace(/\[x\]/g, ''),
           kind: 'CAST_SPELL',
         });
       }
@@ -1652,8 +1752,10 @@ export function createEngine(rawState: BattleMatchState) {
       pushHistory({
         actorSide: side,
         cardId: def.id,
-        title: def.name,
-        detail: `공격력 ${eqAtk} · 내구도 ${eqDur} 무기를 영웅에게 장착했습니다.`,
+        title: getCardName(def),
+        detail: ko
+          ? `공격력 ${eqAtk} · 내구도 ${eqDur} 무기를 영웅에게 장착했습니다.`
+          : `Equipped ${eqAtk}/${eqDur} weapon.`,
         kind: 'EQUIP_WEAPON',
       });
     } else if (def.type === 'MINION') {
@@ -1693,11 +1795,12 @@ export function createEngine(rawState: BattleMatchState) {
           }
         }
 
+        const mName = getCardName(def);
         pushHistory({
           actorSide: side,
           cardId: def.id,
-          title: def.name,
-          detail: `${def.name} 소환`,
+          title: mName,
+          detail: ko ? `${mName} 소환` : `Summoned ${mName}`,
           kind: 'PLAY_MINION',
         });
       }
@@ -1725,27 +1828,61 @@ export function createEngine(rawState: BattleMatchState) {
   } => {
     const p = getPlayer(side);
     if (state.phase !== 'PLAYING' || state.activeSide !== side) {
-      return { canUse: false, reason: '내 턴이 아닙니다.', needsTarget: false, validTargets: [] };
+      return {
+        canUse: false,
+        reason: ko ? '내 턴이 아닙니다.' : 'Not your turn.',
+        needsTarget: false,
+        validTargets: [],
+      };
     }
     if (p.heroPowerUsedThisTurn) {
-      return { canUse: false, reason: '이번 턴에 이미 영웅 능력을 사용했습니다.', needsTarget: false, validTargets: [] };
+      return {
+        canUse: false,
+        reason: ko
+          ? '이번 턴에 이미 영웅 능력을 사용했습니다.'
+          : 'Hero Power already used this turn.',
+        needsTarget: false,
+        validTargets: [],
+      };
     }
     if (p.mana < 2) {
-      return { canUse: false, reason: '마나가 부족합니다!', needsTarget: false, validTargets: [] };
+      return {
+        canUse: false,
+        reason: ko ? '마나가 부족합니다!' : 'Not enough Mana!',
+        needsTarget: false,
+        validTargets: [],
+      };
     }
     if (p.heroPowerId === 'HERO_04bp' || p.heroPowerId === 'EX1_tk33') {
       if (p.board.length >= 7) {
-        return { canUse: false, reason: '하수인이 너무 많습니다!', needsTarget: false, validTargets: [] };
+        return {
+          canUse: false,
+          reason: ko ? '하수인이 너무 많습니다!' : 'You have too many minions!',
+          needsTarget: false,
+          validTargets: [],
+        };
       }
     }
     if (p.heroPowerId === 'HERO_02bp') {
       if (p.board.length >= 7) {
-        return { canUse: false, reason: '하수인이 너무 많습니다!', needsTarget: false, validTargets: [] };
+        return {
+          canUse: false,
+          reason: ko ? '하수인이 너무 많습니다!' : 'You have too many minions!',
+          needsTarget: false,
+          validTargets: [],
+        };
       }
       const basicTotems = ['CS2_050', 'CS2_051', 'CS2_052', 'NEW1_009'];
       const missing = basicTotems.filter((tid) => !p.board.some((m) => m.cardId === tid));
       if (missing.length === 0) {
-        return { canUse: false, reason: '모든 기본 정령석이 이미 전장에 있습니다!', needsTarget: false, validTargets: [] };
+        return {
+          canUse: false,
+          reason: ko
+            ? '모든 기본 정령석이 이미 전장에 있습니다!'
+            : 'All basic Spirit Stones are already on the board!',
+          needsTarget: false,
+          validTargets: [],
+        };
       }
     }
 
@@ -1759,7 +1896,8 @@ export function createEngine(rawState: BattleMatchState) {
   const useHeroPower = (side: PlayerSide, targetId?: string): BattleMatchState => {
     const check = inspectHeroPower(side);
     if (!check.canUse) {
-      state.errorBanner = check.reason || '영웅 능력을 사용할 수 없습니다.';
+      state.errorBanner =
+        check.reason || (ko ? '영웅 능력을 사용할 수 없습니다.' : 'Cannot use Hero Power.');
       return state;
     }
     const p = getPlayer(side);
@@ -1814,11 +1952,17 @@ export function createEngine(rawState: BattleMatchState) {
         break;
     }
 
+    const hpTitle =
+      ko || p.isJaraxxus || p.shadowformTier > 0
+        ? p.heroPowerNameKo
+        : getLocalizedHeroInfo(p.heroClass).heroPowerName;
     pushHistory({
       actorSide: side,
       cardId: p.heroPowerId,
-      title: p.heroPowerNameKo,
-      detail: `${p.heroNameKo} 영웅 능력 사용`,
+      title: hpTitle,
+      detail: ko
+        ? `${heroDispName(p)} 영웅 능력 사용`
+        : `${heroDispName(p)} used Hero Power`,
       kind: 'HERO_POWER',
     });
 
@@ -1831,32 +1975,63 @@ export function createEngine(rawState: BattleMatchState) {
     attackerId: string,
   ): { ok: boolean; reason?: string; errorCode?: 'exhausted' | 'attacked' | 'taunt' } => {
     if (state.phase !== 'PLAYING' || state.activeSide !== side) {
-      return { ok: false, reason: '내 턴이 아닙니다.' };
+      return { ok: false, reason: ko ? '내 턴이 아닙니다.' : 'Not your turn.' };
     }
     const p = getPlayer(side);
     if (attackerId === `${side}_HERO`) {
-      if (p.frozen) return { ok: false, reason: '빙결된 캐릭터는 공격할 수 없습니다!' };
+      if (p.frozen) {
+        return {
+          ok: false,
+          reason: ko
+            ? '빙결된 캐릭터는 공격할 수 없습니다!'
+            : 'Frozen characters cannot attack!',
+        };
+      }
       const atk = getHeroAttack(p, true);
-      if (atk <= 0) return { ok: false, reason: '공격력이 없는 캐릭터입니다.' };
+      if (atk <= 0) {
+        return {
+          ok: false,
+          reason: ko ? '공격력이 없는 캐릭터입니다.' : 'This character has no Attack.',
+        };
+      }
       const maxSwings = p.weapon?.windfury ? 2 : 1;
       if (p.attacksMadeThisTurn >= maxSwings) {
-        return { ok: false, reason: '이미 공격했습니다!', errorCode: 'attacked' };
+        return {
+          ok: false,
+          reason: ko ? '이미 공격했습니다!' : 'Already attacked!',
+          errorCode: 'attacked',
+        };
       }
       return { ok: true };
     }
 
     const f = findMinion(attackerId);
-    if (!f || f.side !== side) return { ok: false, reason: '공격할 수 없는 대상입니다.' };
+    if (!f || f.side !== side) {
+      return {
+        ok: false,
+        reason: ko ? '공격할 수 없는 대상입니다.' : 'Cannot attack with that target.',
+      };
+    }
     const m = f.minion;
     if (m.cantAttack && !m.silenced) {
-      return { ok: false, reason: '이 하수인은 공격할 수 없습니다!' };
+      return {
+        ok: false,
+        reason: ko ? '이 하수인은 공격할 수 없습니다!' : 'This minion cannot attack!',
+      };
     }
-    if (m.frozen) return { ok: false, reason: '빙결된 하수인은 공격할 수 없습니다!' };
+    if (m.frozen) {
+      return {
+        ok: false,
+        reason: ko ? '빙결된 하수인은 공격할 수 없습니다!' : 'Frozen minions cannot attack!',
+      };
+    }
     const hasChargeNow = m.charge || m.auraCharge;
     if (m.exhausted && !hasChargeNow) {
       return {
         ok: false,
-        reason: '그 하수인은 소환 후유증 때문에 다음 턴에 공격할 수 있습니다!',
+        reason: ko
+          ? '그 하수인은 소환 후유증 때문에 다음 턴에 공격할 수 있습니다!'
+          : 'That minion needs a turn to get ready (Summoning Sickness)!',
         errorCode: 'exhausted',
       };
     }
@@ -1864,10 +2039,19 @@ export function createEngine(rawState: BattleMatchState) {
       !m.silenced && m.cardId === 'EX1_412' && getMinionHealth(m) < getMinionMaxHealth(m);
     const maxSwings = m.windfury || isEnragedRagingWorgen ? 2 : 1;
     if (m.attacksMadeThisTurn >= maxSwings) {
-      return { ok: false, reason: '그 하수인은 이미 공격했습니다!', errorCode: 'attacked' };
+      return {
+        ok: false,
+        reason: ko ? '그 하수인은 이미 공격했습니다!' : 'That minion already attacked!',
+        errorCode: 'attacked',
+      };
     }
     if (getMinionAttack(m) <= 0) {
-      return { ok: false, reason: '공격력이 0인 하수인은 공격할 수 없습니다.' };
+      return {
+        ok: false,
+        reason: ko
+          ? '공격력이 0인 하수인은 공격할 수 없습니다.'
+          : 'A minion with 0 Attack cannot attack.',
+      };
     }
     return { ok: true };
   };
@@ -1890,7 +2074,7 @@ export function createEngine(rawState: BattleMatchState) {
   ): BattleMatchState => {
     const swingCheck = canAttackerSwing(side, attackerId);
     if (!swingCheck.ok) {
-      state.errorBanner = swingCheck.reason || '공격할 수 없습니다.';
+      state.errorBanner = swingCheck.reason || (ko ? '공격할 수 없습니다.' : 'Cannot attack.');
       return state;
     }
 
@@ -1898,7 +2082,9 @@ export function createEngine(rawState: BattleMatchState) {
     const enemyMinions = getPlayer(enemySide).board.filter((m) => !m.stealth);
     const taunts = enemyMinions.filter((m) => hasMinionTaunt(m));
     if (taunts.length > 0 && !taunts.some((t) => t.uid === initialDefenderId)) {
-      state.errorBanner = '도발 능력이 있는 하수인이 가로막고 있습니다!';
+      state.errorBanner = ko
+        ? '도발 능력이 있는 하수인이 가로막고 있습니다!'
+        : 'A minion with Taunt is in the way!';
       return state;
     }
 
@@ -2046,15 +2232,19 @@ export function createEngine(rawState: BattleMatchState) {
       attackerPlayer.immuneThisTurn = false;
     }
 
-    const atkTitle = isHeroAttacker ? attackerPlayer.heroNameKo : afFinal!.minion.name;
+    const atkTitle = isHeroAttacker
+      ? heroDispName(attackerPlayer)
+      : cardDispName(afFinal!.minion.cardId, afFinal!.minion.name);
     const defTitle = isHeroDefender
-      ? getPlayer(defenderId === 'PLAYER_HERO' ? 'PLAYER' : 'OPPONENT').heroNameKo
-      : dfFinal!.minion.name;
+      ? heroDispName(getPlayer(defenderId === 'PLAYER_HERO' ? 'PLAYER' : 'OPPONENT'))
+      : cardDispName(dfFinal!.minion.cardId, dfFinal!.minion.name);
     pushHistory({
       actorSide: side,
       cardId: isHeroAttacker ? attackerPlayer.heroId : afFinal!.minion.cardId,
       title: `${atkTitle} ⚔ ${defTitle}`,
-      detail: `[${atkTitle}](${atkDamage}) → [${defTitle}] 공격!`,
+      detail: ko
+        ? `[${atkTitle}](${atkDamage}) → [${defTitle}] 공격!`
+        : `[${atkTitle}] (${atkDamage}) attacked [${defTitle}]!`,
       kind: 'ATTACK',
     });
 

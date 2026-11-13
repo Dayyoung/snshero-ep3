@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isKoreanLanguage, tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import {
   CLASSIC_RANK_NAMES,
@@ -8,6 +9,7 @@ import {
   getCardTileUrl,
   getHeroArtUrl,
 } from '../cardDb';
+import { getCardName, getLocalizedHeroInfo, getRankTitle } from '../i18nData';
 import {
   BoardMinionToken,
   HearthstoneCard,
@@ -36,11 +38,11 @@ import {
   hasMinionTaunt,
 } from '../engine/GameEngine';
 import {
-  TUTORIAL_EP0_CARD_REASONS,
   buildJourneyBossDeck,
   buildJourneyPlayerDeckAndMultipliers,
   buildTutorialEp0PlayerDeck,
   buildTutorialEp0ScarecrowDeck,
+  getEp0CardReason,
   getJourneyDifficultySpec,
   getJourneyEpisodeDef,
 } from '../kadanJourneyData';
@@ -150,33 +152,34 @@ const BOARD_BG_URL: Record<BoardThemeId, string> = {
 
 const BOARD_CORNER_TOYS: Record<
   BoardThemeId,
-  { pos: 'TL' | 'TR' | 'BL' | 'BR'; icon: string; name: string; reaction: string }[]
+  { pos: 'TL' | 'TR' | 'BL' | 'BR'; icon: string; name: string; nameEn: string; reaction: string; reactionEn: string }[]
 > = {
   STORMWIND: [
-    { pos: 'TL', icon: '🔔', name: '엘윈마을 설원 종탑', reaction: '땡~ 땡~! 엘윈마을 설원 종탑의 종소리가 맑게 울려 퍼집니다!' },
-    { pos: 'TR', icon: '🏮', name: '설원 온기 등불', reaction: '화르륵! 엘윈마을 청동 등불이 따스하게 타오릅니다!' },
-    { pos: 'BL', icon: '🛡', name: '눈꽃 방패 거치대', reaction: '챙! 카단의 눈꽃 방패에서 푸른 서리빛이 반짝입니다!' },
-    { pos: 'BR', icon: '❄️', name: '엘윈 빙결 수정', reaction: '반짝! 만년설 빙결 수정 속에서 오로라 빛이 춤춥니다!' },
+    { pos: 'TL', icon: '🔔', name: '엘윈마을 설원 종탑', nameEn: 'Elwin Snowfield Bell Tower', reaction: '땡~ 땡~! 엘윈마을 설원 종탑의 종소리가 맑게 울려 퍼집니다!', reactionEn: 'Clang~ clang! The Elwin Snowfield bell rings crystal clear!' },
+    { pos: 'TR', icon: '🏮', name: '설원 온기 등불', nameEn: 'Warm Frost Lantern', reaction: '화르륵! 엘윈마을 청동 등불이 따스하게 타오릅니다!', reactionEn: 'Whoosh! Elwin Village’s bronze lantern glows warmly!' },
+    { pos: 'BL', icon: '🛡', name: '눈꽃 방패 거치대', nameEn: 'Snowflake Shield Rack', reaction: '챙! 카단의 눈꽃 방패에서 푸른 서리빛이 반짝입니다!', reactionEn: 'Clang! Kadan’s Snowflake Shield shimmers with frostlight!' },
+    { pos: 'BR', icon: '❄️', name: '엘윈 빙결 수정', nameEn: 'Elwin Frost Crystal', reaction: '반짝! 만년설 빙결 수정 속에서 오로라 빛이 춤춥니다!', reactionEn: 'Sparkle! Aurora light dances inside the permafrost crystal!' },
   ],
   ORGRIMMAR: [
-    { pos: 'TL', icon: '🔥', name: '불꽃 성채 화로', reaction: '활활! 불꽃 성채의 용암 화로에서 뜨거운 불길이 솟구칩니다!' },
-    { pos: 'TR', icon: '⚒', name: '황금 제련 모루', reaction: '깡! 깡! 달궈진 강철 모루에서 불꽃 파편이 튱니다!' },
-    { pos: 'BL', icon: '🦁', name: '태양 사자 부조', reaction: '크르르! 성채 수호 사자상의 붉은 보석 눈이 번쩍입니다!' },
-    { pos: 'BR', icon: '🥁', name: '결투장 전고', reaction: '둥! 둥! 불꽃 성채 결투장의 우렁찬 북소리가 울립니다!' },
+    { pos: 'TL', icon: '🔥', name: '불꽃 성채 화로', nameEn: 'Flame Citadel Brazier', reaction: '활활! 불꽃 성채의 용암 화로에서 뜨거운 불길이 솟구칩니다!', reactionEn: 'Roar! Fierce flames surge from the Flame Citadel brazier!' },
+    { pos: 'TR', icon: '⚒', name: '황금 제련 모루', nameEn: 'Gilded Forge Anvil', reaction: '깡! 깡! 달궈진 강철 모루에서 불꽃 파편이 튱니다!', reactionEn: 'Clink! Sparks fly off the glowing forge anvil!' },
+    { pos: 'BL', icon: '🦁', name: '태양 사자 부조', nameEn: 'Sun Lion Relief', reaction: '크르르! 성채 수호 사자상의 붉은 보석 눈이 번쩍입니다!', reactionEn: 'Growl! The guardian lion’s ruby eyes flash fiercely!' },
+    { pos: 'BR', icon: '🥁', name: '결투장 전고', nameEn: 'Arena War Drum', reaction: '둥! 둥! 불꽃 성채 결투장의 우렁찬 북소리가 울립니다!', reactionEn: 'Boom! Boom! Thunderous war drums echo across the arena!' },
   ],
   PANDARIA: [
-    { pos: 'TL', icon: '🎐', name: '바람 신전 비취 풍경', reaction: '딸랑~! 바람의 신전 비취 풍경 소리가 은은하게 퍼집니다!' },
-    { pos: 'TR', icon: '🌊', name: '천공 폭포 수차', reaction: '쏴아아~ 구름 너머 천공 폭포수가 시원하게 쏟아집니다!' },
-    { pos: 'BL', icon: '🏹', name: '청풍 활터 과녁', reaction: '핑— 퍽! 바람 화살이 과녁 정중앙을 꿰뚫었습니다!' },
-    { pos: 'BR', icon: '🍃', name: '신록의 에메랄드 석등', reaction: '반짝~ 에메랄드 룬 석등에서 청량한 바람 기운이 피어오릅니다!' },
+    { pos: 'TL', icon: '🎐', name: '바람 신전 비취 풍경', nameEn: 'Jade Wind Chime', reaction: '딸랑~! 바람의 신전 비취 풍경 소리가 은은하게 퍼집니다!', reactionEn: 'Ting-ling~ Gentle jade chimes drift across the Wind Shrine!' },
+    { pos: 'TR', icon: '🌊', name: '천공 폭포 수차', nameEn: 'Sky Cascade Mill', reaction: '쏴아아~ 구름 너머 천공 폭포수가 시원하게 쏟아집니다!', reactionEn: 'Whoosh~ Skyfall waters tumble cleanly past the clouds!' },
+    { pos: 'BL', icon: '🏹', name: '청풍 활터 과녁', nameEn: 'Zephyr Archery Target', reaction: '핑— 퍽! 바람 화살이 과녁 정중앙을 꿰뚫었습니다!', reactionEn: 'Twang—thwack! A wind arrow splits the bullseye!' },
+    { pos: 'BR', icon: '🍃', name: '신록의 에메랄드 석등', nameEn: 'Verdant Emerald Lantern', reaction: '반짝~ 에메랄드 룬 석등에서 청량한 바람 기운이 피어오릅니다!', reactionEn: 'Glow~ Cool emerald breeze rises from the rune lantern!' },
   ],
 };
 
 const EndTurnLeverPlate: React.FC<{
   isPlayerTurn: boolean;
   noMovesLeft: boolean;
+  isKo: boolean;
   compact?: boolean;
-}> = ({ isPlayerTurn, noMovesLeft, compact = false }) => {
+}> = ({ isPlayerTurn, noMovesLeft, isKo, compact = false }) => {
   const fillGrad = !isPlayerTurn
     ? 'linear-gradient(180deg, #57534e 0%, #292524 55%, #1c1917 100%)'
     : noMovesLeft
@@ -205,7 +208,17 @@ const EndTurnLeverPlate: React.FC<{
           compact ? 'text-[10.5px]' : 'text-xs'
         } ${!isPlayerTurn ? 'text-stone-300' : 'text-white'}`}
       >
-        {!isPlayerTurn ? '상대 턴' : noMovesLeft ? '할 일 없음' : '턴 종료'}
+        {!isPlayerTurn
+          ? isKo
+            ? '상대 턴'
+            : 'Enemy Turn'
+          : noMovesLeft
+            ? isKo
+              ? '할 일 없음'
+              : 'Job Done'
+            : isKo
+              ? '턴 종료'
+              : 'End Turn'}
       </span>
     </div>
   );
@@ -226,14 +239,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   onStartJourneyEpisode,
   onRematchSameMode,
 }) => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
   const buildBattleMatchState = useCallback(
     (targetEpisode?: number): BattleMatchState => {
+      const curKo = isKoreanLanguage();
       if (mode === 'TUTORIAL') {
         hsStorage.markJourneyGuideDone();
         const curProfile = hsStorage.getProfile();
         const ep = targetEpisode ?? journeyEpisodeOverride ?? curProfile.journeyEpisode;
         const reinc = curProfile.journeyReincarnation;
-        const epDef = getJourneyEpisodeDef(ep);
+        const epDef = getJourneyEpisodeDef(ep, curKo);
         const diffSpec = getJourneyDifficultySpec(ep, reinc);
         const isEp0 = epDef.episode === 0 && reinc === 0;
         const col = hsStorage.getCollection();
@@ -271,7 +287,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const opp = buildAiOpponentSetup(mode, preferredOpponentClass);
       return createBattleMatch({
         mode,
-        playerName: '엘윈마을 모험가',
+        playerName: curKo ? '엘윈마을 모험가' : 'Elwin Adventurer',
         playerClass: playerDeck.heroClass,
         playerDeck: playerDeck.cards,
         opponentName: opp.opponentName,
@@ -312,9 +328,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     mode === 'TUTORIAL' && (matchState.journeyMeta?.episode ?? 1) === 0
       ? {
           speaker: 'KADAN',
-          badge: '튜토리얼 실전 시작',
-          headline: '3초마다 카드 해설!',
-          reason: '매 턴 카드를 내는 이유를 쉽게 알려드릴게요!',
+          badge: isKoreanLanguage() ? '튜토리얼 실전 시작' : 'Tutorial Drill Start',
+          headline: isKoreanLanguage() ? '3초마다 카드 해설!' : 'Card Tip Every 3s!',
+          reason: isKoreanLanguage()
+            ? '매 턴 카드를 내는 이유를 쉽게 알려드릴게요!'
+            : "I'll explain why each card is played every turn!",
         }
       : null,
   );
@@ -565,8 +583,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (matchState.phase === 'MULLIGAN') {
       return {
         tone: 'amber' as const,
-        badge: '멀리건',
-        text: '1~3코스트 카드는 남기고, 큰 카드를 눌러 1회 교체한 뒤 [확인]을 누르세요.',
+        badge: isKo ? '멀리건' : 'Mulligan',
+        text: isKo
+          ? '1~3코스트 카드는 남기고, 큰 카드를 눌러 1회 교체한 뒤 [확인]을 누르세요.'
+          : 'Keep 1–3 Cost cards, tap high-Cost cards to replace once, then press [Confirm].',
       };
     }
     if (matchState.phase === 'GAME_OVER') {
@@ -575,8 +595,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (matchState.phase !== 'PLAYING' || matchState.activeSide !== 'PLAYER') {
       return {
         tone: 'slate' as const,
-        badge: '상대 턴',
-        text: '상대가 카드를 내고 공격하는 중입니다. 내 턴이 올 때까지 잠시 기다리세요.',
+        badge: isKo ? '상대 턴' : 'Enemy Turn',
+        text: isKo
+          ? '상대가 카드를 내고 공격하는 중입니다. 내 턴이 올 때까지 잠시 기다리세요.'
+          : 'Opponent is playing cards and attacking. Please wait for your turn.',
       };
     }
     const playableCount = matchState.player.hand.filter(
@@ -592,21 +614,27 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (playableCount > 0) {
         return {
           tone: 'sky' as const,
-          badge: '자동플레이',
-          text: `AI가 남은 마나(${matchState.player.mana})로 낼 수 있는 카드를 선택 중입니다. (상단 버튼으로 수동 전환 가능)`,
+          badge: isKo ? '자동플레이' : 'Auto-Play',
+          text: isKo
+            ? `AI가 남은 마나(${matchState.player.mana})로 낼 수 있는 카드를 선택 중입니다. (상단 버튼으로 수동 전환 가능)`
+            : `AI is picking playable cards with ${matchState.player.mana} Mana remaining. (Tap Auto to take control)`,
         };
       }
       if (totalAttackers > 0) {
         return {
           tone: 'sky' as const,
-          badge: '자동플레이',
-          text: `AI가 공격 가능한 유닛(${totalAttackers}기)으로 적을 공격하고 있습니다.`,
+          badge: isKo ? '자동플레이' : 'Auto-Play',
+          text: isKo
+            ? `AI가 공격 가능한 유닛(${totalAttackers}기)으로 적을 공격하고 있습니다.`
+            : `AI is attacking with ${totalAttackers} ready unit(s).`,
         };
       }
       return {
         tone: 'sky' as const,
-        badge: '자동플레이',
-        text: 'AI가 이번 턴 행동을 마치고 턴을 넘깁니다. 직접 조종하려면 [자동 OFF]를 누르세요.',
+        badge: isKo ? '자동플레이' : 'Auto-Play',
+        text: isKo
+          ? 'AI가 이번 턴 행동을 마치고 턴을 넘깁니다. 직접 조종하려면 [자동 OFF]를 누르세요.'
+          : 'AI is ending the turn. Tap [Auto OFF] anytime to play manually.',
       };
     }
 
@@ -616,44 +644,56 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       );
       return {
         tone: 'emerald' as const,
-        badge: '공격 조준',
+        badge: isKo ? '공격 조준' : 'Targeting',
         text: hasEnemyTaunt
-          ? '🛡️ 도발 하수인이 앞을 막고 있습니다! 도발 방패 하수인을 먼저 공격하세요.'
-          : '상대 하수인이나 위쪽 상대 영웅 초상화를 눌러 공격하세요! (취소: 빈 곳 클릭)',
+          ? isKo
+            ? '🛡️ 도발 하수인이 앞을 막고 있습니다! 도발 방패 하수인을 먼저 공격하세요.'
+            : '🛡️ A Taunt minion blocks the way! Attack the shielded Taunt minion first.'
+          : isKo
+            ? '상대 하수인이나 위쪽 상대 영웅 초상화를 눌러 공격하세요! (취소: 빈 곳 클릭)'
+            : 'Tap an enemy minion or top enemy hero portrait to attack! (Tap empty space to cancel)',
       };
     }
     if (selection?.kind === 'HAND_CARD') {
       return {
         tone: 'emerald' as const,
-        badge: '대상 선택',
-        text: '초록·노란빛으로 강조된 대상(아군 또는 적)을 눌러 카드 효과를 발동하세요!',
+        badge: isKo ? '대상 선택' : 'Select Target',
+        text: isKo
+          ? '초록·노란빛으로 강조된 대상(아군 또는 적)을 눌러 카드 효과를 발동하세요!'
+          : 'Tap any highlighted target (ally or enemy) to trigger the card effect!',
       };
     }
     if (playableCount > 0) {
       return {
         tone: 'emerald' as const,
-        badge: `마나 ${matchState.player.mana}/${matchState.player.maxMana}`,
-        text: '아래 손패에서 초록빛 테두리 카드를 눌러 전장에 소환하세요!',
+        badge: isKo ? `마나 ${matchState.player.mana}/${matchState.player.maxMana}` : `Mana ${matchState.player.mana}/${matchState.player.maxMana}`,
+        text: isKo
+          ? '아래 손패에서 초록빛 테두리 카드를 눌러 전장에 소환하세요!'
+          : 'Tap a green-glowing card in your hand below to play it onto the board!',
       };
     }
     if (totalAttackers > 0) {
       return {
         tone: 'emerald' as const,
-        badge: '공격 가능',
-        text: `전장의 초록빛 내 하수인${heroCanAttack ? ' 또는 영웅' : ''}을 누른 뒤 적을 공격하세요!`,
+        badge: isKo ? '공격 가능' : 'Ready to Attack',
+        text: isKo
+          ? `전장의 초록빛 내 하수인${heroCanAttack ? ' 또는 영웅' : ''}을 누른 뒤 적을 공격하세요!`
+          : `Tap a green-glowing minion${heroCanAttack ? ' or hero' : ''}, then tap an enemy target!`,
       };
     }
     return {
       tone: 'amber' as const,
-      badge: '턴 마무리',
-      text: '할 수 있는 행동을 마쳤습니다! 오른쪽 [턴 종료] 버튼을 눌러 턴을 넘기세요.',
+      badge: isKo ? '턴 마무리' : 'Wrap Up',
+      text: isKo
+        ? '할 수 있는 행동을 마쳤습니다! 오른쪽 [턴 종료] 버튼을 눌러 턴을 넘기세요.'
+        : 'All moves done! Press [End Turn] on the right to pass the turn.',
     };
-  }, [matchState, autoPlay, selection, engine]);
+  }, [matchState, autoPlay, selection, engine, isKo]);
 
   // Clear banner / error messages smoothly
   useEffect(() => {
     if (!matchState.bannerMessage) return;
-    if (matchState.bannerMessage === '내 턴!') {
+    if (matchState.bannerMessage === '내 턴!' || matchState.bannerMessage === 'YOUR TURN!') {
       hsAudio.playSfx('player_turn', 0.85);
       hsAudio.playProceduralVfxSound('MANA_GAIN');
     }
@@ -1027,8 +1067,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const artUrl = isHeroAttacker
         ? resolveHeroPortraitUrl(atkPlayer)
         : getCardArtUrl(minionDef!);
-      const nameKo = isHeroAttacker ? atkPlayer.heroNameKo : atkMinion!.name;
-      const defNameKo = isHeroDefender ? defPlayer.heroNameKo : defMinion!.name;
+      const atkMinionDef = isHeroAttacker ? null : cardDb.getCard(atkMinion!.cardId);
+      const defMinionDef = isHeroDefender ? null : cardDb.getCard(defMinion!.cardId);
+      const nameKo = isHeroAttacker
+        ? atkPlayer.heroNameKo
+        : atkMinionDef
+          ? getCardName(atkMinionDef, lang)
+          : atkMinion!.name;
+      const defNameKo = isHeroDefender
+        ? defPlayer.heroNameKo
+        : defMinionDef
+          ? getCardName(defMinionDef, lang)
+          : defMinion!.name;
       const frameGradient =
         atkPlayer.customHero?.frameGradient || CLASSIC_HEROES[atkPlayer.heroClass].frameGradient;
 
@@ -1038,7 +1088,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       hsAudio.playSfx('whoosh', 0.85);
       setAiHighlightText(
-        `${side === 'PLAYER' ? '⚔ 아군 타격' : '💥 적군 타격'}: [${nameKo}](${attackVal}) ➔ [${defNameKo}]!`,
+        isKo
+          ? `${side === 'PLAYER' ? '⚔ 아군 타격' : '💥 적군 타격'}: [${nameKo}](${attackVal}) ➔ [${defNameKo}]!`
+          : `${side === 'PLAYER' ? '⚔ Ally Strike' : '💥 Enemy Strike'}: [${nameKo}](${attackVal}) ➔ [${defNameKo}]!`,
       );
 
       setAttackAnim({
@@ -1110,27 +1162,37 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const describeEp0Action = useCallback(
     (side: 'PLAYER' | 'OPPONENT', cardId: string): { badge: string; headline: string; reason: string } => {
       const def = cardDb.mustGetCard(cardId);
-      const custom = TUTORIAL_EP0_CARD_REASONS[cardId];
-      const fallbackReason =
-        def.type === 'MINION'
+      const dispName = getCardName(def, lang);
+      const custom = getEp0CardReason(cardId, isKo);
+      const fallbackReason = isKo
+        ? def.type === 'MINION'
           ? `${def.cost}마나 ${def.attack ?? 1}/${def.health ?? 1} 기본 하수인으로 필드를 전개합니다.`
           : def.type === 'WEAPON'
             ? `${def.cost}마나 무기를 장착해 영웅이 직접 공격력을 얻습니다.`
-            : `${def.cost}마나 주문 카드로 전황을 유리하게 바꿉니다.`;
+            : `${def.cost}마나 주문 카드로 전황을 유리하게 바꿉니다.`
+        : def.type === 'MINION'
+          ? `Deploy a ${def.cost}-Mana ${def.attack ?? 1}/${def.health ?? 1} minion onto the board.`
+          : def.type === 'WEAPON'
+            ? `Equip a ${def.cost}-Mana weapon so your Hero can attack directly.`
+            : `Cast a ${def.cost}-Mana spell to swing board control.`;
       if (side === 'PLAYER') {
         return {
-          badge: `카단 ${matchState.turnNumber}턴 · ${custom?.kindLabel || def.type}`,
-          headline: `[${def.name}] (마나 ${def.cost})`,
+          badge: isKo
+            ? `카단 ${matchState.turnNumber}턴 · ${custom?.kindLabel || def.type}`
+            : `Kadan T${matchState.turnNumber} · ${custom?.kindLabel || def.type}`,
+          headline: isKo ? `[${dispName}] (마나 ${def.cost})` : `[${dispName}] (${def.cost} Mana)`,
           reason: custom?.playerReason || fallbackReason,
         };
       }
       return {
-        badge: `허수아비 로봇 ${matchState.turnNumber}턴 · ${custom?.kindLabel || def.type}`,
-        headline: `[${def.name}] (마나 ${def.cost})`,
+        badge: isKo
+          ? `허수아비 로봇 ${matchState.turnNumber}턴 · ${custom?.kindLabel || def.type}`
+          : `Scarecrow Bot T${matchState.turnNumber} · ${custom?.kindLabel || def.type}`,
+        headline: isKo ? `[${dispName}] (마나 ${def.cost})` : `[${dispName}] (${def.cost} Mana)`,
         reason: custom?.scarecrowLine || fallbackReason,
       };
     },
-    [matchState.turnNumber],
+    [matchState.turnNumber, lang, isKo],
   );
 
   const latestMatchRef = useRef(matchState);
@@ -1189,9 +1251,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ep0SummaryShownTurnRef.current = null;
           setEp0Dialogue({
             speaker: 'KADAN',
-            badge: '1턴 개시 · 멀리건 완료',
-            headline: '저비용 카드 확보 완료!',
-            reason: '초반에 바로 낼 수 있는 저코스트 카드를 남겼어요!',
+            badge: isKo ? '1턴 개시 · 멀리건 완료' : 'Turn 1 Start · Mulligan Done',
+            headline: isKo ? '저비용 카드 확보 완료!' : 'Low-Cost Hand Ready!',
+            reason: isKo
+              ? '초반에 바로 낼 수 있는 저코스트 카드를 남겼어요!'
+              : 'Kept low-Mana cards to play right away early on!',
           });
         }
         setMatchState(eng.confirmMulligan(replaceUids));
@@ -1255,11 +1319,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const action: AiAction = computeNextAiAction(snap, 'EXPERT', 'PLAYER');
       if (action.kind === 'PLAY_CARD') {
         const def = cardDb.mustGetCard(action.cardId);
+        const dispName = getCardName(def, lang);
         hsAudio.playSfx('card_place', 0.85);
-        setAiHighlightText(`⚡ 자동 전투: [${def.name}] 사용!`);
+        setAiHighlightText(
+          isKo ? `⚡ 자동 전투: [${dispName}] 사용!` : `⚡ Auto-Play: Played [${dispName}]!`,
+        );
         if (isEp0Tutorial) {
           const info = describeEp0Action('PLAYER', action.cardId);
-          ep0TurnPlaysRef.current.push(`[${def.name}] → ${info.reason}`);
+          ep0TurnPlaysRef.current.push(`[${dispName}] → ${info.reason}`);
           setEp0Dialogue({ speaker: 'KADAN', ...info });
         }
         const next = sim.playCardFromHand('PLAYER', action.handUid, {
@@ -1274,13 +1341,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         setMatchState(next);
       } else if (action.kind === 'HERO_POWER') {
         hsAudio.playSfx('hero_power', 0.85);
-        setAiHighlightText(`⚡ 자동 전투: 영웅 능력 [${snap.player.heroPowerNameKo}]!`);
+        setAiHighlightText(
+          isKo
+            ? `⚡ 자동 전투: 영웅 능력 [${snap.player.heroPowerNameKo}]!`
+            : `⚡ Auto-Play: Hero Power [${snap.player.heroPowerNameKo}]!`,
+        );
         if (isEp0Tutorial) {
-          const hpReason = '남은 2마나로 영웅 능력을 사용합니다.';
-          ep0TurnPlaysRef.current.push(`영웅 능력 → ${hpReason}`);
+          const hpReason = isKo
+            ? '남은 2마나로 영웅 능력을 사용합니다.'
+            : 'Spending 2 leftover Mana on Hero Power.';
+          ep0TurnPlaysRef.current.push(
+            isKo ? `영웅 능력 → ${hpReason}` : `Hero Power → ${hpReason}`,
+          );
           setEp0Dialogue({
             speaker: 'KADAN',
-            badge: `카단 ${snap.turnNumber}턴 · 영웅 능력`,
+            badge: isKo ? `카단 ${snap.turnNumber}턴 · 영웅 능력` : `Kadan T${snap.turnNumber} · Hero Power`,
             headline: `[${snap.player.heroPowerNameKo}]`,
             reason: hpReason,
           });
@@ -1291,11 +1366,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           const isFace = action.defenderId === 'OPPONENT_HERO';
           setEp0Dialogue({
             speaker: 'KADAN',
-            badge: `카단 ${snap.turnNumber}턴 · 공격`,
-            headline: isFace ? '상대 본체 직접 타격!' : '적 하수인 먼저 정리!',
+            badge: isKo ? `카단 ${snap.turnNumber}턴 · 공격` : `Kadan T${snap.turnNumber} · Attack`,
+            headline: isFace
+              ? isKo
+                ? '상대 본체 직접 타격!'
+                : 'Direct Hero Strike!'
+              : isKo
+                ? '적 하수인 먼저 정리!'
+                : 'Clear Enemy Minion First!',
             reason: isFace
-              ? '도발이 없어 본체를 직접 공격합니다.'
-              : '적 하수인을 먼저 잡아 필드를 지킵니다.',
+              ? isKo
+                ? '도발이 없어 본체를 직접 공격합니다.'
+                : 'No Taunt blocks the lane — hit the Hero directly!'
+              : isKo
+                ? '적 하수인을 먼저 잡아 필드를 지킵니다.'
+                : 'Trade with enemy minions first to hold the board!',
           });
         }
         triggerPhysicalAttack('PLAYER', action.attackerId, action.defenderId);
@@ -1307,12 +1392,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             const summaryText =
               ep0TurnPlaysRef.current.length > 0
                 ? ep0TurnPlaysRef.current[ep0TurnPlaysRef.current.length - 1]
-                : '마나가 부족해 다음 턴(+1)을 준비합니다.';
-            setAiHighlightText(`💬 카단 ${snap.turnNumber}턴 요약`);
+                : isKo
+                  ? '마나가 부족해 다음 턴(+1)을 준비합니다.'
+                  : 'Low on Mana — preparing +1 Max Mana next turn!';
+            setAiHighlightText(
+              isKo ? `💬 카단 ${snap.turnNumber}턴 요약` : `💬 Kadan Turn ${snap.turnNumber} Recap`,
+            );
             setEp0Dialogue({
               speaker: 'KADAN',
-              badge: `카단 ${snap.turnNumber}턴 종료`,
-              headline: '이번 턴 핵심 이유',
+              badge: isKo ? `카단 ${snap.turnNumber}턴 종료` : `Kadan End of T${snap.turnNumber}`,
+              headline: isKo ? '이번 턴 핵심 이유' : 'Key Move This Turn',
               reason: summaryText,
             });
             setEp0SummaryNonce((n) => n + 1);
@@ -1414,11 +1503,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       if (action.kind === 'PLAY_CARD') {
         const def = cardDb.mustGetCard(action.cardId);
+        const dispName = getCardName(def, lang);
         hsAudio.playSfx('card_place', 0.85);
-        setAiHighlightText(`${snap.opponent.heroNameKo}: [${def.name}] 사용!`);
+        setAiHighlightText(
+          isKo
+            ? `${snap.opponent.heroNameKo}: [${dispName}] 사용!`
+            : `${snap.opponent.heroNameKo}: Played [${dispName}]!`,
+        );
         if (isEp0Tutorial) {
           const info = describeEp0Action('OPPONENT', action.cardId);
-          ep0OpponentPlaysRef.current.push(`[${def.name}] → ${info.reason}`);
+          ep0OpponentPlaysRef.current.push(`[${dispName}] → ${info.reason}`);
           setEp0Dialogue({ speaker: 'SCARECROW', ...info });
         }
         setMatchState(
@@ -1431,14 +1525,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       } else if (action.kind === 'HERO_POWER') {
         hsAudio.playSfx('hero_power', 0.85);
         setAiHighlightText(
-          `${snap.opponent.heroNameKo}: 영웅 능력 [${snap.opponent.heroPowerNameKo}]!`,
+          isKo
+            ? `${snap.opponent.heroNameKo}: 영웅 능력 [${snap.opponent.heroPowerNameKo}]!`
+            : `${snap.opponent.heroNameKo}: Hero Power [${snap.opponent.heroPowerNameKo}]!`,
         );
         if (isEp0Tutorial) {
-          const botHpReason = '방어도 +2로 내구력을 테스트합니다.';
-          ep0OpponentPlaysRef.current.push(`영웅 능력 → ${botHpReason}`);
+          const botHpReason = isKo
+            ? '방어도 +2로 내구력을 테스트합니다.'
+            : 'Testing durability with +2 Armor.';
+          ep0OpponentPlaysRef.current.push(
+            isKo ? `영웅 능력 → ${botHpReason}` : `Hero Power → ${botHpReason}`,
+          );
           setEp0Dialogue({
             speaker: 'SCARECROW',
-            badge: `로봇 ${snap.turnNumber}턴 · 방어`,
+            badge: isKo ? `로봇 ${snap.turnNumber}턴 · 방어` : `Bot T${snap.turnNumber} · Defense`,
             headline: `[${snap.opponent.heroPowerNameKo}]`,
             reason: botHpReason,
           });
@@ -1448,9 +1548,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         if (isEp0Tutorial) {
           setEp0Dialogue({
             speaker: 'SCARECROW',
-            badge: `로봇 ${snap.turnNumber}턴 · 공격`,
-            headline: '소환 다음 턴 반격!',
-            reason: '소환한 다음 턴부터 공격할 수 있습니다.',
+            badge: isKo ? `로봇 ${snap.turnNumber}턴 · 공격` : `Bot T${snap.turnNumber} · Attack`,
+            headline: isKo ? '소환 다음 턴 반격!' : 'Ready Next Turn Counter!',
+            reason: isKo
+              ? '소환한 다음 턴부터 공격할 수 있습니다.'
+              : 'Minions can attack starting the turn after they enter.',
           });
         }
         triggerPhysicalAttack('OPPONENT', action.attackerId, action.defenderId);
@@ -1462,12 +1564,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             const summaryText =
               ep0OpponentPlaysRef.current.length > 0
                 ? ep0OpponentPlaysRef.current[ep0OpponentPlaysRef.current.length - 1]
-                : '상대 턴 종료! 마나 +1을 받아 반격합니다.';
-            setAiHighlightText(`💬 카단 · ${snap.turnNumber}턴 해설`);
+                : isKo
+                  ? '상대 턴 종료! 마나 +1을 받아 반격합니다.'
+                  : 'Enemy turn ends! Gain +1 Max Mana to strike back.';
+            setAiHighlightText(
+              isKo ? `💬 카단 · ${snap.turnNumber}턴 해설` : `💬 Kadan · Turn ${snap.turnNumber} Note`,
+            );
             setEp0Dialogue({
               speaker: 'KADAN',
-              badge: `카단 · ${snap.turnNumber}턴 해설`,
-              headline: '상대 수에 대비하는 이유',
+              badge: isKo ? `카단 · ${snap.turnNumber}턴 해설` : `Kadan · T${snap.turnNumber} Insight`,
+              headline: isKo ? '상대 수에 대비하는 이유' : 'Why We Counter That Play',
               reason: summaryText,
             });
             setEp0SummaryNonce((n) => n + 1);
@@ -1600,7 +1706,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             insertIndex: matchState.player.board.length,
           });
         } else {
-          setMatchState((s) => ({ ...s, errorBanner: '올바른 대상이 아닙니다!' }));
+          setMatchState((s) => ({
+            ...s,
+            errorBanner: isKo ? '올바른 대상이 아닙니다!' : 'Not a valid target!',
+          }));
         }
         return;
       }
@@ -1613,7 +1722,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             targetId: entityId,
           });
         } else {
-          setMatchState((s) => ({ ...s, errorBanner: '올바른 대상이 아닙니다!' }));
+          setMatchState((s) => ({
+            ...s,
+            errorBanner: isKo ? '올바른 대상이 아닙니다!' : 'Not a valid target!',
+          }));
         }
         return;
       }
@@ -1625,7 +1737,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           setSelection(null);
           setMatchState(eng.useHeroPower('PLAYER', entityId));
         } else {
-          setMatchState((s) => ({ ...s, errorBanner: '올바른 대상이 아닙니다!' }));
+          setMatchState((s) => ({
+            ...s,
+            errorBanner: isKo ? '올바른 대상이 아닙니다!' : 'Not a valid target!',
+          }));
         }
         return;
       }
@@ -1650,10 +1765,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             hsAudio.playHeroVo(matchState.player.heroClass, 'error_taunt');
             setMatchState((s) => ({
               ...s,
-              errorBanner: '도발 능력이 있는 하수인이 가로막고 있습니다!',
+              errorBanner: isKo
+                ? '도발 능력이 있는 하수인이 가로막고 있습니다!'
+                : 'A minion with Taunt is in the way!',
             }));
           } else {
-            setMatchState((s) => ({ ...s, errorBanner: '공격할 수 없는 대상입니다!' }));
+            setMatchState((s) => ({
+              ...s,
+              errorBanner: isKo ? '공격할 수 없는 대상입니다!' : 'Cannot attack that target!',
+            }));
           }
         }
         return;
@@ -1701,7 +1821,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           return;
         }
       } else if (getHeroAttack(matchState.player, true) > 0) {
-        setMatchState((s) => ({ ...s, errorBanner: swing.reason || '공격할 수 없습니다.' }));
+        setMatchState((s) => ({
+          ...s,
+          errorBanner: swing.reason || (isKo ? '공격할 수 없습니다.' : 'Cannot attack right now.'),
+        }));
         if (swing.errorCode === 'exhausted' || swing.errorCode === 'attacked') {
           hsAudio.playHeroVo(matchState.player.heroClass, 'error_attacked');
         }
@@ -1729,8 +1852,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
     const hpCheck = engine.inspectHeroPower('PLAYER');
     if (!hpCheck.canUse) {
-      setMatchState((s) => ({ ...s, errorBanner: hpCheck.reason || '사용할 수 없습니다.' }));
-      if (hpCheck.reason?.includes('마나')) {
+      setMatchState((s) => ({
+        ...s,
+        errorBanner: hpCheck.reason || (isKo ? '사용할 수 없습니다.' : 'Cannot use Hero Power.'),
+      }));
+      if (hpCheck.reason?.includes('마나') || hpCheck.reason?.includes('Mana')) {
         hsAudio.playHeroVo(matchState.player.heroClass, 'error_mana');
       }
       return;
@@ -1755,7 +1881,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   ) => {
     setEmoteMenuOpen(false);
     const pEmotes =
-      matchState.player.customHero?.emotesKo || CLASSIC_HEROES[matchState.player.heroClass].emotesKo;
+      matchState.player.customHero?.emotesKo ||
+      getLocalizedHeroInfo(matchState.player.heroClass, lang).emotes;
     setPlayerEmoteText(pEmotes[emoteKey]);
     hsAudio.playHeroVo(matchState.player.heroClass, emoteKey);
     window.setTimeout(() => setPlayerEmoteText(null), 2800);
@@ -1771,7 +1898,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               : 'wow';
       const oEmotes =
         matchState.opponent.customHero?.emotesKo ||
-        CLASSIC_HEROES[matchState.opponent.heroClass].emotesKo;
+        getLocalizedHeroInfo(matchState.opponent.heroClass, lang).emotes;
       setOpponentEmoteText(oEmotes[replyKey]);
       hsAudio.playHeroVo(matchState.opponent.heroClass, replyKey);
       window.setTimeout(() => setOpponentEmoteText(null), 2800);
@@ -1825,21 +1952,23 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const buildMinionStatusPills = (m: MinionInstance): string[] => {
     const pills: string[] = [];
-    if (m.silenced) pills.push('침묵 상태');
-    if (hasMinionTaunt(m)) pills.push('도발');
-    if (m.divineShield) pills.push('빛의 보호막');
-    if (m.stealth || m.concealedUntilNextTurn) pills.push('은신');
-    if (m.windfury) pills.push('질풍');
-    if (m.frozen) pills.push('빙결');
-    if (m.charge || m.auraCharge) pills.push('돌진');
-    if (m.poisonous && !m.silenced) pills.push('독성');
-    if (m.elusive && !m.silenced) pills.push('주문·영웅 능력 대상 불가');
-    if (m.cantAttack) pills.push('공격 불가');
-    if (m.spellDamage > 0 && !m.silenced) pills.push(`주문 공격력 +${m.spellDamage}`);
+    if (m.silenced) pills.push(isKo ? '침묵 상태' : 'Silenced');
+    if (hasMinionTaunt(m)) pills.push(isKo ? '도발' : 'Taunt');
+    if (m.divineShield) pills.push(isKo ? '빛의 보호막' : 'Divine Shield');
+    if (m.stealth || m.concealedUntilNextTurn) pills.push(isKo ? '은신' : 'Stealth');
+    if (m.windfury) pills.push(isKo ? '질풍' : 'Windfury');
+    if (m.frozen) pills.push(isKo ? '빙결' : 'Frozen');
+    if (m.charge || m.auraCharge) pills.push(isKo ? '돌진' : 'Charge');
+    if (m.poisonous && !m.silenced) pills.push(isKo ? '독성' : 'Poisonous');
+    if (m.elusive && !m.silenced) pills.push(isKo ? '주문·영웅 능력 대상 불가' : 'Elusive');
+    if (m.cantAttack) pills.push(isKo ? '공격 불가' : "Can't Attack");
+    if (m.spellDamage > 0 && !m.silenced) {
+      pills.push(isKo ? `주문 공격력 +${m.spellDamage}` : `Spell Damage +${m.spellDamage}`);
+    }
     if (m.exhausted && !m.charge && !m.auraCharge && !m.cantAttack) {
-      pills.push('소환 후유증 (다음 턴 공격 가능)');
+      pills.push(isKo ? '소환 후유증 (다음 턴 공격 가능)' : 'Summoning Sickness (Ready next turn)');
     } else if (m.attacksMadeThisTurn > 0 && (!m.windfury || m.attacksMadeThisTurn >= 2)) {
-      pills.push('이번 턴 공격 완료');
+      pills.push(isKo ? '이번 턴 공격 완료' : 'Already Attacked');
     }
     return pills;
   };
@@ -1856,22 +1985,34 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       const primaryAction: CardZoomAction = !isPlayerTurn
         ? {
-            label: '상대 턴에는 카드를 사용할 수 없습니다',
+            label: isKo ? '상대 턴에는 카드를 사용할 수 없습니다' : "Cannot play cards on opponent's turn",
             disabled: true,
             onClick: () => {},
           }
         : !check.canPlay
           ? {
-              label: check.reason ? `사용 불가 · ${check.reason}` : '마나가 부족합니다',
+              label: check.reason
+                ? isKo
+                  ? `사용 불가 · ${check.reason}`
+                  : `Unavailable · ${check.reason}`
+                : isKo
+                  ? '마나가 부족합니다'
+                  : 'Not enough Mana',
               disabled: true,
               onClick: () => {},
             }
           : {
               label: check.hasChooseOne
-                ? `카드 사용 · 효과 선택 (마나 ${check.cost})`
+                ? isKo
+                  ? `카드 사용 · 효과 선택 (마나 ${check.cost})`
+                  : `Play · Choose One (${check.cost} Mana)`
                 : check.needsTarget
-                  ? `카드 사용 · 대상 지정 (마나 ${check.cost})`
-                  : `카드 사용 (마나 ${check.cost})`,
+                  ? isKo
+                    ? `카드 사용 · 대상 지정 (마나 ${check.cost})`
+                    : `Play · Select Target (${check.cost} Mana)`
+                  : isKo
+                    ? `카드 사용 (마나 ${check.cost})`
+                    : `Play Card (${check.cost} Mana)`,
               variant: 'emerald',
               onClick: () => {
                 setZoomState(null);
@@ -1901,7 +2042,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         matchState.player.board.length > 0
           ? [
               {
-                label: '전장 위치 직접 지정하여 놓기',
+                label: isKo ? '전장 위치 직접 지정하여 놓기' : 'Choose Exact Board Position',
                 variant: 'brass',
                 onClick: () => {
                   setZoomState(null);
@@ -1930,7 +2071,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           playableGlow={
             !canPlayNow ? 'NONE' : check.isComboReady ? 'COMBO' : 'GREEN'
           }
-          subtitleBadge={`내 손패 · 보유 마나 ${matchState.player.mana}/${matchState.player.maxMana}${cardMult > 1 ? ` · 스토리모드 ×${cardMult}배` : ''}`}
+          subtitleBadge={
+            isKo
+              ? `내 손패 · 보유 마나 ${matchState.player.mana}/${matchState.player.maxMana}${cardMult > 1 ? ` · 스토리모드 ×${cardMult}배` : ''}`
+              : `Your Hand · Mana ${matchState.player.mana}/${matchState.player.maxMana}${cardMult > 1 ? ` · Story ×${cardMult}` : ''}`
+          }
           primaryAction={primaryAction}
           secondaryActions={secondaryActions}
           onCancel={() => setZoomState(null)}
@@ -1950,11 +2095,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           journeyMultiplier={cardMult}
           subtitleBadge={
             marked
-              ? '시작 손패 교체 · 현재 [교체 예정 ✕]'
-              : '시작 손패 교체 · 현재 [손패 유지]'
+              ? isKo
+                ? '시작 손패 교체 · 현재 [교체 예정 ✕]'
+                : 'Starting Hand · Marked [Replace ✕]'
+              : isKo
+                ? '시작 손패 교체 · 현재 [손패 유지]'
+                : 'Starting Hand · Marked [Keep]'
           }
           primaryAction={{
-            label: marked ? '교체 취소 (시작 손패에 유지)' : '교체 표시하기 (덱으로 교체)',
+            label: marked
+              ? isKo
+                ? '교체 취소 (시작 손패에 유지)'
+                : 'Cancel Replace (Keep Card)'
+              : isKo
+                ? '교체 표시하기 (덱으로 교체)'
+                : 'Mark for Replace (Redraw)',
             variant: marked ? 'arcane' : 'crimson',
             onClick: () => {
               toggleMulliganCard(hc.uid);
@@ -1975,9 +2130,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={optCard}
-          subtitleBadge={`운명의 선택 · ${opt.title}`}
+          subtitleBadge={isKo ? `운명의 선택 · ${opt.title}` : `Choose One · ${opt.title}`}
           primaryAction={{
-            label: opt.needsTarget ? '이 효과 선택 · 대상 지정' : '이 효과 사용',
+            label: opt.needsTarget
+              ? isKo
+                ? '이 효과 선택 · 대상 지정'
+                : 'Choose Effect · Select Target'
+              : isKo
+                ? '이 효과 사용'
+                : 'Use This Effect',
             variant: 'emerald',
             onClick: () => {
               setZoomState(null);
@@ -2011,9 +2172,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={def}
-          subtitleBadge="정찰 추적 — 가져올 카드 1장 선택 (나머지 2장 버림)"
+          subtitleBadge={
+            isKo
+              ? '정찰 추적 — 가져올 카드 1장 선택 (나머지 2장 버림)'
+              : 'Tracking — Draw 1 Card (Discard the other 2)'
+          }
           primaryAction={{
-            label: '이 카드 손으로 가져오기',
+            label: isKo ? '이 카드 손으로 가져오기' : 'Draw This Card',
             variant: 'emerald',
             onClick: () => {
               setZoomState(null);
@@ -2045,7 +2210,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={def}
-          subtitleBadge={zoomState.isFriendly ? '아군 전장 영웅·동료 정보' : '적 전장 영웅·동료 정보'}
+          subtitleBadge={
+            zoomState.isFriendly
+              ? isKo
+                ? '아군 전장 영웅·동료 정보'
+                : 'Friendly Board Minion'
+              : isKo
+                ? '적 전장 영웅·동료 정보'
+                : 'Enemy Board Minion'
+          }
           liveStats={{
             attack: getMinionAttack(liveMinion),
             health: getMinionHealth(liveMinion),
@@ -2055,7 +2228,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           primaryAction={
             canSwing && validTargets.length > 0
               ? {
-                  label: '이 동료로 공격 대상 선택',
+                  label: isKo ? '이 동료로 공격 대상 선택' : 'Select Target to Attack',
                   variant: 'emerald',
                   onClick: () => {
                     setZoomState(null);
@@ -2067,7 +2240,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   },
                 }
               : {
-                  label: '확인 (닫기)',
+                  label: isKo ? '확인 (닫기)' : 'OK (Close)',
                   variant: 'brass',
                   onClick: () => setZoomState(null),
                 }
@@ -2083,9 +2256,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={def}
-          subtitleBadge={`${item.turn}턴 기록 · ${item.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'} — ${item.detail}`}
+          subtitleBadge={
+            isKo
+              ? `${item.turn}턴 기록 · ${item.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'} — ${item.detail}`
+              : `Turn ${item.turn} · ${item.actorSide === 'PLAYER' ? 'Ally Action' : 'Enemy Action'} — ${item.detail}`
+          }
           primaryAction={{
-            label: '확인 (닫기)',
+            label: isKo ? '확인 (닫기)' : 'OK (Close)',
             variant: 'brass',
             onClick: () => setZoomState(null),
           }}
@@ -2142,14 +2319,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         >
           <span className="truncate">
             {selection.kind === 'ATTACKER'
-              ? '⚔ 공격할 적 영웅 또는 하수인을 터치하세요'
+              ? tr('⚔ 공격할 적 영웅 또는 하수인을 터치하세요', '⚔ Tap an enemy hero or minion to attack')
               : selection.kind === 'HERO_POWER'
-                ? '✦ 영웅 능력 대상을 터치하세요'
+                ? tr('✦ 영웅 능력 대상을 터치하세요', '✦ Tap a Hero Power target')
                 : selection.kind === 'CHOOSE_OPTION_TARGET'
-                  ? '✦ 선택한 효과의 대상을 터치하세요'
+                  ? tr('✦ 선택한 효과의 대상을 터치하세요', '✦ Tap a target for the chosen effect')
                   : selection.needsTarget
-                    ? `✦ [${cardDb.mustGetCard(selection.cardId).name}] 대상을 터치하세요`
-                    : `✦ [${cardDb.mustGetCard(selection.cardId).name}] 놓을 전장 위치를 터치하세요`}
+                    ? isKo
+                      ? `✦ [${getCardName(cardDb.mustGetCard(selection.cardId), lang)}] 대상을 터치하세요`
+                      : `✦ Tap target for [${getCardName(cardDb.mustGetCard(selection.cardId), lang)}]`
+                    : isKo
+                      ? `✦ [${getCardName(cardDb.mustGetCard(selection.cardId), lang)}] 놓을 전장 위치를 터치하세요`
+                      : `✦ Tap board slot for [${getCardName(cardDb.mustGetCard(selection.cardId), lang)}]`}
           </span>
           <div className="flex shrink-0 items-center gap-1.5">
             {selection.kind === 'ATTACKER' && selection.attackerId !== 'PLAYER_HERO' && (
@@ -2164,7 +2345,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 }}
                 className="hs-brass-btn rounded-lg px-2 py-1 text-[10.5px] font-extrabold text-amber-100"
               >
-                카드 확대
+                {tr('카드 확대', 'Zoom')}
               </button>
             )}
             <button
@@ -2172,7 +2353,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               onClick={() => setSelection(null)}
               className="rounded-lg border border-red-300/75 bg-red-900 px-2 py-1 text-[10.5px] font-extrabold text-white"
             >
-              취소 ✕
+              {tr('취소 ✕', 'Cancel ✕')}
             </button>
           </div>
         </div>
@@ -2440,13 +2621,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <button
             key={toy.pos}
             type="button"
-            title={`전장 기물: ${toy.name} (클릭해 상호작용!)`}
+            title={
+              isKo
+                ? `전장 기물: ${toy.name} (클릭해 상호작용!)`
+                : `Board Toy: ${toy.nameEn} (Click to interact!)`
+            }
             onClick={(e) => {
               e.stopPropagation();
               hsAudio.playSfx('ui_click', 0.85);
-              setToyToast(toy.reaction);
+              const reactionText = isKo ? toy.reaction : toy.reactionEn;
+              setToyToast(reactionText);
               window.setTimeout(
-                () => setToyToast((prev) => (prev === toy.reaction ? null : prev)),
+                () => setToyToast((prev) => (prev === reactionText ? null : prev)),
                 2200,
               );
             }}
@@ -2459,7 +2645,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* Left Action History Bar (Desktop / Tablet >= sm) */}
       <aside className="absolute left-2.5 top-1/2 z-40 hidden -translate-y-1/2 flex-col gap-1.5 rounded-2xl border-2 border-[#a88344] bg-stone-950/80 p-1.5 shadow-2xl sm:flex">
-        <div className="text-center text-[9px] font-extrabold text-amber-300">기록</div>
+        <div className="text-center text-[9px] font-extrabold text-amber-300">
+          {tr('기록', 'Log')}
+        </div>
         {matchState.history.slice(0, 7).map((item) => (
           <div
             key={item.id}
@@ -2488,7 +2676,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           </div>
         ))}
         {matchState.history.length === 0 && (
-          <div className="px-1 py-3 text-[9px] text-stone-500">대기</div>
+          <div className="px-1 py-3 text-[9px] text-stone-500">{tr('대기', 'Idle')}</div>
         )}
       </aside>
 
@@ -2498,8 +2686,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <HearthstoneCard card={cardDb.mustGetCard(liveHoveredHistoryItem.cardId)} size="SM" />
           <div className="max-w-[200px]">
             <div className="text-xs font-extrabold text-yellow-300">
-              {liveHoveredHistoryItem.turn}턴 ·{' '}
-              {liveHoveredHistoryItem.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'}
+              {isKo
+                ? `${liveHoveredHistoryItem.turn}턴 · ${liveHoveredHistoryItem.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'}`
+                : `Turn ${liveHoveredHistoryItem.turn} · ${liveHoveredHistoryItem.actorSide === 'PLAYER' ? 'Ally Action' : 'Enemy Action'}`}
             </div>
             <div className="mt-1 text-sm font-extrabold text-white">
               {liveHoveredHistoryItem.title}
@@ -2534,8 +2723,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         <div
           title={
             matchState.opponent.deck.length > 0
-              ? `상대 남은 덱: ${matchState.opponent.deck.length}장`
-              : `상대 덱 소진! (다음 탈진 피해: ${matchState.opponent.fatigueCounter + 1})`
+              ? isKo
+                ? `상대 남은 덱: ${matchState.opponent.deck.length}장`
+                : `Enemy Deck: ${matchState.opponent.deck.length} cards`
+              : isKo
+                ? `상대 덱 소진! (다음 탈진 피해: ${matchState.opponent.fatigueCounter + 1})`
+                : `Enemy Out of Cards! (Next Fatigue: ${matchState.opponent.fatigueCounter + 1})`
           }
           className="relative flex h-14 w-11 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-[#c8a158]/80 bg-stone-950/90 shadow-xl"
         >
@@ -2543,7 +2736,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             <SnsCardBackArt variant={profile.selectedCardBack} />
           </div>
           <span className="hs-outline-sm relative z-10 text-[9px] font-extrabold text-red-200">
-            상대 덱
+            {tr('상대 덱', 'Enemy')}
           </span>
           <span className="hs-num relative z-10 text-sm text-white">
             {matchState.opponent.deck.length}
@@ -2583,7 +2776,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="2.2" />
             </svg>
             <span className="hs-title hs-outline-sm text-[11px] font-extrabold">
-              {autoPlay ? '자동플레이 ON' : '자동플레이 OFF'}
+              {autoPlay ? tr('자동플레이 ON', 'Auto-Play ON') : tr('자동플레이 OFF', 'Auto-Play OFF')}
             </span>
           </div>
           <span
@@ -2591,7 +2784,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               autoPlay ? 'text-emerald-100' : 'text-amber-300/75'
             }`}
           >
-            {autoPlay ? '작동 중 · 클릭 시 OFF' : '비활성 · 클릭 시 작동'}
+            {autoPlay ? tr('작동 중 · 클릭 시 OFF', 'Active · Click OFF') : tr('비활성 · 클릭 시 작동', 'Off · Click ON')}
           </span>
         </button>
 
@@ -2615,15 +2808,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               : 'cursor-pointer hover:scale-105'
           }`}
         >
-          <EndTurnLeverPlate isPlayerTurn={isPlayerTurn} noMovesLeft={noMovesLeft} />
+          <EndTurnLeverPlate isPlayerTurn={isPlayerTurn} noMovesLeft={noMovesLeft} isKo={isKo} />
         </button>
 
         {/* Player Remaining Deck Stack */}
         <div
           title={
             matchState.player.deck.length > 0
-              ? `내 남은 덱: ${matchState.player.deck.length}장`
-              : `내 덱 소진! (다음 탈진 피해: ${matchState.player.fatigueCounter + 1})`
+              ? isKo
+                ? `내 남은 덱: ${matchState.player.deck.length}장`
+                : `Your Deck: ${matchState.player.deck.length} cards`
+              : isKo
+                ? `내 덱 소진! (다음 탈진 피해: ${matchState.player.fatigueCounter + 1})`
+                : `Out of Cards! (Next Fatigue: ${matchState.player.fatigueCounter + 1})`
           }
           className="relative flex h-14 w-11 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-[#c8a158]/80 bg-stone-950/90 shadow-xl"
         >
@@ -2631,7 +2828,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             <SnsCardBackArt variant={profile.selectedCardBack} />
           </div>
           <span className="hs-outline-sm relative z-10 text-[9px] font-extrabold text-sky-200">
-            내 덱
+            {tr('내 덱', 'Deck')}
           </span>
           <span className="hs-num relative z-10 text-sm text-white">
             {matchState.player.deck.length}
@@ -2654,17 +2851,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             </span>
             <span className="text-stone-500">·</span>
             <span className="shrink-0 font-extrabold text-sky-300">
-              마나 {matchState.opponent.mana}/{matchState.opponent.maxMana}
+              {tr('마나', 'Mana')} {matchState.opponent.mana}/{matchState.opponent.maxMana}
             </span>
             <span className="hidden text-stone-500 sm:inline">·</span>
             <span className="hidden font-bold text-amber-200/85 sm:inline">
-              손패 {matchState.opponent.hand.length}장
+              {isKo ? `손패 ${matchState.opponent.hand.length}장` : `Hand ${matchState.opponent.hand.length}`}
             </span>
           </div>
 
           {/* Opponent Face-Down Curved Hand (Visible on BOTH Mobile Portrait & Desktop!) */}
           <div
-            title={`상대 손패: ${matchState.opponent.hand.length}장`}
+            title={isKo ? `상대 손패: ${matchState.opponent.hand.length}장` : `Enemy Hand: ${matchState.opponent.hand.length}`}
             className="flex shrink-0 items-center justify-center -space-x-3 sm:justify-self-center sm:-space-x-3"
           >
             {matchState.opponent.hand.map((hc, idx) => {
@@ -2681,7 +2878,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             })}
             {matchState.opponent.hand.length === 0 && (
               <span className="rounded border border-stone-700 bg-stone-950/80 px-1.5 py-0.5 text-[9.5px] font-bold text-stone-400">
-                손패 0장
+                {tr('손패 0장', '0 Cards')}
               </span>
             )}
           </div>
@@ -2697,7 +2894,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               }}
               className="rounded-xl border border-amber-300/65 bg-stone-950/90 px-2 py-1 text-[10px] font-extrabold text-amber-200 shadow hover:bg-stone-900 sm:px-2.5 sm:text-xs"
             >
-              ? 규칙
+              {tr('? 규칙', '? Rules')}
             </button>
             {mode === 'TUTORIAL' && matchState.journeyMeta && (
               <button
@@ -2709,7 +2906,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 }}
                 className="rounded-xl border border-emerald-300/70 bg-emerald-950/90 px-2 py-1 text-[10px] font-extrabold text-emerald-200 shadow sm:px-2.5 sm:text-xs"
               >
-                📖 제{matchState.journeyMeta.episode}화 줄거리
+                {isKo
+                  ? `📖 제${matchState.journeyMeta.episode}화 줄거리`
+                  : `📖 EP ${matchState.journeyMeta.episode} Story`}
               </button>
             )}
 
@@ -2720,12 +2919,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 e.stopPropagation();
                 const toy = cornerToys[Math.floor(Math.random() * cornerToys.length)];
                 hsAudio.playSfx('ui_click', 0.85);
-                setToyToast(`${toy.icon} ${toy.reaction}`);
+                setToyToast(`${toy.icon} ${isKo ? toy.reaction : toy.reactionEn}`);
                 window.setTimeout(() => setToyToast(null), 2200);
               }}
               className="hs-brass-btn rounded-xl px-2 py-1 text-[10.5px] font-extrabold text-amber-100 md:hidden"
             >
-              기물
+              {tr('기물', 'Toys')}
             </button>
 
             <button
@@ -2737,7 +2936,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               }}
               className="hs-brass-btn rounded-xl px-2.5 py-1 text-[10.5px] font-extrabold text-amber-100 sm:px-3 sm:text-xs"
             >
-              메뉴 · 항복
+              {tr('메뉴 · 항복', 'Menu · Concede')}
             </button>
           </div>
         </div>
@@ -2769,17 +2968,27 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <div className="mx-auto flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-emerald-400/55 bg-stone-950/88 px-3 py-1 text-[10.5px] font-extrabold text-emerald-100 shadow-lg sm:px-4 sm:text-xs">
             <span className="text-yellow-300">
               {matchState.journeyMeta.reincarnation > 0
-                ? `환생 ${matchState.journeyMeta.reincarnation}회차 · `
+                ? tr(`환생 ${matchState.journeyMeta.reincarnation}회차 · `,
+                    `Reincarnation ${matchState.journeyMeta.reincarnation} · `,
+                  )
                 : ''}
-              제{matchState.journeyMeta.episode}화 「{matchState.journeyMeta.episodeTitle}」
+              {isKo
+                ? `제${matchState.journeyMeta.episode}화 「${matchState.journeyMeta.episodeTitle}」`
+                : `EP ${matchState.journeyMeta.episode}: ${matchState.journeyMeta.episodeTitle}`}
             </span>
             <span className="text-stone-500">|</span>
-            <span>적 스탯 ×{matchState.journeyMeta.enemyStatScale}배</span>
+            <span>
+              {tr(`적 스탯 ×${matchState.journeyMeta.enemyStatScale}배`,
+                `Enemy Stats ×${matchState.journeyMeta.enemyStatScale}`,
+              )}
+            </span>
             {journeyDeckStats.boostedCount > 0 && (
               <>
                 <span className="text-stone-500">|</span>
                 <span className="text-emerald-300">
-                  내 3장+ 배수 강화 {journeyDeckStats.boostedCount}종 (최대 ×{journeyDeckStats.maxMultiplier}배)
+                  {isKo
+                    ? `내 3장+ 배수 강화 ${journeyDeckStats.boostedCount}종 (최대 ×${journeyDeckStats.maxMultiplier}배)`
+                    : `${journeyDeckStats.boostedCount} 3+ Card Boosts (Max ×${journeyDeckStats.maxMultiplier})`}
                 </span>
               </>
             )}
@@ -2802,7 +3011,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 className="flex items-center gap-1.5 font-extrabold text-amber-200 hover:text-amber-100"
               >
                 <span>💡</span>
-                <span>코치 힌트 펼치기</span>
+                <span>{tr('코치 힌트 펼치기', 'Show Coach Tip')}</span>
               </button>
             ) : (
               <>
@@ -2824,7 +3033,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 </div>
                 <button
                   type="button"
-                  title="코치 배너 접기"
+                  title={tr('코치 배너 접기', 'Hide Coach Tip')}
                   onClick={(e) => {
                     e.stopPropagation();
                     setCoachCollapsed(true);
@@ -2860,11 +3069,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       : 'bg-amber-500 text-stone-950'
                   }`}
                 >
-                  {ep0Dialogue.speaker === 'KADAN' ? '🛡 카단' : '🤖 로봇'} ·{' '}
-                  {ep0Dialogue.badge}
+                  {ep0Dialogue.speaker === 'KADAN'
+                    ? tr('🛡 카단', '🛡 Kadan')
+                    : tr('🤖 로봇', '🤖 Bot')}{' '}
+                  · {ep0Dialogue.badge}
                 </span>
                 <span className="shrink-0 text-[11px] font-extrabold text-emerald-300">
-                  ⏱ 3초/카드
+                  {tr('⏱ 3초/카드', '⏱ 3s/card')}
                 </span>
               </div>
               <div className="mt-1 text-sm font-black leading-tight text-yellow-200">
@@ -2894,7 +3105,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             />
           ))}
           {matchState.opponent.board.length === 0 && (
-            <div className="text-[11px] font-bold text-amber-100/35 sm:text-xs">상대 전장</div>
+            <div className="text-[11px] font-bold text-amber-100/35 sm:text-xs">
+              {tr('상대 전장', 'Enemy Board')}
+            </div>
           )}
         </div>
 
@@ -2907,7 +3120,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 className="h-2 rounded-full bg-gradient-to-r from-amber-600 via-orange-500 to-yellow-200 transition-all duration-1000"
               />
               <span className="hs-num ml-2 whitespace-nowrap rounded-full bg-red-900 px-2 py-0.5 text-xs text-yellow-200 shadow">
-                🔥 {matchState.turnSecondsLeft}초!
+                🔥 {matchState.turnSecondsLeft}{isKo ? '초!' : 's!'}
               </span>
             </div>
           )}
@@ -2926,15 +3139,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             }}
             className="hs-brass-btn rounded-xl px-2 py-1 text-[10px] font-extrabold text-amber-100"
           >
-            기록 ({matchState.history.length})
+            {tr(`기록 (${matchState.history.length})`, `Log (${matchState.history.length})`)}
           </button>
 
           <div className="flex items-center gap-1 text-[10px] font-extrabold">
             <span className="rounded-lg border border-red-400/45 bg-stone-900/95 px-1.5 py-0.5 text-red-200">
-              적{matchState.opponent.deck.length}
+              {tr(`적${matchState.opponent.deck.length}`, `E:${matchState.opponent.deck.length}`)}
             </span>
             <span className="rounded-lg border border-sky-400/45 bg-stone-900/95 px-1.5 py-0.5 text-sky-200">
-              덱{matchState.player.deck.length}
+              {tr(`덱${matchState.player.deck.length}`, `D:${matchState.player.deck.length}`)}
             </span>
           </div>
 
@@ -2969,7 +3182,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 />
                 <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="2.2" />
               </svg>
-              <span>{autoPlay ? '자동 ON' : '자동 OFF'}</span>
+              <span>{autoPlay ? tr('자동 ON', 'Auto ON') : tr('자동 OFF', 'Auto OFF')}</span>
             </button>
 
             <button
@@ -3013,7 +3226,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 selection.isMinion &&
                 insertPreviewIdx === idx && (
                   <div className="flex h-[64px] w-11 items-center justify-center rounded-[50%] border-2 border-dashed border-emerald-300 bg-emerald-400/25 text-center text-[9px] font-extrabold text-emerald-100 sm:h-[102px] sm:w-14 sm:text-[10px]">
-                    여기 배치
+                    {tr('여기 배치', 'Place Here')}
                   </div>
                 )}
               <BoardMinionToken
@@ -3038,7 +3251,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             selection.isMinion &&
             insertPreviewIdx >= matchState.player.board.length && (
               <div className="flex h-[64px] w-12 items-center justify-center rounded-[50%] border-2 border-dashed border-emerald-300 bg-emerald-400/25 text-center text-[9px] font-extrabold text-emerald-100 sm:h-[102px] sm:w-16 sm:text-[10px]">
-                소환 위치
+                {tr('소환 위치', 'Summon Spot')}
               </div>
             )}
 
@@ -3053,12 +3266,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 }}
                 className="rounded-2xl border-2 border-emerald-200 bg-emerald-600 px-4 py-1.5 text-xs font-extrabold text-white shadow-xl sm:px-5 sm:py-2 sm:text-sm"
               >
-                ✨ 클릭하여 시전!
+                {tr('✨ 클릭하여 시전!', '✨ Click to Cast!')}
               </button>
             )}
 
           {matchState.player.board.length === 0 && !selection && (
-            <div className="text-[11px] font-bold text-amber-100/35 sm:text-xs">내 전장</div>
+            <div className="text-[11px] font-bold text-amber-100/35 sm:text-xs">
+              {tr('내 전장', 'Friendly Board')}
+            </div>
           )}
         </div>
       </main>
@@ -3077,7 +3292,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               }}
               className="hs-brass-btn absolute right-[calc(100%+6px)] top-1/2 z-20 -translate-y-1/2 whitespace-nowrap rounded-xl px-2 py-1 text-[10px] font-extrabold text-amber-100 sm:right-[calc(100%+12px)] sm:px-2.5 sm:text-[11px]"
             >
-              감정표현
+              {tr('감정표현', 'Emotes')}
             </button>
 
             <HeroPortraitZone
@@ -3108,12 +3323,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               >
                 {(
                   [
-                    { key: 'greetings', label: '인사' },
-                    { key: 'well_played', label: '칭찬' },
-                    { key: 'thanks', label: '감사' },
-                    { key: 'wow', label: '감탄' },
-                    { key: 'oops', label: '실수' },
-                    { key: 'threaten', label: '위협' },
+                    { key: 'greetings', label: tr('인사', 'Greetings') },
+                    { key: 'well_played', label: tr('칭찬', 'Well Played') },
+                    { key: 'thanks', label: tr('감사', 'Thanks') },
+                    { key: 'wow', label: tr('감탄', 'Wow') },
+                    { key: 'oops', label: tr('실수', 'Oops') },
+                    { key: 'threaten', label: tr('위협', 'Threaten') },
                   ] as const
                 ).map((em) => (
                   <button
@@ -3230,12 +3445,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     key={idx}
                     title={
                       isOverloadedNow
-                        ? '과부하로 잠긴 마나 수정'
+                        ? tr('과부하로 잠긴 마나 수정', 'Overloaded Mana Crystal')
                         : isFilled
-                          ? '사용 가능한 마나 수정'
+                          ? tr('사용 가능한 마나 수정', 'Available Mana Crystal')
                           : isUnlocked
-                            ? '이번 턴 소모한 마나 수정'
-                            : '잠긴 마나 슬롯'
+                            ? tr('이번 턴 소모한 마나 수정', 'Spent Mana Crystal')
+                            : tr('잠긴 마나 슬롯', 'Locked Mana Slot')
                     }
                     style={{
                       clipPath:
@@ -3256,7 +3471,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             </div>
             {matchState.player.pendingOverload > 0 && (
               <span className="ml-0.5 rounded-md border border-red-400/50 bg-red-950 px-1.5 py-0.5 text-[9.5px] font-extrabold text-red-200 sm:text-[10px]">
-                과부하 {matchState.player.pendingOverload}
+                {tr(`과부하 ${matchState.player.pendingOverload}`, `Overload ${matchState.player.pendingOverload}`)}
               </span>
             )}
           </div>
@@ -3275,20 +3490,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           >
             <div className="mb-2.5 flex items-center justify-between border-b border-amber-500/30 pb-2">
               <h3 className="hs-title text-base font-extrabold text-amber-200">
-                전투 행동 기록 (카드를 터치해 확대)
+                {tr('전투 행동 기록 (카드를 터치해 확대)', 'Combat Log (Tap card to inspect)')}
               </h3>
               <button
                 type="button"
                 onClick={() => setMobileHistoryOpen(false)}
                 className="hs-brass-btn rounded-xl px-2.5 py-1 text-xs font-extrabold text-amber-100"
               >
-                닫기 ✕
+                {tr('닫기 ✕', 'Close ✕')}
               </button>
             </div>
             <div className="flex-1 space-y-2 overflow-y-auto pr-1">
               {matchState.history.length === 0 ? (
                 <div className="py-8 text-center text-xs font-bold text-amber-200/65">
-                  아직 기록된 행동이 없습니다.
+                  {tr('아직 기록된 행동이 없습니다.', 'No actions recorded yet.')}
                 </div>
               ) : (
                 matchState.history.map((item) => (
@@ -3310,14 +3525,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     />
                     <div className="min-w-0 flex-1">
                       <div className="text-[11px] font-extrabold text-yellow-300">
-                        {item.turn}턴 · {item.actorSide === 'PLAYER' ? '아군' : '상대'} · {item.title}
+                        {isKo
+                          ? `${item.turn}턴 · ${item.actorSide === 'PLAYER' ? '아군' : '상대'} · ${item.title}`
+                          : `T${item.turn} · ${item.actorSide === 'PLAYER' ? 'Ally' : 'Enemy'} · ${item.title}`}
                       </div>
                       <div className="truncate text-xs font-bold text-amber-100/90">
                         {item.detail}
                       </div>
                     </div>
                     <span className="shrink-0 text-[10.5px] font-extrabold text-amber-300">
-                      확대 ›
+                      {tr('확대 ›', 'Zoom ›')}
                     </span>
                   </button>
                 ))
@@ -3359,13 +3576,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               >
                 <img
                   src="/hs-assets/bosses/kadan_upper.webp"
-                  alt="카단 상반신"
+                  alt={tr('카단 상반신', 'Kadan Upper Body')}
                   data-testid="ep0-kadan-portrait"
                   className="h-11 w-11 rounded-lg object-cover object-top sm:h-24 sm:w-24 sm:rounded-xl"
                 />
                 <span className="mt-0.5 rounded bg-sky-900/90 px-1.5 py-0.5 text-[9px] font-black text-sky-100 sm:text-[10px]">
-                  <span className="sm:hidden">카단</span>
-                  <span className="hidden sm:inline">카단 (아군)</span>
+                  <span className="sm:hidden">{tr('카단', 'Kadan')}</span>
+                  <span className="hidden sm:inline">{tr('카단 (아군)', 'Kadan (Ally)')}</span>
                 </span>
               </div>
 
@@ -3376,7 +3593,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       {ep0Dialogue.badge}
                     </span>
                     <span className="text-[11px] font-extrabold text-emerald-300">
-                      ⏱ 3초/카드
+                      {tr('⏱ 3초/카드', '⏱ 3s/card')}
                     </span>
                   </div>
                   <div className="mt-1 truncate text-sm font-black text-yellow-200">
@@ -3398,7 +3615,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       {ep0Dialogue.badge}
                     </span>
                     <span className="text-[11px] font-extrabold text-emerald-300">
-                      ⏱ 3초/카드
+                      {tr('⏱ 3초/카드', '⏱ 3s/card')}
                     </span>
                   </div>
                   <div className="mt-1 truncate text-sm font-black text-yellow-200">
@@ -3419,13 +3636,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               >
                 <img
                   src="/hs-assets/bosses/scarecrow_robot.webp"
-                  alt="허수아비 로봇 상반신"
+                  alt={tr('허수아비 로봇 상반신', 'Scarecrow Robot Upper Body')}
                   data-testid="ep0-scarecrow-portrait"
                   className="h-11 w-11 rounded-lg object-cover object-top sm:h-24 sm:w-24 sm:rounded-xl"
                 />
                 <span className="mt-0.5 rounded bg-amber-900/90 px-1.5 py-0.5 text-[9px] font-black text-amber-100 sm:text-[10px]">
-                  <span className="sm:hidden">로봇</span>
-                  <span className="hidden sm:inline">허수아비 로봇</span>
+                  <span className="sm:hidden">{tr('로봇', 'Bot')}</span>
+                  <span className="hidden sm:inline">{tr('허수아비 로봇', 'Scarecrow Bot')}</span>
                 </span>
               </div>
             </div>
@@ -3466,11 +3683,22 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           const oGrad =
             matchState.opponent.customHero?.frameGradient ||
             CLASSIC_HEROES[matchState.opponent.heroClass].frameGradient;
+          const pHeroInfo = getLocalizedHeroInfo(matchState.player.heroClass, lang);
+          const oHeroInfo = getLocalizedHeroInfo(matchState.opponent.heroClass, lang);
           const pSubTitle =
-            matchState.player.customHero?.titleKo ||
-            CLASSIC_HEROES[matchState.player.heroClass].classNameKo;
+            (isKo ? matchState.player.customHero?.titleKo : pHeroInfo.title) ||
+            pHeroInfo.className;
           const oSubTitle =
-            matchState.opponent.customHero?.titleKo || matchState.opponent.name;
+            (isKo ? matchState.opponent.customHero?.titleKo : undefined) ||
+            matchState.opponent.name;
+          const pDispName =
+            matchState.player.customHero
+              ? (isKo ? matchState.player.customHero.nameKo : matchState.player.name)
+              : pHeroInfo.name;
+          const oDispName =
+            matchState.opponent.customHero
+              ? (isKo ? matchState.opponent.customHero.nameKo : matchState.opponent.name)
+              : (matchState.opponent.heroNameKo || oHeroInfo.name);
 
           return (
             <div className="absolute inset-0 z-[92] flex flex-col items-center justify-center bg-black/84 px-3 backdrop-blur-sm">
@@ -3496,7 +3724,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     />
                   </div>
                   <div className="hs-title hs-outline text-lg font-extrabold text-sky-300 sm:text-3xl">
-                    {matchState.player.heroNameKo}
+                    {pDispName}
                   </div>
                   <div className="mt-0.5 max-w-[160px] truncate text-xs font-bold text-amber-200 sm:max-w-[240px]">
                     {pSubTitle}
@@ -3531,7 +3759,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     />
                   </div>
                   <div className="hs-title hs-outline text-lg font-extrabold text-red-300 sm:text-3xl">
-                    {matchState.opponent.heroNameKo}
+                    {oDispName}
                   </div>
                   <div className="mt-0.5 max-w-[160px] truncate text-xs font-bold text-amber-200 sm:max-w-[240px]">
                     {oSubTitle}
@@ -3546,12 +3774,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {storyPhase === 'CLOSED' && !vsIntroActive && matchState.phase === 'MULLIGAN' && (
         <div className="absolute inset-0 z-[88] flex flex-col items-center justify-center overflow-y-auto bg-black/82 p-3 text-center backdrop-blur-sm sm:p-4">
           <h2 className="hs-title hs-outline text-xl font-extrabold text-amber-200 sm:text-3xl">
-            시작 카드 선택 ({matchState.firstPlayer === 'PLAYER' ? '선공 · 3장' : '후공 · 4장 + 엘윈의 은화'})
+            {tr('시작 카드 선택', 'Starting Hand')} (
+            {matchState.firstPlayer === 'PLAYER'
+              ? tr('선공 · 3장', 'Going First · 3 Cards')
+              : tr('후공 · 4장 + 엘윈의 은화', 'Going Second · 4 Cards + The Coin')}
+            )
           </h2>
           <p className="mt-1 max-w-md text-xs font-bold text-amber-200/90">
             {autoPlay
-              ? '⚡ 자동 플레이가 시작 손패를 최적화하여 곧 전투를 개시합니다...'
-              : '카드를 터치해 크게 확대하고 하단 버튼으로 교체(✕) 여부를 선택한 뒤 [확인]을 누르세요.'}
+              ? tr('⚡ 자동 플레이가 시작 손패를 최적화하여 곧 전투를 개시합니다...',
+                  '⚡ Auto-Play is optimizing your starting hand...',
+                )
+              : tr('카드를 터치해 크게 확대하고 하단 버튼으로 교체(✕) 여부를 선택한 뒤 [확인]을 누르세요.',
+                  'Tap a card to inspect and toggle replace (✕), then press Confirm.',
+                )}
           </p>
 
           <div
@@ -3583,7 +3819,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     <div className="absolute inset-x-2 inset-y-2.5 z-40 flex flex-col items-center justify-center rounded-2xl border-2 border-red-400/75 bg-red-950/75 backdrop-blur-[1px]">
                       <span className="hs-outline text-4xl font-black text-red-400 sm:text-6xl">✕</span>
                       <span className="mt-0.5 rounded-md border border-red-300/60 bg-red-900 px-2 py-0.5 text-[10px] font-extrabold text-white sm:text-xs">
-                        교체 예정
+                        {tr('교체 예정', 'Replacing')}
                       </span>
                     </div>
                   )}
@@ -3598,7 +3834,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               onClick={confirmMulliganNow}
               className="hs-arcane-btn hs-title hs-outline-sm rounded-2xl px-9 py-2.5 text-lg font-extrabold tracking-wider text-white sm:px-11 sm:py-3 sm:text-xl"
             >
-              확인 (전투 개시)
+              {tr('확인 (전투 개시)', 'Confirm (Start Duel)')}
             </button>
             <button
               type="button"
@@ -3630,7 +3866,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="2.2" />
               </svg>
               <span>
-                {autoPlay ? '자동플레이 ON (작동 중)' : '자동플레이 OFF (클릭 시 작동)'}
+                {autoPlay
+                  ? tr('자동플레이 ON (작동 중)', 'Auto-Play ON (Active)')
+                  : tr('자동플레이 OFF (클릭 시 작동)', 'Auto-Play OFF (Click to enable)')}
               </span>
             </button>
           </div>
@@ -3641,7 +3879,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {matchState.chooseOnePrompt && (
         <div className="absolute inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/82 p-3 text-center backdrop-blur-sm sm:p-4">
           <h3 className="hs-title hs-outline mb-3 text-xl font-extrabold text-amber-200 sm:mb-4 sm:text-2xl">
-            운명의 선택 — 카드를 터치해 확대 후 선택하세요
+            {tr('운명의 선택 — 카드를 터치해 확대 후 선택하세요', 'Choose One — Tap a card to inspect and choose')}
           </h3>
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
             {matchState.chooseOnePrompt.options.map((opt) => {
@@ -3675,10 +3913,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {matchState.trackingPrompt && (
         <div className="absolute inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/82 p-3 text-center backdrop-blur-sm sm:p-4">
           <h3 className="hs-title hs-outline mb-1.5 text-xl font-extrabold text-emerald-300 sm:mb-2 sm:text-2xl">
-            정찰 추적 — 카드를 터치해 확대 후 1장을 가져오세요
+            {tr('정찰 추적 — 카드를 터치해 확대 후 1장을 가져오세요',
+              'Tracking — Tap a card to inspect and draw 1',
+            )}
           </h3>
           <p className="mb-4 text-xs font-bold text-amber-200/85 sm:mb-5">
-            선택하지 않은 나머지 카드는 버려집니다.
+            {tr('선택하지 않은 나머지 카드는 버려집니다.', 'The other cards will be discarded.')}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-5">
             {matchState.trackingPrompt.cards.map((cid, idx) => (
@@ -3723,10 +3963,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   className="rounded-full border border-emerald-300/70 bg-emerald-950 px-3 py-0.5 text-xs font-extrabold text-emerald-200"
                 >
                   {defeatPackResult.boughtWithGold
-                    ? `🪙 골드로 카드팩 1개 구매 (-${defeatPackResult.goldSpent}G) & 즉시 개봉!`
+                    ? tr(`🪙 골드로 카드팩 1개 구매 (-${defeatPackResult.goldSpent}G) & 즉시 개봉!`,
+                        `🪙 Bought 1 Card Pack (-${defeatPackResult.goldSpent}G) & Opened!`,
+                      )
                     : defeatPackResult.usedExistingPack
-                      ? '🎁 보유 카드팩 1개 즉시 개봉!'
-                      : '🎁 엘윈 성소 구호 지원팩 1개 무상 개봉!'}
+                      ? tr('🎁 보유 카드팩 1개 즉시 개봉!', '🎁 Opened 1 Owned Pack!')
+                      : tr('🎁 엘윈 성소 구호 지원팩 1개 무상 개봉!',
+                          '🎁 Free Elwin Sanctuary Aid Pack Opened!',
+                        )}
                 </span>
                 {autoPlay && (
                   <button
@@ -3739,19 +3983,27 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     }`}
                   >
                     {!postGameAutoPaused
-                      ? `⏱ ${Math.max(1, Math.ceil(drawRetryRemainingMs / 1000))}초 후 강화된 덱으로 재도전 (정지)`
-                      : '▶ 자동 재도전 재개'}
+                      ? tr(`⏱ ${Math.max(1, Math.ceil(drawRetryRemainingMs / 1000))}초 후 강화된 덱으로 재도전 (정지)`,
+                          `⏱ Retrying in ${Math.max(1, Math.ceil(drawRetryRemainingMs / 1000))}s (Pause)`,
+                        )
+                      : tr('▶ 자동 재도전 재개', '▶ Resume Auto-Retry')}
                   </button>
                 )}
               </div>
 
               <h3 className="hs-title mt-1.5 text-lg font-extrabold text-yellow-300 sm:text-2xl">
-                눈히어로 카드팩 5장 개봉 & 스토리모드 전력 강화 완료!
+                {tr('눈히어로 카드팩 5장 개봉 & 스토리모드 전력 강화 완료!',
+                  '5-Card Pack Opened & Story Deck Powered Up!',
+                )}
               </h3>
               <p className="mt-0.5 text-[11px] font-bold text-amber-200/85 sm:text-xs">
                 {defeatPackResult.boughtWithGold
-                  ? `100 골드를 사용해 카드팩 1개를 구매하고 개봉했습니다 (남은 골드 ${defeatPackResult.remainingGold}G · 보유 팩 ${defeatPackResult.remainingPacks}팩)`
-                  : `카드팩 1개(5장)를 개봉해 도감에 합산했습니다 (남은 골드 ${defeatPackResult.remainingGold}G · 보유 팩 ${defeatPackResult.remainingPacks}팩)`}
+                  ? tr(`100 골드를 사용해 카드팩 1개를 구매하고 개봉했습니다 (남은 골드 ${defeatPackResult.remainingGold}G · 보유 팩 ${defeatPackResult.remainingPacks}팩)`,
+                      `Spent 100G to buy and open 1 pack (Gold ${defeatPackResult.remainingGold}G · Packs ${defeatPackResult.remainingPacks})`,
+                    )
+                  : tr(`카드팩 1개(5장)를 개봉해 도감에 합산했습니다 (남은 골드 ${defeatPackResult.remainingGold}G · 보유 팩 ${defeatPackResult.remainingPacks}팩)`,
+                      `Opened 1 pack (5 cards) added to collection (Gold ${defeatPackResult.remainingGold}G · Packs ${defeatPackResult.remainingPacks})`,
+                    )}
               </p>
 
               {/* 5-Card Pack Reveal Showcase */}
@@ -3807,13 +4059,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                           : 'border-amber-500/40 bg-stone-950/85 text-amber-200'
                       }`}
                     >
-                      <span>보유 {item.newOwnedCount}장</span>
+                      <span>{tr(`보유 ${item.newOwnedCount}장`, `Owned ${item.newOwnedCount}`)}</span>
                       {item.newJourneyMultiplier > 1 ? (
                         <span className="ml-1 text-yellow-300">
-                          · ⚡×{item.newJourneyMultiplier}배 각성!
+                          · ⚡×{item.newJourneyMultiplier}{isKo ? '배 각성!' : ' Awakened!'}
                         </span>
                       ) : item.isNew ? (
-                        <span className="ml-1 text-sky-300">· 신규</span>
+                        <span className="ml-1 text-sky-300">· {tr('신규', 'NEW')}</span>
                       ) : null}
                     </div>
                   </div>
@@ -3825,15 +4077,36 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 className="mb-3 w-full rounded-2xl border border-emerald-400/50 bg-stone-950/85 px-3.5 py-2 text-xs font-extrabold"
               >
                 <div className="text-emerald-300">
-                  ⚡ 이번 카드팩 개봉으로{' '}
-                  <span className="text-yellow-300">{defeatPackResult.awakenedInPackCount}장</span>의
-                  전투 카드가 ×3배 이상 각성/강화되었습니다!
+                  {isKo ? (
+                    <>
+                      ⚡ 이번 카드팩 개봉으로{' '}
+                      <span className="text-yellow-300">{defeatPackResult.awakenedInPackCount}장</span>의
+                      전투 카드가 ×3배 이상 각성/강화되었습니다!
+                    </>
+                  ) : (
+                    <>
+                      ⚡ This pack awakened{' '}
+                      <span className="text-yellow-300">{defeatPackResult.awakenedInPackCount}</span> battle
+                      card(s) to ×3+ stats!
+                    </>
+                  )}
                 </div>
                 <div className="mt-0.5 text-[11px] text-amber-100/90">
-                  현재 스토리모드 3장+ 배수 강화 카드 총{' '}
-                  <span className="text-yellow-300">{defeatPackResult.totalBoostedCount}종</span>{' '}
-                  (최대 <span className="text-emerald-300">×{defeatPackResult.maxMultiplier}배</span>)
-                  · 다음 판 덱에 최우선 편성됩니다!
+                  {isKo ? (
+                    <>
+                      현재 스토리모드 3장+ 배수 강화 카드 총{' '}
+                      <span className="text-yellow-300">{defeatPackResult.totalBoostedCount}종</span>{' '}
+                      (최대 <span className="text-emerald-300">×{defeatPackResult.maxMultiplier}배</span>)
+                      · 다음 판 덱에 최우선 편성됩니다!
+                    </>
+                  ) : (
+                    <>
+                      Total boosted cards in Story Mode:{' '}
+                      <span className="text-yellow-300">{defeatPackResult.totalBoostedCount}</span> (Max{' '}
+                      <span className="text-emerald-300">×{defeatPackResult.maxMultiplier}</span>) · Prioritized
+                      in next deck!
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -3852,10 +4125,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     }}
                     className="hs-arcane-btn hs-title hs-outline-sm w-full rounded-2xl py-3 text-base font-extrabold text-white sm:text-lg"
                   >
-                    ⚔ 강화된 덱으로 제
-                    {matchState.journeyMeta?.episode ?? profile.journeyEpisode ?? 0}화 다시 도전하기
+                    {isKo
+                      ? `⚔ 강화된 덱으로 제${matchState.journeyMeta?.episode ?? profile.journeyEpisode ?? 0}화 다시 도전하기`
+                      : `⚔ Retry EP ${matchState.journeyMeta?.episode ?? profile.journeyEpisode ?? 0} with Boosted Deck`}
                     {autoPlay && !postGameAutoPaused
-                      ? ` (${Math.max(1, Math.ceil(drawRetryRemainingMs / 1000))}초)`
+                      ? ` (${Math.max(1, Math.ceil(drawRetryRemainingMs / 1000))}${isKo ? '초' : 's'})`
                       : ' ▶'}
                   </button>
                 )}
@@ -3870,10 +4144,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     className="hs-gold-btn rounded-xl py-2 text-xs font-extrabold"
                   >
                     {profile.gold >= 100
-                      ? `🪙 골드로 1팩 더 구매·개봉 (-100G · 보유 ${profile.gold}G)`
+                      ? tr(`🪙 골드로 1팩 더 구매·개봉 (-100G · 보유 ${profile.gold}G)`,
+                          `🪙 Buy & Open Another Pack (-100G · ${profile.gold}G)`,
+                        )
                       : profile.packs > 0
-                        ? `🎁 보유 카드팩 1개 더 개봉 (보유 ${profile.packs}팩)`
-                        : '🎁 성소 지원팩 1개 더 개봉하여 추가 강화'}
+                        ? tr(`🎁 보유 카드팩 1개 더 개봉 (보유 ${profile.packs}팩)`,
+                            `🎁 Open Another Owned Pack (${profile.packs} left)`,
+                          )
+                        : tr('🎁 성소 지원팩 1개 더 개봉하여 추가 강화',
+                            '🎁 Open Another Free Sanctuary Aid Pack',
+                          )}
                   </button>
                   <button
                     type="button"
@@ -3885,7 +4165,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     }}
                     className="hs-brass-btn rounded-xl py-2 text-xs font-extrabold text-amber-100"
                   >
-                    엘윈마을 로비로 돌아가기
+                    {tr('엘윈마을 로비로 돌아가기', 'Return to Elwin Village Hub')}
                   </button>
                 </div>
               </div>
@@ -3915,8 +4195,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   }`}
                 >
                   {!postGameAutoPaused
-                    ? `⏱ 자동이동 ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}초 (정지)`
-                    : '▶ 자동이동 재개'}
+                    ? tr(`⏱ 자동이동 ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}초 (정지)`,
+                        `⏱ Auto-next ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}s (Pause)`,
+                      )
+                    : tr('▶ 자동이동 재개', '▶ Resume Auto-next')}
                 </button>
               </div>
             )}
@@ -3947,21 +4229,33 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               {matchState.winner === 'PLAYER'
                 ? mode === 'TUTORIAL' && matchState.journeyMeta
                   ? matchState.journeyMeta.episode === 0
-                    ? '에피소드 0 튜토리얼 완승!'
-                    : `제${matchState.journeyMeta.episode}화 돌파 승리!`
-                  : '승리!'
+                    ? tr('에피소드 0 튜토리얼 완승!', 'Episode 0 Tutorial Complete!')
+                    : tr(`제${matchState.journeyMeta.episode}화 돌파 승리!`,
+                        `Episode ${matchState.journeyMeta.episode} Cleared!`,
+                      )
+                  : tr('승리!', 'Victory!')
                 : mode === 'TUTORIAL' && matchState.journeyMeta
-                  ? `제${matchState.journeyMeta.episode}화 결투 패배`
-                  : '패배'}
+                  ? tr(`제${matchState.journeyMeta.episode}화 결투 패배`,
+                      `Episode ${matchState.journeyMeta.episode} Defeat`,
+                    )
+                  : tr('패배', 'Defeat')}
             </h2>
             <p className="relative z-10 mt-1 text-xs font-bold text-amber-200/90">
               {matchState.winner === 'PLAYER'
                 ? isEp0Tutorial
-                  ? '모험가님, 엘윈마을 눈히어로에 오신 것을 환영합니다! 이제 3초 뒤 제1화 본편 자동플레이가 시작됩니다!'
-                  : `${matchState.opponent.name}을(를) 제압하고 확정 보상을 수령했습니다!`
+                  ? tr('모험가님, 엘윈마을 눈히어로에 오신 것을 환영합니다! 이제 3초 뒤 제1화 본편 자동플레이가 시작됩니다!',
+                      'Welcome to Elwin Village, SNSHero! Episode 1 Auto-Play starts in 3 seconds!',
+                    )
+                  : tr(`${matchState.opponent.name}을(를) 제압하고 확정 보상을 수령했습니다!`,
+                      `Defeated ${matchState.opponent.name} and claimed your rewards!`,
+                    )
                 : mode === 'TUTORIAL' && matchState.journeyMeta
-                  ? `회차·환생이 높아질수록 적 보스(체력 ${matchState.journeyMeta.enemyHeroHealth} · 스탯 ×${matchState.journeyMeta.enemyStatScale}배)가 강력해집니다!`
-                  : '아군 영웅이 쓰러졌습니다. 덱을 정비하고 다시 도전해 보세요!'}
+                  ? tr(`회차·환생이 높아질수록 적 보스(체력 ${matchState.journeyMeta.enemyHeroHealth} · 스탯 ×${matchState.journeyMeta.enemyStatScale}배)가 강력해집니다!`,
+                      `Bosses grow stronger with each stage (HP ${matchState.journeyMeta.enemyHeroHealth} · Stats ×${matchState.journeyMeta.enemyStatScale})!`,
+                    )
+                  : tr('아군 영웅이 쓰러졌습니다. 덱을 정비하고 다시 도전해 보세요!',
+                      'Your hero has fallen. Tune your deck and try again!',
+                    )}
             </p>
 
             {matchState.winner === 'PLAYER' && isEp0Tutorial && (
@@ -3971,15 +4265,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               >
                 <img
                   src="/hs-assets/bosses/kadan_upper.webp"
-                  alt="카단 환영 인사"
+                  alt={tr('카단 환영 인사', 'Kadan Welcome')}
                   className="h-14 w-14 shrink-0 rounded-xl border-2 border-sky-300 object-cover object-top"
                 />
                 <div className="min-w-0 flex-1">
                   <div className="text-[11px] font-black text-sky-300">
-                    카단 · 튜토리얼 수료 환영 인사
+                    {tr('카단 · 튜토리얼 수료 환영 인사', 'Kadan · Tutorial Complete')}
                   </div>
                   <div className="mt-0.5 text-xs font-extrabold leading-snug text-white sm:text-sm">
-                    &ldquo;허수아비 로봇을 훌륭하게 쓰러뜨리셨어요! 눈히어로 세계에 오신 것을 진심으로 환영합니다. 이제 제1화에서 진짜 여정을 시작합시다!&rdquo;
+                    {tr('“허수아비 로봇을 훌륭하게 쓰러뜨리셨어요! 눈히어로 세계에 오신 것을 진심으로 환영합니다. 이제 제1화에서 진짜 여정을 시작합시다!”',
+                      '“Well done defeating the Scarecrow Bot! Welcome to the world of SNSHero. Let’s begin our true journey in Episode 1!”',
+                    )}
                   </div>
                 </div>
               </div>
@@ -3989,15 +4285,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             {outcomeSummary && (
               <div className="relative z-10 my-3.5 w-full space-y-1.5 rounded-2xl border-2 border-[#c8a158]/60 bg-black/50 p-3.5 text-left text-xs sm:p-4">
                 <div className="mb-1 border-b border-amber-500/25 pb-1 text-center font-extrabold text-amber-200">
-                  {outcomeSummary.didWin ? '🏆 확정 승리 보상 지급 명세' : '📋 대결 결과 안내'}
+                  {outcomeSummary.didWin
+                    ? tr('🏆 확정 승리 보상 지급 명세', '🏆 Victory Rewards Summary')
+                    : tr('📋 대결 결과 안내', '📋 Match Summary')}
                 </div>
 
                 {outcomeSummary.didWin ? (
                   <>
                     <div className="flex items-center justify-between font-bold text-amber-100">
-                      <span>• 기본 승리 골드</span>
+                      <span>{tr('• 기본 승리 골드', '• Base Win Gold')}</span>
                       <span className="font-extrabold text-yellow-300">
-                        +{outcomeSummary.baseWinGold} 골드
+                        +{outcomeSummary.baseWinGold} {tr('골드', 'Gold')}
                       </span>
                     </div>
 
@@ -4005,22 +4303,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       <div className="flex items-center justify-between font-bold text-emerald-200">
                         <span>• {outcomeSummary.bonusLabel}</span>
                         <span className="font-extrabold text-emerald-300">
-                          +{outcomeSummary.bonusGold} 골드
+                          +{outcomeSummary.bonusGold} {tr('골드', 'Gold')}
                         </span>
                       </div>
                     )}
 
                     {outcomeSummary.questGold > 0 && (
                       <div className="flex items-center justify-between font-bold text-sky-200">
-                        <span>• 일일 의뢰 달성 보상</span>
+                        <span>{tr('• 일일 의뢰 달성 보상', '• Daily Quest Reward')}</span>
                         <span className="font-extrabold text-sky-300">
-                          +{outcomeSummary.questGold} 골드
+                          +{outcomeSummary.questGold} {tr('골드', 'Gold')}
                         </span>
                       </div>
                     )}
 
                     <div className="mt-1 flex items-center justify-between border-t border-amber-500/30 pt-1.5 text-sm font-extrabold">
-                      <span className="text-amber-100">총 획득 골드 (보유 {profile.gold}G)</span>
+                      <span className="text-amber-100">
+                        {tr(`총 획득 골드 (보유 ${profile.gold}G)`, `Total Gold (Owned ${profile.gold}G)`)}
+                      </span>
                       <span className="flex items-center gap-1 text-yellow-300">
                         <HsGoldCoinIcon size={18} />
                         <span>+{outcomeSummary.goldEarned}G</span>
@@ -4030,35 +4330,41 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     {outcomeSummary.packsEarned > 0 && (
                       <div className="mt-1.5 flex items-center justify-between rounded-xl border border-yellow-300/60 bg-amber-950/70 px-3 py-2 font-extrabold text-yellow-200">
                         <span className="truncate pr-2">
-                          🎁 {outcomeSummary.packReason || '특전 눈히어로 팩 보상'}
+                          🎁 {outcomeSummary.packReason || tr('특전 눈히어로 팩 보상', 'Bonus Card Pack Reward')}
                         </span>
                         <span className="shrink-0 text-yellow-300">
-                          +{outcomeSummary.packsEarned}팩!
+                          +{outcomeSummary.packsEarned} {tr('팩!', 'Pack(s)!')}
                         </span>
                       </div>
                     )}
 
                     {outcomeSummary.reincarnatedNow && (
                       <div className="mt-1.5 rounded-xl border border-purple-300/70 bg-purple-950/80 px-3 py-2 text-center font-extrabold text-purple-200">
-                        ✦ 40화 대단원 완주! [환생 {outcomeSummary.nextReincarnation}회차]가 개방되었습니다!
+                        {tr(`✦ 40화 대단원 완주! [환생 ${outcomeSummary.nextReincarnation}회차]가 개방되었습니다!`,
+                          `✦ Episode 40 Complete! Reincarnation ${outcomeSummary.nextReincarnation} Unlocked!`,
+                        )}
                       </div>
                     )}
 
                     {(mode === 'RANKED' || mode === 'CASUAL') && (
                       <div className="mt-1 flex items-center justify-between text-[11px] font-bold text-amber-200/85">
-                        <span>3승 달성 추가 보너스 진행도</span>
-                        <span className="text-yellow-300">{outcomeSummary.threeWinProgress} / 3승</span>
+                        <span>{tr('3승 달성 추가 보너스 진행도', '3-Win Bonus Progress')}</span>
+                        <span className="text-yellow-300">
+                          {outcomeSummary.threeWinProgress} / 3{isKo ? '승' : ' Wins'}
+                        </span>
                       </div>
                     )}
 
                     {mode === 'RANKED' && (
                       <div className="mt-1 flex items-center justify-between text-[11px] font-bold text-sky-200">
-                        <span>현재 눈히어로 등급</span>
+                        <span>{tr('현재 눈히어로 등급', 'Current SNSHero Rank')}</span>
                         <span>
                           {outcomeSummary.newRank === 0
-                            ? '전설의 눈히어로!'
-                            : `${outcomeSummary.newRank}등급 (${CLASSIC_RANK_NAMES[outcomeSummary.newRank]}) · ★${outcomeSummary.newStars}`}
-                          {outcomeSummary.streakBonus ? ' (연승 ×2!)' : ''}
+                            ? tr('전설의 눈히어로!', 'Legend SNSHero!')
+                            : isKo
+                              ? `${outcomeSummary.newRank}등급 (${CLASSIC_RANK_NAMES[outcomeSummary.newRank]}) · ★${outcomeSummary.newStars}`
+                              : `Rank ${outcomeSummary.newRank} (${getRankTitle(outcomeSummary.newRank, CLASSIC_RANK_NAMES, lang)}) · ★${outcomeSummary.newStars}`}
+                          {outcomeSummary.streakBonus ? tr(' (연승 ×2!)', ' (Win Streak ×2!)') : ''}
                         </span>
                       </div>
                     )}
@@ -4066,23 +4372,43 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 ) : mode === 'TUTORIAL' ? (
                   <div className="space-y-1.5 text-center leading-relaxed text-amber-100">
                     <div className="font-extrabold text-emerald-300">
-                      ⚡ 패배 시 자동 전력 보강: 카드팩 1개 구매 · 개봉 후 재도전!
+                      {tr('⚡ 패배 시 자동 전력 보강: 카드팩 1개 구매 · 개봉 후 재도전!',
+                        '⚡ Defeat Auto-Power-Up: Open 1 Card Pack & Retry!',
+                      )}
                     </div>
                     <p className="text-[11.5px] font-semibold text-amber-100/90">
-                      바로 재대결하지 않고{' '}
-                      <b className="text-yellow-300">
-                        {profile.gold >= 100
-                          ? `보유 골드(${profile.gold}G)로 카드팩 1개를 구매(-100G)`
-                          : profile.packs > 0
-                            ? `보유 카드팩(${profile.packs}팩) 1개를 사용`
-                            : '엘윈 성소 구호 지원팩 1개를 보급'}
-                      </b>
-                      하여 <b className="text-emerald-300">5장을 개봉(동일 카드 3장 = 공격력·생명력 ×3배 각성)</b>한 뒤 강화된 덱으로 다시 도전합니다!
+                      {isKo ? (
+                        <>
+                          바로 재대결하지 않고{' '}
+                          <b className="text-yellow-300">
+                            {profile.gold >= 100
+                              ? `보유 골드(${profile.gold}G)로 카드팩 1개를 구매(-100G)`
+                              : profile.packs > 0
+                                ? `보유 카드팩(${profile.packs}팩) 1개를 사용`
+                                : '엘윈 성소 구호 지원팩 1개를 보급'}
+                          </b>
+                          하여 <b className="text-emerald-300">5장을 개봉(동일 카드 3장 = 공격력·생명력 ×3배 각성)</b>한 뒤 강화된 덱으로 다시 도전합니다!
+                        </>
+                      ) : (
+                        <>
+                          Before retrying, you&apos;ll{' '}
+                          <b className="text-yellow-300">
+                            {profile.gold >= 100
+                              ? `spend 100G (Gold ${profile.gold}G) for 1 card pack`
+                              : profile.packs > 0
+                                ? `open 1 owned card pack (${profile.packs} left)`
+                                : 'claim 1 free Elwin Sanctuary Aid pack'}
+                          </b>{' '}
+                          and awaken <b className="text-emerald-300">3+ duplicate cards (×3 ATK/HP)</b>!
+                        </>
+                      )}
                     </p>
                   </div>
                 ) : (
                   <div className="text-center text-[11.5px] font-semibold text-amber-200/85">
-                    승리 시 확정 골드와 일일 의뢰 보상이 지급됩니다. 덱 구성을 점검하고 다시 도전해 보세요!
+                    {tr('승리 시 확정 골드와 일일 의뢰 보상이 지급됩니다. 덱 구성을 점검하고 다시 도전해 보세요!',
+                      'Wins award Gold and Daily Quest progress. Adjust your deck and try again!',
+                    )}
                   </div>
                 )}
               </div>
@@ -4103,14 +4429,22 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       className="hs-arcane-btn hs-title hs-outline-sm w-full rounded-2xl py-3 text-base font-extrabold text-white sm:text-lg"
                     >
                       {isEp0Tutorial
-                        ? `⚔ 제${outcomeSummary.nextEpisode}화 자동플레이 시작`
-                        : `⚔ 다음 여정 진행 (${
-                            outcomeSummary.nextReincarnation && outcomeSummary.nextReincarnation > 0
-                              ? `환생 ${outcomeSummary.nextReincarnation} · `
-                              : ''
-                          }제${outcomeSummary.nextEpisode}화)`}
+                        ? tr(`⚔ 제${outcomeSummary.nextEpisode}화 자동플레이 시작`,
+                            `⚔ Start Episode ${outcomeSummary.nextEpisode} Auto-Play`,
+                          )
+                        : isKo
+                          ? `⚔ 다음 여정 진행 (${
+                              outcomeSummary.nextReincarnation && outcomeSummary.nextReincarnation > 0
+                                ? `환생 ${outcomeSummary.nextReincarnation} · `
+                                : ''
+                            }제${outcomeSummary.nextEpisode}화)`
+                          : `⚔ Next Episode (${
+                              outcomeSummary.nextReincarnation && outcomeSummary.nextReincarnation > 0
+                                ? `Reinc. ${outcomeSummary.nextReincarnation} · `
+                                : ''
+                            }EP ${outcomeSummary.nextEpisode})`}
                       {autoPlay && !postGameAutoPaused
-                        ? ` · ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}초`
+                        ? ` · ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${isKo ? '초' : 's'}`
                         : ' ▶'}
                     </button>
                   )}
@@ -4124,7 +4458,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     }}
                     className="hs-brass-btn w-full rounded-xl py-2.5 text-xs font-extrabold text-amber-100 sm:text-sm"
                   >
-                    엘윈마을 로비로 돌아가기
+                    {tr('엘윈마을 로비로 돌아가기', 'Return to Elwin Village Hub')}
                   </button>
                 </div>
               ) : (
@@ -4140,12 +4474,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   >
                     <span>
                       {profile.gold >= 100
-                        ? '🪙 골드로 카드팩 1개 구매 · 개봉하여 전력 강화 (-100G)'
+                        ? tr('🪙 골드로 카드팩 1개 구매 · 개봉하여 전력 강화 (-100G)',
+                            '🪙 Buy & Open 1 Card Pack to Power Up (-100G)',
+                          )
                         : profile.packs > 0
-                          ? `🎁 보유 카드팩 1개 개봉하여 전력 강화 (보유 ${profile.packs}팩)`
-                          : '🎁 성소 구호 카드팩 1개 개봉하여 전력 강화'}
+                          ? tr(`🎁 보유 카드팩 1개 개봉하여 전력 강화 (보유 ${profile.packs}팩)`,
+                              `🎁 Open 1 Owned Pack to Power Up (${profile.packs} left)`,
+                            )
+                          : tr('🎁 성소 구호 카드팩 1개 개봉하여 전력 강화',
+                              '🎁 Open Free Sanctuary Aid Pack to Power Up',
+                            )}
                       {autoPlay && !postGameAutoPaused
-                        ? ` (${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}초)`
+                        ? ` (${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${isKo ? '초' : 's'})`
                         : ' ▶'}
                     </span>
                   </button>
@@ -4164,7 +4504,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                         }}
                         className="hs-brass-btn rounded-xl py-2 text-xs font-extrabold text-amber-100"
                       >
-                        ⚔ 팩 개봉 없이 바로 재도전
+                        {tr('⚔ 팩 개봉 없이 바로 재도전', '⚔ Retry Without Pack')}
                       </button>
                     )}
 
@@ -4178,7 +4518,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       }}
                       className="hs-brass-btn rounded-xl py-2 text-xs font-extrabold text-amber-100"
                     >
-                      엘윈마을 로비로 돌아가기
+                      {tr('엘윈마을 로비로 돌아가기', 'Return to Elwin Village Hub')}
                     </button>
                   </div>
                 </div>
@@ -4189,7 +4529,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   data-testid="gameover-autoplay-reset-note"
                   className="rounded-xl border border-stone-600/70 bg-black/50 px-3 py-1.5 text-[11px] font-extrabold text-amber-200/85"
                 >
-                  ⚙ 전투 종료와 함께 자동플레이가 비활성화(OFF)되었습니다 · 다음 판에서 새로 활성화할 수 있습니다.
+                  {tr('⚙ 전투 종료와 함께 자동플레이가 비활성화(OFF)되었습니다 · 다음 판에서 새로 활성화할 수 있습니다.',
+                    '⚙ Auto-Play turned OFF at match end · You can re-enable it next match.',
+                  )}
                 </div>
                 {onRematchSameMode && (
                   <button
@@ -4202,7 +4544,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     }}
                     className="hs-arcane-btn hs-title hs-outline-sm w-full rounded-2xl py-3 text-base font-extrabold text-white sm:text-lg"
                   >
-                    ⚔ 같은 덱으로 다음 판 시작
+                    {tr('⚔ 같은 덱으로 다음 판 시작', '⚔ Play Again (Same Deck)')}
                   </button>
                 )}
                 <button
@@ -4219,7 +4561,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       : 'hs-arcane-btn py-3 text-lg text-white'
                   }`}
                 >
-                  엘윈마을로 돌아가기
+                  {tr('엘윈마을로 돌아가기', 'Return to Elwin Village')}
                 </button>
               </div>
             )}

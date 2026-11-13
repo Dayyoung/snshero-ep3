@@ -1,4 +1,5 @@
 import React from 'react';
+import { isKoreanLanguage, tr } from '../../i18n/heroLang';
 import { HeroClass, SnsCardBackId } from '../types';
 
 export const SNS_LOGO_URL = '/hs-assets/brand/logo-ko.webp';
@@ -43,6 +44,19 @@ export const SNS_CARD_BACK_THEMES: Record<
   },
 };
 
+export function getSnsCardBackLabel(id: SnsCardBackId): { name: string; subtitle: string } {
+  if (isKoreanLanguage()) {
+    return SNS_CARD_BACK_THEMES[id];
+  }
+  if (id === 'silver') {
+    return { name: 'SNSHero Silver', subtitle: 'Official Silver Platinum Card Back' };
+  }
+  if (id === 'bronze') {
+    return { name: 'SNSHero Bronze', subtitle: 'Official Bronze Classic Card Back' };
+  }
+  return { name: 'SNSHero Gold', subtitle: 'Official Gold Emblem Card Back' };
+}
+
 export const SnsCardBackArt: React.FC<{
   variant?: SnsCardBackId | string;
   className?: string;
@@ -54,6 +68,7 @@ export const SnsCardBackArt: React.FC<{
         ? 'bronze'
         : 'gold';
   const theme = SNS_CARD_BACK_THEMES[key];
+  const label = getSnsCardBackLabel(key);
 
   return (
     <div
@@ -64,7 +79,7 @@ export const SnsCardBackArt: React.FC<{
     >
       <img
         src={theme.imageUrl}
-        alt={theme.name}
+        alt={label.name}
         draggable={false}
         className="h-full w-full object-fill select-none"
       />
@@ -106,7 +121,7 @@ export const SnsBoosterPackArt: React.FC<{
         <img
           key={idx}
           src="/hs-assets/cardbacks/snshero-gold.png"
-          alt={idx === stackLayers.length - 1 ? '눈히어로 카드 팩 (5장)' : ''}
+          alt={idx === stackLayers.length - 1 ? tr('눈히어로 카드 팩 (5장)', 'SNSHero Card Pack (5 Cards)') : ''}
           draggable={false}
           className="absolute h-[88%] w-[84%] rounded-[8px] object-contain"
           style={{

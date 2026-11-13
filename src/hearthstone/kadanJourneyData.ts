@@ -1,6 +1,12 @@
 import { CLASSIC_PRESET_DECKS, cardDb } from './cardDb';
+import { isKoreanLanguage } from '../i18n/heroLang';
 import { CollectionMap, getJourneyCardMultiplier, hasCombatStatsForJourney } from './storage';
 import { BoardThemeId, CustomBattleHeroSpec, HeroClass } from './types';
+import {
+  KADAN_JOURNEY_EPISODES_EN,
+  TUTORIAL_EP0_CARD_REASONS_EN,
+  applyEnEpisodeLocalization,
+} from './kadanJourneyEnData';
 
 export interface JourneyCastMember {
   name: string;
@@ -27,6 +33,7 @@ export interface KadanJourneyEpisodeDef {
   actNumber: number;
   actTitle: string;
   titleKo: string;
+  titleEn?: string;
   locationKo: string;
   oneLineKo: string;
   novelEpisodeUrl: string;
@@ -6737,12 +6744,31 @@ export const KADAN_JOURNEY_EPISODES: KadanJourneyEpisodeDef[] = [
   }
 ];
 
-export function getJourneyEpisodeDef(episode: number): KadanJourneyEpisodeDef {
+export function getEp0CardReason(
+  cardId: string,
+  isKo: boolean = isKoreanLanguage(),
+): Ep0CardTutorialReason | undefined {
+  return isKo ? TUTORIAL_EP0_CARD_REASONS[cardId] : TUTORIAL_EP0_CARD_REASONS_EN[cardId];
+}
+
+export function getJourneyEpisodeDef(
+  episode: number,
+  isKo: boolean = isKoreanLanguage(),
+): KadanJourneyEpisodeDef {
   if (Number.isFinite(episode) && Math.floor(episode) <= 0) {
-    return KADAN_TUTORIAL_EPISODE_0;
+    if (!isKo) return applyEnEpisodeLocalization(KADAN_TUTORIAL_EPISODE_0);
+    return {
+      ...KADAN_TUTORIAL_EPISODE_0,
+      titleEn: 'Scarecrow Bot Combat Drill',
+    };
   }
   const safeIdx = Math.max(1, Math.min(40, Math.floor(episode || 1))) - 1;
-  return KADAN_JOURNEY_EPISODES[safeIdx] || KADAN_JOURNEY_EPISODES[0];
+  const raw = KADAN_JOURNEY_EPISODES[safeIdx] || KADAN_JOURNEY_EPISODES[0];
+  if (!isKo) return applyEnEpisodeLocalization(raw);
+  return {
+    ...raw,
+    titleEn: KADAN_JOURNEY_EPISODES_EN[raw.episode]?.titleEn || raw.titleKo,
+  };
 }
 
 export interface JourneyDifficultySpec {

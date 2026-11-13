@@ -1,4 +1,6 @@
+import { isKoreanLanguage } from '../../i18n/heroLang';
 import { CLASSIC_PRESET_DECKS, cardDb } from '../cardDb';
+import { getLocalizedHeroInfo } from '../i18nData';
 import {
   BattleMatchState,
   CLASSIC_HEROES,
@@ -261,6 +263,18 @@ export const LADDER_OPPONENT_NAMES: Record<HeroClass, string[]> = {
   DRUID: ['만년설 야성 수호자', '은빛 송곳니 조련사', '고대림 영수 인도자'],
 };
 
+export const LADDER_OPPONENT_NAMES_EN: Record<HeroClass, string[]> = {
+  MAGE: ['Abyssal Archmage', 'Tidecaller Mystica', 'Azure Sage Nymph'],
+  WARRIOR: ['Flame Citadel Centurion', 'Crimson Gladiator Belphegor', 'Vanguard Vulcan'],
+  HUNTER: ['Wind-Isle Sharpshooter', 'Skyseeker Zephyr', 'Gale Scout Sirocco'],
+  PALADIN: ['Crag Citadel Warden', 'Ochre Plains Templar', 'Earthward Golem'],
+  PRIEST: ['Arke Templar Squad Lead', 'Elwin Frost Cleric', 'Scarlet Court Lucian'],
+  ROGUE: ['Obsidian Shadowblade', 'Wraith Hall Stalker', 'Abyssal Phantom'],
+  SHAMAN: ['Ancient Grove Seer', 'Silverbranch Sage Sylphy', 'Starlight Keeper Oberon'],
+  WARLOCK: ['Deepforge Artisan', 'Ironridge Runesmith', 'Blackiron Pit Fighter'],
+  DRUID: ['Frostpeak Wildguard', 'Silverfang Tamer', 'Elderwood Beastcaller'],
+};
+
 export function buildAiOpponentSetup(
   mode: GameMode,
   preferredOpponentClass?: HeroClass,
@@ -269,12 +283,13 @@ export function buildAiOpponentSetup(
   opponentClass: HeroClass;
   opponentDeck: string[];
 } {
+  const isKo = isKoreanLanguage();
   if (mode === 'TUTORIAL') {
     const tutClass = preferredOpponentClass || 'ROGUE';
     const preset =
       CLASSIC_PRESET_DECKS.find((d) => d.heroClass === tutClass) || CLASSIC_PRESET_DECKS[0];
     return {
-      opponentName: '심연 그림자 아르투스',
+      opponentName: isKo ? '심연 그림자 아르투스' : 'Arthas, Shadow of the Abyss',
       opponentClass: tutClass,
       opponentDeck: [...preset.cards],
     };
@@ -283,12 +298,13 @@ export function buildAiOpponentSetup(
   const oppClass =
     preferredOpponentClass ||
     HERO_CLASS_ORDER[Math.floor(Math.random() * HERO_CLASS_ORDER.length)];
+  const className = getLocalizedHeroInfo(oppClass, isKo ? 'ko' : 'en').className;
 
   if (mode === 'PRACTICE_NORMAL') {
     const preset =
       CLASSIC_PRESET_DECKS.find((d) => d.heroClass === oppClass) || CLASSIC_PRESET_DECKS[0];
     return {
-      opponentName: `AI대전 상대 (${CLASSIC_HEROES[oppClass].classNameKo})`,
+      opponentName: isKo ? `AI대전 상대 (${className})` : `AI Challenger (${className})`,
       opponentClass: oppClass,
       opponentDeck: [...preset.cards],
     };
@@ -297,14 +313,14 @@ export function buildAiOpponentSetup(
   if (mode === 'PRACTICE_EXPERT') {
     const expert = CLASSIC_EXPERT_AI_DECKS[oppClass];
     return {
-      opponentName: `숙련 AI 대표 (${CLASSIC_HEROES[oppClass].classNameKo})`,
+      opponentName: isKo ? `숙련 AI 대표 (${className})` : `Expert AI (${className})`,
       opponentClass: oppClass,
       opponentDeck: [...expert.cards],
     };
   }
 
   // RANKED or CASUAL
-  const names = LADDER_OPPONENT_NAMES[oppClass];
+  const names = isKo ? LADDER_OPPONENT_NAMES[oppClass] : LADDER_OPPONENT_NAMES_EN[oppClass];
   const opponentName = names[Math.floor(Math.random() * names.length)];
   const expert = CLASSIC_EXPERT_AI_DECKS[oppClass];
   return {

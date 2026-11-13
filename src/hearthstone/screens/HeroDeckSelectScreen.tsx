@@ -12,7 +12,9 @@ import {
   SnsRankMedallion,
   SnsSnowCompassSeal,
 } from '../components/SnsHeroArtKit';
-import { MODE_REWARD_GUIDES, hsStorage } from '../storage';
+import { tr, useHeroLanguage } from '../../i18n/heroLang';
+import { getDeckDisplayName, getLocalizedHeroInfo, getRankTitle } from '../i18nData';
+import { getModeRewardGuide, hsStorage } from '../storage';
 import {
   BoardThemeId,
   CLASSIC_HEROES,
@@ -34,7 +36,7 @@ export interface HeroDeckSelectScreenProps {
   }) => void;
 }
 
-const SNS_SPINNER_TITLES = [
+const SNS_SPINNER_TITLES_KO = [
   '가치 있는 맞수',
   '일곱 추적자 전승자',
   '녹옥회 정보원',
@@ -49,12 +51,30 @@ const SNS_SPINNER_TITLES = [
   '눈히어로 결투장의 지배자',
 ];
 
+const SNS_SPINNER_TITLES_EN = [
+  'Worthy Opponent',
+  'Heir of Seven Pursuers',
+  'Jade Council Scout',
+  'Flame Court Sentinel',
+  'Wind Isle Marksman',
+  'Deepforge Smith',
+  'Elwin Village Regular',
+  'Starlight Initiate',
+  'Ake Paladin Captain',
+  'Abyssal Arcane Scholar',
+  'Snowfield Beast Tamer',
+  'Elwin Arena Champion',
+];
+
 export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   initialMode,
   onBack,
   onEditDecks,
   onLaunchBattle,
 }) => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
+  const spinnerTitles = isKo ? SNS_SPINNER_TITLES_KO : SNS_SPINNER_TITLES_EN;
   const [decks, setDecks] = useState<CustomDeck[]>(() => hsStorage.getDecks());
   const [profile, setProfile] = useState(() => hsStorage.getProfile());
 
@@ -86,6 +106,9 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     [decks, selectedDeckId],
   );
   const hero = CLASSIC_HEROES[selectedDeck.heroClass];
+  const heroLoc = getLocalizedHeroInfo(selectedDeck.heroClass, lang);
+  const selectedDeckLabel = getDeckDisplayName(selectedDeck, lang);
+  const rewardGuide = getModeRewardGuide(mode, isKo);
   const isPractice = mode === 'PRACTICE_NORMAL' || mode === 'PRACTICE_EXPERT';
 
   useEffect(() => {
@@ -97,7 +120,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     const step = () => {
       tick += 1;
       if (tick < maxTicks) {
-        setWheelIndex((prev) => (prev + 1) % SNS_SPINNER_TITLES.length);
+        setWheelIndex((prev) => (prev + 1) % spinnerTitles.length);
         hsAudio.playSfx('ui_hover', 0.45);
         timer = window.setTimeout(step, 65 + tick * 12);
       } else {
@@ -125,6 +148,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     practiceOpponentClass,
     boardTheme,
     onLaunchBattle,
+    spinnerTitles.length,
   ]);
 
   const handleStartClick = () => {
@@ -151,7 +175,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           }}
           className="hs-brass-btn min-h-[40px] rounded-xl px-3 py-1.5 text-xs font-extrabold text-amber-100 sm:px-4 sm:py-2 sm:text-sm"
         >
-          ← <span className="hidden sm:inline">엘윈마을 </span>로비로
+          ← {isKo ? <><span className="hidden sm:inline">엘윈마을 </span>로비로</> : <><span className="hidden sm:inline">Elwin </span>Hub</>}
         </button>
 
         {/* Mode Switcher Tabs */}
@@ -171,7 +195,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 }`}
               >
                 <SnsRankMedallion rank={profile.rank} size={15} />
-                <span>랭킹대전 · 등급전</span>
+                <span>{tr('랭킹대전 · 등급전', 'Ranked · Standard')}</span>
               </button>
               <button
                 type="button"
@@ -186,7 +210,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 }`}
               >
                 <SnsSnowCompassSeal size={15} />
-                <span>랭킹대전 · 일반전</span>
+                <span>{tr('랭킹대전 · 일반전', 'Casual')}</span>
               </button>
             </>
           ) : isPractice ? (
@@ -203,7 +227,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                     : 'text-amber-200/75 hover:text-white'
                 }`}
               >
-                AI대전 · 일반 AI
+                {tr('AI대전 · 일반 AI', 'Practice · Normal AI')}
               </button>
               <button
                 type="button"
@@ -217,12 +241,12 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                     : 'text-amber-200/75 hover:text-white'
                 }`}
               >
-                AI대전 · 숙련 AI
+                {tr('AI대전 · 숙련 AI', 'Practice · Expert AI')}
               </button>
             </>
           ) : (
             <span className="px-3 py-1 text-xs font-extrabold text-emerald-300">
-              스토리모드 · 카단의 여정
+              {tr('스토리모드 · 카단의 여정', "Story Mode · Kadan's Journey")}
             </span>
           )}
         </div>
@@ -240,7 +264,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             alt=""
             className="h-4 w-4 rounded-full object-cover sm:h-5 sm:w-5"
           />
-          <span>덱 편집</span>
+          <span>{tr('덱 편집', 'Edit Decks')}</span>
         </button>
       </header>
 
@@ -250,16 +274,17 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
         <section className="hs-wood-panel rounded-2xl p-3 sm:rounded-3xl sm:p-5 lg:col-span-7">
           <div className="mb-2 flex items-center justify-between border-b border-amber-500/25 pb-1.5 sm:mb-3 sm:pb-2">
             <h2 className="hs-title text-sm font-extrabold text-amber-100 sm:text-lg">
-              전투에 출전할 종족 덱 선택
+              {tr('전투에 출전할 종족 덱 선택', 'Choose Your Faction Deck')}
             </h2>
             <span className="text-[11px] font-bold text-amber-300/85 sm:text-xs">
-              보유 덱 {decks.length}개 · 30장 완료 덱 출전
+              {isKo ? `보유 덱 ${decks.length}개 · 30장 완료 덱 출전` : `${decks.length} Decks · 30 Cards Required`}
             </span>
           </div>
 
           <div className="grid grid-cols-3 gap-2 sm:max-h-[58vh] sm:gap-3 sm:overflow-y-auto sm:pr-1">
             {decks.map((d) => {
               const dh = CLASSIC_HEROES[d.heroClass];
+              const dhLoc = getLocalizedHeroInfo(d.heroClass, lang);
               const isSelected = d.id === selectedDeck.id;
               const isComplete = d.cards.length === 30;
               return (
@@ -290,17 +315,17 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                   >
                     <img
                       src={getHeroArtUrl(dh.heroId)}
-                      alt={dh.nameKo}
+                      alt={dhLoc.name}
                       className="absolute left-1/2 top-[3%] h-[155%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top transition group-hover:scale-108"
                     />
                   </div>
 
                   <div className="mt-1.5 w-full text-center sm:mt-2">
                     <div className="hs-outline-sm truncate text-[11px] font-extrabold text-white sm:text-xs">
-                      {d.name}
+                      {getDeckDisplayName(d, lang)}
                     </div>
                     <div className="mt-0.5 flex items-center justify-center gap-1 text-[9.5px] font-bold text-amber-200 sm:gap-1.5 sm:text-[10.5px]">
-                      <span>{dh.classNameKo}</span>
+                      <span>{dhLoc.className}</span>
                       <span>·</span>
                       <span className={isComplete ? 'text-emerald-300' : 'text-red-300'}>
                         {d.cards.length}/30
@@ -330,7 +355,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             >
               <img
                 src={getHeroArtUrl(hero.heroId)}
-                alt={hero.nameKo}
+                alt={heroLoc.name}
                 className="absolute left-1/2 top-[3%] h-[155%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top"
               />
               <img
@@ -345,17 +370,19 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 style={{ color: hero.accentColor }}
                 className="text-[11px] font-extrabold uppercase tracking-wider sm:text-xs"
               >
-                {hero.classNameKo} · {hero.titleKo}
+                {heroLoc.className} · {heroLoc.title}
               </div>
               <div className="hs-title hs-outline-sm truncate text-lg font-extrabold text-white sm:text-2xl">
-                {hero.nameKo}
+                {heroLoc.name}
               </div>
               <div className="mt-0.5 truncate text-[11px] font-bold text-amber-200 sm:text-xs">
-                출전 덱: {selectedDeck.name}
+                {tr(`출전 덱: ${selectedDeckLabel}`, `Active Deck: ${selectedDeckLabel}`)}
               </div>
               <div className="mt-1.5 rounded-xl border border-[#c8a158]/40 bg-black/45 px-2.5 py-1 text-[10.5px] leading-snug sm:mt-2 sm:py-1.5 sm:text-[11px]">
-                <b className="text-sky-300">영웅 능력 [{hero.heroPowerNameKo}]:</b>{' '}
-                {hero.heroPowerTextKo}
+                <b className="text-sky-300">
+                  {tr(`영웅 능력 [${heroLoc.heroPowerName}]:`, `Hero Power [${heroLoc.heroPowerName}]:`)}
+                </b>{' '}
+                {heroLoc.heroPowerText}
               </div>
             </div>
           </div>
@@ -364,18 +391,18 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           {isPractice ? (
             <div className="relative z-10 my-2 rounded-2xl border border-[#c8a158]/40 bg-black/40 p-2.5 sm:my-2.5 sm:p-3">
               <div className="mb-1.5 flex items-center justify-between gap-1 text-xs font-extrabold text-amber-200">
-                <span>대전할 상대 종족 대표 선택</span>
+                <span>{tr('대전할 상대 종족 대표 선택', 'Choose Opponent Faction')}</span>
                 <span className="text-[10.5px] font-bold text-emerald-300">
-                  최초 제압:{' '}
+                  {tr('최초 제압:', 'First Clear:')}{' '}
                   {mode === 'PRACTICE_EXPERT'
                     ? profile.practiceExpertCleared.length
                     : profile.practiceNormalCleared.length}
-                  /9종족
+                  {tr('/9종족', '/9 Factions')}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {HERO_CLASS_ORDER.map((hc) => {
-                  const ch = CLASSIC_HEROES[hc];
+                  const chLoc = getLocalizedHeroInfo(hc, lang);
                   const active = practiceOpponentClass === hc;
                   const alreadyCleared =
                     mode === 'PRACTICE_EXPERT'
@@ -400,10 +427,10 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                         alt=""
                         className="h-4 w-4 rounded-full object-cover"
                       />
-                      <span>{ch.classNameKo}</span>
+                      <span className="truncate">{chLoc.className}</span>
                       {alreadyCleared && (
                         <span
-                          title="최초 제압 보상 수령 완료"
+                          title={tr('최초 제압 보상 수령 완료', 'First-clear reward claimed')}
                           className="ml-0.5 text-[10px] font-black text-emerald-300"
                         >
                           ✓
@@ -418,15 +445,21 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             <div className="relative z-10 my-2 flex items-center justify-between rounded-2xl border border-[#c8a158]/40 bg-black/40 p-2.5 sm:my-2.5 sm:p-3">
               <div>
                 <div className="text-[10.5px] font-bold text-amber-300 sm:text-[11px]">
-                  현재 눈히어로 등급
+                  {tr('현재 눈히어로 등급', 'Current SNSHero Rank')}
                 </div>
                 <div className="hs-title text-base font-extrabold text-white sm:text-lg">
                   {profile.rank === 0
-                    ? '전설의 눈히어로 (LEGEND)'
-                    : `${profile.rank}등급 · ${CLASSIC_RANK_NAMES[profile.rank]}`}
+                    ? tr('전설의 눈히어로 (LEGEND)', 'SNSHero Legend')
+                    : tr(
+                        `${profile.rank}등급 · ${getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang)}`,
+                        `Rank ${profile.rank} · ${getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang)}`,
+                      )}
                 </div>
                 <div className="mt-0.5 text-[10.5px] text-amber-200/80 sm:text-[11px]">
-                  3승 보너스 진행도: <b className="text-yellow-300">{profile.threeWinCounter}/3승</b>
+                  {tr('3승 보너스 진행도:', '3-Win Bonus Progress:')}{' '}
+                  <b className="text-yellow-300">
+                    {isKo ? `${profile.threeWinCounter}/3승` : `${profile.threeWinCounter}/3 Wins`}
+                  </b>
                 </div>
               </div>
               <SnsRankMedallion rank={profile.rank} size={50} className="shrink-0 drop-shadow" />
@@ -438,30 +471,35 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-1">
               <div className="flex items-center gap-1.5 font-extrabold text-yellow-300">
                 <HsGoldCoinIcon size={15} />
-                <span>[{MODE_REWARD_GUIDES[mode].modeNameKo}] 확정 승리 보상</span>
+                <span>
+                  {isKo
+                    ? `[${rewardGuide.modeNameKo}] 확정 승리 보상`
+                    : `[${rewardGuide.modeNameKo}] Guaranteed Win Reward`}
+                </span>
               </div>
               <span className="rounded-md border border-sky-400/40 bg-sky-950/80 px-1.5 py-0.5 text-[10px] font-bold text-sky-200">
-                {MODE_REWARD_GUIDES[mode].playStyleBadge}
+                {rewardGuide.playStyleBadge}
               </span>
             </div>
             <div className="mt-1 font-extrabold text-amber-100">
-              • 기본 보상: <span className="text-yellow-200">{MODE_REWARD_GUIDES[mode].baseWinRewardText}</span>
+              • {tr('기본 보상:', 'Base Reward:')}{' '}
+              <span className="text-yellow-200">{rewardGuide.baseWinRewardText}</span>
             </div>
             <div className="mt-0.5 text-[10.5px] font-semibold text-emerald-200/95">
-              • 추가 특전: {MODE_REWARD_GUIDES[mode].specialBonusText}
+              • {tr('추가 특전:', 'Extra Bonus:')} {rewardGuide.specialBonusText}
             </div>
           </div>
 
           {/* Battlefield Theme Selector */}
           <div className="relative z-10 mb-2.5 flex flex-wrap items-center justify-between gap-1.5 rounded-xl border border-[#c8a158]/35 bg-black/35 px-2.5 py-2 text-xs sm:mb-3 sm:px-3">
-            <span className="font-bold text-amber-200">결투 전장</span>
+            <span className="font-bold text-amber-200">{tr('결투 전장', 'Battlefield')}</span>
             <div className="flex flex-wrap gap-1">
               {(
                 [
-                  { id: 'RANDOM', label: '무작위' },
-                  { id: 'STORMWIND', label: '엘윈마을 설원' },
-                  { id: 'ORGRIMMAR', label: '불꽃 성채' },
-                  { id: 'PANDARIA', label: '바람의 신전' },
+                  { id: 'RANDOM', label: tr('무작위', 'Random') },
+                  { id: 'STORMWIND', label: tr('엘윈마을 설원', 'Elwin Snowfield') },
+                  { id: 'ORGRIMMAR', label: tr('불꽃 성채', 'Flame Citadel') },
+                  { id: 'PANDARIA', label: tr('바람의 신전', 'Wind Sanctuary') },
                 ] as const
               ).map((b) => (
                 <button
@@ -493,7 +531,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 className="drop-shadow-[0_0_12px_rgba(56,189,248,0.9)] transition group-hover:rotate-12 group-hover:scale-110"
               />
               <span className="hs-title hs-outline text-2xl font-extrabold tracking-widest">
-                대전 시작
+                {tr('대전 시작', 'PLAY')}
               </span>
             </button>
           </div>
@@ -513,7 +551,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             className="drop-shadow-[0_0_12px_rgba(56,189,248,0.9)]"
           />
           <span className="hs-title hs-outline text-lg font-extrabold tracking-widest">
-            대전 시작 ({selectedDeck.name})
+            {isKo ? `대전 시작 (${selectedDeckLabel})` : `PLAY (${selectedDeckLabel})`}
           </span>
         </button>
       </div>
@@ -532,7 +570,9 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 wheelLocked ? 'text-[#fef08a]' : 'text-[#fffbeb]'
               }`}
             >
-              {wheelLocked ? '맞수를 찾았습니다!' : '맞수 탐색 중...'}
+              {wheelLocked
+                ? tr('맞수를 찾았습니다!', 'Worthy Opponent Found!')
+                : tr('맞수 탐색 중...', 'Finding Opponent...')}
             </div>
 
             {/* High-Contrast Dark Arcane Oak Slot Machine Window */}
@@ -545,7 +585,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               className="relative my-3 flex h-36 w-full flex-col items-center justify-center overflow-hidden rounded-2xl border-[3.5px] border-[#d4a857] px-4 shadow-[inset_0_8px_20px_rgba(0,0,0,0.85),0_0_18px_rgba(212,168,87,0.22)]"
             >
               <div className="hs-outline-sm text-xs font-bold text-amber-100/75">
-                {SNS_SPINNER_TITLES[(wheelIndex + SNS_SPINNER_TITLES.length - 1) % SNS_SPINNER_TITLES.length]}
+                {spinnerTitles[(wheelIndex + spinnerTitles.length - 1) % spinnerTitles.length]}
               </div>
               <div
                 className={`hs-title hs-outline-sm my-2 w-full rounded-xl border-y-2 px-4 py-2 text-xl font-black tracking-tight transition-transform duration-150 ${
@@ -554,15 +594,18 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                     : 'border-amber-300/55 bg-amber-400/15 text-white'
                 }`}
               >
-                {SNS_SPINNER_TITLES[wheelIndex]}
+                {spinnerTitles[wheelIndex]}
               </div>
               <div className="hs-outline-sm text-xs font-bold text-amber-100/75">
-                {SNS_SPINNER_TITLES[(wheelIndex + 1) % SNS_SPINNER_TITLES.length]}
+                {spinnerTitles[(wheelIndex + 1) % spinnerTitles.length]}
               </div>
             </div>
 
             <p className="hs-outline-sm mt-2 text-xs font-bold text-amber-50/95">
-              엘윈마을 대결 광장에서 실력이 비슷한 맞수를 탐색하고 있습니다...
+              {tr(
+                '엘윈마을 대결 광장에서 실력이 비슷한 맞수를 탐색하고 있습니다...',
+                'Searching Elwin Village Arena for a worthy challenger...',
+              )}
             </p>
 
             {!wheelLocked && (
@@ -574,7 +617,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 }}
                 className="hs-brass-btn mt-4 min-h-[40px] rounded-xl px-6 py-2 text-xs font-extrabold text-white"
               >
-                탐색 취소
+                {tr('탐색 취소', 'Cancel')}
               </button>
             )}
           </div>

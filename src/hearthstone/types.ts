@@ -441,11 +441,16 @@ export interface MinionInstance {
 
 export interface CustomBattleHeroSpec {
   heroNameKo: string;
+  heroNameEn?: string;
   titleKo: string;
+  titleEn?: string;
   factionLabelKo: string;
+  factionLabelEn?: string;
   portraitUrl: string;
   heroPowerNameKo: string;
+  heroPowerNameEn?: string;
   heroPowerTextKo: string;
+  heroPowerTextEn?: string;
   heroPowerIconUrl?: string;
   accentColor: string;
   frameGradient: string;

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { tr, useHeroLanguage } from '../../i18n/heroLang';
+import { getRankTitle } from '../i18nData';
 import { hsAudio } from '../audio';
 import { CLASSIC_RANK_NAMES, CLASS_CREST_URL } from '../cardDb';
 import { HsArcaneDustVialIcon, HsGoldCoinIcon } from '../components/CardVisual';
@@ -43,11 +45,12 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   onOpenShop,
   onOpenOptions,
 }) => {
+  const { lang } = useHeroLanguage();
   const [diskSpinning, setDiskSpinning] = useState(false);
   const [quickRulesOpen, setQuickRulesOpen] = useState(false);
   const [, setPwaTick] = useState(0);
   const isFirstVisitGuide = !profile.journeyGuideDone;
-  const currentEp = getJourneyEpisodeDef(profile.journeyEpisode ?? 0);
+  const currentEp = getJourneyEpisodeDef(profile.journeyEpisode ?? 0, lang === 'ko');
 
   useEffect(() => {
     hsAudio.playBgm('tavern_hub');
@@ -73,11 +76,12 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
     }, 340);
   };
 
-  const rankTitle = CLASSIC_RANK_NAMES[profile.rank] || '엘윈 마을 수습생';
+  const rankTitle = getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang);
   const standing = computeOverallStanding(profile);
   const lockedBtnStyle = isFirstVisitGuide
     ? 'pointer-events-none cursor-not-allowed opacity-40 saturate-[0.35]'
     : '';
+  const epTitle = lang === 'ko' ? currentEp.titleKo : currentEp.titleEn;
 
   return (
     <div
@@ -110,14 +114,17 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
             <SnsQuestScrollIcon size={30} className="shrink-0 drop-shadow" />
             <div className="text-left">
               <div className="hs-title text-[11px] font-extrabold tracking-wide text-amber-100 sm:text-xs">
-                의뢰 · 보상표
+                {tr('의뢰 · 보상표', 'Quests · Rewards')}
               </div>
               <div className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-amber-300/90 sm:gap-1.5 sm:text-[10.5px]">
                 <SnsRankMedallion rank={profile.rank} size={16} />
                 <span>
-                  {profile.rank === 0 ? '전설의 눈히어로' : `${profile.rank}등급`}
+                  {profile.rank === 0
+                    ? tr('전설의 눈히어로', 'Legend Hero')
+                    : tr(`${profile.rank}등급`, `Rank ${profile.rank}`)}
                   <span className="hidden sm:inline">
-                    {profile.rank > 0 ? ` · ${rankTitle}` : ''} · #{standing.overallRank.toLocaleString()}위
+                    {profile.rank > 0 ? ` · ${rankTitle}` : ''} · #{standing.overallRank.toLocaleString()}
+                    {tr('위', '')}
                   </span>
                 </span>
               </div>
@@ -159,7 +166,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               className="hs-arcane-btn flex min-h-[42px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-white sm:px-3 sm:py-2"
             >
               <span>📲</span>
-              <span>앱 설치</span>
+              <span>{tr('앱 설치', 'Install App')}</span>
             </button>
           )}
 
@@ -172,12 +179,12 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 toggleBrowserFullscreen();
               }}
               onMouseEnter={() => hsAudio.playSfx('box_hover', 0.5)}
-              title={fullscreenActive ? '전체화면 해제' : '전체화면 전환'}
+              title={fullscreenActive ? tr('전체화면 해제', 'Exit Fullscreen') : tr('전체화면 전환', 'Enter Fullscreen')}
               className="hs-brass-btn flex min-h-[42px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-amber-100 sm:px-3 sm:py-2"
             >
               <span className="text-amber-300">{fullscreenActive ? '🗗' : '⛶'}</span>
               <span className="hidden sm:inline">
-                {fullscreenActive ? '창모드' : '전체화면'}
+                {fullscreenActive ? tr('창모드', 'Windowed') : tr('전체화면', 'Fullscreen')}
               </span>
             </button>
           )}
@@ -193,19 +200,18 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
             className="hs-brass-btn flex min-h-[42px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-amber-100 sm:px-3 sm:py-2"
           >
             <span className="text-amber-300">?</span>
-            <span>게임 방법</span>
+            <span>{tr('게임 방법', 'How to Play')}</span>
           </button>
 
           <button
             type="button"
-            disabled={isFirstVisitGuide}
+            data-testid="hub-options-btn"
             onClick={() => {
-              if (isFirstVisitGuide) return;
               hsAudio.playSfx('open_menu');
               onOpenOptions();
             }}
-            onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.5)}
-            className={`hs-brass-btn flex min-h-[42px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-amber-100 sm:gap-1.5 sm:px-3.5 sm:py-2.5 sm:text-sm ${lockedBtnStyle}`}
+            onMouseEnter={() => hsAudio.playSfx('box_hover', 0.5)}
+            className="hs-brass-btn flex min-h-[42px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-amber-100 sm:gap-1.5 sm:px-3.5 sm:py-2.5 sm:text-sm"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="text-amber-300">
               <path
@@ -219,7 +225,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 strokeWidth="1.9"
               />
             </svg>
-            <span>메뉴</span>
+            <span>{tr('메뉴', 'Options')}</span>
           </button>
         </div>
       </header>
@@ -228,7 +234,9 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
       <main className="relative z-20 my-auto flex w-full max-w-[820px] flex-col items-center pt-3 sm:pt-0">
         {isFirstVisitGuide && (
           <div className="mb-2 rounded-full border-2 border-emerald-300 bg-gradient-to-r from-emerald-950/95 via-teal-900/95 to-emerald-950/95 px-4 py-1.5 text-center text-xs font-extrabold text-emerald-100 shadow-[0_0_24px_rgba(16,185,129,0.55)] sm:text-sm">
-            ✨ 첫 방문 가이드: 아래 손가락이 가리키는 <b className="text-yellow-300">「스토리모드」</b>를 눌러 첫 모험을 시작하세요!
+            {tr('✨ 첫 방문 가이드: 아래 손가락이 가리키는 ', '✨ First Visit Guide: Click ')}
+            <b className="text-yellow-300">{tr('「스토리모드」', '“Story Mode”')}</b>
+            {tr('를 눌러 첫 모험을 시작하세요!', ' below to begin your first adventure!')}
           </div>
         )}
 
@@ -320,14 +328,14 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 className={`hs-ivory-plate group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
               >
                 <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#2d1a0b] group-hover:text-[#0c4a6e] sm:text-lg">
-                  랭킹대전
+                  {tr('랭킹대전', 'Ranked Play')}
                 </span>
                 <span className="mt-0.5 truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
-                  승리 +25G · 3승 +30G · 등급 별(★)
+                  {tr('승리 +25G · 3승 +30G · 등급 별(★)', 'Win +25G · 3 Wins +30G · Rank Stars')}
                 </span>
               </button>
 
-              {/* 2. AI대전 */}
+              {/* 2. AI Battle */}
               <button
                 type="button"
                 data-testid="hub-mode-ai"
@@ -337,14 +345,14 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 className={`hs-ivory-plate group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
               >
                 <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#2d1a0b] group-hover:text-[#7c2d12] sm:text-lg">
-                  AI대전
+                  {tr('AI대전', 'Practice vs AI')}
                 </span>
                 <span className="mt-0.5 truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
-                  종족 초회 +25~50G · 올클리어 +2팩
+                  {tr('종족 초회 +25~50G · 올클리어 +2팩', 'First Win +25~50G · Sweep Bonus +2 Packs')}
                 </span>
               </button>
 
-              {/* 3. 스토리모드 (Equal Height + First-Visit Pointing Hand Indicator) */}
+              {/* 3. Story Mode */}
               <div className="relative w-full">
                 {isFirstVisitGuide && (
                   <div
@@ -352,7 +360,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                     className="pointer-events-none absolute -right-4 -top-5 z-30 flex animate-bounce items-center gap-1 rounded-full border-2 border-yellow-200 bg-gradient-to-b from-amber-400 to-amber-700 px-2.5 py-0.5 text-xs font-black text-stone-950 shadow-[0_6px_18px_rgba(0,0,0,0.9)] sm:-right-7 sm:-top-6 sm:px-3 sm:py-1 sm:text-sm"
                   >
                     <span className="text-base leading-none sm:text-lg">👈</span>
-                    <span>클릭!</span>
+                    <span>{tr('클릭!', 'Click!')}</span>
                   </div>
                 )}
 
@@ -368,13 +376,15 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                   }`}
                 >
                   <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#14532d] group-hover:text-[#064e3b] sm:text-lg">
-                    스토리모드
+                    {tr('스토리모드', 'Story Mode')}
                   </span>
                   <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#5c3d1e] sm:text-[10.5px]">
-                    {profile.journeyReincarnation > 0 ? `${profile.journeyReincarnation}환생 · ` : ''}
+                    {profile.journeyReincarnation > 0
+                      ? tr(`${profile.journeyReincarnation}환생 · `, `Reincarnation #${profile.journeyReincarnation} · `)
+                      : ''}
                     {(profile.journeyEpisode ?? 0) === 0
-                      ? `에피소드 0 튜토리얼 · ${currentEp.titleKo}`
-                      : `제${profile.journeyEpisode}화 ${currentEp.titleKo} · 보스팩 보상`}
+                      ? tr(`에피소드 0 튜토리얼 · ${epTitle}`, `EP.0 Tutorial · ${epTitle}`)
+                      : tr(`제${profile.journeyEpisode}화 ${epTitle} · 보스팩 보상`, `EP.${profile.journeyEpisode} ${epTitle} · Boss Pack`)}
                   </span>
                 </button>
               </div>
@@ -404,10 +414,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">
-                  눈히어로 팩 개봉
+                  {tr('눈히어로 팩 개봉', 'Open Packs')}
                 </div>
                 <div className="text-[10px] font-bold text-amber-300/85">
-                  보유 {profile.packs}팩
+                  {tr(`보유 ${profile.packs}팩`, `${profile.packs} Packs Ready`)}
                 </div>
               </div>
             </button>
@@ -430,10 +440,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               />
               <div className="min-w-0">
                 <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">
-                  내 카드첩
+                  {tr('내 카드첩', 'My Collection')}
                 </div>
                 <div className="text-[10px] font-bold text-amber-300/85">
-                  3장=3배 강화 · 382종
+                  {tr('3장=3배 강화 · 382종', '3 Copies = 3x · 382 Cards')}
                 </div>
               </div>
             </button>
@@ -452,10 +462,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               <SnsQuestScrollIcon size={32} className="shrink-0 drop-shadow" />
               <div className="min-w-0">
                 <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">
-                  의뢰 일지
+                  {tr('의뢰 일지', 'Quest Log')}
                 </div>
                 <div className="text-[10px] font-bold text-amber-300/85">
-                  모드별 보상 · 의뢰
+                  {tr('모드별 보상 · 의뢰', 'Mode Rewards · Quests')}
                 </div>
               </div>
             </button>
@@ -476,10 +486,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">
-                  눈히어로 보급소
+                  {tr('눈히어로 보급소', 'Card Shop')}
                 </div>
                 <div className="text-[10px] font-bold text-amber-300/85">
-                  골드·현금 팩 구매
+                  {tr('골드·현금 팩 구매', 'Buy Packs with Gold / $')}
                 </div>
               </div>
             </button>
@@ -489,7 +499,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
       {/* Subtle Footer Plaque */}
       <footer className="relative z-20 pt-1 text-center text-[10.5px] font-bold tracking-wide text-amber-200/80 sm:text-[11px]">
-        눈히어로 11종족 110영웅 · 수집 카드 382종 완비 · 배경음 기본 15% · 로컬 자동 보존
+        {tr(
+          '눈히어로 11종족 110영웅 · 수집 카드 382종 완비 · 배경음 기본 15% · 로컬 자동 보존',
+          'SNSHero · 9 Factions · 382 Collectible Cards · 100% LocalStorage Save',
+        )}
       </footer>
 
       {quickRulesOpen && (

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { tr, useHeroLanguage } from '../i18n/heroLang';
 import { cardDb } from './cardDb';
 import { GameAdSenseLayout } from './components/GameAdSenseLayout';
 import {
@@ -35,8 +36,17 @@ import {
 } from './types';
 
 export const HearthstoneApp: React.FC = () => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.documentElement.lang = isKo ? 'ko' : 'en';
+    document.title = isKo
+      ? '눈히어로 — 엘윈마을 카드 배틀'
+      : 'SNSHero — Elwin Village Card Battle';
+  }, [isKo]);
 
   const [screen, setScreen] = useState<ScreenName>('TAVERN_INTRO');
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
@@ -199,7 +209,7 @@ export const HearthstoneApp: React.FC = () => {
       })
       .catch((err: unknown) => {
         if (!mounted) return;
-        setLoadError(err instanceof Error ? err.message : '데이터 로드 오류');
+        setLoadError(err instanceof Error ? err.message : tr('데이터 로드 오류', 'Data loading error'));
       });
 
     return () => {
@@ -251,7 +261,9 @@ export const HearthstoneApp: React.FC = () => {
   if (loadError) {
     return (
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 p-6 text-center text-amber-100">
-        <h1 className="text-2xl font-extrabold text-red-400">눈히어로 데이터를 불러오지 못했습니다</h1>
+        <h1 className="text-2xl font-extrabold text-red-400">
+          {tr('눈히어로 데이터를 불러오지 못했습니다', 'Failed to load SNSHero game data')}
+        </h1>
         <p className="mt-2 text-sm text-amber-200/80">{loadError}</p>
       </div>
     );
@@ -261,21 +273,24 @@ export const HearthstoneApp: React.FC = () => {
   if (popupReturnDone) {
     return (
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-[#0c0805] p-6 text-center text-amber-100">
-        <img src={SNS_LOGO_URL} alt="눈히어로" className="w-48 drop-shadow" />
+        <img src={SNS_LOGO_URL} alt={tr('눈히어로', 'SNSHero')} className="w-48 drop-shadow" />
         <div className="mt-5 max-w-md rounded-2xl border-2 border-emerald-400/70 bg-emerald-950/50 p-6 shadow-2xl">
           <div className="text-xl font-extrabold text-emerald-200">
-            결제 및 보급품 지급 완료!
+            {tr('결제 및 보급품 지급 완료!', 'Payment & Supplies Delivered!')}
           </div>
           <p className="mt-2 text-sm leading-relaxed text-amber-100/90">
-            <strong className="text-amber-200">{popupReturnDone.label}</strong> 결제가 완료되어
-            열려 있는 눈히어로 본 게임 화면에 즉시 반영되었습니다.
+            <strong className="text-amber-200">{popupReturnDone.label}</strong>{' '}
+            {tr(
+              '결제가 완료되어 열려 있는 눈히어로 본 게임 화면에 즉시 반영되었습니다.',
+              'payment completed and applied to your active SNSHero game window.',
+            )}
           </p>
           <button
             type="button"
             onClick={() => window.close()}
             className="hs-gold-btn mt-5 w-full rounded-xl px-5 py-3 text-sm font-extrabold"
           >
-            창 닫고 게임으로 돌아가기
+            {tr('창 닫고 게임으로 돌아가기', 'Close Window & Return to Game')}
           </button>
         </div>
       </div>
@@ -286,10 +301,10 @@ export const HearthstoneApp: React.FC = () => {
   if (popupBridge.isBridge) {
     return (
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-[#0c0805] p-6 text-center text-amber-100">
-        <img src={SNS_LOGO_URL} alt="눈히어로" className="w-48 drop-shadow" />
+        <img src={SNS_LOGO_URL} alt={tr('눈히어로', 'SNSHero')} className="w-48 drop-shadow" />
         <div className="mt-5 w-full max-w-md rounded-2xl border-2 border-amber-500/60 bg-stone-950/90 p-6 shadow-2xl">
           <div className="text-xs font-extrabold tracking-widest text-amber-300">
-            눈히어로 공식 팝업 결제창
+            {tr('눈히어로 공식 팝업 결제창', 'SNSHero Official Checkout Window')}
           </div>
           <h2 className="mt-1 text-xl font-extrabold text-white">{popupBridge.pkg.name}</h2>
           <div className="mt-1 text-lg font-black text-amber-300">
@@ -300,8 +315,14 @@ export const HearthstoneApp: React.FC = () => {
           </div>
           <p className="mt-3 text-xs leading-relaxed text-amber-100/80">
             {popupBridgeStatus === 'error'
-              ? '결제 모듈 호출이 지연되었습니다. 아래 버튼을 눌러 다시 시도하거나 본 화면에서 다른 수단을 선택해 주세요.'
-              : '안전한 외부 결제 모듈을 연결하고 있습니다. 결제 성공 시 이 창이 자동으로 닫히고 본 게임 화면으로 즉시 돌아갑니다.'}
+              ? tr(
+                  '결제 모듈 호출이 지연되었습니다. 아래 버튼을 눌러 다시 시도하거나 본 화면에서 다른 수단을 선택해 주세요.',
+                  'Checkout module timed out. Tap below to retry or choose another payment method in the main window.',
+                )
+              : tr(
+                  '안전한 외부 결제 모듈을 연결하고 있습니다. 결제 성공 시 이 창이 자동으로 닫히고 본 게임 화면으로 즉시 돌아갑니다.',
+                  'Connecting to secure checkout. This window closes automatically once payment succeeds.',
+                )}
           </p>
           <div className="mt-5 flex flex-col gap-2.5">
             {popupBridge.method !== 'paypal' && (
@@ -316,7 +337,7 @@ export const HearthstoneApp: React.FC = () => {
                 }}
                 className="hs-gold-btn w-full rounded-xl px-4 py-3 text-sm font-extrabold"
               >
-                결제창 다시 열기
+                {tr('결제창 다시 열기', 'Reopen Checkout')}
               </button>
             )}
             <button
@@ -324,7 +345,7 @@ export const HearthstoneApp: React.FC = () => {
               onClick={() => window.close()}
               className="hs-brass-btn w-full rounded-xl px-4 py-2.5 text-xs font-extrabold text-amber-100"
             >
-              결제 취소 및 창 닫기
+              {tr('결제 취소 및 창 닫기', 'Cancel & Close Window')}
             </button>
           </div>
         </div>
@@ -337,11 +358,11 @@ export const HearthstoneApp: React.FC = () => {
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 text-amber-100">
         <img
           src={SNS_LOGO_URL}
-          alt="눈히어로"
+          alt={tr('눈히어로', 'SNSHero')}
           className="w-64 animate-pulse drop-shadow-[0_12px_28px_rgba(56,189,248,0.45)]"
         />
         <div className="mt-4 text-sm font-extrabold tracking-wider text-sky-200">
-          엘윈마을 대결 광장을 준비하고 있습니다...
+          {tr('엘윈마을 대결 광장을 준비하고 있습니다...', 'Preparing Elwin Village Arena...')}
         </div>
       </div>
     );

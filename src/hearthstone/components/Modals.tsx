@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { AudioSettings, hsAudio } from '../audio';
+import { getModeRewardGuide, getGoldPackBundleLabel } from '../storage';
+import { getRankTitle } from '../i18nData';
 import { useModalDismiss } from '../useModalDismiss';
 import {
   CLASSIC_RANK_NAMES,
@@ -28,11 +31,11 @@ import {
 } from '../pwaFullscreen';
 import {
   GOLD_PACK_BUNDLES,
-  MODE_REWARD_GUIDES,
   computeOverallStanding,
   hsStorage,
 } from '../storage';
 import {
+  DailyQuest,
   GameMode,
   PlayerProfile,
   SnsCardBackId,
@@ -40,11 +43,81 @@ import {
 import { HsGoldCoinIcon } from './CardVisual';
 import {
   SNS_CARD_BACK_THEMES,
+  getSnsCardBackLabel,
   SnsBoosterPackArt,
   SnsCardBackArt,
   SnsQuestScrollIcon,
   SnsRankMedallion,
 } from './SnsHeroArtKit';
+
+const QUEST_EN_MAP: Record<string, { title: string; description: string }> = {
+  q_win_3: {
+    title: 'Champion of Elwin Village',
+    description: 'Win 2 matches in Story Mode, Ranked, or Practice AI.',
+  },
+  q_play_minions: {
+    title: 'Rally Hero Companions',
+    description: 'Summon 15 Minions across any game mode.',
+  },
+  q_cast_spells: {
+    title: 'Starlight Arcane Training',
+    description: 'Cast 10 Spells across any game mode.',
+  },
+};
+
+function getLocalizedQuestText(q: DailyQuest, isKo: boolean): { title: string; description: string } {
+  if (isKo) return { title: q.title, description: q.description };
+  return QUEST_EN_MAP[q.id] || { title: q.title, description: q.description };
+}
+
+const SHOP_PKG_EN: Record<
+  GameShopPackage['id'],
+  { name: string; badge: string; description: string; shortSpec: string }
+> = {
+  pack_1: {
+    name: 'SNSHero 1 Card Pack',
+    badge: '1 Pack Standard',
+    description:
+      "Summon 5 cards from SNSHero 'Kadan's Journey'. At least 1 Rare or better card is guaranteed.",
+    shortSpec: '5 Cards · 1 Rare+ Guaranteed',
+  },
+  pack_5: {
+    name: 'SNSHero 5 Card Packs',
+    badge: '20% OFF · Popular',
+    description:
+      'Get 5 SNSHero packs (25 cards total) at 20% off to unlock Story Mode ×3 Awakening faster.',
+    shortSpec: '25 Cards Total (5 Packs) · 20% Off',
+  },
+  ad_removal: {
+    name: 'Permanent Ad Removal VIP',
+    badge: 'VIP Permanent',
+    description: 'Permanently removes banner ads across desktop, tablet, and mobile screens.',
+    shortSpec: 'All Ads Removed Permanently · Instant',
+  },
+};
+
+const COUNTRY_EN: Record<string, { name: string; subLabel: string }> = {
+  ko: {
+    name: 'South Korea',
+    subLabel: 'KRW · Local Card / KakaoPay / NaverPay / PayPal',
+  },
+  en: {
+    name: 'United States / North America',
+    subLabel: 'USD · PayPal / International Card / Apple Pay / Crypto',
+  },
+  ja: {
+    name: 'Japan',
+    subLabel: 'Global USD · PayPal / Card / Crypto',
+  },
+  eu: {
+    name: 'Europe / UK',
+    subLabel: 'Global USD · PayPal / Card / Crypto',
+  },
+  global: {
+    name: 'Global International',
+    subLabel: 'Global USD · PayPal / Card / Crypto',
+  },
+};
 
 const CARD_BACK_IDS: SnsCardBackId[] = ['gold', 'silver', 'bronze'];
 const ALL_MODES_ORDER: GameMode[] = [
@@ -59,6 +132,8 @@ export const QuestLogModal: React.FC<{
   onClose: () => void;
   onProfileChanged: () => void;
 }> = ({ onClose }) => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
   useModalDismiss(true, () => {
     hsAudio.playSfx('box_close');
     onClose();
@@ -75,7 +150,7 @@ export const QuestLogModal: React.FC<{
   const profile = hsStorage.getProfile();
   const quests = hsStorage.getQuests();
   const standing = computeOverallStanding(profile);
-  const rankTitle = CLASSIC_RANK_NAMES[profile.rank] || '엘윈 마을 수습생';
+  const rankTitle = getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang) || tr('엘윈 마을 수습생', 'Elwin Apprentice');
   const starsNeeded = getStarsNeededForRank(profile.rank);
   const completedQuestsCount = quests.filter((q) => q.completed).length;
 
@@ -96,10 +171,10 @@ export const QuestLogModal: React.FC<{
             </div>
             <div>
               <h2 className="hs-title text-lg font-extrabold text-amber-100 sm:text-2xl">
-                전적 · 순위 및 의뢰 보상표
+                {tr('전적 · 순위 및 의뢰 보상표', 'Profile · Standings & Quests')}
               </h2>
               <p className="text-[11px] font-semibold text-amber-300/85 sm:text-xs">
-                내 승/패 · 승률 · 전체순위 요약
+                {tr('내 승/패 · 승률 · 전체순위 요약', 'Record · Win Rate · Leaderboard Summary')}
               </p>
             </div>
           </div>
@@ -111,7 +186,7 @@ export const QuestLogModal: React.FC<{
             }}
             className="hs-brass-btn shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-extrabold text-amber-100 sm:text-sm"
           >
-            닫기 ✕
+            {tr('닫기 ✕', 'Close ✕')}
           </button>
         </div>
 
@@ -121,7 +196,9 @@ export const QuestLogModal: React.FC<{
             <SnsRankMedallion rank={profile.rank} size={54} className="shrink-0" />
             <div>
               <div className="hs-title text-base font-extrabold text-amber-100 sm:text-lg">
-                {profile.rank === 0 ? rankTitle : `${profile.rank}등급 · ${rankTitle}`}
+                {profile.rank === 0
+                  ? rankTitle
+                  : tr(`${profile.rank}등급 · ${rankTitle}`, `Rank ${profile.rank} · ${rankTitle}`)}
               </div>
               {profile.rank > 0 ? (
                 <div className="mt-0.5 flex items-center gap-1 text-sm">
@@ -139,14 +216,16 @@ export const QuestLogModal: React.FC<{
                 </div>
               ) : (
                 <div className="mt-0.5 text-xs font-bold text-yellow-300">
-                  최고 명예 전설의 눈히어로 달성!
+                  {tr('최고 명예 전설의 눈히어로 달성!', 'Highest Honor: SNSHero Legend Achieved!')}
                 </div>
               )}
             </div>
           </div>
 
           <div className="rounded-xl border border-emerald-400/40 bg-emerald-950/55 px-3 py-1.5 text-xs font-extrabold text-emerald-200">
-            스토리모드: 환생 {profile.journeyReincarnation}회차 · 제{profile.journeyEpisode}화
+            {isKo
+              ? `스토리모드: 환생 ${profile.journeyReincarnation}회차 · 제${profile.journeyEpisode}화`
+              : `Story Mode: Cycle ${profile.journeyReincarnation} · EP ${profile.journeyEpisode}`}
           </div>
         </div>
 
@@ -158,17 +237,22 @@ export const QuestLogModal: React.FC<{
             className="flex flex-col justify-between rounded-2xl border-2 border-amber-400/65 bg-gradient-to-b from-amber-950/75 via-stone-950/90 to-black p-3.5 shadow-[0_8px_20px_rgba(0,0,0,0.65)]"
           >
             <div className="flex items-center justify-between gap-1">
-              <span className="text-xs font-extrabold text-amber-200">🏆 전체순위</span>
+              <span className="text-xs font-extrabold text-amber-200">
+                🏆 {tr('전체순위', 'Overall Rank')}
+              </span>
               <span className="rounded-full border border-yellow-300/60 bg-amber-900/80 px-2 py-0.5 text-[10.5px] font-black text-yellow-200">
-                상위 {standing.topPercentLabel}
+                {tr(`상위 ${standing.topPercentLabel}`, `Top ${standing.topPercentLabel}`)}
               </span>
             </div>
             <div className="hs-num hs-outline-sm my-2 text-2xl font-black tracking-tight text-yellow-300 sm:text-3xl">
               #{standing.overallRank.toLocaleString()}
-              <span className="ml-0.5 text-base font-extrabold text-amber-200">위</span>
+              {isKo && <span className="ml-0.5 text-base font-extrabold text-amber-200">위</span>}
             </div>
             <div className="text-[11px] font-semibold text-amber-200/75">
-              전체 {standing.totalPlayers.toLocaleString()}명 기준
+              {tr(
+                `전체 ${standing.totalPlayers.toLocaleString()}명 기준`,
+                `Out of ${standing.totalPlayers.toLocaleString()} players`,
+              )}
             </div>
           </div>
 
@@ -178,21 +262,29 @@ export const QuestLogModal: React.FC<{
             className="flex flex-col justify-between rounded-2xl border-2 border-emerald-400/60 bg-gradient-to-b from-emerald-950/70 via-stone-950/90 to-black p-3.5 shadow-[0_8px_20px_rgba(0,0,0,0.65)]"
           >
             <div className="flex items-center justify-between gap-1">
-              <span className="text-xs font-extrabold text-emerald-200">⚔ 승 / 패</span>
+              <span className="text-xs font-extrabold text-emerald-200">
+                ⚔ {tr('승 / 패', 'Wins / Losses')}
+              </span>
               <span className="rounded-full border border-emerald-400/50 bg-emerald-950/90 px-2 py-0.5 text-[10.5px] font-extrabold text-emerald-200">
                 {profile.winStreak >= 2
-                  ? `🔥 ${profile.winStreak}연승`
-                  : `총 ${standing.totalGames}전`}
+                  ? tr(`🔥 ${profile.winStreak}연승`, `🔥 ${profile.winStreak} Streak`)
+                  : tr(`총 ${standing.totalGames}전`, `${standing.totalGames} Games`)}
               </span>
             </div>
             <div className="hs-num hs-outline-sm my-2 flex items-baseline gap-1.5 text-2xl font-black sm:text-3xl">
-              <span className="text-emerald-300">{standing.wins}승</span>
+              <span className="text-emerald-300">
+                {isKo ? `${standing.wins}승` : `${standing.wins}W`}
+              </span>
               <span className="text-base text-stone-500">/</span>
-              <span className="text-rose-300">{standing.losses}패</span>
+              <span className="text-rose-300">
+                {isKo ? `${standing.losses}패` : `${standing.losses}L`}
+              </span>
             </div>
             <div className="text-[11px] font-semibold text-amber-200/75">
-              통산 {standing.totalGames}경기
-              {profile.winStreak > 0 ? ` · 현재 ${profile.winStreak}연승` : ''}
+              {tr(`통산 ${standing.totalGames}경기`, `Total ${standing.totalGames} matches`)}
+              {profile.winStreak > 0
+                ? tr(` · 현재 ${profile.winStreak}연승`, ` · ${profile.winStreak} win streak`)
+                : ''}
             </div>
           </div>
 
@@ -202,13 +294,15 @@ export const QuestLogModal: React.FC<{
             className="flex flex-col justify-between rounded-2xl border-2 border-sky-400/60 bg-gradient-to-b from-sky-950/75 via-stone-950/90 to-black p-3.5 shadow-[0_8px_20px_rgba(0,0,0,0.65)]"
           >
             <div className="flex items-center justify-between gap-1">
-              <span className="text-xs font-extrabold text-sky-200">📈 승률</span>
+              <span className="text-xs font-extrabold text-sky-200">
+                📈 {tr('승률', 'Win Rate')}
+              </span>
               <span className="rounded-full border border-sky-400/50 bg-sky-950/90 px-2 py-0.5 text-[10.5px] font-extrabold text-sky-200">
                 {standing.totalGames === 0
-                  ? '대결 전'
+                  ? tr('대결 전', 'No Games')
                   : standing.winRatePct >= 50
-                    ? '승률 우세'
-                    : '분발 중'}
+                    ? tr('승률 우세', 'Winning')
+                    : tr('분발 중', 'Climbing')}
               </span>
             </div>
             <div className="hs-num hs-outline-sm my-2 text-2xl font-black tracking-tight text-sky-300 sm:text-3xl">
@@ -240,10 +334,10 @@ export const QuestLogModal: React.FC<{
           >
             <span className="flex items-center gap-2">
               <span>🏆</span>
-              <span>보상 안내</span>
+              <span>{tr('보상 안내', 'Rewards')}</span>
             </span>
             <span className="text-xs font-bold opacity-90">
-              {openSection === 'REWARDS' ? '닫기 ▲' : '보기 ▼'}
+              {openSection === 'REWARDS' ? tr('닫기 ▲', 'Hide ▲') : tr('보기 ▼', 'View ▼')}
             </span>
           </button>
 
@@ -262,13 +356,13 @@ export const QuestLogModal: React.FC<{
           >
             <span className="flex items-center gap-2">
               <span>📜</span>
-              <span>의뢰</span>
+              <span>{tr('의뢰', 'Quests')}</span>
               <span className="rounded-full border border-amber-300/50 bg-black/45 px-2 py-0.5 text-[11px] font-black text-yellow-200">
                 {completedQuestsCount}/{quests.length}
               </span>
             </span>
             <span className="text-xs font-bold opacity-90">
-              {openSection === 'QUESTS' ? '닫기 ▲' : '보기 ▼'}
+              {openSection === 'QUESTS' ? tr('닫기 ▲', 'Hide ▲') : tr('보기 ▼', 'View ▼')}
             </span>
           </button>
         </div>
@@ -281,14 +375,14 @@ export const QuestLogModal: React.FC<{
           >
             <div className="mb-1 flex items-center justify-between px-1">
               <h3 className="hs-title text-sm font-extrabold text-yellow-300">
-                모드별 확정 승리 보상 안내
+                {tr('모드별 확정 승리 보상 안내', 'Guaranteed Win Rewards by Mode')}
               </h3>
               <span className="text-[11px] font-semibold text-amber-200/75">
-                승리 즉시 자동 지급
+                {tr('승리 즉시 자동 지급', 'Granted instantly on win')}
               </span>
             </div>
             {ALL_MODES_ORDER.map((m) => {
-              const g = MODE_REWARD_GUIDES[m];
+              const g = getModeRewardGuide(m, isKo);
               return (
                 <div
                   key={m}
@@ -322,15 +416,16 @@ export const QuestLogModal: React.FC<{
           >
             <div className="mb-2.5 flex items-center justify-between px-1">
               <h3 className="hs-title text-sm font-extrabold text-emerald-200">
-                오늘의 엘윈마을 의뢰
+                {tr('오늘의 엘윈마을 의뢰', 'Daily Elwin Village Quests')}
               </h3>
               <span className="text-[11px] font-semibold text-emerald-200/80">
-                달성 시 골드 즉시 지급
+                {tr('달성 시 골드 즉시 지급', 'Gold granted automatically')}
               </span>
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {quests.map((q) => {
                 const pct = Math.min(100, Math.round((q.progress / q.goal) * 100));
+                const qText = getLocalizedQuestText(q, isKo);
                 return (
                   <div
                     key={q.id}
@@ -341,7 +436,7 @@ export const QuestLogModal: React.FC<{
                     }`}
                   >
                     <div className="flex items-center justify-between gap-1">
-                      <span className="hs-title text-sm font-extrabold">{q.title}</span>
+                      <span className="hs-title text-sm font-extrabold">{qText.title}</span>
                       <span className="flex items-center gap-1 rounded-full border border-amber-900/40 bg-amber-400/90 px-2 py-0.5 text-xs font-black text-stone-950">
                         <HsGoldCoinIcon size={14} />
                         <span>+{q.rewardGold}G</span>
@@ -352,7 +447,7 @@ export const QuestLogModal: React.FC<{
                         q.completed ? 'text-emerald-200' : 'text-stone-700'
                       }`}
                     >
-                      {q.description}
+                      {qText.description}
                     </p>
                     <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-stone-800/35">
                       <div
@@ -361,7 +456,7 @@ export const QuestLogModal: React.FC<{
                       />
                     </div>
                     <div className="mt-1 text-right text-[11px] font-extrabold">
-                      {q.completed ? '보상 지급 완료 ✓' : `${q.progress} / ${q.goal}`}
+                      {q.completed ? tr('보상 지급 완료 ✓', 'Completed ✓') : `${q.progress} / ${q.goal}`}
                     </div>
                   </div>
                 );
@@ -394,6 +489,8 @@ export const TavernShopModal: React.FC<{
   onProfileChanged: () => void;
   onGoOpenPacks: () => void;
 }> = ({ onClose, onProfileChanged, onGoOpenPacks }) => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
   useModalDismiss(true, () => {
     hsAudio.playSfx('box_close');
     onClose();
@@ -403,7 +500,7 @@ export const TavernShopModal: React.FC<{
   const [vipAdRemoved, setVipAdRemoved] = useState<boolean>(() => isHsGameAdRemoved());
   const [step, setStep] = useState<ShopCheckoutStep>('quantity');
   const [selectedPkg, setSelectedPkg] = useState<GameShopPackage>(GAME_SHOP_PACKAGES[0]);
-  const [countryCode, setCountryCode] = useState<string>('ko');
+  const [countryCode, setCountryCode] = useState<string>(() => (isKo ? 'ko' : 'en'));
   const [popupWaitingMethod, setPopupWaitingMethod] = useState<CheckoutPopupMethod | null>(null);
   const [popupBlockedRetry, setPopupBlockedRetry] = useState<CheckoutPopupMethod | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -462,12 +559,22 @@ export const TavernShopModal: React.FC<{
     const ok = hsStorage.buyPackBundleWithGold(packs, costGold);
     if (!ok) {
       hsAudio.playSfx('ui_click', 0.6);
-      showToast(`보유 골드가 부족합니다! (${label}: ${costGold}G 필요 / 현재 ${profile.gold}G)`);
+      showToast(
+        tr(
+          `보유 골드가 부족합니다! (${label}: ${costGold}G 필요 / 현재 ${profile.gold}G)`,
+          `Not enough Gold! (${label}: ${costGold}G required / ${profile.gold}G owned)`,
+        ),
+      );
       return;
     }
     hsAudio.playSfx('purchase');
     refresh();
-    showToast(`🎉 ${label} 구매 완료! (-${costGold}G → 미개봉 팩 +${packs}개 지급)`);
+    showToast(
+      tr(
+        `🎉 ${label} 구매 완료! (-${costGold}G → 미개봉 팩 +${packs}개 지급)`,
+        `🎉 ${label} purchased! (-${costGold}G → +${packs} Pack${packs > 1 ? 's' : ''})`,
+      ),
+    );
   };
 
   const handleSelectPackageToStep2 = (pkg: GameShopPackage) => {
@@ -494,7 +601,12 @@ export const TavernShopModal: React.FC<{
     const popup = openGameCheckoutPopup(selectedPkg, method);
     if (!popup) {
       setPopupBlockedRetry(method);
-      showToast('브라우저에서 팝업이 차단되었습니다. 아래 [결제 팝업 창 열기] 버튼을 다시 눌러주세요.');
+      showToast(
+        tr(
+          '브라우저에서 팝업이 차단되었습니다. 아래 [결제 팝업 창 열기] 버튼을 다시 눌러주세요.',
+          'Popup blocked by browser. Click [Open Checkout Popup] below to retry.',
+        ),
+      );
       return;
     }
     setPopupWaitingMethod(method);
@@ -510,7 +622,13 @@ export const TavernShopModal: React.FC<{
     p.selectedCardBack = id;
     hsStorage.saveProfile(p);
     hsAudio.playSfx('ui_click');
-    showToast(`카드 뒷면이 '${SNS_CARD_BACK_THEMES[id].name}'(으)로 변경되었습니다.`);
+    const backName = getSnsCardBackLabel(id).name;
+    showToast(
+      tr(
+        `카드 뒷면이 '${backName}'(으)로 변경되었습니다.`,
+        `Card back changed to '${backName}'.`,
+      ),
+    );
     refresh();
   };
 
@@ -555,7 +673,7 @@ export const TavernShopModal: React.FC<{
       setCopiedAddr(true);
       window.setTimeout(() => setCopiedAddr(false), 2000);
     } catch {
-      window.prompt('입금 지갑 주소를 복사해 주세요:', address);
+      window.prompt(tr('입금 지갑 주소를 복사해 주세요:', 'Copy deposit wallet address:'), address);
     }
   };
 
@@ -564,6 +682,13 @@ export const TavernShopModal: React.FC<{
 
   const activeWizardStepNum =
     step === 'quantity' ? 1 : step === 'country' ? 2 : 3;
+
+  const pkgLoc = isKo
+    ? selectedPkg
+    : { ...selectedPkg, ...(SHOP_PKG_EN[selectedPkg.id] || {}) };
+  const countryLoc = isKo
+    ? selectedCountry
+    : { ...selectedCountry, ...(COUNTRY_EN[selectedCountry.code] || {}) };
 
   return (
     <div
@@ -582,12 +707,13 @@ export const TavernShopModal: React.FC<{
             </div>
             <div>
               <h2 className="hs-title text-lg font-extrabold text-amber-100 sm:text-2xl">
-                눈히어로 보급소
+                {tr('눈히어로 보급소', 'SNSHero Shop')}
               </h2>
               <p className="text-xs font-semibold text-amber-300/85">
-                보유 골드 <b className="text-yellow-300">{profile.gold}G</b> · 미개봉 팩{' '}
-                <b className="text-amber-100">{profile.packs}개</b> · 영웅 가루{' '}
-                <b className="text-sky-300">{profile.arcaneDust}</b>
+                {tr('보유 골드', 'Gold')} <b className="text-yellow-300">{profile.gold}G</b> ·{' '}
+                {tr('미개봉 팩', 'Packs')}{' '}
+                <b className="text-amber-100">{isKo ? `${profile.packs}개` : profile.packs}</b> ·{' '}
+                {tr('영웅 가루', 'Dust')} <b className="text-sky-300">{profile.arcaneDust}</b>
               </p>
             </div>
           </div>
@@ -599,7 +725,7 @@ export const TavernShopModal: React.FC<{
             }}
             className="hs-brass-btn rounded-xl px-3.5 py-1.5 text-sm font-extrabold text-amber-100"
           >
-            닫기 ✕
+            {tr('닫기 ✕', 'Close ✕')}
           </button>
         </div>
 
@@ -614,7 +740,7 @@ export const TavernShopModal: React.FC<{
                 : 'text-amber-200/75 hover:text-white'
             }`}
           >
-            ① 구매수량 선택
+            {tr('① 구매수량 선택', '① Select Bundle')}
           </button>
           <button
             type="button"
@@ -630,7 +756,7 @@ export const TavernShopModal: React.FC<{
                   : 'cursor-not-allowed text-stone-500'
             }`}
           >
-            ② 결제국가 선택
+            {tr('② 결제국가 선택', '② Region / Currency')}
           </button>
           <div
             className={`rounded-xl py-1.5 ${
@@ -639,7 +765,7 @@ export const TavernShopModal: React.FC<{
                 : 'text-stone-500'
             }`}
           >
-            ③ 결제수단 선택
+            {tr('③ 결제수단 선택', '③ Payment Method')}
           </div>
         </div>
 
@@ -658,17 +784,18 @@ export const TavernShopModal: React.FC<{
                 <div className="flex items-center gap-1.5">
                   <HsGoldCoinIcon size={18} />
                   <h3 className="hs-title text-sm font-extrabold text-yellow-300 sm:text-base">
-                    보유 골드로 눈히어로 카드팩 즉시 구매
+                    {tr('보유 골드로 눈히어로 카드팩 즉시 구매', 'Buy Card Packs with Gold')}
                   </h3>
                 </div>
                 <span className="text-[11px] font-bold text-emerald-300">
-                  현재 보유: {profile.gold} 골드
+                  {tr(`현재 보유: ${profile.gold} 골드`, `Owned: ${profile.gold} Gold`)}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
                 {GOLD_PACK_BUNDLES.map((gb) => {
                   const canAfford = profile.gold >= gb.costGold;
+                  const gbLoc = getGoldPackBundleLabel(gb, isKo);
                   return (
                     <div
                       key={gb.id}
@@ -676,21 +803,23 @@ export const TavernShopModal: React.FC<{
                     >
                       <div>
                         <div className="flex items-center justify-between gap-1">
-                          <span className="text-xs font-extrabold text-amber-100">{gb.label}</span>
-                          {gb.badge && (
+                          <span className="text-xs font-extrabold text-amber-100">{gbLoc.label}</span>
+                          {gbLoc.badge && (
                             <span className="rounded-full bg-emerald-800/90 px-2 py-0.5 text-[9.5px] font-extrabold text-emerald-200">
-                              {gb.badge}
+                              {gbLoc.badge}
                             </span>
                           )}
                         </div>
                         <div className="mt-1 text-[11px] font-semibold text-amber-200/75">
-                          총 {gb.packs * 5}장 획득 · 희귀 이상 각 팩 1장 확정
+                          {isKo
+                            ? `총 ${gb.packs * 5}장 획득 · 희귀 이상 각 팩 1장 확정`
+                            : `${gb.packs * 5} Cards Total · 1 Rare+ Guaranteed/Pack`}
                         </div>
                       </div>
 
                       <button
                         type="button"
-                        onClick={() => handleBuyGoldBundle(gb.packs, gb.costGold, gb.label)}
+                        onClick={() => handleBuyGoldBundle(gb.packs, gb.costGold, gbLoc.label)}
                         className={`mt-2.5 flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl text-xs font-extrabold transition ${
                           canAfford
                             ? 'hs-brass-btn border-yellow-300/80 text-yellow-200'
@@ -698,7 +827,7 @@ export const TavernShopModal: React.FC<{
                         }`}
                       >
                         <HsGoldCoinIcon size={15} />
-                        <span>{gb.costGold} 골드로 구매</span>
+                        <span>{isKo ? `${gb.costGold} 골드로 구매` : `Buy for ${gb.costGold} Gold`}</span>
                       </button>
                     </div>
                   );
@@ -710,10 +839,13 @@ export const TavernShopModal: React.FC<{
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <h3 className="hs-title text-sm font-extrabold text-sky-200 sm:text-base">
-                  보급 패키지 수량 선택 (선택 시 결제국가 선택으로 이동)
+                  {tr(
+                    '보급 패키지 수량 선택 (선택 시 결제국가 선택으로 이동)',
+                    'Supply Bundles (Select to choose payment region)',
+                  )}
                 </h3>
                 <span className="text-[11px] font-bold text-amber-200/75">
-                  팝업 안전결제 지원
+                  {tr('팝업 안전결제 지원', 'Secure Popup Checkout')}
                 </span>
               </div>
 
@@ -721,6 +853,7 @@ export const TavernShopModal: React.FC<{
                 {GAME_SHOP_PACKAGES.map((pkg) => {
                   const isBest = pkg.id === 'pack_5';
                   const alreadyOwnedAd = Boolean(pkg.isAdRemoval && vipAdRemoved);
+                  const pl = isKo ? pkg : { ...pkg, ...(SHOP_PKG_EN[pkg.id] || {}) };
                   return (
                     <div
                       key={pkg.id}
@@ -733,11 +866,11 @@ export const TavernShopModal: React.FC<{
                       <div className="w-full">
                         <div className="flex items-center justify-between">
                           <span className="rounded-full border border-amber-300/50 bg-amber-950/85 px-2 py-0.5 text-[10px] font-extrabold text-yellow-300">
-                            {pkg.badge}
+                            {pl.badge}
                           </span>
                           {pkg.packs > 0 && (
                             <span className="text-[11px] font-bold text-amber-200/80">
-                              {pkg.packs * 5}장 수령
+                              {isKo ? `${pkg.packs * 5}장 수령` : `${pkg.packs * 5} Cards`}
                             </span>
                           )}
                         </div>
@@ -755,20 +888,22 @@ export const TavernShopModal: React.FC<{
                             </div>
                           )}
                           <div className="hs-title mt-2 text-center text-sm font-extrabold text-amber-100">
-                            {pkg.name}
+                            {pl.name}
                           </div>
                           <div className="mt-0.5 flex items-baseline gap-1.5">
                             <span className="hs-num text-lg text-yellow-300">
                               ${pkg.priceUsd % 1 === 0 ? pkg.priceUsd.toFixed(0) : pkg.priceUsd.toFixed(2)}
                             </span>
-                            <span className="text-xs font-bold text-amber-200/80">
-                              ({pkg.priceKrw.toLocaleString()}원)
-                            </span>
+                            {isKo && (
+                              <span className="text-xs font-bold text-amber-200/80">
+                                ({pkg.priceKrw.toLocaleString()}원)
+                              </span>
+                            )}
                           </div>
                         </div>
 
                         <p className="text-center text-[11px] font-semibold leading-relaxed text-amber-200/80">
-                          {pkg.description}
+                          {pl.description}
                         </p>
                       </div>
 
@@ -783,8 +918,8 @@ export const TavernShopModal: React.FC<{
                         }`}
                       >
                         {alreadyOwnedAd
-                          ? '광고 제거 적용됨'
-                          : `수량 선택 ($${pkg.priceUsd.toFixed(2)}) →`}
+                          ? tr('광고 제거 적용됨', 'Ad Removal Active')
+                          : tr(`수량 선택 ($${pkg.priceUsd.toFixed(2)}) →`, `Select ($${pkg.priceUsd.toFixed(2)}) →`)}
                       </button>
                     </div>
                   );
@@ -801,19 +936,21 @@ export const TavernShopModal: React.FC<{
                 }}
                 className="hs-arcane-btn min-h-[44px] w-full rounded-xl py-2.5 text-xs font-extrabold text-white sm:text-sm"
               >
-                눈히어로 팩 즉시 개봉하러 가기 ({profile.packs}개 보유 중) →
+                {isKo
+                  ? `눈히어로 팩 즉시 개봉하러 가기 (${profile.packs}개 보유 중) →`
+                  : `Open Unopened Packs Now (${profile.packs} Left) →`}
               </button>
             )}
 
             {/* Official 3 SNS HERO Card Back Selector */}
             <div className="rounded-2xl border-2 border-[#c8a158]/50 bg-black/40 p-3.5">
               <h3 className="hs-title mb-2 text-sm font-extrabold text-amber-100">
-                눈히어로 공식 카드 뒷면 변경
+                {tr('눈히어로 공식 카드 뒷면 변경', 'Official Card Backs')}
               </h3>
               <div className="grid grid-cols-3 gap-2.5">
                 {CARD_BACK_IDS.map((cbId) => {
                   const active = profile.selectedCardBack === cbId;
-                  const meta = SNS_CARD_BACK_THEMES[cbId];
+                  const metaName = getSnsCardBackLabel(cbId).name;
                   return (
                     <button
                       key={cbId}
@@ -829,7 +966,7 @@ export const TavernShopModal: React.FC<{
                         <SnsCardBackArt variant={cbId} />
                       </div>
                       <span className="mt-1.5 text-center text-[11px] font-extrabold leading-tight text-amber-100">
-                        {meta.name}
+                        {metaName}
                       </span>
                     </button>
                   );
@@ -848,57 +985,64 @@ export const TavernShopModal: React.FC<{
                 onClick={() => setStep('quantity')}
                 className="hs-brass-btn min-h-[38px] rounded-xl px-3.5 py-1.5 text-xs font-extrabold text-amber-100"
               >
-                ← ① 구매수량 다시 선택
+                {tr('← ① 구매수량 다시 선택', '← ① Back to Bundles')}
               </button>
               <span className="text-xs font-extrabold text-amber-300">
-                2 / 3 단계 · 결제국가 선택
+                {tr('2 / 3 단계 · 결제국가 선택', 'Step 2 / 3 · Region & Currency')}
               </span>
             </div>
 
             <div className="flex items-center justify-between rounded-2xl border-2 border-[#c8a158]/55 bg-black/45 p-3.5">
               <div>
-                <div className="text-[11px] font-bold text-amber-300/80">선택한 상품 수량</div>
-                <div className="hs-title text-base font-extrabold text-amber-100">
-                  {selectedPkg.name}
+                <div className="text-[11px] font-bold text-amber-300/80">
+                  {tr('선택한 상품 수량', 'Selected Package')}
                 </div>
-                <div className="text-xs font-semibold text-amber-200/75">{selectedPkg.shortSpec}</div>
+                <div className="hs-title text-base font-extrabold text-amber-100">
+                  {pkgLoc.name}
+                </div>
+                <div className="text-xs font-semibold text-amber-200/75">{pkgLoc.shortSpec}</div>
               </div>
               <div className="text-right">
                 <div className="hs-num text-lg text-yellow-300">
                   ${selectedPkg.priceUsd.toFixed(2)}
                 </div>
-                <div className="text-xs font-bold text-amber-200/85">
-                  ({selectedPkg.priceKrw.toLocaleString()}원)
-                </div>
+                {isKo && (
+                  <div className="text-xs font-bold text-amber-200/85">
+                    ({selectedPkg.priceKrw.toLocaleString()}원)
+                  </div>
+                )}
               </div>
             </div>
 
             <div>
               <h3 className="hs-title mb-2.5 text-base font-extrabold text-amber-100">
-                결제하실 국가 / 통화 권역을 선택해 주세요
+                {tr('결제하실 국가 / 통화 권역을 선택해 주세요', 'Choose your payment region & currency')}
               </h3>
               <div className="space-y-2">
-                {CHECKOUT_COUNTRIES.map((c) => (
-                  <button
-                    key={c.code}
-                    type="button"
-                    onClick={() => handleSelectCountryToStep3(c.code)}
-                    className="flex min-h-[56px] w-full items-center justify-between rounded-2xl border-2 border-[#c8a158]/45 bg-stone-950/85 px-4 py-2.5 text-left transition hover:border-yellow-300 hover:bg-amber-950/40"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{c.flag}</span>
-                      <div>
-                        <div className="text-sm font-extrabold text-amber-100">{c.name}</div>
-                        <div className="text-[11px] font-semibold text-amber-200/75">
-                          {c.subLabel}
+                {CHECKOUT_COUNTRIES.map((c) => {
+                  const cl = isKo ? c : { ...c, ...(COUNTRY_EN[c.code] || {}) };
+                  return (
+                    <button
+                      key={c.code}
+                      type="button"
+                      onClick={() => handleSelectCountryToStep3(c.code)}
+                      className="flex min-h-[56px] w-full items-center justify-between rounded-2xl border-2 border-[#c8a158]/45 bg-stone-950/85 px-4 py-2.5 text-left transition hover:border-yellow-300 hover:bg-amber-950/40"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{c.flag}</span>
+                        <div>
+                          <div className="text-sm font-extrabold text-amber-100">{cl.name}</div>
+                          <div className="text-[11px] font-semibold text-amber-200/75">
+                            {cl.subLabel}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <span className="shrink-0 rounded-lg border border-amber-300/50 bg-amber-900/60 px-2.5 py-1 text-xs font-extrabold text-yellow-200">
-                      선택 →
-                    </span>
-                  </button>
-                ))}
+                      <span className="shrink-0 rounded-lg border border-amber-300/50 bg-amber-900/60 px-2.5 py-1 text-xs font-extrabold text-yellow-200">
+                        {tr('선택 →', 'Select →')}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -913,10 +1057,13 @@ export const TavernShopModal: React.FC<{
                 onClick={() => setStep('country')}
                 className="hs-brass-btn min-h-[38px] rounded-xl px-3.5 py-1.5 text-xs font-extrabold text-amber-100"
               >
-                ← ② 결제국가 변경
+                {tr('← ② 결제국가 변경', '← ② Change Region')}
               </button>
               <span className="text-xs font-extrabold text-sky-300">
-                3 / 3 단계 · 결제수단 선택 ({selectedCountry.flag} {selectedCountry.currency})
+                {tr(
+                  `3 / 3 단계 · 결제수단 선택 (${selectedCountry.flag} ${selectedCountry.currency})`,
+                  `Step 3 / 3 · Payment (${selectedCountry.flag} ${selectedCountry.currency})`,
+                )}
               </span>
             </div>
 
@@ -924,10 +1071,10 @@ export const TavernShopModal: React.FC<{
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-[#c8a158]/55 bg-black/45 p-3.5">
               <div>
                 <div className="text-[11px] font-bold text-amber-300/80">
-                  {selectedCountry.flag} {selectedCountry.name}
+                  {selectedCountry.flag} {countryLoc.name}
                 </div>
                 <div className="hs-title text-base font-extrabold text-amber-100">
-                  {selectedPkg.name}
+                  {pkgLoc.name}
                 </div>
               </div>
               <div className="text-right">
@@ -937,7 +1084,7 @@ export const TavernShopModal: React.FC<{
                       {selectedPkg.priceKrw.toLocaleString()}원
                     </div>
                     <div className="text-[11px] font-bold text-amber-200/75">
-                      (글로벌 ${selectedPkg.priceUsd.toFixed(2)} USD)
+                      ({tr('글로벌', 'Global')} ${selectedPkg.priceUsd.toFixed(2)} USD)
                     </div>
                   </>
                 ) : (
@@ -957,11 +1104,23 @@ export const TavernShopModal: React.FC<{
             {popupWaitingMethod && (
               <div className="rounded-2xl border-2 border-emerald-400/75 bg-emerald-950/75 p-3.5 text-xs">
                 <div className="font-extrabold text-emerald-200">
-                  🪟 새 팝업 창에서 결제가 진행 중입니다 (현재 게임 화면은 그대로 유지됩니다!)
+                  {tr(
+                    '🪟 새 팝업 창에서 결제가 진행 중입니다 (현재 게임 화면은 그대로 유지됩니다!)',
+                    '🪟 Checkout opened in a popup window (Your game stays open here!)',
+                  )}
                 </div>
                 <p className="mt-1 font-semibold text-amber-100/90">
-                  팝업 창에서 결제를 완료하시면 자동으로 팝업이 닫히고 현재 화면으로 돌아와{' '}
-                  <b className="text-yellow-300">{selectedPkg.name}</b> 보상이 즉시 지급됩니다.
+                  {isKo ? (
+                    <>
+                      팝업 창에서 결제를 완료하시면 자동으로 팝업이 닫히고 현재 화면으로 돌아와{' '}
+                      <b className="text-yellow-300">{pkgLoc.name}</b> 보상이 즉시 지급됩니다.
+                    </>
+                  ) : (
+                    <>
+                      Once checkout finishes in the popup window, it will close automatically and grant{' '}
+                      <b className="text-yellow-300">{pkgLoc.name}</b> immediately.
+                    </>
+                  )}
                 </p>
                 <div className="mt-2 flex gap-2">
                   <button
@@ -969,14 +1128,14 @@ export const TavernShopModal: React.FC<{
                     onClick={() => handleTriggerPopupCheckout(popupWaitingMethod)}
                     className="hs-brass-btn rounded-lg px-3 py-1.5 text-[11px] font-extrabold text-amber-100"
                   >
-                    결제 팝업 창 다시 띄우기
+                    {tr('결제 팝업 창 다시 띄우기', 'Reopen Popup Window')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setPopupWaitingMethod(null)}
                     className="rounded-lg border border-stone-600 bg-stone-900 px-3 py-1.5 text-[11px] font-bold text-stone-300"
                   >
-                    안내 닫기
+                    {tr('안내 닫기', 'Dismiss')}
                   </button>
                 </div>
               </div>
@@ -988,7 +1147,7 @@ export const TavernShopModal: React.FC<{
                 onClick={() => handleTriggerPopupCheckout(popupBlockedRetry)}
                 className="hs-arcane-btn min-h-[46px] w-full rounded-xl px-4 text-xs font-extrabold text-white sm:text-sm"
               >
-                🪟 차단된 결제 팝업 창 열기 ({selectedPkg.name})
+                {tr(`🪟 차단된 결제 팝업 창 열기 (${pkgLoc.name})`, `🪟 Open Blocked Popup (${pkgLoc.name})`)}
               </button>
             )}
 
@@ -1001,7 +1160,7 @@ export const TavernShopModal: React.FC<{
                     onClick={() => handleTriggerPopupCheckout('card')}
                     className="hs-arcane-btn flex min-h-[50px] w-full items-center justify-between rounded-xl px-4 text-xs font-extrabold text-white sm:text-sm"
                   >
-                    <span>💳 국내 신용 · 체크카드 (팝업 안전결제)</span>
+                    <span>{tr('💳 국내 신용 · 체크카드 (팝업 안전결제)', '💳 Domestic Credit / Debit Card (Popup)')}</span>
                     <span className="text-yellow-200">
                       {selectedPkg.priceKrw.toLocaleString()}원 →
                     </span>
@@ -1013,7 +1172,7 @@ export const TavernShopModal: React.FC<{
                       onClick={() => handleTriggerPopupCheckout('kakaopay')}
                       className="hs-brass-btn flex min-h-[48px] items-center justify-between rounded-xl px-4 text-xs font-extrabold text-yellow-200"
                     >
-                      <span>💛 카카오페이 간편결제 (팝업)</span>
+                      <span>{tr('💛 카카오페이 간편결제 (팝업)', '💛 KakaoPay (Popup)')}</span>
                       <span>{selectedPkg.priceKrw.toLocaleString()}원 →</span>
                     </button>
                     <button
@@ -1021,7 +1180,7 @@ export const TavernShopModal: React.FC<{
                       onClick={() => handleTriggerPopupCheckout('naverpay')}
                       className="hs-brass-btn flex min-h-[48px] items-center justify-between rounded-xl px-4 text-xs font-extrabold text-emerald-200"
                     >
-                      <span>💚 네이버페이 간편결제 (팝업)</span>
+                      <span>{tr('💚 네이버페이 간편결제 (팝업)', '💚 NaverPay (Popup)')}</span>
                       <span>{selectedPkg.priceKrw.toLocaleString()}원 →</span>
                     </button>
                   </div>
@@ -1031,7 +1190,7 @@ export const TavernShopModal: React.FC<{
                     onClick={() => handleTriggerPopupCheckout('paypal')}
                     className="hs-brass-btn flex min-h-[48px] w-full items-center justify-between rounded-xl px-4 text-xs font-extrabold text-amber-100 sm:text-sm"
                   >
-                    <span>🌐 PayPal 글로벌 결제 (팝업)</span>
+                    <span>{tr('🌐 PayPal 글로벌 결제 (팝업)', '🌐 PayPal Global Checkout (Popup)')}</span>
                     <span className="text-yellow-300">
                       ${selectedPkg.priceUsd.toFixed(2)} USD →
                     </span>
@@ -1044,7 +1203,7 @@ export const TavernShopModal: React.FC<{
                     onClick={() => handleTriggerPopupCheckout('paypal')}
                     className="hs-arcane-btn flex min-h-[50px] w-full items-center justify-between rounded-xl px-4 text-xs font-extrabold text-white sm:text-sm"
                   >
-                    <span>🌐 PayPal · 해외 신용카드 Visa / Master (팝업 결제)</span>
+                    <span>{tr('🌐 PayPal · 해외 신용카드 Visa / Master (팝업 결제)', '🌐 PayPal · Visa / Mastercard (Popup)')}</span>
                     <span className="text-yellow-200">
                       ${selectedPkg.priceUsd.toFixed(2)} USD →
                     </span>
@@ -1055,7 +1214,7 @@ export const TavernShopModal: React.FC<{
                     onClick={() => handleTriggerPopupCheckout('applepay')}
                     className="hs-brass-btn flex min-h-[48px] w-full items-center justify-between rounded-xl px-4 text-xs font-extrabold text-amber-100 sm:text-sm"
                   >
-                    <span>🍎 Apple Pay · 글로벌 카드 결제 (팝업 결제)</span>
+                    <span>{tr('🍎 Apple Pay · 글로벌 카드 결제 (팝업 결제)', '🍎 Apple Pay · Global Card (Popup)')}</span>
                     <span className="text-yellow-300">
                       ${selectedPkg.priceUsd.toFixed(2)} USD →
                     </span>
@@ -1071,8 +1230,8 @@ export const TavernShopModal: React.FC<{
                 }}
                 className="hs-brass-btn flex min-h-[48px] w-full items-center justify-between rounded-xl px-4 text-xs font-extrabold text-sky-200 sm:text-sm"
               >
-                <span>🪙 암호화폐 결제 (USDT · BTC · ETH · SOL · XRP)</span>
-                <span>${selectedPkg.priceUsd.toFixed(2)} 상당 →</span>
+                <span>{tr('🪙 암호화폐 결제 (USDT · BTC · ETH · SOL · XRP)', '🪙 Cryptocurrency (USDT · BTC · ETH · SOL · XRP)')}</span>
+                <span>{tr(`$${selectedPkg.priceUsd.toFixed(2)} 상당 →`, `~$${selectedPkg.priceUsd.toFixed(2)} →`)}</span>
               </button>
             </div>
           </div>
@@ -1087,7 +1246,7 @@ export const TavernShopModal: React.FC<{
                 onClick={() => setStep('method')}
                 className="hs-brass-btn rounded-xl px-3.5 py-2 text-xs font-extrabold text-amber-100"
               >
-                ← ③ 결제수단 목록으로
+                {tr('← ③ 결제수단 목록으로', '← ③ Back to Payment Methods')}
               </button>
               <span className="hs-num text-sm text-yellow-300">
                 ${selectedPkg.priceUsd.toFixed(2)} USD
@@ -1098,7 +1257,7 @@ export const TavernShopModal: React.FC<{
               type="text"
               value={coinSearch}
               onChange={(e) => setCoinSearch(e.target.value)}
-              placeholder="암호화폐 검색 (예: USDT, BTC, SOL)"
+              placeholder={tr('암호화폐 검색 (예: USDT, BTC, SOL)', 'Search crypto (e.g. USDT, BTC, SOL)')}
               className="min-h-[42px] w-full rounded-xl border border-[#c8a158]/50 bg-stone-950/90 px-3.5 text-xs font-bold text-amber-100 placeholder:text-amber-200/45 focus:border-yellow-300 focus:outline-none"
             />
 
@@ -1133,7 +1292,7 @@ export const TavernShopModal: React.FC<{
                     </div>
                   </div>
                   <span className="text-[11px] font-bold text-amber-300">
-                    체인 {coin.chains.length}개 →
+                    {isKo ? `체인 ${coin.chains.length}개 →` : `${coin.chains.length} chains →`}
                   </span>
                 </button>
               ))}
@@ -1149,10 +1308,10 @@ export const TavernShopModal: React.FC<{
                 onClick={() => setStep('crypto_coin')}
                 className="hs-brass-btn rounded-xl px-3.5 py-2 text-xs font-extrabold text-amber-100"
               >
-                ← 다른 코인 선택
+                {tr('← 다른 코인 선택', '← Choose Another Coin')}
               </button>
               <span className="text-xs font-extrabold text-yellow-300">
-                {activeCoinObj.ccy} 네트워크 선택
+                {tr(`${activeCoinObj.ccy} 네트워크 선택`, `Select ${activeCoinObj.ccy} Network`)}
               </span>
             </div>
 
@@ -1172,15 +1331,17 @@ export const TavernShopModal: React.FC<{
                       <span className="text-xs font-extrabold text-amber-100">{chainName}</span>
                       {idx === 0 && (
                         <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-[10px] font-extrabold text-yellow-300">
-                          추천
+                          {tr('추천', 'Recommended')}
                         </span>
                       )}
                     </div>
                     <div className="text-[11px] text-amber-200/70">
-                      블록체인 컨펌 후 자동 반영 (약 1~3분)
+                      {tr('블록체인 컨펌 후 자동 반영 (약 1~3분)', 'Auto-credited after network confirmation (~1–3 min)')}
                     </div>
                   </div>
-                  <span className="text-xs font-extrabold text-yellow-300">선택 →</span>
+                  <span className="text-xs font-extrabold text-yellow-300">
+                    {tr('선택 →', 'Select →')}
+                  </span>
                 </button>
               ))}
             </div>
@@ -1197,10 +1358,10 @@ export const TavernShopModal: React.FC<{
                 }
                 className="hs-brass-btn rounded-xl px-3.5 py-2 text-xs font-extrabold text-amber-100"
               >
-                ← 네트워크 / 코인 변경
+                {tr('← 네트워크 / 코인 변경', '← Change Network / Coin')}
               </button>
               <span className="rounded-full border border-yellow-300/60 bg-amber-950/80 px-3 py-1 text-xs font-extrabold text-yellow-300">
-                유효 시간 {mm}:{ss}
+                {tr(`유효 시간 ${mm}:${ss}`, `Expires in ${mm}:${ss}`)}
               </span>
             </div>
 
@@ -1217,18 +1378,20 @@ export const TavernShopModal: React.FC<{
 
               <div className="flex flex-col justify-between space-y-3 sm:col-span-7">
                 <div>
-                  <div className="text-[11px] font-bold text-amber-300/80">정확한 입금 수량</div>
+                  <div className="text-[11px] font-bold text-amber-300/80">
+                    {tr('정확한 입금 수량', 'Exact Deposit Amount')}
+                  </div>
                   <div className="hs-num mt-0.5 text-xl text-yellow-300">
                     {cryptoDeposit.amount} {cryptoDeposit.ccy}
                   </div>
                   <div className="text-[11px] text-amber-200/75">
-                    상품 금액: ${selectedPkg.priceUsd.toFixed(2)} USD · {selectedPkg.name}
+                    {tr('상품 금액:', 'Total:')} ${selectedPkg.priceUsd.toFixed(2)} USD · {pkgLoc.name}
                   </div>
                 </div>
 
                 <div>
                   <div className="mb-1 text-[11px] font-bold text-amber-300/80">
-                    입금 지갑 주소 ({cryptoDeposit.chain})
+                    {tr(`입금 지갑 주소 (${cryptoDeposit.chain})`, `Deposit Wallet Address (${cryptoDeposit.chain})`)}
                   </div>
                   <div className="break-all rounded-xl border border-[#c8a158]/40 bg-stone-950/90 p-2.5 text-xs font-extrabold text-amber-100">
                     {cryptoDeposit.address}
@@ -1239,18 +1402,21 @@ export const TavernShopModal: React.FC<{
                       onClick={() => handleCopyAddress(cryptoDeposit.address)}
                       className="hs-brass-btn flex-1 rounded-xl py-2.5 text-xs font-extrabold text-amber-100"
                     >
-                      {copiedAddr ? '주소 복사 완료 ✓' : '지갑 주소 복사'}
+                      {copiedAddr ? tr('주소 복사 완료 ✓', 'Address Copied ✓') : tr('지갑 주소 복사', 'Copy Address')}
                     </button>
                     <button
                       type="button"
                       onClick={() =>
                         setDepositCheckMsg(
-                          `블록체인 네트워크(${cryptoDeposit.chain})에서 입금 내역을 조회 중입니다. 전송 컨펌 완료 즉시 ${selectedPkg.name} 상품이 자동 지급됩니다.`,
+                          tr(
+                            `블록체인 네트워크(${cryptoDeposit.chain})에서 입금 내역을 조회 중입니다. 전송 컨펌 완료 즉시 ${pkgLoc.name} 상품이 자동 지급됩니다.`,
+                            `Checking ${cryptoDeposit.chain} for incoming transaction. ${pkgLoc.name} will be delivered once confirmed.`,
+                          ),
                         )
                       }
                       className="hs-arcane-btn flex-1 rounded-xl py-2.5 text-xs font-extrabold text-white"
                     >
-                      입금 완료 확인 요청
+                      {tr('입금 완료 확인 요청', 'Verify Deposit')}
                     </button>
                   </div>
                 </div>
@@ -1274,7 +1440,18 @@ export const PaymentSuccessModal: React.FC<{
   onOpenPacks: () => void;
   onClose: () => void;
 }> = ({ info, onOpenPacks, onClose }) => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
   useModalDismiss(true, onClose);
+  const displayLabel = isKo
+    ? info.label
+    : info.packsGranted === 5
+      ? 'SNSHero 5 Card Packs ($4.00)'
+      : info.packsGranted === 1
+        ? 'SNSHero 1 Card Pack ($1.00)'
+        : info.isAdRemoval
+          ? 'Permanent Ad Removal VIP ($2.99)'
+          : info.label;
 
   return (
     <div
@@ -1285,9 +1462,13 @@ export const PaymentSuccessModal: React.FC<{
         onClick={(e) => e.stopPropagation()}
         className="hs-wood-panel w-full max-w-md rounded-3xl p-6 text-center text-amber-100"
       >
-        <h2 className="hs-title text-2xl font-extrabold text-yellow-300">결제가 완료되었습니다!</h2>
+        <h2 className="hs-title text-2xl font-extrabold text-yellow-300">
+          {tr('결제가 완료되었습니다!', 'Payment Complete!')}
+        </h2>
         <p className="mt-2 text-sm font-bold text-amber-100">
-          {info.label} 상품이 계정에 즉시 반영되었습니다.
+          {isKo
+            ? `${displayLabel} 상품이 계정에 즉시 반영되었습니다.`
+            : `${displayLabel} has been added to your account.`}
         </p>
         {info.packsGranted && info.packsGranted > 0 && (
           <div className="my-4 flex flex-col items-center">
@@ -1295,7 +1476,7 @@ export const PaymentSuccessModal: React.FC<{
               <SnsBoosterPackArt glowing />
             </div>
             <span className="hs-num mt-2 text-lg text-yellow-300">
-              +{info.packsGranted}팩 지급 완료
+              {isKo ? `+${info.packsGranted}팩 지급 완료` : `+${info.packsGranted} Pack(s) Granted`}
             </span>
           </div>
         )}
@@ -1306,7 +1487,7 @@ export const PaymentSuccessModal: React.FC<{
               onClick={onOpenPacks}
               className="hs-arcane-btn flex-1 rounded-xl py-2.5 text-sm font-extrabold text-white"
             >
-              팩 개봉하러 가기 →
+              {tr('팩 개봉하러 가기 →', 'Open Packs →')}
             </button>
           )}
           <button
@@ -1314,7 +1495,7 @@ export const PaymentSuccessModal: React.FC<{
             onClick={onClose}
             className="hs-brass-btn flex-1 rounded-xl py-2.5 text-sm font-extrabold text-amber-100"
           >
-            현재 화면으로 계속하기
+            {tr('현재 화면으로 계속하기', 'Continue')}
           </button>
         </div>
       </div>
@@ -1327,6 +1508,7 @@ export const GameOptionsModal: React.FC<{
   onConcede?: () => void;
   onClose: () => void;
 }> = ({ inBattle = false, onConcede, onClose }) => {
+  const { lang, setLang } = useHeroLanguage();
   useModalDismiss(true, onClose);
 
   const [settings, setSettings] = useState<AudioSettings>(() => hsAudio.getSettings());
@@ -1354,16 +1536,31 @@ export const GameOptionsModal: React.FC<{
     const { jsonString, keyCount } = hsStorage.exportGameBackupData();
     try {
       await navigator.clipboard.writeText(jsonString);
-      setDataNotice(`✓ 눈히어로 카드배틀 백업 코드(${keyCount}개 항목)가 복사되었습니다.`);
+      setDataNotice(
+        tr(
+          `✓ 눈히어로 카드배틀 백업 코드(${keyCount}개 항목)가 복사되었습니다.`,
+          `✓ SNSHero backup code (${keyCount} entries) copied to clipboard.`,
+        ),
+      );
     } catch {
       hsStorage.downloadGameBackupFile();
-      setDataNotice('✓ 백업 JSON 파일이 다운로드되었습니다.');
+      setDataNotice(
+        tr(
+          '✓ 백업 JSON 파일이 다운로드되었습니다.',
+          '✓ Backup JSON file downloaded.',
+        ),
+      );
     }
   };
 
   const handlePasteRestore = () => {
     hsAudio.playSfx('ui_click', 0.8);
-    const raw = window.prompt('복원할 눈히어로 카드배틀(/game.html) 백업 JSON 코드를 붙여넣어 주세요:');
+    const raw = window.prompt(
+      tr(
+        '복원할 눈히어로 카드배틀(/game.html) 백업 JSON 코드를 붙여넣어 주세요:',
+        'Paste SNSHero Card Battle (/game.html) backup JSON code to restore:',
+      ),
+    );
     if (!raw || !raw.trim()) return;
     const res = hsStorage.restoreGameBackupJson(raw.trim());
     setDataNotice(res.message);
@@ -1379,7 +1576,7 @@ export const GameOptionsModal: React.FC<{
         className="hs-wood-panel max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl p-5 sm:p-6 text-amber-100"
       >
         <h2 className="hs-title mb-4 text-center text-2xl font-extrabold text-amber-100">
-          환경 설정
+          {tr('환경 설정', 'Settings')}
         </h2>
 
         {inBattle && onConcede && (
@@ -1392,23 +1589,75 @@ export const GameOptionsModal: React.FC<{
             }}
             className="mb-4 w-full rounded-2xl border-2 border-red-300 bg-gradient-to-b from-red-600 to-red-950 py-3 text-base font-extrabold text-white shadow-lg hover:brightness-110"
           >
-            대결 항복하기
+            {tr('대결 항복하기', 'Concede Match')}
           </button>
         )}
 
         <div className="space-y-3 rounded-2xl border border-[#c8a158]/40 bg-black/40 p-4">
+          {/* Language / 언어 설정 */}
+          <div className="flex items-center justify-between gap-2 border-b border-amber-500/20 pb-3">
+            <div className="min-w-0">
+              <div className="text-sm font-extrabold text-amber-100">
+                {tr('언어 설정 (Language)', 'Language')}
+              </div>
+              <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
+                {tr('한국어 또는 영어로 전환', 'Switch between English and Korean')}
+              </div>
+            </div>
+            <div
+              data-testid="options-language-selector"
+              className="flex shrink-0 overflow-hidden rounded-lg border border-amber-300/60 bg-stone-950/90 p-0.5 text-xs font-extrabold"
+            >
+              <button
+                type="button"
+                data-testid="options-lang-en"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click', 0.75);
+                  setLang('en');
+                }}
+                className={`rounded-md px-2.5 py-1 transition ${
+                  lang === 'en'
+                    ? 'bg-amber-500 text-stone-950 shadow'
+                    : 'text-amber-100/80 hover:text-white'
+                }`}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                data-testid="options-lang-ko"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click', 0.75);
+                  setLang('ko');
+                }}
+                className={`rounded-md px-2.5 py-1 transition ${
+                  lang === 'ko'
+                    ? 'bg-amber-500 text-stone-950 shadow'
+                    : 'text-amber-100/80 hover:text-white'
+                }`}
+              >
+                한국어
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-sm font-extrabold text-amber-100">전체화면 모드 (PWA)</div>
+              <div className="text-sm font-extrabold text-amber-100">
+                {tr('전체화면 모드 (PWA)', 'Fullscreen Mode (PWA)')}
+              </div>
               <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
                 {standaloneApp
-                  ? '독립형 전체화면 PWA 앱 모드로 실행 중'
-                  : '브라우저 주소창을 숨기고 몰입형 전체화면으로 플레이'}
+                  ? tr('독립형 전체화면 PWA 앱 모드로 실행 중', 'Running in standalone PWA mode')
+                  : tr(
+                      '브라우저 주소창을 숨기고 몰입형 전체화면으로 플레이',
+                      'Hide browser bars for immersive fullscreen play',
+                    )}
               </div>
             </div>
             {standaloneApp ? (
               <span className="shrink-0 rounded-lg border border-emerald-300/60 bg-emerald-900/80 px-3 py-1.5 text-xs font-extrabold text-emerald-100">
-                PWA 전체화면 ✓
+                {tr('PWA 전체화면 ✓', 'PWA Fullscreen ✓')}
               </span>
             ) : (
               <button
@@ -1425,7 +1674,7 @@ export const GameOptionsModal: React.FC<{
                     : 'border-amber-300/60 bg-amber-900/80 text-amber-100 hover:brightness-110'
                 } disabled:opacity-45`}
               >
-                {fullscreenOn ? '전체화면 켜짐' : '전체화면 전환'}
+                {fullscreenOn ? tr('전체화면 켜짐', 'Fullscreen ON') : tr('전체화면 전환', 'Toggle Fullscreen')}
               </button>
             )}
           </div>
@@ -1433,9 +1682,11 @@ export const GameOptionsModal: React.FC<{
           {canInstallPwa && (
             <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
               <div className="min-w-0">
-                <div className="text-sm font-extrabold text-sky-200">홈 화면에 앱 설치</div>
+                <div className="text-sm font-extrabold text-sky-200">
+                  {tr('홈 화면에 앱 설치', 'Install App to Home Screen')}
+                </div>
                 <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
-                  바탕화면 아이콘으로 언제든 즉시 전체화면 실행
+                  {tr('바탕화면 아이콘으로 언제든 즉시 전체화면 실행', 'Launch fullscreen anytime from your home icon')}
                 </div>
               </div>
               <button
@@ -1447,13 +1698,13 @@ export const GameOptionsModal: React.FC<{
                 }}
                 className="hs-arcane-btn min-h-[38px] shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-extrabold text-white"
               >
-                📲 앱 설치
+                📲 {tr('앱 설치', 'Install App')}
               </button>
             </div>
           )}
 
           <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
-            <span className="text-sm font-extrabold">사운드 출력</span>
+            <span className="text-sm font-extrabold">{tr('사운드 출력', 'Master Sound')}</span>
             <button
               type="button"
               onClick={() => update({ muted: !settings.muted })}
@@ -1463,17 +1714,20 @@ export const GameOptionsModal: React.FC<{
                   : 'border-emerald-300/60 bg-emerald-800 text-white'
               }`}
             >
-              {settings.muted ? '음소거 켜짐' : '사운드 켜짐'}
+              {settings.muted ? tr('음소거 켜짐', 'Muted') : tr('사운드 켜짐', 'Sound ON')}
             </button>
           </div>
 
           <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
             <div className="min-w-0">
               <div className="text-sm font-extrabold text-amber-100">
-                스토리 낭독 & TTS 읽어주기
+                {tr('스토리 낭독 & TTS 읽어주기', 'Story Narration & TTS')}
               </div>
               <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
-                에피소드 5컷 요약 문구 및 영웅명 음성 낭독 (끄면 자막만 표시)
+                {tr(
+                  '에피소드 5컷 요약 문구 및 영웅명 음성 낭독 (끄면 자막만 표시)',
+                  'Read episode summaries & hero callouts aloud (subtitles only when off)',
+                )}
               </div>
             </div>
             <button
@@ -1490,19 +1744,25 @@ export const GameOptionsModal: React.FC<{
                   : 'border-stone-400/50 bg-stone-800 text-stone-200'
               }`}
             >
-              {settings.ttsEnabled ? 'TTS 켜짐' : 'TTS 꺼짐'}
+              {settings.ttsEnabled ? tr('TTS 켜짐', 'TTS ON') : tr('TTS 꺼짐', 'TTS OFF')}
             </button>
           </div>
 
           <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
             <div className="min-w-0">
               <div className="text-sm font-extrabold text-amber-100">
-                공격 시 진동 (Android)
+                {tr('공격 시 진동 (Android)', 'Impact Vibration (Android)')}
               </div>
               <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
                 {vibSupport.supportedOnDevice
-                  ? '주고받는 데미지에 비례해 타격 진동 강도 자동 조절'
-                  : '안드로이드 웹 접속 시 데미지 비례 타격 진동 작동'}
+                  ? tr(
+                      '주고받는 데미지에 비례해 타격 진동 강도 자동 조절',
+                      'Haptic intensity scales automatically with combat damage',
+                    )
+                  : tr(
+                      '안드로이드 웹 접속 시 데미지 비례 타격 진동 작동',
+                      'Damage-scaled haptic feedback works on Android browsers',
+                    )}
               </div>
             </div>
             <button
@@ -1522,13 +1782,13 @@ export const GameOptionsModal: React.FC<{
                   : 'border-stone-400/50 bg-stone-800 text-stone-200'
               }`}
             >
-              {settings.vibrateEnabled ? '진동 켜짐' : '진동 꺼짐'}
+              {settings.vibrateEnabled ? tr('진동 켜짐', 'Vibrate ON') : tr('진동 꺼짐', 'Vibrate OFF')}
             </button>
           </div>
 
           <div>
             <div className="flex justify-between text-xs font-bold text-amber-200">
-              <span>잔잔한 배경음악 (BGM · 기본 15%)</span>
+              <span>{tr('잔잔한 배경음악 (BGM · 기본 15%)', 'Background Music (BGM · Default 15%)')}</span>
               <span>{Math.round(settings.bgmVolume * 100)}%</span>
             </div>
             <input
@@ -1543,7 +1803,7 @@ export const GameOptionsModal: React.FC<{
 
           <div>
             <div className="flex justify-between text-xs font-bold text-amber-200">
-              <span>타격 · 원소 효과음 (SFX)</span>
+              <span>{tr('타격 · 원소 효과음 (SFX)', 'Combat & Spell SFX')}</span>
               <span>{Math.round(settings.sfxVolume * 100)}%</span>
             </div>
             <input
@@ -1558,7 +1818,7 @@ export const GameOptionsModal: React.FC<{
 
           <div>
             <div className="flex justify-between text-xs font-bold text-amber-200">
-              <span>영웅 성우 음성 (VO)</span>
+              <span>{tr('영웅 성우 음성 (VO)', 'Hero Voiceovers (VO)')}</span>
               <span>{Math.round(settings.voVolume * 100)}%</span>
             </div>
             <input
@@ -1575,10 +1835,10 @@ export const GameOptionsModal: React.FC<{
           <div className="space-y-2 border-t border-amber-500/25 pt-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-extrabold text-yellow-300">
-                데이터 백업 · 복원 (카드배틀 전용)
+                {tr('데이터 백업 · 복원 (카드배틀 전용)', 'Save Backup & Restore (LocalStorage)')}
               </span>
               <span className="rounded bg-amber-950/80 px-2 py-0.5 text-[10px] font-bold text-amber-200/80">
-                hero_hs_* 독립 저장소
+                {tr('hero_hs_* 독립 저장소', 'hero_hs_* Storage')}
               </span>
             </div>
 
@@ -1598,11 +1858,16 @@ export const GameOptionsModal: React.FC<{
                 onClick={() => {
                   hsAudio.playSfx('ui_click', 0.8);
                   hsStorage.downloadGameBackupFile();
-                  setDataNotice('✓ 눈히어로 카드배틀 백업 JSON 파일이 저장되었습니다.');
+                  setDataNotice(
+                    tr(
+                      '✓ 눈히어로 카드배틀 백업 JSON 파일이 저장되었습니다.',
+                      '✓ SNSHero backup JSON file downloaded.',
+                    ),
+                  );
                 }}
                 className="hs-brass-btn rounded-lg py-2 text-[11px] font-extrabold text-amber-100"
               >
-                💾 백업 파일 저장
+                💾 {tr('백업 파일 저장', 'Download Backup')}
               </button>
               <button
                 type="button"
@@ -1610,13 +1875,13 @@ export const GameOptionsModal: React.FC<{
                 onClick={handleCopyBackup}
                 className="hs-brass-btn rounded-lg py-2 text-[11px] font-extrabold text-amber-100"
               >
-                📋 백업 코드 복사
+                📋 {tr('백업 코드 복사', 'Copy Backup Code')}
               </button>
               <label
                 data-testid="hs-restore-file-label"
                 className="hs-brass-btn flex cursor-pointer items-center justify-center rounded-lg py-2 text-center text-[11px] font-extrabold text-amber-100"
               >
-                <span>📂 파일로 복원</span>
+                <span>📂 {tr('파일로 복원', 'Restore File')}</span>
                 <input
                   type="file"
                   accept=".json"
@@ -1641,7 +1906,7 @@ export const GameOptionsModal: React.FC<{
                 onClick={handlePasteRestore}
                 className="hs-brass-btn rounded-lg py-2 text-[11px] font-extrabold text-amber-100"
               >
-                📥 코드 붙여넣기
+                📥 {tr('코드 붙여넣기', 'Paste Backup Code')}
               </button>
             </div>
 
@@ -1655,12 +1920,15 @@ export const GameOptionsModal: React.FC<{
                 }}
                 className="mt-1 w-full rounded-lg border border-red-400/50 bg-red-950/60 py-1.5 text-[11px] font-extrabold text-red-200 hover:bg-red-900/70"
               >
-                🗑 카드배틀 데이터 초기화 (/game.html 전용)
+                🗑 {tr('카드배틀 데이터 초기화 (/game.html 전용)', 'Reset Game Data (/game.html only)')}
               </button>
             ) : (
               <div className="mt-1 flex items-center gap-1.5 rounded-lg border border-red-400/70 bg-red-950/90 p-2">
                 <span className="flex-1 text-[11px] font-extrabold text-red-100">
-                  카드배틀(hero_hs_*) 데이터만 초기화할까요?
+                  {tr(
+                    '카드배틀(hero_hs_*) 데이터만 초기화할까요?',
+                    'Reset all Card Battle (hero_hs_*) progress?',
+                  )}
                 </span>
                 <button
                   type="button"
@@ -1669,19 +1937,24 @@ export const GameOptionsModal: React.FC<{
                     hsAudio.playSfx('ui_click', 0.85);
                     hsStorage.resetGameDataOnly();
                     setConfirmReset(false);
-                    setDataNotice('✓ 카드배틀(hero_hs_*) 데이터가 초기 상태로 리셋되었습니다. 화면을 새로고침합니다...');
+                    setDataNotice(
+                      tr(
+                        '✓ 카드배틀(hero_hs_*) 데이터가 초기 상태로 리셋되었습니다. 화면을 새로고침합니다...',
+                        '✓ Card Battle data reset to default. Reloading...',
+                      ),
+                    );
                     window.location.reload();
                   }}
                   className="rounded bg-red-600 px-2.5 py-1 text-[11px] font-extrabold text-white"
                 >
-                  초기화
+                  {tr('초기화', 'Reset')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmReset(false)}
                   className="rounded bg-stone-700 px-2.5 py-1 text-[11px] font-extrabold text-stone-200"
                 >
-                  취소
+                  {tr('취소', 'Cancel')}
                 </button>
               </div>
             )}
@@ -1697,7 +1970,7 @@ export const GameOptionsModal: React.FC<{
             }}
             className="hs-brass-btn w-full rounded-xl py-2.5 text-sm font-extrabold text-amber-100"
           >
-            게임으로 돌아가기
+            {tr('게임으로 돌아가기', 'Return to Game')}
           </button>
         </div>
       </div>

@@ -1,4 +1,7 @@
+import { isKoreanLanguage } from '../../i18n/heroLang';
 import { cardDb } from '../cardDb';
+
+const trEffect = (ko: string, en: string): string => (isKoreanLanguage() ? ko : en);
 import {
   BattleMatchState,
   ClassicCardDef,
@@ -34,7 +37,9 @@ export type TargetKind =
 export interface ChooseOneSubOption {
   optionCardId: string;
   title: string;
+  titleEn?: string;
   description: string;
+  descriptionEn?: string;
   targetKind: TargetKind;
   run: (ops: EngineOps, side: PlayerSide, targetId?: string, selfMinion?: MinionInstance) => void;
 }
@@ -113,7 +118,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
     onCastSpell: (ops, side) => {
       const p = ops.getPlayer(side);
       p.mana = Math.min(10, p.mana + 1);
-      ops.pushVfx('HOLY_LIGHT', `${side}_HERO`, undefined, 1, '+1 마나');
+      ops.pushVfx('HOLY_LIGHT', `${side}_HERO`, undefined, 1, trEffect('+1 마나', '+1 Mana'));
     },
   },
   CS2_013t: {
@@ -198,7 +203,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
     onCastSpell: (ops, side) => {
       const p = ops.getPlayer(side);
       p.mana = Math.min(10, p.mana + 2);
-      ops.pushVfx('NATURE_WRATH', `${side}_HERO`, undefined, 2, '+2 마나');
+      ops.pushVfx('NATURE_WRATH', `${side}_HERO`, undefined, 2, trEffect('+2 마나', '+2 Mana'));
     },
   },
   EX1_578: {
@@ -252,7 +257,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_160b',
         title: '무리의 우두머리',
+        titleEn: 'Leader of the Pack',
         description: '내 하수인들에게 +1/+1을 부여합니다.',
+        descriptionEn: 'Give your minions +1/+1.',
         targetKind: 'NONE',
         run: (ops, side) => {
           for (const m of ops.getPlayer(side).board) {
@@ -263,7 +270,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_160a',
         title: '설원 표범 소환',
+        titleEn: 'Summon a Snow Panther',
         description: '3/2 설원 표범을 소환합니다.',
+        descriptionEn: 'Summon a 3/2 Snow Panther.',
         targetKind: 'NONE',
         run: (ops, side) => {
           ops.summonMinion(side, 'EX1_160t');
@@ -277,7 +286,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_154a',
         title: '태양의 격노',
+        titleEn: 'Solar Wrath',
         description: '하수인에게 피해를 3 줍니다.',
+        descriptionEn: 'Deal 3 damage to a minion.',
         targetKind: 'ANY_MINION',
         run: (ops, side, targetId) => {
           if (targetId) ops.dealDamage(targetId, ops.getSpellDamageValue(side, 3), side, 'NATURE_WRATH');
@@ -286,7 +297,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_154b',
         title: '자연의 격노',
+        titleEn: "Nature's Wrath",
         description: '하수인에게 피해를 1 주고 카드를 뽑습니다.',
+        descriptionEn: 'Deal 1 damage to a minion and draw a card.',
         targetKind: 'ANY_MINION',
         run: (ops, side, targetId) => {
           if (targetId) ops.dealDamage(targetId, ops.getSpellDamageValue(side, 1), side, 'NATURE_WRATH');
@@ -303,7 +316,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       for (const m of p.board) {
         ops.buffMinion(m.uid, 0, 0, { tempAtk: 2 });
       }
-      ops.pushVfx('NATURE_WRATH', `${side}_HERO`, undefined, 2, '야생의 포효!');
+      ops.pushVfx('NATURE_WRATH', `${side}_HERO`, undefined, 2, trEffect('야생의 포효!', 'Savage Roar!'));
     },
   },
   EX1_155: {
@@ -312,7 +325,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_155a',
         title: '호랑이의 분노',
+        titleEn: 'Tiger Fury',
         description: '하수인에게 공격력을 +4 부여합니다.',
+        descriptionEn: 'Give a minion +4 Attack.',
         targetKind: 'ANY_MINION',
         run: (ops, _side, targetId) => {
           if (targetId) ops.buffMinion(targetId, 4, 0);
@@ -321,7 +336,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_155b',
         title: '두터운 가죽',
+        titleEn: 'Thick Hide',
         description: '하수인에게 생명력 +4와 도발을 부여합니다.',
+        descriptionEn: 'Give a minion +4 Health and Taunt.',
         targetKind: 'ANY_MINION',
         run: (ops, _side, targetId) => {
           if (targetId) ops.buffMinion(targetId, 0, 4, { taunt: true });
@@ -351,7 +368,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_166a',
         title: '달빛섬광',
+        titleEn: 'Moonfire',
         description: '피해를 2 줍니다.',
+        descriptionEn: 'Deal 2 damage.',
         targetKind: 'ANY_CHARACTER',
         run: (ops, side, targetId) => {
           if (targetId) ops.dealDamage(targetId, 2, side, 'NATURE_WRATH');
@@ -360,7 +379,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_166b',
         title: '무효화',
+        titleEn: 'Dispel',
         description: '하수인을 침묵시킵니다.',
+        descriptionEn: 'Silence a minion.',
         targetKind: 'ANY_MINION',
         run: (ops, _side, targetId) => {
           if (targetId) ops.silenceMinion(targetId);
@@ -373,7 +394,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
     onCastSpell: (ops, side) => {
       for (const m of ops.getPlayer(side).board) {
         m.soulOfTheForestCount += 1;
-        ops.pushVfx('BUFF_POP', m.uid, undefined, undefined, '숲의 영혼');
+        ops.pushVfx('BUFF_POP', m.uid, undefined, undefined, trEffect('숲의 영혼', 'Soul of the Forest'));
       }
     },
   },
@@ -499,7 +520,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_178a',
         title: '뿌리 내리기',
+        titleEn: 'Rooted',
         description: '생명력 +5와 도발을 얻습니다. (5/10 도발)',
+        descriptionEn: 'Gain +5 Health and Taunt (5/10 Taunt).',
         targetKind: 'NONE',
         run: (ops, _side, _targetId, selfMinion) => {
           if (selfMinion) ops.buffMinion(selfMinion.uid, 0, 5, { taunt: true });
@@ -508,7 +531,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_178b',
         title: '뿌리 들기',
+        titleEn: 'Uproot',
         description: '공격력을 +5 얻습니다. (10/5)',
+        descriptionEn: 'Gain +5 Attack (10/5).',
         targetKind: 'NONE',
         run: (ops, _side, _targetId, selfMinion) => {
           if (selfMinion) ops.buffMinion(selfMinion.uid, 5, 0);
@@ -522,7 +547,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'NEW1_008a',
         title: '고대의 지식',
+        titleEn: 'Ancient Teachings',
         description: '카드를 2장 뽑습니다.',
+        descriptionEn: 'Draw 2 cards.',
         targetKind: 'NONE',
         run: (ops, side) => {
           ops.drawCards(side, 2);
@@ -531,7 +558,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'NEW1_008b',
         title: '고대의 비밀',
+        titleEn: 'Ancient Secrets',
         description: '생명력을 5 회복시킵니다.',
+        descriptionEn: 'Restore 5 Health.',
         targetKind: 'ANY_CHARACTER',
         run: (ops, side, targetId) => {
           if (targetId) ops.healTarget(targetId, 5, side);
@@ -545,7 +574,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_573a',
         title: '야성왕의 총애',
+        titleEn: "Wild King's Favor",
         description: '내 다른 하수인들에게 +2/+2를 부여합니다.',
+        descriptionEn: 'Give your other minions +2/+2.',
         targetKind: 'NONE',
         run: (ops, side, _targetId, selfMinion) => {
           for (const m of ops.getPlayer(side).board) {
@@ -558,7 +589,9 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_573b',
         title: '고대림의 가호',
+        titleEn: 'Elderwood Ward',
         description: '도발 능력이 있는 2/2 수목정령을 둘 소환합니다.',
+        descriptionEn: 'Summon two 2/2 Treants with Taunt.',
         targetKind: 'NONE',
         run: (ops, side) => {
           for (let i = 0; i < 2; i++) {
@@ -593,7 +626,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const enemy = ops.getPlayer(ops.getEnemySide(side));
       enemy.secrets = [];
       ops.drawCards(side, 1);
-      ops.pushVfx('HOLY_NOVA', `${ops.getEnemySide(side)}_HERO`, undefined, undefined, '섬광!');
+      ops.pushVfx('HOLY_NOVA', `${ops.getEnemySide(side)}_HERO`, undefined, undefined, trEffect('섬광!', 'Flare!'));
     },
   },
   DS1_185: {
@@ -853,7 +886,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       if (f) {
         f.minion.permAttack = 1;
         f.minion.tempAttack = 0;
-        ops.pushVfx('BUFF_POP', f.minion.uid, undefined, undefined, '공격력 → 1');
+        ops.pushVfx('BUFF_POP', f.minion.uid, undefined, undefined, trEffect('공격력 → 1', 'Attack → 1'));
       }
     },
   },
@@ -871,7 +904,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const f = targetId ? ops.findMinion(targetId) : null;
       if (f) {
         f.minion.blessingOfWisdomOwners.push(side);
-        ops.pushVfx('HOLY_LIGHT', f.minion.uid, undefined, undefined, '지혜의 축복');
+        ops.pushVfx('HOLY_LIGHT', f.minion.uid, undefined, undefined, trEffect('지혜의 축복', 'Blessing of Wisdom'));
       }
     },
   },
@@ -905,7 +938,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
         m.maxHealth = 1;
         m.health = 1;
       }
-      ops.pushVfx('CONSECRATION', 'OPPONENT_HERO', undefined, undefined, '평등!');
+      ops.pushVfx('CONSECRATION', 'OPPONENT_HERO', undefined, undefined, trEffect('평등!', 'Equality!'));
     },
   },
   EX1_349: {
@@ -925,7 +958,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       if (f) {
         f.minion.permAttack = 1;
         f.minion.tempAttack = 0;
-        ops.pushVfx('HOLY_LIGHT', f.minion.uid, undefined, undefined, '법규를 따르라!');
+        ops.pushVfx('HOLY_LIGHT', f.minion.uid, undefined, undefined, trEffect('법규를 따르라!', 'Follow the Rules!'));
       }
     },
   },
@@ -1038,7 +1071,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
         const curHp = f.minion.health + f.minion.auraHealth;
         f.minion.permAttack = curHp;
         f.minion.tempAttack = 0;
-        ops.pushVfx('BUFF_POP', f.minion.uid, undefined, curHp, `공격력 ${curHp}!`);
+        ops.pushVfx('BUFF_POP', f.minion.uid, undefined, curHp, trEffect(`공격력 ${curHp}!`, `Attack ${curHp}!`));
       }
     },
   },
@@ -1117,8 +1150,14 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const p = ops.getPlayer(side);
       p.shadowformTier = Math.min(2, p.shadowformTier + 1);
       p.heroPowerId = p.shadowformTier === 1 ? 'EX1_625t' : 'EX1_625t2';
-      p.heroPowerNameKo = p.shadowformTier === 1 ? '별빛의 쐐기' : '별빛 파열';
-      p.heroPowerTextKo = p.shadowformTier === 1 ? '피해를 2 줍니다.' : '피해를 3 줍니다.';
+      p.heroPowerNameKo =
+        p.shadowformTier === 1
+          ? trEffect('별빛의 쐐기', 'Starlight Spike')
+          : trEffect('별빛 파열', 'Starlight Shatter');
+      p.heroPowerTextKo =
+        p.shadowformTier === 1
+          ? trEffect('피해를 2 줍니다.', 'Deal 2 damage.')
+          : trEffect('피해를 3 줍니다.', 'Deal 3 damage.');
       p.heroPowerNeedsTarget = true;
       p.heroPowerUsedThisTurn = false;
     },
@@ -1240,7 +1279,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const w = ops.getPlayer(side).weapon;
       if (w) {
         w.attack += 2;
-        ops.pushVfx('BUFF_POP', `${side}_HERO`, undefined, 2, '맹독 +2');
+        ops.pushVfx('BUFF_POP', `${side}_HERO`, undefined, 2, trEffect('맹독 +2', 'Deadly Poison +2'));
       }
     },
   },
@@ -1470,7 +1509,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       if (!targetId) return;
       if (targetId === `${side}_HERO`) {
         ops.getPlayer(side).tempAttack += 3;
-        ops.pushVfx('BUFF_POP', targetId, undefined, 3, '+3 공격력');
+        ops.pushVfx('BUFF_POP', targetId, undefined, 3, trEffect('+3 공격력', '+3 Attack'));
       } else {
         ops.buffMinion(targetId, 0, 0, { tempAtk: 3 });
       }
@@ -1491,7 +1530,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const f = targetId ? ops.findMinion(targetId) : null;
       if (f) {
         f.minion.ancestralSpiritCount += 1;
-        ops.pushVfx('HOLY_LIGHT', f.minion.uid, undefined, undefined, '고대의 영혼');
+        ops.pushVfx('HOLY_LIGHT', f.minion.uid, undefined, undefined, trEffect('고대의 영혼', 'Ancestral Spirit'));
       }
     },
   },
@@ -1553,7 +1592,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       for (const m of ops.getPlayer(side).board) {
         ops.buffMinion(m.uid, 0, 0, { tempAtk: 3 });
       }
-      ops.pushVfx('EXPLOSION', `${side}_HERO`, undefined, 3, '피의 욕망!');
+      ops.pushVfx('EXPLOSION', `${side}_HERO`, undefined, 3, trEffect('피의 욕망!', 'Bloodlust!'));
     },
   },
   CS2_042: {
@@ -1590,7 +1629,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const f = targetId ? ops.findMinion(targetId) : null;
       if (f) {
         f.minion.corruptionOwner = side;
-        ops.pushVfx('SHADOW_BOLT', f.minion.uid, undefined, undefined, '부패');
+        ops.pushVfx('SHADOW_BOLT', f.minion.uid, undefined, undefined, trEffect('부패', 'Corruption'));
       }
     },
   },
@@ -1788,7 +1827,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
     // 뒤틀린 황천 (모든 하수인 처치!)
     vfx: 'EXPLOSION',
     onCastSpell: (ops) => {
-      ops.pushVfx('EXPLOSION', 'OPPONENT_HERO', undefined, undefined, '심연의 균열!');
+      ops.pushVfx('EXPLOSION', 'OPPONENT_HERO', undefined, undefined, trEffect('심연의 균열!', 'Abyssal Rift!'));
       for (const m of [...ops.state.player.board, ...ops.state.opponent.board]) {
         ops.destroyMinion(m.uid);
       }
@@ -1801,17 +1840,26 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       p.board = p.board.filter((m) => m.uid !== self.uid);
       p.isJaraxxus = true;
       p.heroId = 'EX1_323h';
-      p.heroNameKo = '대장군 아이언포지';
+      p.heroNameKo = trEffect('대장군 아이언포지', 'Warlord Ironforge');
       p.maxHealth = 15;
       p.health = 15;
       p.armor = 0;
       p.heroPowerId = 'EX1_tk33';
-      p.heroPowerNameKo = '용광로 강림!';
-      p.heroPowerTextKo = '6/6 용광로 거신을 소환합니다.';
+      p.heroPowerNameKo = trEffect('용광로 강림!', 'Forge Descent!');
+      p.heroPowerTextKo = trEffect('6/6 용광로 거신을 소환합니다.', 'Summon a 6/6 Forge Colossus.');
       p.heroPowerNeedsTarget = false;
       p.heroPowerUsedThisTurn = false;
       ops.equipWeapon(side, 'EX1_323w');
-      ops.pushVfx('LEGENDARY_SLAM', `${side}_HERO`, undefined, 15, '딥포지 심연 용광로의 주인, 대장군 아이언포지가 친히 상대해 주마!');
+      ops.pushVfx(
+        'LEGENDARY_SLAM',
+        `${side}_HERO`,
+        undefined,
+        15,
+        trEffect(
+          '딥포지 심연 용광로의 주인, 대장군 아이언포지가 친히 상대해 주마!',
+          'You face Warlord Ironforge, Lord of the Deepforge Abyssal Furnace!',
+        ),
+      );
     },
   },
 
@@ -1894,7 +1942,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
     // 영웅의 일격 (이번 턴 내 영웅 공격력 +4)
     onCastSpell: (ops, side) => {
       ops.getPlayer(side).tempAttack += 4;
-      ops.pushVfx('BUFF_POP', `${side}_HERO`, undefined, 4, '+4 공격력');
+      ops.pushVfx('BUFF_POP', `${side}_HERO`, undefined, 4, trEffect('+4 공격력', '+4 Attack'));
     },
   },
   EX1_603: {
@@ -1976,7 +2024,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const all = [...ops.state.player.board, ...ops.state.opponent.board];
       if (all.length <= 1) return;
       const survivor = all[Math.floor(Math.random() * all.length)];
-      ops.pushVfx('EXPLOSION', survivor.uid, undefined, undefined, '난투!');
+      ops.pushVfx('EXPLOSION', survivor.uid, undefined, undefined, trEffect('난투!', 'Brawl!'));
       for (const m of all) {
         if (m.uid !== survivor.uid) ops.destroyMinion(m.uid);
       }
@@ -2441,7 +2489,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const p = ops.getPlayer(heroSide);
       if (p.maxHealth < 15) p.maxHealth = 15;
       p.health = 15;
-      ops.pushVfx('FIREBALL', targetId, self.uid, 15, '생명력 15!');
+      ops.pushVfx('FIREBALL', targetId, self.uid, 15, trEffect('생명력 15!', 'Health 15!'));
     },
   },
   EX1_562: {
@@ -2455,7 +2503,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
   NEW1_030: {
     // 데스윙 (전장의 다른 모든 하수인 처치 + 내 손패 모두 버림!!)
     onBattlecry: (ops, side, self) => {
-      ops.pushVfx('EXPLOSION', 'OPPONENT_HERO', self.uid, undefined, '나는 힘의 화신이다!!');
+      ops.pushVfx('EXPLOSION', 'OPPONENT_HERO', self.uid, undefined, trEffect('나는 힘의 화신이다!!', 'I AM POWER INCARNATE!!'));
       const p = ops.getPlayer(side);
       p.hand = [];
       for (const m of [...ops.state.player.board, ...ops.state.opponent.board]) {

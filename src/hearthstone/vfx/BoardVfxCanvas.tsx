@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { isKoreanLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { elementCenterInStage, getStageSize } from '../stageCoords';
 import { VfxEvent } from '../types';
@@ -373,11 +374,12 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
           spawnRing(targetPos.x, targetPos.y, '#f472b6', 130);
           spawnBurst(targetPos.x, targetPos.y, 14, ['#fbcfe8', '#f472b6', '#fde047'], 6, 7, 'STAR', 0);
           if (ev.label) {
+            const isKo = isKoreanLanguage();
             badgesRef.current.push({
               x: stageW * 0.5,
               y: stageH * 0.3,
               vy: -0.6,
-              text: `비밀 발동! [${ev.label}]`,
+              text: isKo ? `비밀 발동! [${ev.label}]` : `Secret! [${ev.label}]`,
               subKind: 'BANNER',
               life: 0,
               maxLife: 75,
@@ -405,11 +407,12 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
             0.04,
           );
           if (ev.label) {
+            const isKo = isKoreanLanguage();
             badgesRef.current.push({
               x: stageW * 0.5,
               y: stageH * 0.24,
               vy: -0.45,
-              text: `★ 전설 강림 · ${ev.label}`,
+              text: isKo ? `★ 전설 강림 · ${ev.label}` : `★ Legendary · ${ev.label}`,
               subKind: 'BANNER',
               life: 0,
               maxLife: 88,
@@ -480,7 +483,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({ events, onDamage
             x: targetPos.x + 22,
             y: targetPos.y - 12,
             vy: -0.9,
-            text: `+${ev.value || 1} 방어도`,
+            text: isKoreanLanguage() ? `+${ev.value || 1} 방어도` : `+${ev.value || 1} Armor`,
             subKind: 'ARMOR',
             life: 0,
             maxLife: 44,

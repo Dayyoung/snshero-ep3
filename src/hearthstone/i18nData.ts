@@ -1,4 +1,4 @@
-import { isKoreanLanguage } from '../i18n/heroLang';
+import { HeroLanguage, isKoreanLanguage } from '../i18n/heroLang';
 import {
   CardClass,
   CardRarity,
@@ -192,8 +192,9 @@ export const CLASSIC_HEROES_EN: Record<HeroClass, LocalizedHeroInfo> = {
   },
 };
 
-export function getLocalizedHeroInfo(heroClass: HeroClass): LocalizedHeroInfo {
-  if (isKoreanLanguage()) {
+export function getLocalizedHeroInfo(heroClass: HeroClass, lang?: HeroLanguage): LocalizedHeroInfo {
+  const ko = lang ? lang === 'ko' : isKoreanLanguage();
+  if (ko) {
     const h = CLASSIC_HEROES[heroClass];
     return {
       name: h.nameKo,
@@ -237,8 +238,9 @@ export const CLASSIC_RANK_NAMES_EN: Record<number, string> = {
   0: 'Legendary SNSHero (LEGEND)',
 };
 
-export function getRankTitle(rank: number, koMap: Record<number, string>): string {
-  if (isKoreanLanguage()) {
+export function getRankTitle(rank: number, koMap: Record<number, string>, lang?: HeroLanguage): string {
+  const ko = lang ? lang === 'ko' : isKoreanLanguage();
+  if (ko) {
     return koMap[rank] || '엘윈 마을 수습생';
   }
   return CLASSIC_RANK_NAMES_EN[rank] || 'Elwin Village Apprentice';
@@ -256,8 +258,9 @@ export const PRESET_DECK_NAMES_EN: Record<string, string> = {
   preset_druid: 'Beast — Fenrir',
 };
 
-export function getDeckDisplayName(deck: Pick<CustomDeck, 'id' | 'name' | 'heroClass'>): string {
-  if (isKoreanLanguage()) return deck.name;
+export function getDeckDisplayName(deck: Pick<CustomDeck, 'id' | 'name' | 'heroClass'>, lang?: HeroLanguage): string {
+  const ko = lang ? lang === 'ko' : isKoreanLanguage();
+  if (ko) return deck.name;
   if (PRESET_DECK_NAMES_EN[deck.id]) return PRESET_DECK_NAMES_EN[deck.id];
   if (deck.name.includes('의 ')) {
     const info = CLASSIC_HEROES_EN[deck.heroClass];
@@ -297,26 +300,32 @@ export const CARD_RACE_LABELS_EN: Record<string, string> = {
   PIRATE: 'Pirate',
   TOTEM: 'Spirit Stone',
   ELEMENTAL: 'Elemental',
+  UNDEAD: 'Undead',
 };
 
-export function getCardName(card: Pick<ClassicCardDef, 'name' | 'nameEn'>): string {
-  return isKoreanLanguage() ? card.name : (card.nameEn || card.name);
+export function getCardName(card: Pick<ClassicCardDef, 'name' | 'nameEn'>, lang?: HeroLanguage): string {
+  const ko = lang ? lang === 'ko' : isKoreanLanguage();
+  return ko ? card.name : (card.nameEn || card.name);
 }
 
-export function getCardText(card: Pick<ClassicCardDef, 'text' | 'textEn'>): string {
-  return isKoreanLanguage() ? card.text : (card.textEn !== undefined ? card.textEn : card.text);
+export function getCardText(card: Pick<ClassicCardDef, 'text' | 'textEn'>, lang?: HeroLanguage): string {
+  const ko = lang ? lang === 'ko' : isKoreanLanguage();
+  return ko ? card.text : (card.textEn !== undefined ? card.textEn : card.text);
 }
 
-export function getCardFlavor(card: Pick<ClassicCardDef, 'flavor' | 'flavorEn'>): string {
-  return isKoreanLanguage() ? (card.flavor || '') : (card.flavorEn || card.flavor || '');
+export function getCardFlavor(card: Pick<ClassicCardDef, 'flavor' | 'flavorEn'>, lang?: HeroLanguage): string {
+  const ko = lang ? lang === 'ko' : isKoreanLanguage();
+  return ko ? (card.flavor || '') : (card.flavorEn || card.flavor || '');
 }
 
-export function getCardCharName(card: Pick<ClassicCardDef, 'name' | 'nameEn' | 'snsCharName' | 'snsCharNameEn'>): string {
-  if (isKoreanLanguage()) return card.snsCharName || card.name;
+export function getCardCharName(card: Pick<ClassicCardDef, 'name' | 'nameEn' | 'snsCharName' | 'snsCharNameEn'>, lang?: HeroLanguage): string {
+  const ko = lang ? lang === 'ko' : isKoreanLanguage();
+  if (ko) return card.snsCharName || card.name;
   return card.snsCharNameEn || card.nameEn || card.name;
 }
 
-export function getCardFactionLabel(card: Pick<ClassicCardDef, 'snsFactionKo' | 'snsFactionEn'>): string {
-  if (isKoreanLanguage()) return card.snsFactionKo || '';
+export function getCardFactionLabel(card: Pick<ClassicCardDef, 'snsFactionKo' | 'snsFactionEn'>, lang?: HeroLanguage): string {
+  const ko = lang ? lang === 'ko' : isKoreanLanguage();
+  if (ko) return card.snsFactionKo || '';
   return card.snsFactionEn || card.snsFactionKo || '';
 }

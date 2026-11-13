@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
+import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { SNS_LOCATIONS, SNS_LOGO_URL, SnsSnowCompassSeal } from '../components/SnsHeroArtKit';
 
 export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnterHub }) => {
+  useHeroLanguage();
   const [opening, setOpening] = useState(false);
 
   const embers = useMemo(
@@ -179,27 +181,26 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-[#c89d51]/50 bg-[#120a05]/85 px-3.5 py-1 text-[10px] font-extrabold tracking-[0.14em] text-[#efd7a3] shadow-lg sm:gap-2 sm:px-4 sm:text-[11px] sm:tracking-[0.18em]">
           <span className="text-amber-300">ELWIN VILLAGE</span>
           <span className="text-amber-500">•</span>
-          <span>엘윈마을 · 카단의 여정</span>
+          <span>{tr('엘윈마을 · 카단의 여정', "Kadan's Journey")}</span>
         </div>
       </header>
 
-      {/* Layer 3: Official 눈히어로 Brand Crest + Compass Swirl Latch + Novel/Webtoon Buttons */}
+      {/* Layer 3: Official SNSHero Brand Crest + Compass Swirl Latch + Novel/Webtoon Buttons */}
       <main
         className={`relative z-30 my-auto flex w-full max-w-md flex-col items-center px-4 text-center transition-all duration-700 sm:max-w-lg ${
           opening ? 'scale-125 opacity-0' : 'scale-100 opacity-100'
         }`}
       >
-        {/* Official 눈히어로 Logo */}
         <div className="relative flex flex-col items-center">
           <div className="pointer-events-none absolute -inset-6 rounded-full bg-radial from-amber-400/25 via-sky-400/12 to-transparent blur-xl" />
           <img
             src={SNS_LOGO_URL}
-            alt="눈히어로"
+            alt={tr('눈히어로', 'SNSHero')}
             draggable={false}
             className="relative w-[265px] max-w-[84vw] drop-shadow-[0_18px_32px_rgba(0,0,0,0.95)] sm:w-[430px]"
           />
           <div className="hs-title hs-outline-sm mt-1 tracking-[0.22em] text-xs font-extrabold text-[#f7dfb0] sm:mt-1.5 sm:text-sm sm:tracking-[0.26em]">
-            엘윈마을의 영웅들
+            {tr('엘윈마을의 영웅들', 'HEROES OF ELWIN VILLAGE')}
           </div>
         </div>
 
@@ -246,10 +247,10 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
             }}
             className="hs-arcane-btn hs-title hs-outline min-h-[50px] w-full rounded-2xl px-10 py-3 text-base font-extrabold tracking-widest sm:min-h-[56px] sm:px-14 sm:py-3.5 sm:text-xl"
           >
-            엘윈마을 입장
+            {tr('엘윈마을 입장', 'Enter Elwin Village')}
           </button>
 
-          {/* 소설읽기 / 웹툰보기 Buttons Directly Underneath */}
+          {/* Novel / Webtoon Buttons Directly Underneath */}
           <div className="grid grid-cols-2 gap-2.5">
             <a
               href="/book.html"
@@ -268,7 +269,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
                   strokeLinejoin="round"
                 />
               </svg>
-              <span>소설읽기</span>
+              <span>{tr('소설읽기', 'Read Novel')}</span>
             </a>
 
             <a
@@ -283,16 +284,16 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
                 <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2.1" />
                 <path d="M3 10h18M11 10v11" stroke="currentColor" strokeWidth="2" />
               </svg>
-              <span>웹툰보기</span>
+              <span>{tr('웹툰보기', 'Read Webtoon')}</span>
             </a>
           </div>
 
           <div className="mt-0.5 flex flex-wrap items-center justify-center gap-2 rounded-xl border border-[#8d6732]/60 bg-[#130b05]/85 px-3.5 py-1.5 text-[11px] font-bold text-[#e7cda0] shadow-xl sm:gap-2.5 sm:px-4 sm:text-xs">
-            <span>11종족 110영웅</span>
+            <span>{tr('11종족 110영웅', '9 Factions · 110 Heroes')}</span>
             <span className="text-amber-500">·</span>
-            <span>수집 카드 382종 완비</span>
+            <span>{tr('수집 카드 382종 완비', '382 Collectible Cards')}</span>
             <span className="text-amber-500">·</span>
-            <span className="text-sky-300">한국어 성우 풀보이스</span>
+            <span className="text-sky-300">{tr('한국어 성우 풀보이스', '40-EP Story Mode')}</span>
           </div>
         </div>
       </main>
@@ -303,7 +304,10 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
           opening ? 'opacity-0' : 'opacity-100'
         }`}
       >
-        화면을 터치하거나 엘윈마을 입장을 누르면 성소의 문이 열립니다
+        {tr(
+          '화면을 터치하거나 엘윈마을 입장을 누르면 성소의 문이 열립니다',
+          'Tap anywhere or click Enter Elwin Village to open the sanctuary doors',
+        )}
       </footer>
     </div>
   );

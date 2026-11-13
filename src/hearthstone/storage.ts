@@ -1,3 +1,4 @@
+import { isKoreanLanguage, tr } from '../i18n/heroLang';
 import {
   CLASSIC_PRESET_DECKS,
   CRAFTING_COST,
@@ -114,6 +115,13 @@ export const GOLD_PACK_BUNDLES: GoldPackBundleDef[] = [
   },
 ];
 
+export function getGoldPackBundleLabel(bundle: GoldPackBundleDef, isKo: boolean): { label: string; badge?: string } {
+  if (isKo) return { label: bundle.label, badge: bundle.badge };
+  if (bundle.packs === 1) return { label: '1 SNSHero Pack' };
+  if (bundle.packs === 5) return { label: '5 SNSHero Packs', badge: '10% OFF (-50G)' };
+  return { label: '10 SNSHero Packs', badge: '15% OFF (-150G)' };
+}
+
 export interface ModeRewardGuide {
   mode: GameMode;
   modeNameKo: string;
@@ -165,6 +173,56 @@ export const MODE_REWARD_GUIDES: Record<GameMode, ModeRewardGuide> = {
     summaryOneLine: '승리 시 +20G · 최초 제압 +50G · 9종족 올클리어 +2팩',
   },
 };
+
+export const MODE_REWARD_GUIDES_EN: Record<GameMode, ModeRewardGuide> = {
+  TUTORIAL: {
+    mode: 'TUTORIAL',
+    modeNameKo: "Story Mode (Kadan's Journey)",
+    playStyleBadge: 'Auto-Play Built-in · 3 Copies = 3x Power',
+    baseWinRewardText: '45G–240G+ per win (scales with episode & Reincarnation)',
+    specialBonusText: 'First Clear +30G · Boss Pack every 5 EP · EP.40 Clear +300G & 3 Packs + Reincarnation',
+    summaryOneLine: 'Episode Gold + Boss Packs every 5 EP + 3 Packs on EP.40 Clear',
+  },
+  RANKED: {
+    mode: 'RANKED',
+    modeNameKo: 'Ranked Play (Standard)',
+    playStyleBadge: 'Auto-Play Available · Classic 1x Rules',
+    baseWinRewardText: '+25 Gold + 1 Rank Star per win',
+    specialBonusText: '+30G every 3 wins · +2 Win-Streak Bonus Stars · Climb to Legend',
+    summaryOneLine: '+25G per win · +30G per 3 wins · Rank Stars',
+  },
+  CASUAL: {
+    mode: 'CASUAL',
+    modeNameKo: 'Casual Play',
+    playStyleBadge: 'Auto-Play Available · Classic 1x Rules',
+    baseWinRewardText: '+15 Gold per win (no rank loss)',
+    specialBonusText: '+20G every 3 wins · Safe Daily Quest progression',
+    summaryOneLine: '+15G per win · +20G per 3 wins · No rank penalty',
+  },
+  PRACTICE_NORMAL: {
+    mode: 'PRACTICE_NORMAL',
+    modeNameKo: 'Practice vs Normal AI',
+    playStyleBadge: 'Auto-Play Available · Classic 1x Rules',
+    baseWinRewardText: '+10 Gold per win',
+    specialBonusText: '+25G first-clear bonus per faction champion (+225G total)',
+    summaryOneLine: '+10G per win · +25G Faction First-Clear Bonus',
+  },
+  PRACTICE_EXPERT: {
+    mode: 'PRACTICE_EXPERT',
+    modeNameKo: 'Practice vs Expert AI',
+    playStyleBadge: 'Auto-Play Available · Classic 1x Rules',
+    baseWinRewardText: '+20 Gold per win',
+    specialBonusText: '+50G first-clear per faction · +2 Bonus Packs for sweeping all 9',
+    summaryOneLine: '+20G per win · +50G First-Clear · +2 Packs on All-9 Sweep',
+  },
+};
+
+export function getModeRewardGuide(
+  mode: GameMode,
+  isKo: boolean = isKoreanLanguage(),
+): ModeRewardGuide {
+  return (isKo ? MODE_REWARD_GUIDES : MODE_REWARD_GUIDES_EN)[mode];
+}
 
 export interface OverallStandingSummary {
   wins: number;
@@ -994,19 +1052,22 @@ class HearthstoneStorage {
   craftCard(cardId: string): { ok: boolean; reason?: string } {
     const def = cardDb.getCard(cardId);
     if (!def) {
-      return { ok: false, reason: '존재하지 않는 카드입니다.' };
+      return { ok: false, reason: tr('존재하지 않는 카드입니다.', 'Card not found.') };
     }
     if (def.rarity === 'FREE') {
-      return { ok: false, reason: '기본 무료 지급 카드는 제작할 수 없습니다.' };
+      return { ok: false, reason: tr('기본 무료 지급 카드는 제작할 수 없습니다.', 'Free Basic cards cannot be crafted.') };
     }
     const cost = CRAFTING_COST[def.rarity] || 40;
     const p = this.getProfile();
     if (p.arcaneDust < cost) {
-      return { ok: false, reason: `신비한 가루가 부족합니다. (필요: ${cost})` };
+      return {
+        ok: false,
+        reason: tr(`신비한 가루가 부족합니다. (필요: ${cost})`, `Not enough Arcane Dust (need ${cost}).`),
+      };
     }
     const col = this.getCollection();
     if ((col[cardId] || 0) >= 99) {
-      return { ok: false, reason: '최대 보유 한도(99장)에 도달했습니다.' };
+      return { ok: false, reason: tr('최대 보유 한도(99장)에 도달했습니다.', 'Maximum copy limit (99) reached.') };
     }
     p.arcaneDust -= cost;
     const nextCount = (col[cardId] || 0) + 1;
@@ -1028,15 +1089,15 @@ class HearthstoneStorage {
   disenchantCard(cardId: string, preferGolden = false): { ok: boolean; reason?: string; dustGained?: number } {
     const def = cardDb.getCard(cardId);
     if (!def) {
-      return { ok: false, reason: '존재하지 않는 카드입니다.' };
+      return { ok: false, reason: tr('존재하지 않는 카드입니다.', 'Card not found.') };
     }
     if (def.rarity === 'FREE') {
-      return { ok: false, reason: '기본 무료 지급 카드는 마력을 추출할 수 없습니다.' };
+      return { ok: false, reason: tr('기본 무료 지급 카드는 마력을 추출할 수 없습니다.', 'Free Basic cards cannot be disenchanted.') };
     }
     const col = this.getCollection();
     const totalOwned = col[cardId] || 0;
     if (totalOwned <= 0) {
-      return { ok: false, reason: '보유한 카드가 없습니다.' };
+      return { ok: false, reason: tr('보유한 카드가 없습니다.', 'No copies owned.') };
     }
     const gcol = this.getGoldenCollection();
     const goldenOwned = Math.min(totalOwned, gcol[cardId] || 0);
@@ -1256,7 +1317,7 @@ class HearthstoneStorage {
           if (!p.journeyGuideDone) {
             p.journeyGuideDone = true;
             bonusGold += 50;
-            bonusLabel = '에피소드 0 튜토리얼 수료 보너스';
+            bonusLabel = tr('에피소드 0 튜토리얼 수료 보너스', 'Episode 0 Tutorial Completion Bonus');
           }
           p.journeyEpisode = 1;
           nextEpisode = 1;
@@ -1270,15 +1331,21 @@ class HearthstoneStorage {
           if (isFirstClearOfStage) {
             p.journeyMaxStageCleared = stageIndex;
             bonusGold += 30;
-            bonusLabel = '최초 회차 돌파 보너스';
+            bonusLabel = tr('최초 회차 돌파 보너스', 'First Clear Bonus');
             if (curEp === 40) {
               bonusGold += 300;
-              bonusLabel = '40화 대단원 완주 & 환생 개방 특전';
+              bonusLabel = tr('40화 대단원 완주 & 환생 개방 특전', 'Episode 40 Finale & Reincarnation Bonus');
               packsEarned += 3;
-              packReason = `제${curReinc + 1}차 여정 완주 보상 (눈히어로 팩 +3)`;
+              packReason = tr(
+                `제${curReinc + 1}차 여정 완주 보상 (눈히어로 팩 +3)`,
+                `Journey Run #${curReinc + 1} Clear Reward (+3 Packs)`,
+              );
             } else if (curEp % 5 === 0) {
               packsEarned += 1;
-              packReason = `제${curEp}화 챕터 보스 최초 토벌 보상 (눈히어로 팩 +1)`;
+              packReason = tr(
+                `제${curEp}화 챕터 보스 최초 토벌 보상 (눈히어로 팩 +1)`,
+                `Episode ${curEp} Boss Clear Reward (+1 Pack)`,
+              );
             }
           }
 
@@ -1298,7 +1365,7 @@ class HearthstoneStorage {
         if (p.threeWinCounter >= 3) {
           p.threeWinCounter = 0;
           bonusGold = 30;
-          bonusLabel = '등급전 3승 달성 보너스';
+          bonusLabel = tr('등급전 3승 달성 보너스', 'Ranked 3-Win Milestone Bonus');
         }
         if (p.rank > 0) {
           const starGain = p.winStreak >= 3 && p.rank > 5 ? 2 : 1;
@@ -1319,24 +1386,27 @@ class HearthstoneStorage {
         if (p.threeWinCounter >= 3) {
           p.threeWinCounter = 0;
           bonusGold = 20;
-          bonusLabel = '일반전 3승 달성 보너스';
+          bonusLabel = tr('일반전 3승 달성 보너스', 'Casual 3-Win Milestone Bonus');
         }
       } else if (mode === 'PRACTICE_NORMAL') {
         baseWinGold = 10;
         if (opponentClass && !p.practiceNormalCleared.includes(opponentClass)) {
           p.practiceNormalCleared = [...p.practiceNormalCleared, opponentClass];
           bonusGold = 25;
-          bonusLabel = '수련(일반) 종족 최초 제압 보너스';
+          bonusLabel = tr('수련(일반) 종족 최초 제압 보너스', 'Normal AI Faction First-Clear Bonus');
         }
       } else if (mode === 'PRACTICE_EXPERT') {
         baseWinGold = 20;
         if (opponentClass && !p.practiceExpertCleared.includes(opponentClass)) {
           p.practiceExpertCleared = [...p.practiceExpertCleared, opponentClass];
           bonusGold = 50;
-          bonusLabel = '수련(숙련가) 종족 최초 제압 보너스';
+          bonusLabel = tr('수련(숙련가) 종족 최초 제압 보너스', 'Expert AI Faction First-Clear Bonus');
           if (p.practiceExpertCleared.length === HERO_CLASS_ORDER.length) {
             packsEarned += 2;
-            packReason = '엘윈마을 9종족 숙련가 전원 제압 마스터 보상 (눈히어로 팩 +2)';
+            packReason = tr(
+              '엘윈마을 9종족 숙련가 전원 제압 마스터 보상 (눈히어로 팩 +2)',
+              'All 9 Expert AI Champions Defeated (+2 Packs)',
+            );
           }
         }
       }

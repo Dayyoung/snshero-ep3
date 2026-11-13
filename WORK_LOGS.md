@@ -2,6 +2,21 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-13 13:21 KST] [전 페이지 영문화·한국어 브라우저 자동 감지·설정/푸터 언어 선택기 연동 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 브라우저 언어 기본값 규칙 및 언어 상태 영구 동기화 (`heroLang.ts`)**:
+    - 한국어 브라우저(`ko*`)만 기본 `'ko'`, 그 외 모든 국가는 기본 `'en'`(영어)으로 표시되며, 선택값은 `localStorage('hero_language')`와 `document.documentElement.lang`에 동기화 (`useHeroLanguage()` 객체 반환 규격 통일 및 `Modals.tsx`·`BoxHubScreen.tsx`·`BattleScreen.tsx`·`HearthstoneApp.tsx`·`PromoApp.tsx` 등 전체 호출부 정비).
+  - **2. 게임 페이지(`/` · `/game.html`) 옵션 팝업 언어 선택 및 전면 영문화 (`/stone.html` 불변 유지)**:
+    - [`Modals.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/Modals.tsx) 설정 모달 내 `English` / `한국어` 토글 연동 및 [`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx) 첫 방문 상태에서도 설정(`hub-options-btn`) 즉시 열람 허용.
+    - [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx) 및 [`KadanJourneyStoryModal.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/KadanJourneyStoryModal.tsx)의 잘못된 3인자 `tr(lang, ko, en)` 141건을 2인자 `tr(ko, en)`으로 전량 복원.
+    - [`storage.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/storage.ts) `getModeRewardGuide()` 추가, [`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts) 영웅/카드 비한국어 음성 가드 및 `getLocalizedHeroInfo()` 매칭, [`GameEngine.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/GameEngine.ts)·[`aiController.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/aiController.ts)·[`cardEffects.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/cardEffects.ts)·[`BoardVfxCanvas.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/vfx/BoardVfxCanvas.tsx) 영문 로컬라이징 완비.
+  - **3. 일반 페이지(`/promo.html` · `/book.html` · `/novel.html` · `/webtoon.html`) 하단 푸터 언어 선택기 및 정적 HTML 영문 기본값**:
+    - `index.html`, `promo.html`, `book.html`, `webtoon.html` 메타/타이틀 영문 기본값 적용 및 하단 `[data-testid="footer-language-switcher"]` EN/KO 양방향 전환 검증.
+  - **4. 타입체크·프로덕션 빌드·Playwright E2E 검증 완료**:
+    - `npx tsc --noEmit` (신규/수정 파일 에러 0건) 및 `npm run build` 정상 통과.
+    - Playwright(`en-US`·`ko-KR` 컨텍스트) E2E 검증 통과: 전 6개 경로(`/`·`/game.html`·`/promo.html`·`/book.html`·`/novel.html`·`/webtoon.html`) `en-US` 기본 영어·`ko-KR` 기본 한국어 감지, 스토리모드 제0화 전장 진입 시 한글 잔존 문자열 0건, 설정/푸터 전환 및 새로고침 영구 유지 0 errors 확인.
+
 ## [2026-11-13 12:40 KST] [/promo.html 주인공 카단·이그니스 명칭 정립, 인게임 1920x1080 스크린샷 6종 교체(#latest·#modes), 미디어믹스 4대 섹션(웹소설·웹툰·네이버웹소설·네이버웹툰) 및 신규 네이버 웹툰 URL 갱신 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
