@@ -20,7 +20,7 @@ description: 지정한 회차(예: /cutscene-anime-short 1화)의 /script-anime 
 3. **일관성 유지를 위한 레퍼런스 시트 첨부 원칙**:
    - 각 컷신 생성 시 해당 컷신에 지정된 시트들을 첨부파일(Reference Image)로 업로드·연동하여 캐릭터/장소/소품 일관성을 유지합니다:
      - **배경장소 시트**: `public/anime-character-sheets/locations/art/LOC_XXX_*.jpg`
-     - **캐릭터 시트 (7등신 Cutouts 기준)**: `public/anime-character-sheets/cutouts/XXX_Name.png`
+     - **캐릭터 시트 (7등신 Cutouts 기준)**: `public/hs-assets/characters/cutouts/XXX_Name.webp`
      - **소품 시트**: `public/anime-character-sheets/props/art/PROP_XXX_*.jpg`
 4. **모델 및 화면 비율 규격**:
    - **생성 모델**: **나노바나나 2.1 / Nano Banana 2** (`🍌 Nano Banana 2` / `🍌 Nano Banana Pro`)

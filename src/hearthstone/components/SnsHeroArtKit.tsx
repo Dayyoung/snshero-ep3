@@ -1,7 +1,7 @@
 import React from 'react';
 import { HeroClass, SnsCardBackId } from '../types';
 
-export const SNS_LOGO_URL = '/logo-ko.png';
+export const SNS_LOGO_URL = '/hs-assets/brand/logo-ko.webp';
 export const SNS_ICON_URL = '/icon.png';
 
 export const SNS_LOCATIONS = {

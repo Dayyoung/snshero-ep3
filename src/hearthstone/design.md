@@ -11,7 +11,7 @@
   - **신규 사용자 초기 카드 팩**: **`3팩`** (`defaultProfile().packs = 3`)
   - **첫 방문 강제 온보딩 가이드**: 첫 홈 허브 진입 시(`!profile.journeyGuideDone`) **`스토리모드`** 버튼 위에 손가락 가이드(`👈 클릭!`)가 표시되며, 다른 모든 상단/중앙/하단 버튼은 비활성화(`disabled`)되어 플레이어가 자연스럽게 제1화 서사와 자동전투로 입문하도록 설계한다.
 - **전체화면 독립형 PWA 구성 (`game.html` + `public/game-manifest.json` + `pwaFullscreen.ts`) 및 `hero_hs_*` 로컬스토리지 100% 독립 격리 (`storage.ts` + `Modals.tsx`)**:
-  - `/game.html`은 전용 Web App Manifest(`/game-manifest.json`, `start_url: "/game.html"`, `display: "fullscreen"`, `display_override: ["fullscreen", "standalone"]`)와 전용 아이콘(`/hs-assets/pwa-icon-192.png`, `512.png`), 서비스 워커(`/sw.js`), 브라우저 Fullscreen API 전환 버튼(상단 HUD 및 환경 설정 모달)을 갖춘 전체화면 PWA로 동작한다.
+  - `/game.html`은 전용 Web App Manifest(`/game-manifest.json`, `start_url: "/game.html"`, `display: "fullscreen"`, `display_override: ["fullscreen", "standalone"]`)와 전용 아이콘(`/hs-assets/brand/pwa-icon-192.png`, `512.png`), 서비스 워커(`/sw.js`), 브라우저 Fullscreen API 전환 버튼(상단 HUD 및 환경 설정 모달)을 갖춘 전체화면 PWA로 동작한다.
   - 향후 `/#setting`(메인 3×3·RPG 게임)과 `/game.html`의 프로젝트/도메인 분리에 대비하여, `/game.html`의 모든 로컬스토리지 데이터는 오직 **`hero_hs_*`** 접두사(`hero_hs_profile`, `hero_hs_collection`, `hero_hs_golden_collection`, `hero_hs_decks`, `hero_hs_quests`, `hero_hs_pack_pity`, `hero_hs_settings`, `hero_hs_ad_removed`)로만 격리 저장되며, `환경 설정(GameOptionsModal)` 내부에 `/game.html` 전용(`hero_hs_*`) 백업 파일 저장·코드 복사·파일/코드 복원·단독 초기화 기능을 내장한다 (`/#setting`의 백업·복원·초기화와 상호 간섭 0%).
 - **핵심 거점 및 홈 화면 배치 (하스스톤 '더 박스' 레이아웃 1:1 벤치마킹)**:
   - **인트로 화면 (`TavernIntroScreen.tsx`)**:

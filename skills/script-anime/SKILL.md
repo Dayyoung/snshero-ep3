@@ -10,10 +10,10 @@ description: 지정한 회차(예: /script-anime 1회)의 영문 소설과 7등�
 
 ## 입력 데이터 및 참조 시트 경로
 1. **영문 소설 원문**: `public/book/image_narrations/english_txt/SNSHero_Novel_Episode_{XX}_*_EN.txt`
-2. **한국어 소설 원문**: `public/book/episode_{XX}.md`
-3. **마스터 매니페스트**: `public/anime-character-sheets/manifest.json`
+2. **한국어 소설 원문**: `public/novel-assets/episode_{XX}.md`
+3. **마스터 매니페스트**: `public/hs-assets/characters/manifest.json`
 4. **첨부 이미지 기준 (글자 없는 순수 레퍼런스 우선 첨부)**:
-   - **캐릭터 시트 기준 (필수)**: **7등신 전신 컷아웃 PNG** (`public/anime-character-sheets/cutouts/001_Aquaris.png` ~ `110_Dreadwing.png`)
+   - **캐릭터 시트 기준 (필수)**: **7등신 전신 컷아웃 PNG** (`public/hs-assets/characters/cutouts/001_Aquaris.webp` ~ `110_Dreadwing.png`)
    - **배경장소 시트 기준**: `public/anime-character-sheets/locations/art/LOC_001..020_*.jpg` 및 `locations/sheets/LOC_001..020_*_sheet.jpg`
    - **핵심 소품 시트 기준**: `public/anime-character-sheets/props/art/PROP_001..020_*.jpg` 및 `props/sheets/PROP_001..020_*_sheet.jpg`
 
@@ -25,7 +25,7 @@ description: 지정한 회차(예: /script-anime 1회)의 영문 소설과 7등�
 2. **배경 묘사 (`Background Location Sheet & Prompt`)**:
    - 현재 생성해야 하는 컷신의 배경을 **배경장소 시트(`LOC-001`~`LOC-020`) 파일 경로** 및 **영문 소설 기준 배경 프롬프트**로 상세히 묘사합니다.
 3. **등장 캐릭터 묘사 — 7등신 Cutouts 기준 (`7-Head-Tall Character Cutouts & Prompt`)**:
-   - 현재 생성해야 하는 컷신에 등장하는 모든 인물을 **7등신 전신 컷아웃 이미지(`public/anime-character-sheets/cutouts/XXX_Name.png`) 첨부 링크** 및 **7등신 외형·복장 프롬프트**로 묘사합니다.
+   - 현재 생성해야 하는 컷신에 등장하는 모든 인물을 **7등신 전신 컷아웃 이미지(`public/hs-assets/characters/cutouts/XXX_Name.webp`) 첨부 링크** 및 **7등신 외형·복장 프롬프트**로 묘사합니다.
 4. **등장 소품 및 소품 소지 캐릭터 묘사 (`Props & Prop Holder Specification`)**:
    - 현재 컷신에 등장해야 하는 **소품(`PROP-001`~`PROP-020` 또는 고유 무기/성물)**과 **그 소품을 소지(착용·사용)해야 하는 캐릭터가 누구인지** 명확하게 프롬프트로 묘사합니다.
 5. **6초 이내 대사 요약 / 전지적 시점 배경 남자 나레이션 / 전원 침묵 3모드 규칙 (`3-Mode Audio: 6s Character Dialogue / Off-Screen Omniscient Male Narration / Strict Silence`)**:

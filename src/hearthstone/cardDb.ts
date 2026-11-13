@@ -61,8 +61,8 @@ class ClassicCardDatabase {
         snsCharName: '카단',
         snsFaction: 'human',
         snsFactionKo: '인간종족',
-        artUrl: '/anime-character-sheets/cutouts/041_Kadan.png',
-        bustUrl: '/anime-character-sheets/busts/041_bust.jpg',
+        artUrl: '/hs-assets/characters/cutouts/041_Kadan.webp',
+        bustUrl: '/hs-assets/characters/busts/041_bust.webp',
       };
     }
     return c;
@@ -77,18 +77,18 @@ export const cardDb = new ClassicCardDatabase();
 
 export function getCardArtUrl(cardOrArtId: ClassicCardDef | string): string {
   if (typeof cardOrArtId !== 'string') {
-    return cardOrArtId.artUrl || cardOrArtId.bustUrl || '/anime-character-sheets/cutouts/041_Kadan.png';
+    return cardOrArtId.artUrl || cardOrArtId.bustUrl || '/hs-assets/characters/cutouts/041_Kadan.webp';
   }
   const c = cardDb.getCard(cardOrArtId);
-  return c?.artUrl || c?.bustUrl || '/anime-character-sheets/cutouts/041_Kadan.png';
+  return c?.artUrl || c?.bustUrl || '/hs-assets/characters/cutouts/041_Kadan.webp';
 }
 
 export function getCardBustUrl(cardOrArtId: ClassicCardDef | string): string {
   if (typeof cardOrArtId !== 'string') {
-    return cardOrArtId.bustUrl || cardOrArtId.artUrl || '/anime-character-sheets/busts/041_bust.jpg';
+    return cardOrArtId.bustUrl || cardOrArtId.artUrl || '/hs-assets/characters/busts/041_bust.webp';
   }
   const c = cardDb.getCard(cardOrArtId);
-  return c?.bustUrl || c?.artUrl || '/anime-character-sheets/busts/041_bust.jpg';
+  return c?.bustUrl || c?.artUrl || '/hs-assets/characters/busts/041_bust.webp';
 }
 
 export function getCardTileUrl(artId: string): string {
@@ -105,14 +105,14 @@ const HERO_ID_TO_PORTRAIT: Record<string, string> = {
   HERO_07: CLASSIC_HEROES.WARLOCK.heroCutoutUrl,
   HERO_08: CLASSIC_HEROES.MAGE.heroCutoutUrl,
   HERO_09: CLASSIC_HEROES.PRIEST.heroCutoutUrl,
-  EX1_323h: '/anime-character-sheets/cutouts/080_Ironforge.png',
-  EX1_323: '/anime-character-sheets/cutouts/080_Ironforge.png',
+  EX1_323h: '/hs-assets/characters/cutouts/080_Ironforge.webp',
+  EX1_323: '/hs-assets/characters/cutouts/080_Ironforge.webp',
 };
 
 export function getHeroArtUrl(heroId: string): string {
   if (HERO_ID_TO_PORTRAIT[heroId]) return HERO_ID_TO_PORTRAIT[heroId];
   const c = cardDb.getCard(heroId);
-  return c?.artUrl || c?.bustUrl || '/anime-character-sheets/cutouts/041_Kadan.png';
+  return c?.artUrl || c?.bustUrl || '/hs-assets/characters/cutouts/041_Kadan.webp';
 }
 
 function makeCrestDataUri(bgTop: string, bgBot: string, rim: string, glyphPath: string): string {

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 SNSHero 'Kadan's Journey' — 6-Second Anime Cutscene Prompt Generator (/script-anime)
-- Character Sheet Reference: 7-head-tall (7등신) full-body cutout PNGs (`public/anime-character-sheets/cutouts/XXX_Name.png`)
+- Character Sheet Reference: 7-head-tall (7등신) full-body cutout PNGs (`public/hs-assets/characters/cutouts/XXX_Name.webp`)
 - Location Reference: Canonical Location Art & Sheet (`public/anime-character-sheets/locations/art/LOC_XXX_*.jpg`)
 - Prop Reference: Canonical Prop Art & Sheet (`public/anime-character-sheets/props/art/PROP_XXX_*.jpg`)
 
@@ -20,7 +20,7 @@ import json
 from typing import List, Dict, Any, Optional, Tuple
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
-MANIFEST_PATH = os.path.join(ROOT_DIR, "public/anime-character-sheets/manifest.json")
+MANIFEST_PATH = os.path.join(ROOT_DIR, "public/hs-assets/characters/manifest.json")
 ENGLISH_TXT_DIR = os.path.join(ROOT_DIR, "public/book/image_narrations/english_txt")
 KOREAN_BOOK_DIR = os.path.join(ROOT_DIR, "public/book")
 NARRATION_JSON_DIR = os.path.join(ROOT_DIR, "public/book/image_narrations")
@@ -325,7 +325,7 @@ def match_characters_for_beat(
 ) -> List[Dict[str, Any]]:
     """
     Detects appearing characters in the current cutscene beat and resolves them to their
-    7-head-tall (7등신) cutout PNG files (`public/anime-character-sheets/cutouts/XXX_Name.png`).
+    7-head-tall (7등신) cutout PNG files (`public/hs-assets/characters/cutouts/XXX_Name.webp`).
     """
     # Strip place names like "village of Elwin" or "Elwin Village" before matching character "Elwin"
     cleaned_for_char = re.sub(r"\b(?:village\s+of\s+Elwin|Elwin\s+Village)\b", "frontier_village", beat_text_en, flags=re.IGNORECASE)
@@ -340,7 +340,7 @@ def match_characters_for_beat(
     def add_char_by_id(cid: int, canon_en: str, canon_ko: str, default_weapon: str):
         if cid not in seen_ids and cid in char_map_by_id:
             c_sheet = char_map_by_id[cid]
-            cutout_url = c_sheet.get("cutoutUrl", f"/anime-character-sheets/cutouts/{cid:03d}_{c_sheet['nameEn']}.png")
+            cutout_url = c_sheet.get("cutoutUrl", f"/hs-assets/characters/cutouts/{cid:03d}_{c_sheet['nameEn']}.png")
             matched.append({
                 "id": cid,
                 "code": c_sheet["code"],
@@ -402,16 +402,16 @@ def match_props_and_holders_for_beat(
     if any(k in text_lower for k in ["silver dagger", "companion blade", "gripped the hilt", "slender silver", "twin silver daggers"]):
         p = prop_by_code["PROP-001"]
         if "hercul" in text_lower and ("produced" in text_lower or "hands" in text_lower):
-            holder_en = "Hercul (7-head-tall cutout: /anime-character-sheets/cutouts/049_Hercul.png) holds the two Silver Daggers (PROP-001) wrapped in oiled doe-skin and hands them to Aleksandar and Balian"
+            holder_en = "Hercul (7-head-tall cutout: /hs-assets/characters/cutouts/049_Hercul.webp) holds the two Silver Daggers (PROP-001) wrapped in oiled doe-skin and hands them to Aleksandar and Balian"
             holder_ko = "헤르쿨(7등신 컷아웃: 049_Hercul.png)이 기름 먹인 사슴 가죽에 감싼 은빛 단검(PROP-001) 두 자루를 꺼내 알렉산다르와 발리안에게 건넴"
         elif "aleksandar" in text_lower and "hilt" in text_lower:
-            holder_en = "Aleksandar (7-head-tall cutout: /anime-character-sheets/cutouts/050_Aleksandar.png) firmly grips the hilt of the Silver Dagger (PROP-001) in his right hand"
+            holder_en = "Aleksandar (7-head-tall cutout: /hs-assets/characters/cutouts/050_Aleksandar.webp) firmly grips the hilt of the Silver Dagger (PROP-001) in his right hand"
             holder_ko = "알렉산다르(7등신 컷아웃: 050_Aleksandar.png)가 은빛 단검(PROP-001)의 자루를 오른손으로 굳게 쥠"
         elif "balian" in text_lower and ("companion blade" in text_lower or "chest" in text_lower):
-            holder_en = "Balian (7-head-tall cutout: /anime-character-sheets/cutouts/043_Balian.png) holds the companion Silver Dagger (PROP-001) pressed against his chest"
+            holder_en = "Balian (7-head-tall cutout: /hs-assets/characters/cutouts/043_Balian.webp) holds the companion Silver Dagger (PROP-001) pressed against his chest"
             holder_ko = "발리안(7등신 컷아웃: 043_Balian.png)이 한 쌍의 은빛 단검(PROP-001)을 받아 가슴에 품음"
         elif "elwin" in text_lower or "bodice" in text_lower or "womb" in text_lower:
-            holder_en = "Elwin (7-head-tall cutout: /anime-character-sheets/cutouts/042_Elwin.png) carries the glowing Silver Dagger (PROP-001) and Aleksandar's broken sword-sheath tucked against her bodice"
+            holder_en = "Elwin (7-head-tall cutout: /hs-assets/characters/cutouts/042_Elwin.webp) carries the glowing Silver Dagger (PROP-001) and Aleksandar's broken sword-sheath tucked against her bodice"
             holder_ko = "엘윈(7등신 컷아웃: 042_Elwin.png)이 품속에 은빛 단검(PROP-001)과 남편 알렉산다르의 부러진 검집을 소중히 품고 있음"
         else:
             h = pick_holder(["Kadan", "Aleksandar", "Elwin", "Hercul", "Balian"])
@@ -433,10 +433,10 @@ def match_props_and_holders_for_beat(
         p = prop_by_code["PROP-020"]
         h = pick_holder(["Balian", "Grendal", "Brianna"], "Balian")
         if "snapping" in text_lower:
-            holder_en = f"{h} (7-head-tall cutout: /anime-character-sheets/cutouts/043_Balian.png) wields and snaps the shaft of his glowing cyan Arcane Spear (PROP-020) to drag enemy cavalry over the cliff"
+            holder_en = f"{h} (7-head-tall cutout: /hs-assets/characters/cutouts/043_Balian.webp) wields and snaps the shaft of his glowing cyan Arcane Spear (PROP-020) to drag enemy cavalry over the cliff"
             holder_ko = f"{h}(7등신 컷아웃: 043_Balian.png)이 푸른 마력이 깃든 아케인 창(PROP-020)을 휘두르며 창대를 부러뜨려 적 기병들을 절벽 아래로 끌고 감"
         else:
-            holder_en = f"{h} (7-head-tall cutout: /anime-character-sheets/cutouts/043_Balian.png) wields the azure-sparking Arcane Spear (PROP-020) in combat stance"
+            holder_en = f"{h} (7-head-tall cutout: /hs-assets/characters/cutouts/043_Balian.webp) wields the azure-sparking Arcane Spear (PROP-020) in combat stance"
             holder_ko = f"{h}(7등신 컷아웃: 043_Balian.png)이 푸른 스파크가 튀는 아케인 창(PROP-020)을 손에 쥐고 겨눔"
         results.append({
             "code": p["code"],
@@ -479,10 +479,10 @@ def match_props_and_holders_for_beat(
             p = prop_by_code[code]
             h = pick_holder(pref_holders)
             if code == "PROP-014" and "Aleksandar" in h:
-                holder_en = f"Aleksandar (7-head-tall cutout: /anime-character-sheets/cutouts/050_Aleksandar.png) wields his forged twin arcane longswords in both hands (referencing {p['code']} blade craft)"
+                holder_en = f"Aleksandar (7-head-tall cutout: /hs-assets/characters/cutouts/050_Aleksandar.webp) wields his forged twin arcane longswords in both hands (referencing {p['code']} blade craft)"
                 holder_ko = f"알렉산다르(7등신 컷아웃: 050_Aleksandar.png)가 양손에 벼린 아케인 쌍검({p['code']} 계열 도검)을 쥐고 전투를 펼침"
             elif code == "PROP-012" and "Hercul" in h:
-                holder_en = f"Hercul (7-head-tall cutout: /anime-character-sheets/cutouts/049_Hercul.png) carries the cracked golden Holy Knights seal at his belt and places the shattered Grand Master insignia on the oak table ({p['code']})"
+                holder_en = f"Hercul (7-head-tall cutout: /hs-assets/characters/cutouts/049_Hercul.webp) carries the cracked golden Holy Knights seal at his belt and places the shattered Grand Master insignia on the oak table ({p['code']})"
                 holder_ko = f"헤르쿨(7등신 컷아웃: 049_Hercul.png)이 허리춤에 금이 간 성기사단 황금 인장({p['code']})을 차고 부서진 대단장의 흉갑 문장을 식탁 위에 내려놓음"
             else:
                 holder_en = f"{h} holds/carries {p['nameEn']} ({p['code']})"
@@ -518,7 +518,7 @@ def match_props_and_holders_for_beat(
             "nameKo": "은빛 단검 & 황금빛 밀알 한 줌",
             "artUrl": "/anime-character-sheets/props/art/PROP_001_Silver_Dagger.jpg",
             "sheetUrl": "/anime-character-sheets/props/sheets/PROP_001_Silver_Dagger_sheet.jpg",
-            "holderEn": "Elwin (7-head-tall cutout: /anime-character-sheets/cutouts/042_Elwin.png) clutches Aleksandar's broken sword-sheath and the glowing Silver Dagger (PROP-001) close to her heart with one hand while planting a fistful of golden wheat seeds into the frozen snow-covered earth with her bare fingers",
+            "holderEn": "Elwin (7-head-tall cutout: /hs-assets/characters/cutouts/042_Elwin.webp) clutches Aleksandar's broken sword-sheath and the glowing Silver Dagger (PROP-001) close to her heart with one hand while planting a fistful of golden wheat seeds into the frozen snow-covered earth with her bare fingers",
             "holderKo": "엘윈(7등신 컷아웃: 042_Elwin.png)이 한 손으로 남편의 부러진 검집과 은빛 단검(PROP-001)을 가슴에 품고, 다른 맨손으로 얼어붙은 흙 속에 황금빛 밀알 한 줌을 심음",
             "promptEn": "A glowing silver runic dagger and a broken sword-sheath held over a wool cloak while bare fingers press golden wheat seeds into snowy earth.",
         })
@@ -1008,7 +1008,7 @@ def generate_episode_cutscenes(ep: int) -> Tuple[Dict[str, Any], str, str]:
         "",
         f"- **회차 번호**: 제{ep}화 (`Episode {ep:02d}: {title_en}`)",
         f"- **컷신 규격**: 1컷당 **6초 동영상 (`6-Second Video Cutscene`)** × 총 **{len(cutscenes)}컷** (총 러닝타임 약 `{len(cutscenes) * 6 // 60}분 {len(cutscenes) * 6 % 60:02d}초`)",
-        f"- **첨부 캐릭터 시트 기준**: **7등신 전신 컷아웃 (`public/anime-character-sheets/cutouts/XXX_Name.png`)**",
+        f"- **첨부 캐릭터 시트 기준**: **7등신 전신 컷아웃 (`public/hs-assets/characters/cutouts/XXX_Name.webp`)**",
         f"- **현재 회차 전체 스토리 요약 (Story Consistency Summary)**:",
         f"  - **KR**: {ep_summary_ko}",
         f"  - **EN**: `{ep_summary_en}`",

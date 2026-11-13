@@ -14,8 +14,6 @@ import {
   Sparkles,
   Swords,
   Trophy,
-  Volume2,
-  VolumeX,
   X,
 } from 'lucide-react';
 import {
@@ -109,10 +107,27 @@ const STORY_BOSS_HIGHLIGHTS = [
   { name: '수문장 발타자르', role: '심연 관문의 강철 수호자', img: '/hs-assets/bosses/boss_balthazar.webp' },
 ];
 
+const YOUTUBE_PLAYLIST_URL = 'https://www.youtube.com/@snshero/playlists';
+
 const TRAILER_CLIPS = [
-  { id: 'ep1', label: '제1화 · 눈보라 아래 두 서약', src: '/videos/cinema/episode_01.mp4', poster: '/images/webtoon/episode_01/scene_04.webp' },
-  { id: 'ep8', label: '제8화 · 적갈기의 기수', src: '/videos/cinema/episode_08.mp4', poster: '/hs-assets/bg/arena_crimson_forge.webp' },
-  { id: 'ep15', label: '제15화 · 폭풍 바람섬의 시련', src: '/videos/cinema/episode_15.mp4', poster: '/hs-assets/bg/arena_emerald_wind.webp' },
+  {
+    id: 'ep1',
+    label: '제1화 · 눈보라 아래 두 서약',
+    youtubeId: 'KOf8IAic2QY',
+    embedUrl: 'https://www.youtube.com/embed/KOf8IAic2QY?list=PLVch67W9z4TA&rel=0&modestbranding=1',
+  },
+  {
+    id: 'ep8',
+    label: '제8화 · 붉은 갈기의 기수',
+    youtubeId: 'BIHe4MrtCIw',
+    embedUrl: 'https://www.youtube.com/embed/BIHe4MrtCIw?list=PLVch67W9z4TA&rel=0&modestbranding=1',
+  },
+  {
+    id: 'ep15',
+    label: '제15화 · 독사와 사자의 밤',
+    youtubeId: 'LHHngbtkJwg',
+    embedUrl: 'https://www.youtube.com/embed/LHHngbtkJwg?list=PLVch67W9z4TA&rel=0&modestbranding=1',
+  },
 ];
 
 export const PromoApp: React.FC = () => {
@@ -124,7 +139,6 @@ export const PromoApp: React.FC = () => {
 
   // Trailer controls
   const [activeClipIdx, setActiveClipIdx] = useState(0);
-  const [videoMuted, setVideoMuted] = useState(true);
 
   // Card Library Filters
   const [filterClass, setFilterClass] = useState<string>('ALL');
@@ -463,33 +477,30 @@ export const PromoApp: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Gold-Framed Video Trailer Player */}
+          {/* Right Gold-Framed YouTube Webtoon Player */}
           <div className="lg:col-span-7">
             <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
               <div className="relative aspect-video w-full overflow-hidden bg-black">
-                <video
-                  key={activeClip.src}
-                  src={activeClip.src}
-                  poster={activeClip.poster}
-                  autoPlay
-                  loop
-                  muted={videoMuted}
-                  playsInline
-                  controls
-                  className="h-full w-full object-cover"
+                <iframe
+                  key={activeClip.youtubeId}
+                  src={activeClip.embedUrl}
+                  title={`눈히어로 공식 웹툰 - ${activeClip.label}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  loading="lazy"
+                  className="h-full w-full border-0"
                 />
-                <button
-                  type="button"
-                  onClick={() => setVideoMuted((m) => !m)}
-                  className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-black/75 px-3 py-1.5 text-xs font-extrabold text-amber-100 transition hover:bg-black"
-                >
-                  {videoMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5 text-amber-300" />}
-                  <span>{videoMuted ? '음소거 해제' : '음성 재생 중'}</span>
-                </button>
               </div>
               {/* Trailer Clip Selector Bar */}
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/40 bg-[#1a0f07] px-3 py-2.5">
-                <span className="text-xs font-extrabold text-amber-300">시네마틱 하이라이트</span>
+                <a
+                  href={YOUTUBE_PLAYLIST_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-extrabold text-amber-300 underline decoration-amber-400/50 underline-offset-4 hover:text-amber-200"
+                >
+                  유튜브 공식 웹툰 재생목록 ↗
+                </a>
                 <div className="flex flex-wrap gap-1.5">
                   {TRAILER_CLIPS.map((clip, idx) => (
                     <button
@@ -1216,14 +1227,14 @@ export const PromoApp: React.FC = () => {
                 icon: <BookOpen className="h-5 w-5 text-amber-300" />,
                 title: '공식 판타지 웹소설',
                 sub: '40부작 원작 스토리 · /book.html 바로 감상',
-                img: '/images/webtoon/episode_01/scene_04.webp',
+                img: '/webtoon-assets/episode_01/scene_04.webp',
                 href: '/book.html',
               },
               {
                 icon: <Layers className="h-5 w-5 text-sky-300" />,
                 title: '풀컬러 공식 웹툰',
                 sub: '카단과 9대 종족의 서사를 /webtoon.html 에서 감상',
-                img: '/images/webtoon/episode_01/scene_14.webp',
+                img: '/webtoon-assets/episode_01/scene_14.webp',
                 href: '/webtoon.html',
               },
               {

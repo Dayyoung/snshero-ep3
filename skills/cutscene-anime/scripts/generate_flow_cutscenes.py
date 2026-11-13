@@ -8,7 +8,7 @@
    https://flow.google.com/project/72ee6e60-2819-43a6-bb8c-700a7d599bdf
 3. Uploads and attaches for every cutscene:
    - Background Location Sheet (`public/anime-character-sheets/locations/art/LOC_XXX_*.jpg`)
-   - 7-Head-Tall Character Cutout Sheets (`public/anime-character-sheets/cutouts/XXX_Name.png`)
+   - 7-Head-Tall Character Cutout Sheets (`public/hs-assets/characters/cutouts/XXX_Name.webp`)
    - Prop Concept Sheets (`public/anime-character-sheets/props/art/PROP_XXX_*.jpg`)
 4. Generates all cutscenes in the episode using **🍌 Nano Banana 2.1**:
    - `/cutscene-anime [회차]`       -> `--orientation landscape` (`16:9` 가로 이미지)

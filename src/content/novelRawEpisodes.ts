@@ -2,7 +2,7 @@
  * src/content/novelRawEpisodes.ts
  *
  * Canonical 40-Episode Full Unabridged Text of SNSHero Web Novel.
- * Auto-generated from public/book/episode_*.md for zero-latency instant rendering.
+ * Auto-generated from public/novel-assets/episode_*.md for zero-latency instant rendering.
  */
 
 export const NOVEL_RAW_EPISODES: Record<number, string> = {

@@ -407,7 +407,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   }, []);
 
   const resolveHeroPortraitUrl = useCallback((p: PlayerBattleState): string => {
-    if (p.isJaraxxus) return '/anime-character-sheets/cutouts/080_Ironforge.png';
+    if (p.isJaraxxus) return '/hs-assets/characters/cutouts/080_Ironforge.webp';
     if (p.customHero?.portraitUrl) return p.customHero.portraitUrl;
     return getHeroArtUrl(CLASSIC_HEROES[p.heroClass].heroId);
   }, []);

@@ -260,7 +260,7 @@ export function renderWebtoonSection(): string {
               src="${imgSrc}"
               alt="EP.${curEp} #${validIdx + 1}"
               class="max-h-[60vh] sm:max-h-[72vh] md:max-h-[76vh] w-auto max-w-full object-contain border border-stone-800 shadow-2xl transition-all"
-              onerror="this.onerror=null; this.src='/images/webtoon/fallback_panel.webp';"
+              onerror="this.onerror=null; this.src='/webtoon-assets/episode_01/scene_00.webp';"
             />
           </div>
 
@@ -607,7 +607,7 @@ export function renderWebtoonSection(): string {
                             data-episode="${ep}"
                             data-scene-index="${sceneIndex}"
                             class="w-full h-auto block object-cover cursor-pointer hover:opacity-95 transition-opacity"
-                            onerror="this.onerror=null; this.src='/images/webtoon/fallback_panel.webp';"
+                            onerror="this.onerror=null; this.src='/webtoon-assets/episode_01/scene_00.webp';"
                             title="${tr('클릭하여 전체화면 모드로 감상', 'Click to view in fullscreen mode', 'クリックして全画面モードで鑑賞')}"
                           />
                         </div>

@@ -8,7 +8,7 @@
  *   - 0px container radii (rounded-none), max 4px button/badge radii (rounded-sm)
  *   - 44px+ minimum touch targets for all interactive controls
  *
- * Renders the unabridged canonical text from public/book/episode_*.md.
+ * Renders the unabridged canonical text from public/novel-assets/episode_*.md.
  * Features:
  *   - Episode switcher (<select>, Prev/Next buttons, and full 40-episode index accordion drawer)
  *   - Clean, immersive reading layout without distracting UI clutter

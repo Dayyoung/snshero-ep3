@@ -4,7 +4,7 @@
  * HTML, JS 번들, CSS, JSON, API 등 모든 코드/데이터는 실시간 네트워크에서 즉시 받아옵니다.
  */
 
-const MEDIA_CACHE_NAME = 'snshero-media-v17-opaque20261111';
+const MEDIA_CACHE_NAME = 'snshero-media-v18-clean20261113';
 
 // 캐싱 대상 미디어 파일 확장자 정규식
 const MEDIA_EXT_REGEX = /\.(png|jpg|jpeg|webp|gif|svg|ico|avif|mp3|wav|ogg)(\?.*)?$/i;
@@ -41,7 +41,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   // 1. 캐릭터 상반신(busts) 및 컷아웃 에셋: Network-First 전략 (업데이트된 이미지 즉시 반영)
-  if (url.pathname.includes('/anime-character-sheets/busts/') || url.pathname.includes('/anime-character-sheets/cutouts/')) {
+  if (url.pathname.includes('/hs-assets/characters/busts/') || url.pathname.includes('/hs-assets/characters/cutouts/')) {
     event.respondWith(
       fetch(request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
@@ -94,8 +94,8 @@ self.addEventListener('push', (event) => {
   let data = {
     title: 'SNS히어로 (SNSHero)',
     body: '새로운 랭킹 대전 및 이벤트 소식이 도착했습니다!',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: '/hs-assets/brand/pwa-icon-192.png',
+    badge: '/hs-assets/brand/pwa-icon-192.png',
     data: { url: '/' }
   };
 
@@ -113,8 +113,8 @@ self.addEventListener('push', (event) => {
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
   const origin = self.location ? self.location.origin : '';
-  const iconUrl = (data.icon && data.icon.startsWith('http')) ? data.icon : (origin + (data.icon || '/icon-192.png'));
-  const badgeUrl = (data.badge && data.badge.startsWith('http')) ? data.badge : (origin + (data.badge || '/icon-192.png'));
+  const iconUrl = (data.icon && data.icon.startsWith('http')) ? data.icon : (origin + (data.icon || '/hs-assets/brand/pwa-icon-192.png'));
+  const badgeUrl = (data.badge && data.badge.startsWith('http')) ? data.badge : (origin + (data.badge || '/hs-assets/brand/pwa-icon-192.png'));
 
   const options = {
     body: data.body || '',
