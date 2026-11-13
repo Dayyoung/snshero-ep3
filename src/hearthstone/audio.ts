@@ -553,7 +553,7 @@ class SnsHeroCardAudioEngine {
   ) {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
     try {
-      const a = new Audio(`/hs-assets/snshero-audio/sfx/${name}.mp3`);
+      const a = new Audio(`/hs-assets/snshero-audio/sfx/${name}.mp3?v=melody2`);
       a.volume = Math.min(1, this.settings.sfxVolume * volumeScale * 0.72);
       this.activeSfx.add(a);
       const cleanup = () => {
@@ -615,8 +615,8 @@ class SnsHeroCardAudioEngine {
 
     switch (kind) {
       case 'MANA_GAIN':
-        tone(660, 1046, 0.22, 'triangle');
-        tone(880, 1318, 0.25, 'sine', 0.05);
+        tone(587.33, 587.33, 0.35, 'sine', 0);
+        tone(880, 880, 0.4, 'sine', 0.09);
         break;
       case 'FIRE':
         tone(240, 55, 0.45, 'sawtooth');
