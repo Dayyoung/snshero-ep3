@@ -482,8 +482,8 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
       {/* Subtle Footer Plaque */}
       <footer className="relative z-20 pt-1 text-center text-[10.5px] font-bold tracking-wide text-amber-200/80 sm:text-[11px]">
         {tr(
-          '눈히어로 11종족 110영웅 · 수집 카드 382종 완비 · 배경음 기본 15% · 로컬 자동 보존',
-          'SNSHero · 9 Factions · 382 Collectible Cards · 100% LocalStorage Save',
+          '눈히어로 11종족 110영웅 · 수집 카드 382종 완비 · 배경음 기본 15%',
+          'SNSHero · 9 Factions · 382 Collectible Cards · Free-to-Play',
         )}
       </footer>
 

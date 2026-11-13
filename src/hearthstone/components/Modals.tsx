@@ -1835,7 +1835,7 @@ export const GameOptionsModal: React.FC<{
           <div className="space-y-2 border-t border-amber-500/25 pt-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-extrabold text-yellow-300">
-                {tr('데이터 백업 · 복원 (카드배틀 전용)', 'Save Backup & Restore (LocalStorage)')}
+                {tr('데이터 백업 · 복원 (카드배틀 전용)', 'Save Backup & Restore')}
               </span>
               <span className="rounded bg-amber-950/80 px-2 py-0.5 text-[10px] font-bold text-amber-200/80">
                 {tr('hero_hs_* 독립 저장소', 'hero_hs_* Storage')}

@@ -169,11 +169,6 @@ export function renderReaderFooter(): string {
             '본 페이지는 웹 카드 배틀 게임 <strong class="text-stone-300">눈히어로 — 엘윈마을의 영웅들 (/)</strong> 공식 미디어 믹스 리더입니다.',
             'Official media mix reader for the web card battle game <strong class="text-stone-300">SNSHero — Heroes of Elwin (/)</strong>.'
           )}
-          <br />
-          ${tr(
-            '모든 카드 수집·덱·전적 데이터는 100% 브라우저 로컬스토리지(<code>hero_hs_*</code>)에 안전하게 영구 저장됩니다.',
-            'All card collection, deck, and match records are securely saved in browser localStorage (<code>hero_hs_*</code>).'
-          )}
         </p>
         <p class="mt-3 text-[11px] text-stone-600">
           © 2026 눈히어로 (SNSHero.com) · 엘윈마을과 카단의 여정. All rights reserved.

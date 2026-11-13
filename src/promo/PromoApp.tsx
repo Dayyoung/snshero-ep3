@@ -567,7 +567,7 @@ export const PromoApp: React.FC = () => {
               {tr('iOS · Android PWA 전체화면', 'iOS · Android PWA Fullscreen')}
             </span>
             <span className="rounded-full border border-amber-400/30 bg-black/45 px-3 py-1">
-              {tr('100% 로컬스토리지 영구 저장', '100% LocalStorage Save')}
+              {tr('100% 무료 · 무설치 즉시 플레이', '100% Free · Instant Play')}
             </span>
           </div>
         </div>
@@ -847,8 +847,8 @@ export const PromoApp: React.FC = () => {
                 icon: <Flame className="h-7 w-7 text-amber-300" />,
                 title: tr('부담없는 무설치 재미', 'Zero-Install Browser Play'),
                 desc: tr(
-                  '회원가입이나 다운로드 없이 브라우저에서 즉시 실행! 모든 카드와 전적이 로컬스토리지에 안전하게 영구 보존됩니다.',
-                  'Launch instantly with no downloads or sign-ups. Your entire collection and progress save safely in LocalStorage.',
+                  '회원가입이나 다운로드 없이 브라우저에서 즉시 실행! 모든 카드와 전적이 안전하게 자동 보존됩니다.',
+                  'Launch instantly with no downloads or sign-ups. Your entire collection and progress save automatically.',
                 ),
               },
               {
@@ -1592,11 +1592,6 @@ export const PromoApp: React.FC = () => {
               {tr('눈히어로 — 엘윈마을의 영웅들 (/game.html)', 'SNSHero — Heroes of Elwin Village (/game.html)')}
             </strong>
             {tr(' 공식 소개 페이지입니다.', '.')}
-            <br />
-            {tr(
-              '모든 카드 수집·덱·전적 데이터는 100% 브라우저 로컬스토리지(hero_hs_*)에 안전하게 영구 저장됩니다.',
-              'All cards, decks, and match records are 100% saved locally in browser LocalStorage (hero_hs_*).',
-            )}
           </p>
           <p className="mt-3 text-[11px] text-stone-600">
             © 2026 SNSHero (SNSHero.com) · Heroes of Elwin Village & Kadan&apos;s Journey. All rights reserved.
