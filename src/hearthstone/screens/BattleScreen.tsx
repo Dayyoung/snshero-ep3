@@ -503,31 +503,55 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [hoveredHistoryItem, liveHoveredHistoryItem]);
 
+  const vsIntroRunIdRef = useRef(0);
+
+  const runVsIntroAndTransition = useCallback(
+    (activeMatch: typeof matchState, minDelayMs: number) => {
+      const runId = ++vsIntroRunIdRef.current;
+      setVsIntroActive(true);
+
+      const minDelayPromise = new Promise<void>((resolve) => {
+        window.setTimeout(resolve, minDelayMs);
+      });
+      const announcePromise = hsAudio.playMatchupAnnouncement(
+        activeMatch.player.heroClass,
+        activeMatch.opponent.heroClass,
+        activeMatch.player.heroNameKo || activeMatch.player.name,
+        activeMatch.opponent.heroNameKo || activeMatch.opponent.name,
+        Boolean(activeMatch.player.customHero),
+        Boolean(activeMatch.opponent.customHero || activeMatch.journeyMeta),
+      );
+      const safetyCapPromise = new Promise<void>((resolve) => {
+        window.setTimeout(resolve, 7500);
+      });
+
+      void Promise.race([Promise.all([announcePromise, minDelayPromise]), safetyCapPromise]).then(
+        () => {
+          if (vsIntroRunIdRef.current !== runId) return;
+          setVsIntroActive(false);
+          if (activeMatch.journeyMeta?.episode === 0) {
+            hsAudio.playCustomVoFile('/hs-assets/snshero-audio/story/ep00_start_scarecrow.mp3');
+          } else {
+            hsAudio.playHeroVo(activeMatch.opponent.heroClass, 'start');
+          }
+          if (activeMatch.opponent.customHero?.emotesKo.start) {
+            setOpponentEmoteText(activeMatch.opponent.customHero.emotesKo.start);
+            window.setTimeout(() => setOpponentEmoteText(null), 2900);
+          }
+        },
+      );
+    },
+    [],
+  );
+
   // Opening VS Clash + Matchup Fanfare (runs immediately for non-TUTORIAL or skipStoryIntro retry, or right after Story Theater closes in TUTORIAL)
   useEffect(() => {
     hsAudio.playBgm('mulligan');
     if (mode === 'TUTORIAL' && !skipStoryIntro) return;
-    hsAudio.playMatchupAnnouncement(
-      matchState.player.heroClass,
-      matchState.opponent.heroClass,
-      matchState.player.heroNameKo || matchState.player.name,
-      matchState.opponent.heroNameKo || matchState.opponent.name,
-      Boolean(matchState.player.customHero),
-      Boolean(matchState.opponent.customHero || matchState.journeyMeta),
-    );
-    const t1 = window.setTimeout(() => {
-      setVsIntroActive(false);
-      if (matchState.journeyMeta?.episode === 0) {
-        hsAudio.playCustomVoFile('/hs-assets/snshero-audio/story/ep00_start_scarecrow.mp3');
-      } else {
-        hsAudio.playHeroVo(matchState.opponent.heroClass, 'start');
-      }
-      if (matchState.opponent.customHero?.emotesKo.start) {
-        setOpponentEmoteText(matchState.opponent.customHero.emotesKo.start);
-        window.setTimeout(() => setOpponentEmoteText(null), 2900);
-      }
-    }, skipStoryIntro ? 1450 : 2200);
-    return () => clearTimeout(t1);
+    runVsIntroAndTransition(matchState, skipStoryIntro ? 1200 : 1400);
+    return () => {
+      vsIntroRunIdRef.current += 1;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -553,29 +577,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       ) {
         setQuickRulesOpen(true);
       }
-      setVsIntroActive(true);
-      hsAudio.playMatchupAnnouncement(
-        activeMatch.player.heroClass,
-        activeMatch.opponent.heroClass,
-        activeMatch.player.heroNameKo || activeMatch.player.name,
-        activeMatch.opponent.heroNameKo || activeMatch.opponent.name,
-        Boolean(activeMatch.player.customHero),
-        Boolean(activeMatch.opponent.customHero || activeMatch.journeyMeta),
-      );
-      window.setTimeout(() => {
-        setVsIntroActive(false);
-        if (activeMatch.journeyMeta?.episode === 0) {
-          hsAudio.playCustomVoFile('/hs-assets/snshero-audio/story/ep00_start_scarecrow.mp3');
-        } else {
-          hsAudio.playHeroVo(activeMatch.opponent.heroClass, 'start');
-        }
-        if (activeMatch.opponent.customHero?.emotesKo.start) {
-          setOpponentEmoteText(activeMatch.opponent.customHero.emotesKo.start);
-          window.setTimeout(() => setOpponentEmoteText(null), 2900);
-        }
-      }, 1650);
+      runVsIntroAndTransition(activeMatch, 1200);
     },
-    [mode, matchState, buildBattleMatchState],
+    [mode, matchState, buildBattleMatchState, runVsIntroAndTransition],
   );
 
   // 실시간 초보자 코치 배너 1줄 메시지 계산
