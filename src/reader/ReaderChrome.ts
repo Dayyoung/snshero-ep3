@@ -2,7 +2,9 @@ import { getCurrentLanguage, SupportedLanguage, tr } from './i18n';
 
 export type ReaderMode = 'book' | 'webtoon';
 
-const SNS_LOGO_URL = '/hs-assets/brand/logo-ko.webp';
+const SNS_LOGO_KO_URL = '/hs-assets/brand/logo-ko.webp';
+const SNS_LOGO_EN_URL = '/hs-assets/brand/logo-en.webp';
+const getLogoUrl = (lang: SupportedLanguage) => (lang === 'en' ? SNS_LOGO_EN_URL : SNS_LOGO_KO_URL);
 
 let mobileMenuOpen = false;
 
@@ -36,7 +38,7 @@ export function renderReaderHeader(mode: ReaderMode): string {
         <!-- Brand Logo (matches promo.html, no /icon.png) -->
         <a href="/promotion" class="flex items-center gap-2.5 group no-underline">
           <img
-            src="${SNS_LOGO_URL}"
+            src="${getLogoUrl(lang)}"
             alt="${tr('눈히어로 엘윈마을 카드 배틀', 'SNSHero Elwin Village Card Battle')}"
             class="h-8 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-9 transition-transform group-hover:scale-105"
           />
@@ -142,7 +144,7 @@ export function renderReaderFooter(): string {
     <footer class="border-t border-amber-900/50 bg-[#151210] px-4 py-12 text-center text-xs text-stone-400 mt-auto">
       <div class="mx-auto max-w-4xl">
         <img
-          src="${SNS_LOGO_URL}"
+          src="${getLogoUrl(lang)}"
           alt="${tr('눈히어로', 'SNSHero')}"
           class="mx-auto h-10 w-auto opacity-90"
         />

@@ -26,7 +26,7 @@ import {
 import {
   SNS_CARD_BACK_THEMES,
   SNS_LOCATIONS,
-  SNS_LOGO_URL,
+  getSnsLogoUrl,
   SnsBoosterPackArt,
   SnsSnowCompassSeal,
 } from '../hearthstone/components/SnsHeroArtKit';
@@ -332,7 +332,7 @@ export const PromoApp: React.FC = () => {
           {/* Brand Logo */}
           <a href="#hero" className="flex items-center gap-2.5 group">
             <img
-              src={SNS_LOGO_URL}
+              src={getSnsLogoUrl(lang)}
               alt={tr('눈히어로 엘윈마을 카드 배틀', 'SNSHero Elwin Village Card Battle')}
               className="h-8 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-9 transition-transform group-hover:scale-105"
             />
@@ -515,7 +515,7 @@ export const PromoApp: React.FC = () => {
           <div className="relative mb-3 flex items-center justify-center">
             <div className="pointer-events-none absolute -inset-8 rounded-full bg-amber-400/20 blur-2xl" />
             <img
-              src={SNS_LOGO_URL}
+              src={getSnsLogoUrl(lang)}
               alt={tr('눈히어로', 'SNSHero')}
               className="relative w-[270px] max-w-[82vw] drop-shadow-[0_16px_32px_rgba(0,0,0,0.95)] sm:w-[420px]"
             />
@@ -1539,7 +1539,7 @@ export const PromoApp: React.FC = () => {
       <footer className="border-t border-amber-900/50 bg-[#151210] px-4 py-12 text-center text-xs text-stone-400">
         <div className="mx-auto max-w-4xl">
           <img
-            src={SNS_LOGO_URL}
+            src={getSnsLogoUrl(lang)}
             alt={tr('눈히어로', 'SNSHero')}
             className="mx-auto h-10 w-auto opacity-90"
           />

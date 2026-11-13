@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
-import { SNS_LOCATIONS, SNS_LOGO_URL, SnsSnowCompassSeal } from '../components/SnsHeroArtKit';
+import { SNS_LOCATIONS, getSnsLogoUrl, SnsSnowCompassSeal } from '../components/SnsHeroArtKit';
 
 export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnterHub }) => {
   useHeroLanguage();
@@ -194,7 +194,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
         <div className="relative flex flex-col items-center">
           <div className="pointer-events-none absolute -inset-6 rounded-full bg-radial from-amber-400/25 via-sky-400/12 to-transparent blur-xl" />
           <img
-            src={SNS_LOGO_URL}
+            src={getSnsLogoUrl(lang)}
             alt={tr('눈히어로', 'SNSHero')}
             draggable={false}
             className="relative w-[265px] max-w-[84vw] drop-shadow-[0_18px_32px_rgba(0,0,0,0.95)] sm:w-[430px]"
@@ -237,7 +237,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
           />
         </div>
 
-        {/* Carved Arcane & Brass Entry Plaque + 소설읽기 / 웹툰보기 Directly Below */}
+        {/* Carved Arcane & Brass Entry Plaque */}
         <div className="relative flex w-full max-w-[330px] flex-col items-stretch gap-2.5 sm:max-w-[372px]">
           <button
             type="button"
@@ -249,44 +249,6 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
           >
             {tr('엘윈마을 입장', 'Enter Elwin Village')}
           </button>
-
-          {/* Novel / Webtoon Buttons Directly Underneath */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <a
-              href="/book.html"
-              onClick={(e) => {
-                e.stopPropagation();
-                hsAudio.playSfx('ui_click', 0.65);
-              }}
-              className="hs-brass-btn flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-extrabold tracking-wide text-amber-100 no-underline shadow-[0_8px_20px_rgba(0,0,0,0.75)] sm:text-sm"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-amber-300">
-                <path
-                  d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z"
-                  stroke="currentColor"
-                  strokeWidth="2.1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>{tr('소설읽기', 'Read Novel')}</span>
-            </a>
-
-            <a
-              href="/webtoon.html"
-              onClick={(e) => {
-                e.stopPropagation();
-                hsAudio.playSfx('ui_click', 0.65);
-              }}
-              className="hs-brass-btn flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-extrabold tracking-wide text-sky-100 no-underline shadow-[0_8px_20px_rgba(0,0,0,0.75)] sm:text-sm"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-sky-300">
-                <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2.1" />
-                <path d="M3 10h18M11 10v11" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              <span>{tr('웹툰보기', 'Read Webtoon')}</span>
-            </a>
-          </div>
 
           <div className="mt-0.5 flex flex-wrap items-center justify-center gap-2 rounded-xl border border-[#8d6732]/60 bg-[#130b05]/85 px-3.5 py-1.5 text-[11px] font-bold text-[#e7cda0] shadow-xl sm:gap-2.5 sm:px-4 sm:text-xs">
             <span>{tr('11종족 110영웅', '9 Factions · 110 Heroes')}</span>

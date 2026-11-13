@@ -7,10 +7,8 @@ import { HsArcaneDustVialIcon, HsGoldCoinIcon } from '../components/CardVisual';
 import { QuickRulesModal, hasSeenQuickRules } from '../components/OnboardingGuideModal';
 import {
   SNS_LOCATIONS,
-  SNS_LOGO_URL,
+  getSnsLogoUrl,
   SnsBoosterPackArt,
-  SnsQuestScrollIcon,
-  SnsRankMedallion,
   SnsSnowCompassSeal,
 } from '../components/SnsHeroArtKit';
 import { getJourneyEpisodeDef } from '../kadanJourneyData';
@@ -100,36 +98,19 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
       {/* Top Brass HUD Bar */}
       <header className="relative z-20 flex w-full max-w-6xl flex-wrap items-center justify-between gap-1.5 sm:gap-2">
         <div className="flex items-center gap-1.5 sm:gap-2.5">
-          <button
-            type="button"
-            disabled={isFirstVisitGuide}
-            onClick={() => {
-              if (isFirstVisitGuide) return;
-              hsAudio.playSfx('box_open');
-              onOpenQuestLog();
-            }}
-            onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.5)}
-            className={`hs-brass-btn flex min-h-[42px] items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-amber-100 sm:gap-2.5 sm:px-3.5 sm:py-2 ${lockedBtnStyle}`}
+          <a
+            href="/promotion"
+            onClick={() => hsAudio.playSfx('ui_click', 0.6)}
+            title={tr('눈히어로 공식 소개 (/promotion)', 'SNSHero Official Showcase (/promotion)')}
+            className="flex items-center rounded-xl px-1.5 py-1 transition hover:scale-105"
           >
-            <SnsQuestScrollIcon size={30} className="shrink-0 drop-shadow" />
-            <div className="text-left">
-              <div className="hs-title text-[11px] font-extrabold tracking-wide text-amber-100 sm:text-xs">
-                {tr('의뢰 · 보상표', 'Quests · Rewards')}
-              </div>
-              <div className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-amber-300/90 sm:gap-1.5 sm:text-[10.5px]">
-                <SnsRankMedallion rank={profile.rank} size={16} />
-                <span>
-                  {profile.rank === 0
-                    ? tr('전설의 눈히어로', 'Legend Hero')
-                    : tr(`${profile.rank}등급`, `Rank ${profile.rank}`)}
-                  <span className="hidden sm:inline">
-                    {profile.rank > 0 ? ` · ${rankTitle}` : ''} · #{standing.overallRank.toLocaleString()}
-                    {tr('위', '')}
-                  </span>
-                </span>
-              </div>
-            </div>
-          </button>
+            <img
+              src={getSnsLogoUrl(lang)}
+              alt={tr('눈히어로', 'SNSHero')}
+              draggable={false}
+              className="h-9 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] sm:h-11"
+            />
+          </a>
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2.5">
@@ -260,8 +241,8 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
           {/* Overhanging Official 눈히어로 Logo Crest */}
           <img
-            src={SNS_LOGO_URL}
-            alt="눈히어로"
+            src={getSnsLogoUrl(lang)}
+            alt={lang === 'en' ? 'SNSHero' : '눈히어로'}
             draggable={false}
             className="relative z-10 -mt-6 w-[196px] drop-shadow-[0_14px_22px_rgba(0,0,0,0.94)] sm:-mt-11 sm:w-[308px]"
           />
