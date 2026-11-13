@@ -4,6 +4,7 @@ import { CLASSIC_HEROES, HeroClass } from './types';
 
 const SETTINGS_KEY = 'hero_hs_settings';
 const CALM_BGM_MIGRATION_KEY = 'hero_hs_calm_bgm_15_v1';
+const CALM_SFX_MIGRATION_KEY = 'hero_hs_calm_sfx_38_v1';
 
 export interface AudioSettings {
   bgmVolume: number;
@@ -29,7 +30,7 @@ export interface VibrationSupportInfo {
 
 const DEFAULT_AUDIO: AudioSettings = {
   bgmVolume: 0.15,
-  sfxVolume: 0.72,
+  sfxVolume: 0.38,
   voVolume: 0.88,
   muted: false,
   vibrateEnabled: true,
@@ -149,6 +150,11 @@ class SnsHeroCardAudioEngine {
         this.settings.bgmVolume = 0.15;
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
         localStorage.setItem(CALM_BGM_MIGRATION_KEY, '1');
+      }
+      if (!localStorage.getItem(CALM_SFX_MIGRATION_KEY)) {
+        this.settings.sfxVolume = 0.38;
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
+        localStorage.setItem(CALM_SFX_MIGRATION_KEY, '1');
       }
     } catch {
       // ignore storage errors
@@ -493,7 +499,7 @@ class SnsHeroCardAudioEngine {
       this.currentBgm = null;
     }
     this.currentBgmKey = track;
-    const audio = new Audio(`/hs-assets/snshero-audio/bgm/${track}.mp3?v=calm1`);
+    const audio = new Audio(`/hs-assets/snshero-audio/bgm/${track}.mp3?v=lyrical2`);
     audio.loop = track !== 'mulligan';
     audio.volume = this.settings.muted ? 0 : this.settings.bgmVolume;
     this.currentBgm = audio;
@@ -548,7 +554,7 @@ class SnsHeroCardAudioEngine {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
     try {
       const a = new Audio(`/hs-assets/snshero-audio/sfx/${name}.mp3`);
-      a.volume = Math.min(1, this.settings.sfxVolume * volumeScale);
+      a.volume = Math.min(1, this.settings.sfxVolume * volumeScale * 0.72);
       this.activeSfx.add(a);
       const cleanup = () => {
         this.activeSfx.delete(a);
@@ -583,7 +589,7 @@ class SnsHeroCardAudioEngine {
     if (!ctx) return;
     const now = ctx.currentTime;
     const master = ctx.createGain();
-    master.gain.value = this.settings.sfxVolume * 0.35;
+    master.gain.value = this.settings.sfxVolume * 0.18;
     master.connect(ctx.destination);
 
     const tone = (
