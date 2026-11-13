@@ -41,6 +41,7 @@ const MPA_REWRITES: Record<string, string> = {
   '/': '/index.html',
   '/game': '/game.html',
   '/promo': '/promo.html',
+  '/promotion': '/promo.html',
   '/stone': '/stone.html',
   '/book': '/book.html',
   '/novel': '/novel.html',

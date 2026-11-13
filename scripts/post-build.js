@@ -63,6 +63,14 @@ for (const page of ['game', 'stone', 'promo', 'book', 'novel', 'webtoon']) {
   const dirPath = path.join(distDir, page);
   fs.mkdirSync(dirPath, { recursive: true });
   fs.writeFileSync(path.join(dirPath, 'index.html'), fixed, 'utf8');
+
+  // Mirror /promo.html -> /promotion/index.html & /promotion.html for canonical /promotion URL
+  if (page === 'promo') {
+    const promotionDir = path.join(distDir, 'promotion');
+    fs.mkdirSync(promotionDir, { recursive: true });
+    fs.writeFileSync(path.join(promotionDir, 'index.html'), fixed, 'utf8');
+    fs.writeFileSync(path.join(distDir, 'promotion.html'), fixed, 'utf8');
+  }
 }
 
-console.log('[post-build] Streamlined post-build completed (/, /game.html, /stone.html, /promo.html, /book.html, /novel.html, /webtoon.html).');
+console.log('[post-build] Streamlined post-build completed (/, /promotion, /book, /webtoon + legacy aliases).');

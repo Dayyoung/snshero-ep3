@@ -1,32 +1,41 @@
 # ==========================================
 # SNSHero.com Robots.txt
+# Canonical Search Exposure: /, /promotion, /book, /webtoon
 # Optimized for SEO + AEO + GEO (AI Search Engines)
 # ==========================================
 
-# ------------------
-# General Crawlers
-# ------------------
 User-agent: *
 Allow: /
+Allow: /promotion
+Allow: /book
+Allow: /webtoon
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /game
+Disallow: /game.html
+Disallow: /stone
+Disallow: /stone.html
+Disallow: /novel
+Disallow: /novel.html
+Disallow: /promo
+Disallow: /promo.html
 Disallow: /setting
 Disallow: /*?lang=*
 Disallow: /test/
 
-Crawl-delay: 1
-
-# ------------------
-# Google News & Search & AdSense Specific Crawlers
-# ------------------
 User-agent: Googlebot
 Allow: /
-
-User-agent: Googlebot-News
-Allow: /
-
-User-agent: Googlebot-Video
-Allow: /
-Allow: /movie
-Allow: /cinema
+Allow: /promotion
+Allow: /book
+Allow: /webtoon
+Disallow: /game
+Disallow: /game.html
+Disallow: /stone
+Disallow: /stone.html
+Disallow: /novel
+Disallow: /novel.html
+Disallow: /promo
+Disallow: /promo.html
 
 User-agent: Mediapartners-Google
 Allow: /
@@ -34,13 +43,14 @@ Allow: /
 User-agent: AdsBot-Google
 Allow: /
 
-# ------------------
 # AI / LLM Crawlers (GEO Optimization)
-# ------------------
 User-agent: GPTBot
 Allow: /
 
 User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
 Allow: /
 
 User-agent: Google-Extended
@@ -55,49 +65,19 @@ Allow: /
 User-agent: Claude-Web
 Allow: /
 
-User-agent: Amazonbot
+User-agent: anthropic-ai
 Allow: /
 
 User-agent: Applebot
 Allow: /
 
-User-agent: FacebookBot
-Allow: /
-
-User-agent: anthropic-ai
+User-agent: Amazonbot
 Allow: /
 
 User-agent: cohere-ai
 Allow: /
 
-User-agent: Ollama
-Allow: /
-
 User-agent: Bytespider
 Allow: /
 
-User-agent: Diffbot
-Allow: /
-
-User-agent: Omgili
-Allow: /
-
-User-agent: Omgilibot
-Allow: /
-
-User-agent: YouBot
-Allow: /
-
-# ------------------
-# Sitemaps & LLM Meta
-# ------------------
 Sitemap: https://snshero.com/sitemap.xml
-Sitemap: https://snshero.com/sitemap-video.xml
-Sitemap: https://snshero.com/sitemap-news.xml
-Sitemap: https://snshero.com/news-feed.xml
-Sitemap: https://snshero.com/rss.xml
-Allow: /movie
-Allow: /cinema
-Allow: /llms.txt
-Allow: /llms-full.txt
-Allow: /.well-known/mcp.json
