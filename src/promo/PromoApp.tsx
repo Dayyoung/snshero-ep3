@@ -334,7 +334,7 @@ export const PromoApp: React.FC = () => {
             <img
               src={getSnsLogoUrl(lang)}
               alt={tr('눈히어로 엘윈마을 카드 배틀', 'SNSHero Elwin Village Card Battle')}
-              className="h-8 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-9 transition-transform group-hover:scale-105"
+              className="h-12 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-[54px] transition-transform group-hover:scale-105"
             />
           </a>
 
