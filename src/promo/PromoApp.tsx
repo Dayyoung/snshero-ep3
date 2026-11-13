@@ -332,14 +332,9 @@ export const PromoApp: React.FC = () => {
           {/* Brand Logo */}
           <a href="#hero" className="flex items-center gap-2.5 group">
             <img
-              src="/icon.png"
-              alt={tr('눈히어로', 'SNSHero')}
-              className="h-9 w-9 rounded-lg border border-amber-300/60 shadow transition-transform group-hover:scale-105"
-            />
-            <img
               src={SNS_LOGO_URL}
               alt={tr('눈히어로 엘윈마을 카드 배틀', 'SNSHero Elwin Village Card Battle')}
-              className="h-8 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-9"
+              className="h-8 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-9 transition-transform group-hover:scale-105"
             />
           </a>
 

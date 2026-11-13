@@ -20,7 +20,7 @@ body {
   font-family: var(--hs-font-sans) !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Exact game.html Nanum Gothic stat numbers & title outlines */
