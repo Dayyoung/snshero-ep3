@@ -1,6 +1,6 @@
 import './styles.css';
 import { setLanguage, SupportedLanguage } from './i18n';
-import { renderReaderHeader, renderReaderFooter } from './ReaderChrome';
+import { renderReaderHeader, renderReaderFooter, toggleReaderMobileMenu, closeReaderMobileMenu } from './ReaderChrome';
 import {
   renderWebtoonSection,
   handleWebtoonAction,
@@ -12,7 +12,7 @@ function renderApp(): void {
   const root = document.getElementById('reader-root');
   if (!root) return;
   root.innerHTML = `
-    <div class="min-h-screen flex flex-col bg-[#fdfcfc] text-[#201d1d]">
+    <div class="min-h-screen flex flex-col bg-[#120b06] text-[#f8ebd2]">
       ${renderReaderHeader('webtoon')}
       <div class="flex-1 w-full">
         ${renderWebtoonSection()}
@@ -34,6 +34,17 @@ document.addEventListener('click', (event) => {
       setLanguage(lang);
       renderApp();
     }
+    return;
+  }
+
+  if (action === 'reader-toggle-menu') {
+    toggleReaderMobileMenu();
+    renderApp();
+    return;
+  }
+
+  if (action === 'reader-close-menu') {
+    closeReaderMobileMenu();
     return;
   }
 

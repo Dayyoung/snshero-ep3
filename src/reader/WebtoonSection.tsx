@@ -211,18 +211,18 @@ export function renderWebtoonSection(): string {
     lightboxModalHtml = `
       <div
         id="webtoon-lightbox-modal"
-        class="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between p-2 sm:p-4 font-mono select-none backdrop-blur-md"
+        class="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between p-2 sm:p-4 select-none backdrop-blur-md"
       >
         <!-- Lightbox Top Controls Bar -->
-        <header class="w-full max-w-6xl mx-auto flex items-center justify-between gap-3 px-2 sm:px-4 py-2 border-b border-stone-800 text-[#fdfcfc] shrink-0">
+        <header class="w-full max-w-6xl mx-auto flex items-center justify-between gap-3 px-2 sm:px-4 py-2 border-b border-amber-700/40 text-[#f8ebd2] shrink-0">
           <div class="flex items-center gap-2 truncate">
-            <span class="px-2 py-0.5 bg-[#fdfcfc] text-[#201d1d] text-[10px] font-bold rounded-sm tracking-wider uppercase shrink-0">
+            <span class="px-2.5 py-0.5 bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[10px] font-extrabold rounded-full tracking-wider uppercase shrink-0">
               EP.${String(curEp).padStart(2, '0')}
             </span>
-            <span class="text-xs sm:text-sm font-bold text-stone-200 truncate">
+            <span class="text-xs sm:text-sm font-extrabold text-amber-100 truncate">
               ${isKo ? `제${curEp}화` : `EP.${String(curEp).padStart(2, '0')}`} ${curTitle}
             </span>
-            <span class="text-xs text-stone-400 font-mono shrink-0">
+            <span class="text-xs text-amber-300/70 font-bold shrink-0">
               [${validIdx + 1} / ${curImages.length}]
             </span>
           </div>
@@ -231,7 +231,7 @@ export function renderWebtoonSection(): string {
             <button
               type="button"
               data-action="webtoon-close-zoom"
-              class="px-3.5 py-2 bg-stone-800 hover:bg-stone-700 text-[#fdfcfc] text-xs font-bold rounded-sm min-h-[44px] flex items-center justify-center gap-1 cursor-pointer transition-colors border border-stone-600"
+              class="px-4 py-2 bg-[#2a180c] hover:bg-[#3a2211] text-amber-100 text-xs font-extrabold rounded-full min-h-[44px] flex items-center justify-center gap-1 cursor-pointer transition border border-amber-500/40"
               title="${tr('전체화면 닫기 (ESC)', 'Close Fullscreen (ESC)', '全画面を閉じる (ESC)')}"
             >
               <span>✕ ${tr('닫기', 'Close', '閉じる')}</span>
@@ -247,7 +247,7 @@ export function renderWebtoonSection(): string {
             type="button"
             data-action="webtoon-lightbox-prev"
             ${isFirstPanelOfFirstEp ? 'disabled' : ''}
-            class="absolute left-2 sm:left-4 z-20 w-12 sm:w-16 h-16 sm:h-24 bg-black/60 hover:bg-black/90 text-[#fdfcfc] disabled:opacity-20 disabled:hover:bg-black/40 border border-stone-700 hover:border-white text-xl sm:text-2xl font-black rounded-sm flex items-center justify-center cursor-pointer transition-all shadow-lg active:scale-95"
+            class="absolute left-2 sm:left-4 z-20 w-12 sm:w-16 h-16 sm:h-24 bg-[#1b1008]/85 hover:bg-[#2a180c] text-amber-100 disabled:opacity-20 border border-amber-600/50 hover:border-amber-400 text-xl sm:text-2xl font-black rounded-xl flex items-center justify-center cursor-pointer transition-all shadow-lg active:scale-95"
             aria-label="${tr('이전 컷 보기', 'Previous Panel', '前のカット')}"
             title="${validIdx === 0 && curEp > 1 ? tr('이전 화 마지막 컷으로 이동', 'Go to last panel of previous episode', '前話の最後のカットへ移動') : tr('이전 컷 (◀)', 'Previous Panel (◀)', '前のカット (◀)')}"
           >
@@ -259,7 +259,7 @@ export function renderWebtoonSection(): string {
             <img
               src="${imgSrc}"
               alt="EP.${curEp} #${validIdx + 1}"
-              class="max-h-[60vh] sm:max-h-[72vh] md:max-h-[76vh] w-auto max-w-full object-contain border border-stone-800 shadow-2xl transition-all"
+              class="max-h-[60vh] sm:max-h-[72vh] md:max-h-[76vh] w-auto max-w-full object-contain hs-promo-gold-frame rounded-xl transition-all"
               onerror="this.onerror=null; this.src='/webtoon-assets/episode_01/scene_00.webp';"
             />
           </div>
@@ -269,42 +269,42 @@ export function renderWebtoonSection(): string {
             type="button"
             data-action="webtoon-lightbox-next"
             ${isLastPanelOfLastEp ? 'disabled' : ''}
-            class="absolute right-2 sm:right-4 z-20 w-12 sm:w-16 h-16 sm:h-24 bg-black/60 hover:bg-black/90 text-[#fdfcfc] disabled:opacity-20 disabled:hover:bg-black/40 border ${
-              isAtEpisodeEnd ? 'border-amber-400 text-amber-300' : 'border-stone-700 hover:border-white'
-            } text-xl sm:text-2xl font-black rounded-sm flex flex-col items-center justify-center cursor-pointer transition-all shadow-lg active:scale-95"
+            class="absolute right-2 sm:right-4 z-20 w-12 sm:w-16 h-16 sm:h-24 bg-[#1b1008]/85 hover:bg-[#2a180c] text-amber-100 disabled:opacity-20 border ${
+              isAtEpisodeEnd ? 'border-amber-400 text-amber-300' : 'border-amber-600/50 hover:border-amber-400'
+            } text-xl sm:text-2xl font-black rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all shadow-lg active:scale-95"
             aria-label="${tr('다음 컷 보기', 'Next Panel', '次のカット')}"
             title="${isAtEpisodeEnd ? tr('다음 화로 이동 (▶)', 'Go to Next Episode (▶)', '次話へ移動 (▶)') : tr('다음 컷 (▶)', 'Next Panel (▶)', '次のカット (▶)')}"
           >
             <span>▶</span>
             ${
               isAtEpisodeEnd && curEp < 40
-                ? `<span class="text-[9px] font-bold tracking-tight text-amber-300 uppercase mt-0.5">${tr('다음화', 'NEXT EP', '次話')}</span>`
+                ? `<span class="text-[9px] font-extrabold tracking-tight text-amber-300 uppercase mt-0.5">${tr('다음화', 'NEXT EP', '次話')}</span>`
                 : ''
             }
           </button>
         </div>
 
         <!-- Lightbox Bottom Dialogue & Caption Bar -->
-        <footer class="w-full max-w-4xl mx-auto px-4 py-3 bg-stone-900/90 border border-stone-800 rounded-sm text-[#fdfcfc] space-y-2 shrink-0">
-          <div class="flex items-center justify-between text-[11px] text-stone-400 pb-1 border-b border-stone-800">
+        <footer class="w-full max-w-4xl mx-auto px-4 py-3 bg-[#1b1008]/95 border border-amber-700/50 rounded-xl text-[#f8ebd2] space-y-2 shrink-0">
+          <div class="flex items-center justify-between text-[11px] text-amber-200/70 pb-1 border-b border-amber-700/30">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-stone-200">
+              <span class="font-extrabold text-amber-200">
                 ${validIdx === 0 ? 'TITLE CARD' : `SCENE #${String(validIdx).padStart(2, '0')}`}
               </span>
               ${
                 activeImage?.isKeyClimax
-                  ? `<span class="px-1.5 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold rounded-sm">★ ${tr('명장면', 'CLIMAX', '名場面')}</span>`
+                  ? `<span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-extrabold rounded-full">★ ${tr('명장면', 'CLIMAX', '名場面')}</span>`
                   : ''
               }
             </div>
             <div class="flex items-center gap-1.5 text-xs">
-              <span class="text-stone-400">${tr('컷', 'Panel', 'カット')}</span>
-              <span class="text-amber-400 font-bold">${validIdx + 1}</span>
-              <span class="text-stone-500">/</span>
+              <span class="text-amber-200/70">${tr('컷', 'Panel', 'カット')}</span>
+              <span class="text-amber-400 font-extrabold">${validIdx + 1}</span>
+              <span class="text-amber-200/40">/</span>
               <span>${curImages.length}</span>
               ${
                 isAtEpisodeEnd && curEp < 40
-                  ? `<span class="ml-2 px-1.5 py-0.5 bg-amber-600 text-white font-bold text-[10px] rounded-sm">▶ ${tr('누르면 다음 화 이동', 'Click ▶ for Next Episode', '▶で次話へ移動')}</span>`
+                  ? `<span class="ml-2 px-2 py-0.5 bg-amber-600 text-white font-extrabold text-[10px] rounded-full">▶ ${tr('누르면 다음 화 이동', 'Click ▶ for Next Episode', '▶で次話へ移動')}</span>`
                   : ''
               }
             </div>
@@ -326,18 +326,18 @@ export function renderWebtoonSection(): string {
 
                       if (isNarration) {
                         return `
-                          <div class="text-stone-300 leading-relaxed border-l-2 border-amber-500 pl-2 py-0.5">
+                          <div class="text-amber-100/90 leading-relaxed border-l-2 border-amber-500 pl-2.5 py-0.5">
                             ${escapeHtml(text)}
                           </div>
                         `;
                       }
 
                       return `
-                        <div class="flex items-start gap-2 text-stone-100 leading-relaxed">
-                          <span class="px-1.5 py-0.2 bg-stone-800 text-amber-300 text-[11px] font-bold rounded-xs shrink-0">
-                            [${escapeHtml(speaker)}]
+                        <div class="flex items-start gap-2 text-[#f8ebd2] leading-relaxed">
+                          <span class="px-2 py-0.5 bg-amber-600/25 border border-amber-400/40 text-amber-200 text-[11px] font-extrabold rounded-full shrink-0">
+                            ${escapeHtml(speaker)}
                           </span>
-                          <span class="font-medium">
+                          <span class="font-bold">
                             “${escapeHtml(text.replace(/^[“"']+|[”"']+$/g, ''))}”
                           </span>
                         </div>
@@ -346,12 +346,12 @@ export function renderWebtoonSection(): string {
                     .join('')
                 : narration
                 ? `
-                <div class="text-stone-300 leading-relaxed border-l-2 border-stone-600 pl-2 py-0.5">
+                <div class="text-amber-100/90 leading-relaxed border-l-2 border-amber-500/60 pl-2.5 py-0.5">
                   ${escapeHtml(narration)}
                 </div>
               `
                 : `
-                <div class="text-stone-500 text-xs italic">
+                <div class="text-amber-200/50 text-xs italic">
                   ${tr('대사 및 내레이션이 없는 씬입니다.', 'No dialogue or narration in this scene.', 'セリフ・ナレーションのないシーンです。')}
                 </div>
               `
@@ -363,31 +363,31 @@ export function renderWebtoonSection(): string {
   }
 
   return `
-    <div class="w-full flex flex-col font-mono text-[#201d1d] select-none bg-[#fdfcfc]">
-      <!-- 1. Sticky Header Controls Bar -->
-      <section class="w-full bg-[#fdfcfc] border-b border-[rgba(15,0,0,0.12)] sticky top-0 z-30 shadow-xs">
+    <div class="w-full flex flex-col text-[#f8ebd2] select-none bg-[#120b06]">
+      <!-- 1. Tavern Wood Sub-Navigation Controls Bar -->
+      <section class="w-full bg-[#1b1008]/95 border-b border-amber-700/40 backdrop-blur-md sticky top-16 sm:top-[70px] z-30 shadow-[0_8px_24px_rgba(0,0,0,0.65)]">
         <div class="w-full max-w-4xl mx-auto px-4 py-3 sm:px-6">
           <div class="flex flex-wrap items-center justify-between gap-2.5">
             <!-- Left: Badge & Title -->
-            <div class="flex items-center gap-2 truncate">
-              <span class="px-2 py-0.5 bg-[#201d1d] text-[#fdfcfc] text-[10px] font-bold rounded-sm tracking-wider uppercase shrink-0">
+            <div class="flex items-center gap-2.5 truncate">
+              <span class="px-2.5 py-0.5 bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[11px] font-extrabold rounded-full tracking-wider uppercase shrink-0">
                 WEBTOON EP.${String(ep).padStart(2, '0')}
               </span>
-              <span class="text-xs sm:text-sm font-black text-[#201d1d] truncate">
+              <span class="text-xs sm:text-sm font-extrabold text-amber-100 truncate hs-outline-sm">
                 ${rawTitle}
               </span>
-              <span class="text-[11px] text-[#646262] font-semibold shrink-0 hidden sm:inline">
+              <span class="text-[11px] text-amber-200/70 font-bold shrink-0 hidden sm:inline">
                 (${totalPanels}${tr('컷', ' panels', 'カット')})
               </span>
             </div>
 
             <!-- Right: External Link & Index Toggle -->
-            <div class="flex items-center gap-1.5 shrink-0">
+            <div class="flex items-center gap-2 shrink-0">
               <a
                 href="${EXTERNAL_LINKS.naverWebtoon}"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="px-2.5 py-1.5 bg-[#fdfcfc] text-[#201d1d] hover:bg-[#edeaea] border border-[rgba(15,0,0,0.12)] text-xs font-bold rounded-sm min-h-[36px] flex items-center gap-1 no-underline transition-colors"
+                class="hs-promo-cta-teal-dark px-3 py-1.5 text-xs font-extrabold rounded-full min-h-[36px] flex items-center gap-1 no-underline"
               >
                 <span>${tr('네이버 웹툰 ↗', 'Naver Webtoon ↗', 'NAVERウェブトゥーン ↗')}</span>
               </a>
@@ -395,7 +395,7 @@ export function renderWebtoonSection(): string {
               <button
                 type="button"
                 data-action="webtoon-toggle-index"
-                class="px-3 py-1.5 bg-[#201d1d] text-[#fdfcfc] hover:bg-[#383333] text-xs font-bold rounded-sm min-h-[36px] flex items-center gap-1 cursor-pointer transition-colors"
+                class="px-3.5 py-1.5 bg-amber-950/60 text-amber-200 hover:bg-amber-900/80 border border-amber-500/40 text-xs font-extrabold rounded-full min-h-[36px] flex items-center gap-1 cursor-pointer transition"
                 title="${tr('전체 40화 목차 보기', 'View All 40 Episodes', '全40話の目次を表示')}"
               >
                 <span>${isWebtoonIndexOpen ? tr('목차 닫기 ▲', 'Close Index ▲', '目次を閉じる ▲') : tr('전체 회차 ▼', 'All Episodes ▼', '全話一覧 ▼')}</span>
@@ -404,13 +404,13 @@ export function renderWebtoonSection(): string {
           </div>
 
           <!-- Quick Navigation Bar -->
-          <div class="flex items-center justify-between gap-2 pt-3 border-t border-[rgba(15,0,0,0.08)] mt-2">
+          <div class="flex items-center justify-between gap-2 pt-3 border-t border-amber-700/30 mt-2.5">
             <!-- Prev Episode -->
             <button
               type="button"
               data-action="webtoon-prev-episode"
               ${ep <= 1 ? 'disabled' : ''}
-              class="px-3 py-2 bg-[#201d1d] text-[#fdfcfc] hover:bg-[#302c2c] disabled:opacity-30 disabled:hover:bg-[#201d1d] text-xs font-bold rounded-sm min-h-[44px] flex items-center gap-1 cursor-pointer transition-colors"
+              class="px-3.5 py-2 bg-[#2a180c] text-amber-100 hover:bg-[#3a2211] border border-amber-500/40 disabled:opacity-30 text-xs font-extrabold rounded-full min-h-[42px] flex items-center gap-1 cursor-pointer transition"
               aria-label="${tr('이전 화', 'Previous Episode', '前の話')}"
             >
               ◀ ${tr('이전화', 'Prev', '前話')}
@@ -421,7 +421,7 @@ export function renderWebtoonSection(): string {
               <select
                 id="webtoon-episode-select"
                 data-action="webtoon-select-episode"
-                class="w-full px-2.5 py-2 bg-[#fdfcfc] text-[#201d1d] border border-[rgba(15,0,0,0.12)] text-xs font-bold rounded-sm min-h-[44px] cursor-pointer focus:outline-none focus:border-[#201d1d] text-center"
+                class="w-full px-3 py-2 bg-[#120b06] text-[#f8ebd2] border border-amber-600/50 text-xs font-extrabold rounded-full min-h-[42px] cursor-pointer focus:outline-none focus:border-amber-400 text-center"
               >
                 ${Array.from({ length: 40 }, (_, idx) => {
                   const num = idx + 1;
@@ -444,7 +444,7 @@ export function renderWebtoonSection(): string {
               type="button"
               data-action="webtoon-next-episode"
               ${ep >= 40 ? 'disabled' : ''}
-              class="px-3 py-2 bg-[#201d1d] text-[#fdfcfc] hover:bg-[#302c2c] disabled:opacity-30 disabled:hover:bg-[#201d1d] text-xs font-bold rounded-sm min-h-[44px] flex items-center gap-1 cursor-pointer transition-colors"
+              class="hs-promo-cta-purple px-4 py-2 disabled:opacity-30 text-xs font-extrabold rounded-full min-h-[42px] flex items-center gap-1 cursor-pointer"
               aria-label="${tr('다음 화', 'Next Episode', '次の話')}"
             >
               ${tr('다음화', 'Next', '次話')} ▶
@@ -456,9 +456,9 @@ export function renderWebtoonSection(): string {
         ${
           isWebtoonIndexOpen
             ? `
-          <div class="w-full max-w-4xl mx-auto px-4 py-4 sm:px-6 bg-[#f8f7f7] border-t border-[rgba(15,0,0,0.12)]">
-            <div class="flex items-center justify-between pb-2 mb-3 border-b border-[rgba(15,0,0,0.12)]">
-              <span class="text-xs font-black text-[#201d1d]">
+          <div class="w-full max-w-4xl mx-auto px-4 py-4 sm:px-6 bg-[#140c06] border-t border-amber-700/40">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-amber-700/30">
+              <span class="text-xs font-extrabold text-amber-200">
                 ${tr(
                   '웹툰 40화 전편 에피소드 선택 (클릭 시 즉시 이동)',
                   'Select from all 40 Webtoon Episodes (Click to jump)',
@@ -468,12 +468,12 @@ export function renderWebtoonSection(): string {
               <button
                 type="button"
                 data-action="webtoon-toggle-index"
-                class="text-xs text-[#646262] hover:text-[#201d1d] font-bold p-1 cursor-pointer"
+                class="text-xs text-amber-300/80 hover:text-amber-100 font-extrabold p-1 cursor-pointer"
               >
                 [${tr('닫기', 'Close', '閉じる')} ✕]
               </button>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-1.5 max-h-[320px] overflow-y-auto pr-1">
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[320px] overflow-y-auto pr-1">
               ${Array.from({ length: 40 }, (_, idx) => {
                 const num = idx + 1;
                 const item = MANIFEST[String(num)];
@@ -487,14 +487,14 @@ export function renderWebtoonSection(): string {
                     type="button"
                     data-action="webtoon-jump-episode"
                     data-episode="${num}"
-                    class="px-2 py-2 text-left text-xs rounded-sm border transition-colors truncate min-h-[40px] cursor-pointer ${
+                    class="px-2.5 py-2 text-left text-xs rounded-lg border transition truncate min-h-[40px] cursor-pointer ${
                       isCurrent
-                        ? 'bg-[#201d1d] text-[#fdfcfc] border-[#201d1d] font-bold'
-                        : 'bg-[#fdfcfc] text-[#201d1d] border-[rgba(15,0,0,0.12)] hover:bg-[#edeaea]'
+                        ? 'bg-amber-500/25 text-amber-200 border-amber-400 font-extrabold'
+                        : 'bg-[#1f1209] text-amber-100/80 border-amber-800/40 hover:border-amber-500/60 hover:bg-[#2a180c]'
                     }"
                     title="${epBadge} ${title}"
                   >
-                    <span class="font-bold mr-1">${epBadge}</span>
+                    <span class="font-extrabold text-amber-300 mr-1">${epBadge}</span>
                     <span class="truncate">${title}</span>
                   </button>
                 `;
@@ -506,21 +506,21 @@ export function renderWebtoonSection(): string {
         }
       </section>
 
-      <!-- 2. Episode Banner Card -->
-      <section class="w-full bg-[#f8f7f7] border-b border-[rgba(15,0,0,0.12)] py-6 sm:py-8 px-4 text-center">
-        <div class="w-full max-w-3xl mx-auto space-y-2">
+      <!-- 2. Episode Banner Card (Tavern Wood Header) -->
+      <section class="hs-promo-tavern w-full py-7 sm:py-9 px-4 text-center">
+        <div class="w-full max-w-3xl mx-auto space-y-2.5">
           <div class="flex items-center justify-center gap-2">
-            <span class="px-2.5 py-0.5 bg-[#201d1d] text-[#fdfcfc] text-[10px] font-bold rounded-sm tracking-widest uppercase">
+            <span class="px-3 py-0.5 bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[10px] font-extrabold rounded-full tracking-widest uppercase">
               CANONICAL WEBTOON STRIP
             </span>
-            <span class="text-xs font-bold text-amber-700">
+            <span class="text-xs font-extrabold text-amber-200">
               ${tr(`제 ${ep}화 / 40부작`, `Episode ${ep} / 40 Series`, `第${ep}話 / 全40部作`)}
             </span>
           </div>
-          <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-[#201d1d] tracking-tight m-0">
+          <h1 class="hs-title text-2xl sm:text-3xl md:text-4xl font-extrabold text-amber-100 tracking-tight m-0">
             ${rawTitle}
           </h1>
-          <p class="text-xs text-[#646262] m-0 pt-1">
+          <p class="text-xs sm:text-sm text-amber-200/75 m-0 pt-1">
             ${tr(
               `화면을 아래로 스크롤하여 컷신과 대사를 순서대로 감상하세요. (총 ${totalPanels}컷 · 클릭 시 전체화면 좌우 넘김 지원)`,
               `Scroll down to read panels and dialogues in sequence. (${totalPanels} panels total · Click any panel for fullscreen reader)`,
@@ -530,16 +530,18 @@ export function renderWebtoonSection(): string {
         </div>
       </section>
 
+      <div class="hs-promo-divider"></div>
+
       <!-- 3. Vertical Continuous Scroll Webtoon Strip -->
-      <main class="w-full py-6 sm:py-10 px-2 sm:px-4 bg-[#fdfcfc]">
+      <main class="w-full py-8 sm:py-12 px-2 sm:px-4 bg-[#120b06]">
         <div class="w-full max-w-2xl sm:max-w-3xl mx-auto space-y-8 sm:space-y-12">
           
           ${
             images.length === 0
               ? `
-              <div class="p-8 text-center border border-[rgba(15,0,0,0.12)] bg-[#f8f7f7] space-y-2">
-                <p class="text-sm font-bold text-[#201d1d]">${tr('웹툰 이미지를 준비 중입니다.', 'Preparing webtoon panels...', 'ウェブトゥーン画像を準備中です。')}</p>
-                <p class="text-xs text-[#646262]">${tr('잠시 후 다시 시도해 주세요.', 'Please try again shortly.', 'しばらくしてから再度お試しください。')}</p>
+              <div class="p-8 text-center hs-promo-gold-frame rounded-2xl bg-[#1b1008] space-y-2">
+                <p class="text-sm font-extrabold text-amber-100">${tr('웹툰 이미지를 준비 중입니다.', 'Preparing webtoon panels...', 'ウェブトゥーン画像を準備中です。')}</p>
+                <p class="text-xs text-amber-200/70">${tr('잠시 후 다시 시도해 주세요.', 'Please try again shortly.', 'しばらくしてから再度お試しください。')}</p>
               </div>
             `
               : images
@@ -563,20 +565,20 @@ export function renderWebtoonSection(): string {
                     const imgSrc = rawImgSrc ? `${rawImgSrc}${rawImgSrc.includes('?') ? '&' : '?'}v=${cacheBustVer}` : '';
 
                     return `
-                      <!-- Single Webtoon Panel Card (Vertical Flow) -->
-                      <article class="w-full bg-[#fdfcfc] border border-[rgba(15,0,0,0.12)] rounded-none overflow-hidden shadow-xs">
+                      <!-- Single Webtoon Panel Card (Gold Engraved Frame) -->
+                      <article class="w-full bg-[#1b1008] hs-promo-gold-frame rounded-2xl overflow-hidden">
                         
                         <!-- Panel Header -->
-                        <div class="bg-[#f8f7f7] border-b border-[rgba(15,0,0,0.12)] px-3 py-2 flex items-center justify-between text-xs">
+                        <div class="bg-[#24160b] border-b border-amber-700/40 px-4 py-2.5 flex items-center justify-between text-xs">
                           <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 bg-[#201d1d] inline-block"></span>
-                            <span class="font-bold text-[#201d1d] uppercase tracking-wider">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 inline-block shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span>
+                            <span class="font-extrabold text-amber-200 uppercase tracking-wider">
                               ${panelBadge}
                             </span>
                             ${
                               img.isKeyClimax
                                 ? `
-                              <span class="px-1.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold rounded-sm">
+                              <span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-400/50 text-[10px] font-extrabold rounded-full">
                                 ★ ${tr('명장면', 'CLIMAX', '名場面')}
                               </span>
                             `
@@ -590,14 +592,14 @@ export function renderWebtoonSection(): string {
                             data-action="webtoon-zoom-image"
                             data-episode="${ep}"
                             data-scene-index="${sceneIndex}"
-                            class="px-2 py-1 text-[11px] font-bold text-[#646262] hover:text-[#201d1d] hover:bg-[#edeaea] border border-[rgba(15,0,0,0.12)] rounded-sm cursor-pointer transition-colors"
+                            class="px-3 py-1 text-[11px] font-extrabold text-amber-200 hover:text-amber-100 bg-black/35 hover:bg-amber-900/50 border border-amber-600/40 rounded-full cursor-pointer transition"
                           >
                             ${tr('전체화면 🔍', 'Fullscreen 🔍', '全画面 🔍')}
                           </button>
                         </div>
 
-                        <!-- Panel Image Frame (Clean Image, Zero SFX letters) -->
-                        <div class="relative w-full bg-[#201d1d] flex items-center justify-center overflow-hidden">
+                        <!-- Panel Image Frame -->
+                        <div class="relative w-full bg-[#0d0704] flex items-center justify-center overflow-hidden">
                           <img
                             src="${imgSrc}"
                             alt="EP.${ep} ${panelBadge}"
@@ -615,10 +617,10 @@ export function renderWebtoonSection(): string {
                         ${
                           isEndingPromo
                             ? `
-                        <div class="bg-[#fcfbfb] px-4 py-3 border-t border-[rgba(15,0,0,0.12)] flex items-center justify-center font-mono">
+                        <div class="bg-[#160d06] px-4 py-4 border-t border-amber-700/35 flex items-center justify-center">
                           <a
                             href="/game.html?mode=story"
-                            class="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-[#201d1d] hover:bg-stone-800 text-[#fdfcfc] text-xs sm:text-sm font-bold rounded-sm border border-[#646262]/30 flex items-center justify-center gap-2 transition-colors no-underline"
+                            class="hs-promo-cta-purple w-full sm:w-auto min-h-[44px] px-6 py-2.5 text-xs sm:text-sm font-extrabold rounded-full flex items-center justify-center gap-2 no-underline"
                           >
                             <span>▶ ${tr('웹툰 카드게임 바로 플레이 (SNSHero.com)', 'Play the Webtoon Card Game Now (SNSHero.com)', 'ウェブトゥーンカードゲームを今すぐプレイ (SNSHero.com)')}</span>
                           </a>
@@ -631,7 +633,7 @@ export function renderWebtoonSection(): string {
                           dialogues.length > 0 || mainNarration
                             ? `
                         <!-- Dialogue & Narration Box -->
-                        <div class="bg-[#fcfbfb] p-4 sm:p-5 border-t border-[rgba(15,0,0,0.12)] space-y-3 font-mono">
+                        <div class="bg-[#160d06] p-4 sm:p-5 border-t border-amber-700/35 space-y-3">
                           
                           <!-- Character Speech Bubbles / Dialogue Quotes -->
                           ${
@@ -648,20 +650,20 @@ export function renderWebtoonSection(): string {
 
                                     if (isNarration) {
                                       return `
-                                        <div class="p-3 bg-[#f8f7f7] border-l-3 border-[#201d1d] text-xs sm:text-sm leading-relaxed text-[#201d1d] select-text">
+                                        <div class="p-3 bg-amber-950/30 border-l-4 border-amber-500 rounded-r-lg text-xs sm:text-sm leading-relaxed text-amber-100/90 select-text">
                                           ${escapeHtml(text)}
                                         </div>
                                       `;
                                     }
 
                                     return `
-                                      <div class="flex items-start gap-2.5 p-3 bg-white border border-[rgba(15,0,0,0.12)] rounded-sm select-text">
+                                      <div class="flex items-start gap-2.5 p-3 bg-[#22140a] border border-amber-700/40 rounded-xl select-text">
                                         <div class="shrink-0">
-                                          <span class="px-2 py-0.5 bg-[#201d1d] text-[#fdfcfc] text-[11px] font-bold rounded-sm tracking-wide">
+                                          <span class="px-2.5 py-0.5 bg-amber-600/25 border border-amber-400/40 text-amber-200 text-[11px] font-extrabold rounded-full tracking-wide">
                                             ${escapeHtml(speaker)}
                                           </span>
                                         </div>
-                                        <div class="flex-1 text-xs sm:text-sm leading-relaxed text-[#111111] font-medium pt-0.5">
+                                        <div class="flex-1 text-xs sm:text-sm leading-relaxed text-[#f8ebd2] font-bold pt-0.5">
                                           “${escapeHtml(text.replace(/^[“"']+|[”"']+$/g, ''))}”
                                         </div>
                                       </div>
@@ -670,7 +672,7 @@ export function renderWebtoonSection(): string {
                                   .join('')
                               : mainNarration
                               ? `
-                              <div class="p-3 bg-[#f8f7f7] border-l-3 border-[#201d1d] text-xs sm:text-sm leading-relaxed text-[#201d1d] select-text">
+                              <div class="p-3 bg-amber-950/30 border-l-4 border-amber-500 rounded-r-lg text-xs sm:text-sm leading-relaxed text-amber-100/90 select-text">
                                 ${escapeHtml(mainNarration)}
                               </div>
                             `
@@ -678,12 +680,11 @@ export function renderWebtoonSection(): string {
                           }
 
                           ${
-                            // If there are dialogues AND a separate main narration that is not duplicate
                             dialogues.length > 0 &&
                             mainNarration &&
                             !dialogues.some((d) => d.textKo === mainNarration || d.textEn === mainNarration)
                               ? `
-                              <div class="text-xs text-stone-600 leading-relaxed italic border-t border-[rgba(15,0,0,0.08)] pt-2 select-text">
+                              <div class="text-xs text-amber-200/70 leading-relaxed italic border-t border-amber-700/30 pt-2 select-text">
                                 ※ ${escapeHtml(mainNarration)}
                               </div>
                             `
@@ -702,16 +703,16 @@ export function renderWebtoonSection(): string {
           }
 
           <!-- Bottom Endmark & Navigation -->
-          <div class="pt-8 pb-4 text-center border-t border-[rgba(15,0,0,0.12)] space-y-4">
+          <div class="pt-8 pb-4 text-center border-t border-amber-700/40 space-y-4">
             <div class="space-y-1">
-              <span class="text-xs font-bold text-[#646262] tracking-widest uppercase">
+              <span class="text-xs font-extrabold text-amber-300 tracking-widest uppercase">
                 ${tr(
                   `— 《카단의 여정》 웹툰 제 ${ep}화 완독 —`,
                   `— End of Kadan's Journey Webtoon Episode ${ep} —`,
                   `— 《カダンの旅》 ウェブトゥーン 第${ep}話 読了 —`
                 )}
               </span>
-              <p class="text-xs text-stone-500 m-0">
+              <p class="text-xs text-amber-200/70 m-0">
                 ${tr(
                   '다음 에피소드에서 전설의 배틀과 스토리가 계속됩니다.',
                   'The legendary battles and story continue in the next episode.',
@@ -721,12 +722,12 @@ export function renderWebtoonSection(): string {
             </div>
 
             <!-- Big Prev / Top / Next Navigation Buttons -->
-            <div class="flex items-center justify-between gap-3 pt-2">
+            <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 data-action="webtoon-prev-episode"
                 ${ep <= 1 ? 'disabled' : ''}
-                class="flex-1 py-3.5 px-4 bg-[#201d1d] text-[#fdfcfc] hover:bg-[#302c2c] disabled:opacity-30 disabled:hover:bg-[#201d1d] text-xs sm:text-sm font-bold rounded-sm min-h-[48px] flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                class="flex-1 py-3.5 px-4 bg-[#2a180c] text-amber-100 hover:bg-[#3a2211] border border-amber-500/40 disabled:opacity-30 text-xs sm:text-sm font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-1 cursor-pointer transition"
               >
                 <span>◀ ${tr(`이전화 (제${Math.max(1, ep - 1)}화)`, `Prev (EP.${Math.max(1, ep - 1)})`, `前話 (第${Math.max(1, ep - 1)}話)`)}</span>
               </button>
@@ -734,7 +735,7 @@ export function renderWebtoonSection(): string {
               <button
                 type="button"
                 data-action="webtoon-scroll-top"
-                class="px-4 py-3.5 bg-[#fdfcfc] text-[#201d1d] hover:bg-[#edeaea] border border-[rgba(15,0,0,0.12)] text-xs font-bold rounded-sm min-h-[48px] flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                class="px-5 py-3.5 bg-[#1b1008] text-amber-200 hover:bg-[#2a180c] border border-amber-600/50 text-xs font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-1 cursor-pointer transition"
                 title="${tr('맨 위로', 'Back to Top', 'ページ上部へ')}"
               >
                 <span>${tr('맨 위로 ↑', 'Top ↑', '上へ ↑')}</span>
@@ -744,7 +745,7 @@ export function renderWebtoonSection(): string {
                 type="button"
                 data-action="webtoon-next-episode"
                 ${ep >= 40 ? 'disabled' : ''}
-                class="flex-1 py-3.5 px-4 bg-[#201d1d] text-[#fdfcfc] hover:bg-[#302c2c] disabled:opacity-30 disabled:hover:bg-[#201d1d] text-xs sm:text-sm font-bold rounded-sm min-h-[48px] flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                class="hs-promo-cta-purple flex-1 py-3.5 px-4 disabled:opacity-30 text-xs sm:text-sm font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-1 cursor-pointer"
               >
                 <span>${tr(`다음화 (제${Math.min(40, ep + 1)}화)`, `Next (EP.${Math.min(40, ep + 1)})`, `次話 (第${Math.min(40, ep + 1)}話)`)} ▶</span>
               </button>

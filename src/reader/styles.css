@@ -1,36 +1,18 @@
 @import "tailwindcss";
 
-/* ==========================================================================
-   OpenCode Terminal-Flat Design Tokens (DESIGN.md Canonical Palette)
-   ========================================================================== */
 :root {
-  --opencode-canvas: #fdfcfc;
-  --opencode-ink: #201d1d;
-  --opencode-ink-deep: #0f0000;
-  --opencode-charcoal: #302c2c;
-  --opencode-body: #424245;
-  --opencode-mute: #646262;
-  --opencode-stone: #6e6e73;
-  --opencode-ash: #9a9898;
-  --opencode-surface-soft: #f8f7f7;
-  --opencode-surface-card: #f1eeee;
-  --opencode-surface-dark: #201d1d;
-  --opencode-surface-dark-elevated: #302c2c;
-  --opencode-hairline: rgba(15, 0, 0, 0.12);
-  --opencode-hairline-strong: #646262;
-  --opencode-hairline-dark: rgba(255, 255, 255, 0.12);
+  --hs-font-sans: 'Nanum Gothic', '나눔고딕', 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ==========================================================================
-   Global Reset & Fluid Viewport Resilience (320px ~ 3840px)
-   ========================================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
+  font-family: var(--hs-font-sans);
 }
 
 html {
   width: 100%;
   min-height: 100%;
+  scroll-behavior: smooth;
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
 }
@@ -41,11 +23,9 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background-color: var(--opencode-canvas);
-  color: var(--opencode-ink);
-  font-family: 'JetBrains Mono', 'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 14px;
-  line-height: 1.5;
+  background-color: #120b06;
+  color: #f8ebd2;
+  font-family: var(--hs-font-sans) !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -58,688 +38,133 @@ body {
   overflow-x: hidden;
 }
 
-/* ==========================================================================
-   Ergonomic 44px+ Mobile Touch Target Standard
-   ========================================================================== */
-.touch-target,
-button:not([data-action="play-tile-click"]),
+/* Ergonomic Touch Target */
+button,
 [role="button"],
-a.btn,
-.nav-link,
-.action-btn,
-.nav-item-btn,
-.sidebar-item-btn {
-  min-height: 44px;
-  box-sizing: border-box;
+a.btn {
   touch-action: manipulation;
 }
 
-button[data-action="play-tile-click"] {
-  min-height: 0;
-  min-width: 0;
-  box-sizing: border-box;
-  touch-action: manipulation;
+/* Exact promo.html Title Outlines */
+.hs-title, .hs-title-stroke {
+  font-family: var(--hs-font-sans) !important;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-shadow:
+    -1.4px -1.4px 0 #160c04,
+     1.4px -1.4px 0 #160c04,
+    -1.4px  1.4px 0 #160c04,
+     1.4px  1.4px 0 #160c04,
+     0 3px 8px rgba(0,0,0,0.9);
 }
 
-/* ==========================================================================
-   OpenCode Terminal-Flat Utility Classes (0px Container, 4px Interactive)
-   ========================================================================== */
-/* Flat Containers: 0px Border Radius, 1px Hairline */
-.terminal-container {
-  border: 1px solid var(--opencode-hairline);
-  border-radius: 0px;
-  background-color: var(--opencode-canvas);
+.hs-outline-sm {
+  text-shadow:
+    -1.4px -1.4px 0 #000,
+     1.4px -1.4px 0 #000,
+    -1.4px  1.4px 0 #000,
+     1.4px  1.4px 0 #000,
+     0 2px 5px rgba(0,0,0,0.88);
 }
 
-/* Primary Button: 4px Radius, Dark Ink Fill */
-.btn-terminal-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 8px 20px;
-  border-radius: 4px;
-  border: 1px solid var(--opencode-ink);
-  background-color: var(--opencode-ink);
-  color: var(--opencode-canvas);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition: opacity 0.15s ease;
-}
-.btn-terminal-primary:hover {
-  opacity: 0.92;
-}
-.btn-terminal-primary:active {
-  background-color: var(--opencode-ink-deep);
+.promo-outline {
+  text-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.92),
+    0 1px 3px rgba(0, 0, 0, 0.95);
 }
 
-/* Secondary Button: 4px Radius, Hairline Outlined */
-.btn-terminal-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: 1px solid var(--opencode-hairline);
-  background-color: var(--opencode-canvas);
-  color: var(--opencode-ink);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background-color 0.15s ease;
-}
-.btn-terminal-secondary:hover {
-  background-color: var(--opencode-surface-soft);
+/* Sticky Tavern Wood Top Navigation (matches promo.html) */
+.hs-promo-nav {
+  background:
+    linear-gradient(180deg, rgba(64, 38, 19, 0.97) 0%, rgba(36, 20, 10, 0.98) 65%, rgba(22, 12, 6, 0.99) 100%);
+  border-bottom: 2px solid #b88a44;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.78),
+    inset 0 1px 0 rgba(255, 235, 185, 0.28);
 }
 
-/* Nav Item Button: Fluid Height, Hairline Active Bottom Line */
-.btn-nav-item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 8px 14px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  background-color: transparent;
-  color: var(--opencode-body);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-nav-item:hover {
-  color: var(--opencode-ink);
-  background-color: var(--opencode-surface-soft);
-}
-.btn-nav-item.active {
-  color: var(--opencode-ink);
-  font-weight: 700;
-  border-color: var(--opencode-hairline);
-  background-color: var(--opencode-surface-card);
+/* Parchment Texture Surface (Classic Hearthstone Light Section) */
+.hs-promo-parchment {
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(255, 252, 240, 0.65) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(196, 152, 86, 0.25) 0%, transparent 58%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(130, 88, 35, 0.025) 0px,
+      rgba(130, 88, 35, 0.025) 2px,
+      transparent 2px,
+      transparent 10px
+    ),
+    linear-gradient(180deg, #f4e6c7 0%, #ead6ab 50%, #e1c690 100%);
+  color: #2f1b0c;
 }
 
-/* Terminal Hero Card (Mockup): Dark Flat Surface */
-.terminal-hero-card {
-  border: 1px solid var(--opencode-charcoal);
-  border-radius: 0px;
-  background-color: var(--opencode-surface-dark);
-  color: var(--opencode-canvas);
-  padding: 32px 24px;
+/* Tavern Dark Wood Section */
+.hs-promo-tavern {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.14) 0%, transparent 60%),
+    linear-gradient(180deg, #211309 0%, #150b05 52%, #1d1007 100%);
 }
 
-/* Badges: 4px Radius, Monospace Caption */
-.badge-terminal {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-.badge-terminal-dark {
-  background-color: var(--opencode-surface-dark);
-  color: var(--opencode-canvas);
-  border: 1px solid var(--opencode-charcoal);
-}
-.badge-terminal-live {
-  background-color: #201d1d;
-  color: #30d158;
-  border: 1px solid #30d158;
-}
-
-/* ==========================================================================
-   Responsive Breakpoints (@media queries for 320px+, 768px+, 1024px+)
-   ========================================================================== */
-/* Mobile Compact (< 768px) */
-@media (max-width: 767px) {
-  .desktop-nav-cluster {
-    display: none !important;
-  }
-  .mobile-nav-toggle {
-    display: inline-flex !important;
-  }
-}
-
-/* Tablet (768px ~ 1023px) */
-@media (min-width: 768px) {
-  .section-padding {
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-}
-
-/* Desktop Widescreen (1024px+) */
-@media (min-width: 1024px) {
-  .desktop-nav-cluster {
-    display: inline-flex !important;
-  }
-  .mobile-nav-toggle {
-    display: none !important;
-  }
-  .section-padding {
-    padding-left: 48px;
-    padding-right: 48px;
-  }
-}
-
-/* ==========================================================================
-   Cool Card Deck Fan-Folded Layout & Glowing Rarity Utilities
-   ========================================================================== */
-.fan-deck-card,
-.fan-card {
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, z-index 0s;
-  transform-origin: center bottom;
-  touch-action: manipulation;
-}
-.fan-deck-card:hover,
-.fan-deck-card:focus-visible,
-.fan-card:hover,
-.fan-card:focus-visible {
-  z-index: 50 !important;
-  transform: translate(calc(-50% + var(--fan-x, 0px)), calc(var(--fan-y, 0px) - 16px)) rotate(0deg) scale(1.08) !important;
-}
-
-/* Rarity Glowing Border Presets */
-.rarity-glow-bronze {
-  border-color: #b45309;
-  box-shadow: 0 0 10px rgba(180, 83, 9, 0.35);
-}
-.rarity-glow-silver {
-  border-color: #94a3b8;
-  box-shadow: 0 0 10px rgba(148, 163, 184, 0.45);
-}
-.rarity-glow-gold {
-  border-color: #eab308;
-  box-shadow: 0 0 14px rgba(234, 179, 8, 0.55);
-}
-.rarity-glow-boss {
-  border-color: #a855f7;
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.65);
-}
-
-/* ==========================================================================
-   Google AdSense: Strict Containment Policy (정해진 영역 외 표시 절대 차단)
-   ========================================================================== */
-
-/* 1. 구글 애드센스가 강제로 body나 html에 삽입하는 padding/margin 푸시다운 원천 제거 */
-html, body {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-/* 2. 구글이 임의로 주입하는 상/하단 고정 앵커 바만 선별 차단 (비네트 전면광고 닫기 버튼 상호작용은 100% 보존) */
-.google-auto-placed:not([style*="fixed"]):not([style*="fullscreen"]),
-.adsbygoogle-noab-wrap,
-ins.adsbygoogle[data-anchor-status],
-iframe[name*="google_ads_top_frame"],
-iframe[name*="google_ads_bottom_frame"] {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  max-width: 0 !important;
-  max-height: 0 !important;
-  position: static !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  opacity: 0 !important;
-  z-index: -9999 !important;
-  overflow: hidden !important;
-}
-
-/* 2-0. 구글 비네트(전면 광고) 닫기 버튼 및 오버레이 클릭 이벤트 상시 보장 */
-div[id*="aswift"][style*="position: fixed"],
-div[id*="aswift"][style*="position:fixed"],
-div[id*="google_ads_iframe"][style*="position: fixed"],
-div[id*="google_ads_iframe"][style*="position:fixed"],
-div[aria-label*="Advertisement"][style*="position: fixed"],
-div[aria-label*="Advertisement"][style*="position:fixed"],
-div[aria-label*="광고"][style*="position: fixed"],
-div[aria-label*="광고"][style*="position:fixed"] {
-  pointer-events: auto !important;
-  visibility: visible !important;
-}
-
-/* OpenCode Terminal-Flat Emergency Vignette Rescue Button */
-.snshero-vignette-rescue-btn {
-  position: fixed !important;
-  top: 14px !important;
-  right: 14px !important;
-  z-index: 2147483647 !important;
-  background-color: #201d1d !important;
-  color: #fdfcfc !important;
-  border: 1.5px solid #fdfcfc !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  padding: 10px 18px !important;
-  border-radius: 4px !important;
-  min-height: 44px !important;
-  min-width: 44px !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  text-decoration: none !important;
-  user-select: none !important;
-  touch-action: manipulation !important;
-  transition: transform 0.15s ease, background-color 0.15s ease !important;
-}
-.snshero-vignette-rescue-btn:hover {
-  background-color: #302c2c !important;
-  transform: scale(1.04) !important;
-}
-.snshero-vignette-rescue-btn:active {
-  background-color: #0f0000 !important;
-  transform: scale(0.97) !important;
-}
-
-/* 2-1. 지정된 배너 슬롯(#adsense-desktop-left, #adsense-desktop-right, #adsense-mobile-top) 내부의 정상 광고 및 iframe은 100% 온전하게 표시 */
-.adsense-gutter div[id*="_host"],
-.adsense-slot-wrapper div[id*="_host"],
-ins.adsbygoogle div[id*="_host"],
-#adsense-desktop-left div[id*="_host"],
-#adsense-desktop-right div[id*="_host"],
-#adsense-mobile-top div[id*="_host"] {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-.adsense-gutter iframe,
-.adsense-slot-wrapper iframe,
-ins.adsbygoogle iframe,
-#adsense-desktop-left iframe,
-#adsense-desktop-right iframe,
-#adsense-mobile-top iframe {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-}
-
-/* 3. 중앙 메인 콘텐츠 슬롯(#landing-main-slot) 내부 및 모달 내부에 구글이 임의로 주입하는 광고 전면 차단 */
-#landing-main-slot .google-auto-placed,
-#landing-main-slot ins.adsbygoogle,
-#landing-modals-slot ins.adsbygoogle,
-#landing-header-slot .google-auto-placed {
-  display: none !important;
-  height: 0 !important;
-  overflow: hidden !important;
-}
-
-/* ==========================================================================
-   Dedicated Desktop Side Gutters (정해진 데스크톱 1536px+ 양 날개 영역)
-   - 1536px 미만 뷰포트에서는 화면 가림 방지를 위해 완전 숨김
-   - position: static 강제로 구글 스크립트의 sticky/fixed 슬라이딩 동작 100% 원천 차단
-   ========================================================================== */
-#adsense-desktop-left,
-#adsense-desktop-right {
-  width: 160px !important;
-  max-width: 160px !important;
-  min-width: 160px !important;
-  position: static !important;
-  float: none !important;
-  top: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  right: auto !important;
-  transform: none !important;
-  overflow: visible !important;
-  z-index: 10 !important;
-}
-
-#adsense-desktop-left ins.adsbygoogle,
-#adsense-desktop-right ins.adsbygoogle {
-  display: block !important;
-  width: 160px !important;
-  max-width: 160px !important;
-  height: 600px !important;
-  max-height: 600px !important;
-  min-height: 600px !important;
-  margin: 0 auto !important;
-}
-
-/* ==========================================================================
-   화면 비율 및 뷰포트 기준 구글 배너 반응형 규칙 (Aspect-Ratio & Viewport Responsive Rules)
-   - 와이드 데스크톱 가로 모드 (Width >= 1280px & Height >= 650px & Landscape): 좌우 양 날개 거터(160x600) 배너
-   - 태블릿 가로/세로, 스마트폰, 세로 모드 (Width < 1280px 또는 Height < 650px, 또는 Portrait):
-     좌우 거터 완전 숨김 + 컴팩트 상단 띠 배너(320x50) 활성화
-   - 대사/배틀 모달 활성화 시 뒷배경 틈새 노출 100% 원천 차단 (Zero-Gap Fullscreen Protection)
-   ========================================================================== */
-
-/* 대사/배틀 모달 활성화 시 브라우저 베이스 배경도 딥 다크로 일치 (틈새 흰색 깜빡임 방지) */
-body.has-active-rpg-modal {
-  background-color: #060a14 !important;
-}
-
-body.has-active-rpg-modal #reader-root {
-  background-color: #060a14 !important;
-}
-
-/* 1. 태블릿(가로/세로) 및 모바일 기기: 너비 1280px 미만 또는 높이 650px 미만, 또는 세로 모드 */
-@media (max-width: 1279px), (max-height: 649px), (orientation: portrait) {
-  /* 좌우 데스크톱 거터 광고 완전 숨김 (화면 침범 및 배경 노출 결함 원천 차단) */
-  #adsense-desktop-left,
-  #adsense-desktop-right {
-    display: none !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-    border: none !important;
-  }
-
-  /* 상단 컴팩트 320x50 현수막 띠 배너 활성화 */
-  body.has-active-rpg-modal #adsense-mobile-top,
-  body:has(#play-dialogue-modal-root) #adsense-mobile-top,
-  body:has(#play-battle-modal-root) #adsense-mobile-top {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 52px !important;
-    min-height: 52px !important;
-    max-height: 52px !important;
-    z-index: 60 !important;
-    background-color: #0c1220 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-    padding: 1px 2px !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
-    visibility: visible !important;
-  }
-
-  body.has-active-rpg-modal #adsense-mobile-top > div,
-  body:has(#play-dialogue-modal-root) #adsense-mobile-top > div,
-  body:has(#play-battle-modal-root) #adsense-mobile-top > div {
-    background-color: #0c1220 !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    height: 50px !important;
-    max-height: 50px !important;
-  }
-
-  /* 대사화면 및 플레이(배틀) 모달: 상단 배너 아래부터 전체 화면 100% 꽉 채움 (좌우 틈새 0px 무결점) */
-  body.has-active-rpg-modal #play-dialogue-modal-root,
-  body.has-active-rpg-modal #play-battle-modal-root,
-  body:has(#play-dialogue-modal-root) #play-dialogue-modal-root,
-  body:has(#play-battle-modal-root) #play-battle-modal-root,
-  .play-rpg-fullscreen-modal {
-    position: fixed !important;
-    top: 52px !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: calc(100vh - 52px) !important;
-    height: calc(100dvh - 52px) !important;
-    max-height: calc(100dvh - 52px) !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    z-index: 50 !important;
-    background-color: #060a14 !important;
-  }
-}
-
-/* 2. 대화면 와이드 데스크톱 가로 모드 (너비 1280px 이상 AND 높이 650px 이상 AND 가로 방향) */
-@media (min-width: 1280px) and (min-height: 650px) and (orientation: landscape) {
-  /* 상단 배너 숨김 */
-  #adsense-mobile-top {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-    border: none !important;
-  }
-
-  /* 대사화면 및 플레이(배틀) 모달 활성화 시 좌우 배너 최상위 고정 */
-  body.has-active-rpg-modal #adsense-desktop-left,
-  body:has(#play-dialogue-modal-root) #adsense-desktop-left,
-  body:has(#play-battle-modal-root) #adsense-desktop-left {
-    position: fixed !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: 160px !important;
-    max-width: 160px !important;
-    min-width: 160px !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    z-index: 60 !important;
-    background-color: #060a14 !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
-    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.5) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    overflow-y: auto !important;
-    visibility: visible !important;
-  }
-
-  body.has-active-rpg-modal #adsense-desktop-right,
-  body:has(#play-dialogue-modal-root) #adsense-desktop-right,
-  body:has(#play-battle-modal-root) #adsense-desktop-right {
-    position: fixed !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    right: 0 !important;
-    width: 160px !important;
-    max-width: 160px !important;
-    min-width: 160px !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    z-index: 60 !important;
-    background-color: #060a14 !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
-    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.5) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    overflow-y: auto !important;
-    visibility: visible !important;
-  }
-
-  body.has-active-rpg-modal #adsense-desktop-left > div,
-  body.has-active-rpg-modal #adsense-desktop-right > div,
-  body:has(#play-dialogue-modal-root) #adsense-desktop-left > div,
-  body:has(#play-dialogue-modal-root) #adsense-desktop-right > div,
-  body:has(#play-battle-modal-root) #adsense-desktop-left > div,
-  body:has(#play-battle-modal-root) #adsense-desktop-right > div {
-    background-color: #0c1220 !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-  }
-
-  /* 대사화면 및 플레이(배틀) 모달: 전체 100vw를 안전하게 커버하고, 좌우 160px 패딩으로 콘텐츠 정렬 */
-  body.has-active-rpg-modal #play-dialogue-modal-root,
-  body.has-active-rpg-modal #play-battle-modal-root,
-  body:has(#play-dialogue-modal-root) #play-dialogue-modal-root,
-  body:has(#play-battle-modal-root) #play-battle-modal-root,
-  .play-rpg-fullscreen-modal {
-    position: fixed !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    padding-left: 160px !important;
-    padding-right: 160px !important;
-    z-index: 50 !important;
-    background-color: #060a14 !important;
-  }
-}
-
-/* 대사/배틀 모달 활성화 시 배너 내부 라벨 텍스트 가독성 최적화 */
-body.has-active-rpg-modal #adsense-mobile-top .text-stone-500,
-body.has-active-rpg-modal #adsense-desktop-left .text-stone-500,
-body.has-active-rpg-modal #adsense-desktop-right .text-stone-500,
-body:has(#play-dialogue-modal-root) #adsense-mobile-top .text-stone-500,
-body:has(#play-dialogue-modal-root) #adsense-desktop-left .text-stone-500,
-body:has(#play-dialogue-modal-root) #adsense-desktop-right .text-stone-500,
-body:has(#play-battle-modal-root) #adsense-mobile-top .text-stone-500,
-body:has(#play-battle-modal-root) #adsense-desktop-left .text-stone-500,
-body:has(#play-battle-modal-root) #adsense-desktop-right .text-stone-500 {
-  color: #94a3b8 !important;
-}
-
-/* ==========================================================================
-   Mobile/Tablet Compact Slim Ribbon AdSense Top Banner (컴팩트 320x50 현수막 띠 배너)
-   ========================================================================== */
-#adsense-mobile-top {
+/* Carved Wood & Gold Molding Section Divider */
+.hs-promo-divider {
+  position: relative;
+  height: 12px;
   width: 100%;
-  max-width: 100%;
-  background-color: #f8f7f7;
-  border-bottom: 1px solid rgba(15, 0, 0, 0.12);
-  padding: 1px 2px;
-  height: 52px;
-  min-height: 52px;
-  max-height: 52px;
-  position: static !important;
-  float: none !important;
-  top: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  right: auto !important;
-  transform: none !important;
-  overflow: hidden !important;
-  z-index: 10 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  background: linear-gradient(180deg, #5e3b1e 0%, #2b180b 50%, #140a04 100%);
+  border-top: 2px solid #d4a857;
+  border-bottom: 2px solid #754e20;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
 }
 
-#adsense-mobile-top .adsense-banner-inner {
-  width: 100%;
-  max-width: 320px;
-  height: 50px;
-  max-height: 50px;
-  margin: 0 auto;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Hearthstone Official Purple/Indigo Pill CTA */
+.hs-promo-cta-purple {
+  background:
+    radial-gradient(ellipse at 50% 10%, rgba(216, 180, 254, 0.45) 0%, transparent 55%),
+    linear-gradient(180deg, #8b5cf6 0%, #6d28d9 54%, #4c1d95 100%);
+  border: 2px solid #f5d078;
+  color: #ffffff;
+  box-shadow:
+    0 8px 24px rgba(76, 29, 149, 0.55),
+    0 0 18px rgba(139, 92, 246, 0.42),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.65);
+  transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+}
+.hs-promo-cta-purple:hover:not(:disabled) {
+  filter: brightness(1.12);
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow:
+    0 12px 30px rgba(76, 29, 149, 0.72),
+    0 0 28px rgba(167, 139, 250, 0.7),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85);
 }
 
-#adsense-mobile-top ins.adsbygoogle {
-  display: inline-block !important;
-  width: 320px !important;
-  max-width: 100% !important;
-  height: 50px !important;
-  max-height: 50px !important;
-  min-height: 50px !important;
-  margin: 0 auto !important;
-  overflow: hidden !important;
+/* Hearthstone Teal Outline Button */
+.hs-promo-cta-teal-dark {
+  background: rgba(20, 184, 166, 0.12);
+  border: 2px solid #2dd4bf;
+  color: #99f6e4;
+  transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+.hs-promo-cta-teal-dark:hover:not(:disabled) {
+  background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
-#adsense-mobile-top iframe,
-#adsense-mobile-top div[id*="_host"] {
-  height: 50px !important;
-  max-height: 50px !important;
-  width: 320px !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
+/* Gold Engraved Picture/Card Frame */
+.hs-promo-gold-frame {
+  border: 3px solid #d4a857;
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(69, 36, 8, 0.9),
+    inset 0 1px 0 rgba(255, 247, 214, 0.72);
 }
 
-/* 화면 상단/하단을 가리며 내려오는 구글 자동 앵커 바만 선별 차단 */
-iframe[name*="google_ads_top_frame"],
-iframe[name*="google_ads_bottom_frame"],
-ins.adsbygoogle[data-anchor-status],
-.google-auto-placed:not([style*="fixed"]):not([style*="fullscreen"]),
-.adsbygoogle-noab-wrap {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  height: 0px !important;
-  max-height: 0px !important;
-  position: absolute !important;
-  top: -9999px !important;
-  left: -9999px !important;
-  z-index: -9999 !important;
-}
-
-/* ==========================================================================
-   Tactical 3D Card Flip FX (실제 앞뒤로 뒤집어지는 3D 회전 애니메이션)
-   ========================================================================== */
-@keyframes card-flip-3d {
-  0% {
-    transform: perspective(700px) rotateY(0deg) scale(1);
-  }
-  35% {
-    transform: perspective(700px) rotateY(90deg) scale(1.1);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-  }
-  65% {
-    transform: perspective(700px) rotateY(270deg) scale(1.06);
-  }
-  100% {
-    transform: perspective(700px) rotateY(360deg) scale(1);
-  }
-}
-
-.animate-card-flip {
-  animation: card-flip-3d 0.65s cubic-bezier(0.2, 0.9, 0.3, 1) both;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  will-change: transform;
-  z-index: 40 !important;
-}
-
-/* 카드 배치 시 경쾌한 팝 애니메이션 */
-@keyframes card-place-pop {
-  0% {
-    transform: scale(0.88);
-    opacity: 0.8;
-  }
-  60% {
-    transform: scale(1.04);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.animate-card-place {
-  animation: card-place-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
-  z-index: 30 !important;
-}
-
-/* 카드 재렌더링 시 깜박임(Flicker) 원천 차단 */
-.battle-board-slot,
-.group\/slot-card,
-.group\/orig-card {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #140c06; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #b88a44, #6e4c1e);
+  border-radius: 4px;
 }
