@@ -1305,7 +1305,7 @@ export const PromoApp: React.FC = () => {
               <div className="order-1 lg:order-2 lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src="/hs-assets/screenshots/ingame_ai_battle.png"
+                    src="/hs-assets/screenshots/ingame_story_battle.png"
                     alt={tr('AI대전', 'AI Battle')}
                     className="aspect-video w-full object-cover"
                   />
@@ -1318,7 +1318,7 @@ export const PromoApp: React.FC = () => {
               <div className="lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src="/hs-assets/screenshots/ingame_story_battle.png"
+                    src="/hs-assets/screenshots/ingame_story_theater.png"
                     alt={tr('스토리모드 카단의 여정', "Story Mode Kadan's Journey")}
                     className="aspect-video w-full object-cover"
                   />

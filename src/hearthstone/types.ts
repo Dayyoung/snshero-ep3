@@ -153,7 +153,7 @@ export const CLASSIC_HEROES: Record<HeroClass, HeroDef> = {
     classNameKo: '불종족',
     factionRealmKo: '불꽃 궁정',
     heroPortraitUrl: '/hs-assets/characters/busts/020_bust.webp',
-    heroCutoutUrl: '/hs-assets/characters/cutouts/020_Ignisius.webp',
+    heroCutoutUrl: '/hs-assets/characters/cutouts/011_Ignis.webp',
     heroPowerId: 'HERO_01bp',
     heroPowerNameKo: '태양 갑주!',
     heroPowerTextKo: '방어도를 +2 얻습니다.',
