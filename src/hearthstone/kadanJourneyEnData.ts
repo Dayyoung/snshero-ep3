@@ -114,29 +114,39 @@ export interface EpEnLocalization {
 
 const EP0_SCENES_EN = [
   {
-    stageLabel: 'SLIDE 1 / 5 · Mana & Turn Flow',
-    shortCaption: 'Max Mana +1 each turn · Check the crystal number at top-left!',
-    shortQuote: 'Play low-cost minions first to control the early board.',
+    stageLabel: 'Tutorial 1 / 5 · Win Condition',
+    shortCaption:
+      'Welcome to SNSHero! One simple goal: use your minions and spells to reduce Enemy Hero HP from 30 to 0.',
+    shortQuote:
+      'Across 9 Factions and 382 cards, strike the top enemy hero with minions & spells to win!',
   },
   {
-    stageLabel: 'SLIDE 2 / 5 · Summoning & Taunt',
-    shortCaption: 'Top-left = Mana, Bottom-left = Attack (⚔), Bottom-right = Health (♥)',
-    shortQuote: 'Shield-framed Taunt minions must be cleared before foes can hit your Hero!',
+    stageLabel: 'Tutorial 2 / 5 · Reading Cards',
+    shortCaption:
+      '3 Key Card Numbers: Top-left Blue Gem = Mana, Bottom-left Gold = Attack, Bottom-right Red Drop = Health.',
+    shortQuote:
+      'Tap any card in the 382-card collection to zoom in — low-cost cards shine early!',
   },
   {
-    stageLabel: 'SLIDE 3 / 5 · Spells, Weapons & Hero Power',
-    shortCaption: 'Spells cast magic, Weapons let your Hero swing, Hero Power costs 2 Mana!',
-    shortQuote: 'Whenever you have 2 Mana left over, tap Hero Power to gain steady value!',
+    stageLabel: 'Tutorial 3 / 5 · Mana & Summoning',
+    shortCaption:
+      '+1 Max Mana each turn up to 10! Keep 1–3 Mana cards on Mulligan and tap green-glowing cards to play them.',
+    shortQuote:
+      'Watch your Mana crystals bottom-right and spend spare 2 Mana on your Hero Power!',
   },
   {
-    stageLabel: 'SLIDE 4 / 5 · SNSHero 3-Copy = ×3 Awakening',
-    shortCaption: 'Collect 3 copies of a card to awaken ×3 Attack & Health in Story Mode!',
-    shortQuote: 'Legendaries boost even at 2 copies — the more packs you open, the stronger your deck!',
+    stageLabel: 'Tutorial 4 / 5 · Combat & Taunt',
+    shortCaption:
+      'Minions gain a green ring next turn to attack; break Shield [Taunt] minions first and win favorable trades!',
+    shortQuote:
+      'Master Taunt, Charge, Shield, Battlecry, and Deathrattle — tap [? Rules] anytime during battle.',
   },
   {
-    stageLabel: 'SLIDE 5 / 5 · Live Drill vs. Scarecrow Bot',
-    shortCaption: 'Auto-battle at a 3s pace vs. 10 HP Scarecrow Bot with tactical tips!',
-    shortQuote: 'Watch why Kadan plays each card, claim your first win, and march into Episode 1!',
+    stageLabel: 'Tutorial 5 / 5 · Kadan vs Scarecrow Bot',
+    shortCaption:
+      'Combat Drill begins! Watch Apprentice Paladin Kadan explain every card decision vs. the 10-HP Scarecrow Bot.',
+    shortQuote:
+      'Learn how Kadan plays minions, spells, and weapons turn by turn, claim your first win, and enter Episode 1!',
   },
 ];
 
@@ -1254,7 +1264,7 @@ export function applyEnEpisodeLocalization(
       prevContextKo:
         "Before embarking on Kadan's Journey (Episode 1), experience core card battle rules with classic Basic cards.",
       synopsisKo:
-        'Review 5 quick visual slides covering Mana crystals, Taunt, Spells, Weapons, and the ×3 Awakening rule, then enjoy an unhurried 3-second tactical demo duel against the Training Scarecrow Bot!',
+        'Review 5 quick visual slides covering Win Condition (30 to 0 HP), Reading Cards (Mana/Attack/Health), Mana & Summoning, Combat & Taunt keywords, and the Kadan vs Scarecrow Bot live drill!',
       battleReasonKo:
         'Kadan explains why every card is played turn by turn, defeats the Scarecrow Bot, and launches Episode 1!',
       cast: [
@@ -1276,6 +1286,7 @@ export function applyEnEpisodeLocalization(
           illustrationUrl: sc.illustrationUrl.replace(/(\.webp)$/, '_en$1'),
           stageLabel: enSc?.stageLabel || sc.stageLabel,
           shortCaption: enSc?.shortCaption || sc.shortCaption,
+          narration: enSc?.shortCaption || sc.narration,
           shortQuote: enSc?.shortQuote || sc.shortQuote,
           speakerName: 'Kadan',
           speakerRole: 'Tutorial Instructor',

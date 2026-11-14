@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0-1794620876654",
-  "buildTime": "2026-11-14T01:47:56.654Z",
-  "buildTimestamp": 1794620876654,
+  "version": "2.1.0-1794621154911",
+  "buildTime": "2026-11-14T01:52:34.911Z",
+  "buildTimestamp": 1794621154911,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
-  "entryScript": "/assets/main-D7thgb99-v2.js"
+  "entryScript": "/assets/main-v18R2kGQ-v2.js"
 }

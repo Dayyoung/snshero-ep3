@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-14 10:53 KST] [게임 시작 전 튜토리얼 웹툰 5컷 이미지·대사·성우 낭독 100% 일치화 및 원격 푸시 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 에피소드 0 웹툰 5컷 이미지(`ep0_slide_1~5[_en].webp`)·자막·성우 낭독 MP3(`ep00_cut1~5.mp3`) 내용 불일치 해소**:
+    - [`src/hearthstone/kadanJourneyData.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/kadanJourneyData.ts): 기존 1~5컷 대사가 구버전 규칙(마나/도발/주문무기/3배각성)으로 남아 `ep0_slide_1~5.webp` 이미지 및 `ep00_cut1~5.mp3` 음성과 어긋나던 문제를 실제 슬라이드·음성 내용에 맞춰 1:1 재정렬(1컷 승리 조건 30→0 / 2컷 카드 읽는 법 / 3컷 마나 성장 & 소환 / 4컷 전투 & 도발 키워드 / 5컷 카단 vs 허수아비 로봇).
+    - [`src/hearthstone/kadanJourneyEnData.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/kadanJourneyEnData.ts): `EP0_SCENES_EN` 및 `applyEnEpisodeLocalization()` 영문 대사·라벨·요약도 `ep0_slide_1~5_en.webp` 5컷 영문 슬라이드 내용과 동일하게 1:1 동기화.
+  - **2. 빌드 및 Playwright KO/EN 5컷 전수 검증 완료**:
+    - `npx tsc --noEmit` (`src/stone/` 제외 에러 0건) 및 `npm run build` 정상 통과.
+    - Playwright 모바일(`390×844`) `ko-KR`/`en-US` 양쪽 언어에서 1~5컷 이미지·단계 라벨·하단 대사 일치 및 `pageerror` 0건 검증 완료.
+
 ## [2026-11-14 10:48 KST] [게임 내 모든 팝업 우측 상단 닫기 버튼 일관성 통일 및 모바일 웹툰 팝업 스킵 버튼 가림 해소]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
