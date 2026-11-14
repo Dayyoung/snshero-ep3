@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-14 11:20 KST] [게임 시작 전 대결 양쪽 캐릭터 이름만 짧게 호명·표시하도록 음성 및 VS UI 최적화 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 전체 32종 짧은 캐릭터 이름 스튜디오 음성 MP3(`short_*.mp3`) 생성 및 매핑 통합**:
+    - 기존 `announcer_*.mp3`("에린의 눈히어로, 카단", "불꽃의 태양황제, 이그니시우스") 및 스토리 `hero_*.mp3`("성기사 카단", "망념의 죽음기사 아르투스", "훈련용 허수아비 로봇")가 긴 수식어·직함까지 전부 읽어 대전 개시 대기가 길어지던 문제를 해소.
+    - `ko-KR-InJoonNeural` 기반 32종 짧은 이름 MP3([`public/hs-assets/snshero-audio/story/short_*.mp3`](file:///Users/dayyoung/project/snshero/public/hs-assets/snshero-audio/story/hero_name_vo_map.json)) 생성 및 80개 별칭 매핑 완료.
+  - **2. 짧은 이름 추출 공통 헬퍼 및 VS 인트로 한/영 적용 (`audio.ts` · `BattleScreen.tsx`)**:
+    - [`src/hearthstone/audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts): `extractShortHeroCalloutName()` 신설 및 `playMatchupAnnouncement()`에서 한국어(`카단 대! 허수아비 로봇` 등)·영어(`Kadan versus Scarecrow Bot` 등) 모두 수식어·AI 접두사를 뺀 이름만 짧게 호명하도록 변경.
+    - [`src/hearthstone/screens/BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx): `runVsIntroAndTransition()`에 언어별 정확한 캐릭터 이름을 전달하고, VS 인트로 화면 헤드라인(`pDispName`/`oDispName`)도 짧은 이름만 표시(서브타이틀 유지)하도록 정리.
+  - **3. 타입체크 · 빌드 · Playwright 실브라우저 검증 완료**:
+    - `npx tsc --noEmit` (`src/stone/` 제외 에러 0건) 및 `npm run build` 통과.
+    - Playwright `ko-KR` / `en-US` 실검증: `story_battle`(`["카단", "허수아비 로봇"]`, `["Kadan", "Scarecrow Bot"]`) 및 `ai_battle`(`["카단", "토람"]`, `["Kadan", "Toram"]`) 짧은 이름 표시, `short_kadan.mp3` 요청, `pageerror` 0건 확인.
+
 ## [2026-11-14 10:53 KST] [게임 시작 전 튜토리얼 웹툰 5컷 이미지·대사·성우 낭독 100% 일치화 및 원격 푸시 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isKoreanLanguage, tr, useHeroLanguage } from '../../i18n/heroLang';
-import { hsAudio } from '../audio';
+import { extractShortHeroCalloutName, hsAudio } from '../audio';
 import {
   CLASSIC_RANK_NAMES,
   CLASS_CREST_URL,
@@ -634,11 +634,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const minDelayPromise = new Promise<void>((resolve) => {
         window.setTimeout(resolve, minDelayMs);
       });
+      const koNow = isKoreanLanguage();
+      const rawPName = koNow
+        ? activeMatch.player.heroNameKo || activeMatch.player.name
+        : activeMatch.player.customHero?.heroNameEn ||
+          (activeMatch.player.customHero
+            ? activeMatch.player.name
+            : getLocalizedHeroInfo(activeMatch.player.heroClass, 'en').name);
+      const rawOName = koNow
+        ? activeMatch.opponent.heroNameKo || activeMatch.opponent.name
+        : activeMatch.opponent.customHero?.heroNameEn ||
+          (activeMatch.opponent.customHero
+            ? activeMatch.opponent.name
+            : getLocalizedHeroInfo(activeMatch.opponent.heroClass, 'en').name);
       const announcePromise = hsAudio.playMatchupAnnouncement(
         activeMatch.player.heroClass,
         activeMatch.opponent.heroClass,
-        activeMatch.player.heroNameKo || activeMatch.player.name,
-        activeMatch.opponent.heroNameKo || activeMatch.opponent.name,
+        rawPName,
+        rawOName,
         Boolean(activeMatch.player.customHero),
         Boolean(activeMatch.opponent.customHero || activeMatch.journeyMeta),
       );
@@ -3766,14 +3779,30 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           const oSubTitle =
             (isKo ? matchState.opponent.customHero?.titleKo : undefined) ||
             matchState.opponent.name;
-          const pDispName =
+          const rawPDispName =
             matchState.player.customHero
-              ? (isKo ? matchState.player.customHero.nameKo : matchState.player.name)
+              ? isKo
+                ? matchState.player.customHero.heroNameKo || matchState.player.customHero.nameKo
+                : matchState.player.customHero.heroNameEn || matchState.player.name
               : pHeroInfo.name;
-          const oDispName =
+          const rawODispName =
             matchState.opponent.customHero
-              ? (isKo ? matchState.opponent.customHero.nameKo : matchState.opponent.name)
-              : (matchState.opponent.heroNameKo || oHeroInfo.name);
+              ? isKo
+                ? matchState.opponent.customHero.heroNameKo || matchState.opponent.customHero.nameKo
+                : matchState.opponent.customHero.heroNameEn || matchState.opponent.name
+              : isKo
+                ? matchState.opponent.heroNameKo || oHeroInfo.name
+                : oHeroInfo.name;
+          const pDispName = extractShortHeroCalloutName(
+            rawPDispName,
+            matchState.player.heroClass,
+            isKo,
+          );
+          const oDispName = extractShortHeroCalloutName(
+            rawODispName,
+            matchState.opponent.heroClass,
+            isKo,
+          );
 
           return (
             <div className="absolute inset-0 z-[92] flex flex-col items-center justify-center bg-black/88 px-3">

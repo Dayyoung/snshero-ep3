@@ -1099,24 +1099,21 @@ class SnsHeroCardAudioEngine {
     opponentClass: HeroClass,
     playerName?: string,
     opponentName?: string,
-    isPlayerCustom = false,
-    isOpponentCustom = false,
+    _isPlayerCustom = false,
+    _isOpponentCustom = false,
   ) {
     if (!this.checkWindowActive() || this.settings.muted) return;
-    if (!isKoreanLanguage()) {
-      const pLabel = playerName || getLocalizedHeroInfo(playerClass, 'en').name || playerClass;
-      const oLabel = opponentName || getLocalizedHeroInfo(opponentClass, 'en').name || opponentClass;
-      await this.speakTts(`${pLabel} versus ${oLabel}`, 1.0, 0.86);
+    const isKo = isKoreanLanguage();
+    const pShort = extractShortHeroCalloutName(playerName, playerClass, isKo);
+    const oShort = extractShortHeroCalloutName(opponentName, opponentClass, isKo);
+
+    if (!isKo) {
+      await this.speakTts(`${pShort} versus ${oShort}`, 1.0, 0.86);
       return;
     }
 
-    // 1. 플레이어 영웅 아나운서 발화 (스튜디오 남성 아나운서 MP3 사용)
-    const pVo = CLASSIC_HEROES[playerClass]?.voKey || 'priest';
-    if (isPlayerCustom && playerName) {
-      await this.announceHeroName(playerName);
-    } else {
-      await this.playVoFile(`announcer_${pVo}`);
-    }
+    // 1. 플레이어 짧은 이름만 아나운서 호명
+    await this.announceHeroName(pShort);
 
     if (!this.checkWindowActive()) return;
 
@@ -1125,18 +1122,63 @@ class SnsHeroCardAudioEngine {
 
     if (!this.checkWindowActive()) return;
 
-    // 3. 상대방 영웅 발화 (스튜디오 남성 아나운서 MP3 사용)
-    const oVo = CLASSIC_HEROES[opponentClass]?.voKey || 'warrior';
-    const classicOpponentVoName = CLASSIC_HEROES[opponentClass]?.nameKo;
-    const shouldReadCustomName =
-      isOpponentCustom || (opponentName && opponentName !== classicOpponentVoName);
-
-    if (shouldReadCustomName && opponentName) {
-      await this.announceHeroName(opponentName);
-    } else {
-      await this.playVoFile(`announcer_${oVo}`);
-    }
+    // 3. 상대방 짧은 이름만 아나운서 호명
+    await this.announceHeroName(oShort);
   }
+}
+
+const SHORT_KO_NAME_ALIASES: Record<string, string> = {
+  '바람신 토람': '토람',
+  '훈련용 허수아비 로봇': '허수아비 로봇',
+  '감옥장 메두사 고르고': '고르고',
+  '메두사 고르고': '고르고',
+  '아다만티움 수호거신': '수호거신',
+  이그니시우스: '이그니스',
+};
+
+const SHORT_EN_NAME_ALIASES: Record<string, string> = {
+  'Training Scarecrow Bot': 'Scarecrow Bot',
+  'Kadan, Shield of Elwin': 'Kadan',
+  'Warden Medusa Gorgo': 'Gorgo',
+  'Medusa Gorgo': 'Gorgo',
+  'Adamantium Guardian': 'Guardian',
+};
+
+/**
+ * 대전 시작 전 아나운서 호명이 길어지지 않도록 수식어·직함을 제거한 짧은 캐릭터 이름만 추출합니다.
+ */
+export function extractShortHeroCalloutName(
+  rawName: string | undefined,
+  heroClass: HeroClass,
+  isKo: boolean,
+): string {
+  const trimmed = (rawName || '').trim();
+  if (!trimmed) {
+    const fallback = isKo
+      ? CLASSIC_HEROES[heroClass]?.nameKo
+      : getLocalizedHeroInfo(heroClass, 'en').name;
+    return isKo
+      ? SHORT_KO_NAME_ALIASES[fallback] || fallback || heroClass
+      : SHORT_EN_NAME_ALIASES[fallback] || fallback || heroClass;
+  }
+
+  if (isKo) {
+    if (SHORT_KO_NAME_ALIASES[trimmed]) return SHORT_KO_NAME_ALIASES[trimmed];
+    if (/AI대전 상대|연습/i.test(trimmed)) {
+      const clsName = CLASSIC_HEROES[heroClass]?.nameKo || '';
+      return SHORT_KO_NAME_ALIASES[clsName] || clsName || trimmed;
+    }
+    const parts = trimmed.split(/\s+/);
+    return parts.length > 1 ? parts[parts.length - 1] : trimmed;
+  }
+
+  if (SHORT_EN_NAME_ALIASES[trimmed]) return SHORT_EN_NAME_ALIASES[trimmed];
+  if (/AI Challenger/i.test(trimmed)) {
+    return getLocalizedHeroInfo(heroClass, 'en').name || heroClass;
+  }
+  const beforeComma = trimmed.split(',')[0].trim();
+  const enParts = beforeComma.split(/\s+/);
+  return enParts.length > 1 ? enParts[enParts.length - 1] : beforeComma;
 }
 
 export const hsAudio = new SnsHeroCardAudioEngine();
