@@ -1039,6 +1039,18 @@ export function createMcpHttpMiddleware(rootDir = process.cwd()) {
     }
 
     try {
+      // 0. Markdown Agent Usage Guide (/mcp/guide.md)
+      if ((rawPath === '/mcp/guide.md' || rawPath === '/mcp/guide') && req.method === 'GET') {
+        const guidePath = path.join(rootDir, 'public', 'mcp-guide.md');
+        const guideText = fs.existsSync(guidePath)
+          ? fs.readFileSync(guidePath, 'utf8')
+          : '# SNSHero /mcp Guide\nPOST JSON-RPC 2.0 to /mcp';
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+        res.end(guideText);
+        return;
+      }
+
       // 1. OpenAPI 3.1 Schema for ChatGPT Actions
       if (rawPath === '/mcp/openapi.json' && req.method === 'GET') {
         const host = req.headers.host || 'localhost:3000';

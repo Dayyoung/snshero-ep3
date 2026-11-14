@@ -1599,6 +1599,54 @@ export const SnsBenchmarkApp: React.FC = () => {
         {/* =================================================================== */}
         {activeTab === 'mcp_setup' && (
           <div className="space-y-6">
+            {/* 1-Click Ready-to-Paste Prompt for AI Agents */}
+            <section className="border border-amber-400/50 bg-[#12192b] p-5 rounded-none space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-sm sm:text-base font-bold text-amber-300">
+                    {tr(
+                      'AI(ChatGPT · Gemini · Claude Code)에게 바로 전달할 실행 프롬프트',
+                      'Ready-to-Paste Instruction Prompt for ChatGPT / Gemini / Claude Code',
+                    )}
+                  </h2>
+                  <p className="text-xs text-stone-300 mt-0.5">
+                    {tr(
+                      '아래 지시문을 복사해 AI 채팅창이나 CLI에 그대로 붙여넣거나, /mcp/guide.md 링크만 전달하면 AI가 스스로 툴 규격을 파악해 플레이 및 100점 채점을 수행합니다.',
+                      'Copy and paste this prompt into any AI agent, or share /mcp/guide.md directly.',
+                    )}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    copyText(
+                      'ai_master_prompt',
+                      `눈히어로(SNSHero) 카드배틀 MCP 서버(${originHost}/mcp, 가이드: ${originHost}/mcp/guide.md)에 접속해서 아래 순서대로 수행해줘:\n1) snshero_get_game_dossier를 호출해 382장 카드·40화 스토리·엔진·사운드 아키텍처와 100점 채점 루브릭을 분석해.\n2) snshero_start_match와 snshero_step_action을 사용해 눈히어로 숙련 AI(EXPERT)와 최소 3판(벤치마크 시 snshero_create_1000_series로 1,000판) 끝까지 대결해.\n3) 대결 경험과 아키텍처 분석을 바탕으로 기획/개발/디자인 각 100점 만점 점수와 강점·개선점을 snshero_submit_evaluation으로 제출해 ${originHost}/sns 에 반영해줘.`,
+                    )
+                  }
+                  className="sns-btn-primary text-xs inline-flex items-center gap-1.5"
+                >
+                  {copiedKey === 'ai_master_prompt' ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>{tr('프롬프트 복사 완료!', 'Prompt Copied!')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>{tr('AI 전달용 프롬프트 원클릭 복사', 'Copy Prompt for AI')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <pre className="bg-[#090d16] border border-white/15 p-3 text-[11px] text-stone-200 whitespace-pre-wrap leading-relaxed">
+{`눈히어로(SNSHero) 카드배틀 MCP 서버(${originHost}/mcp, 가이드: ${originHost}/mcp/guide.md)에 접속해서 아래 순서대로 수행해줘:
+1) snshero_get_game_dossier를 호출해 382장 카드·40화 스토리·엔진·사운드 아키텍처와 100점 채점 루브릭을 분석해.
+2) snshero_start_match와 snshero_step_action을 사용해 눈히어로 숙련 AI(EXPERT)와 최소 3판(벤치마크 시 snshero_create_1000_series로 1,000판) 끝까지 대결해.
+3) 대결 경험과 아키텍처 분석을 바탕으로 기획/개발/디자인 각 100점 만점 점수와 강점·개선점을 snshero_submit_evaluation으로 제출해 ${originHost}/sns 에 반영해줘.`}
+              </pre>
+            </section>
+
             {/* Live /mcp Ping Diagnostic */}
             <section className="border border-white/15 bg-[#101624] p-5 rounded-none space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
