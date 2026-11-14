@@ -15,6 +15,8 @@
     - **실시간 엔진 시뮬레이터 & MCP 턴 인스펙터**: 브라우저 및 서버에서 즉시 20/100/1,000판 실제 `GameEngine` 대전을 돌리고, LLM이 수신하는 `MatchObservation` 및 `legalActions`를 1스텝씩 직접 실행·검증 가능하도록 구현 (`DESIGN.md` `font-mono`·`0px/4px` 플랫 터미널 미학 100% 준수).
   - **3. 검증 및 구글 폼 보고 완료**:
     - 382장 카드 동결 원칙 및 `/stone.html` 무간섭 원칙 100% 준수, `npx tsc --noEmit` 에러 0건, `npm run build` 프로덕션 번들(`dist/sns/index.html`) 생성, 1,000판 실측 캘리브레이션 및 MCP 3판 턴제 프로토콜 검증 통과, 로컬 git 커밋 및 구글 폼 보고 제출 완료.
+  - **4. AI 전달용 공식 가이드(`/mcp/guide.md` · `public/mcp-guide.md`) 및 원클릭 프롬프트 복사 기능 보강**:
+    - AI 에이전트가 URL 하나만 읽고 즉시 JSON-RPC 호출 순서를 이해할 수 있도록 `/mcp/guide.md` 엔드포인트와 `/sns` `[04] /mcp 서버 연동` 탭 상단 원클릭 프롬프트 복사 패널 추가 완료.
 
 ## [2026-11-15 07:26 KST] [`/stone.html` 오리지널 블리자드 하스스톤 1:1 충실도 전면 재설계 및 전장 소켓·드래그 조작·상자 허브 고도화 완료]
 - **작업자**: `Antigravity Assistant`
