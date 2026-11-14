@@ -2,6 +2,21 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-14 10:48 KST] [게임 내 모든 팝업 우측 상단 닫기 버튼 일관성 통일 및 모바일 웹툰 팝업 스킵 버튼 가림 해소]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 모바일 웹툰 팝업(`KadanJourneyStoryModal.tsx`) 스킵 버튼 가림/클릭 불가 해결**:
+    - 기존 모달 본문(`flex-1`)에 `min-h-0 overflow-y-auto`가 없고 `<footer>`에 `shrink-0`가 빠져 작은 모바일 화면에서 웹툰 이미지+자막이 `<footer>`의 스킵 버튼(`story-skip-start-btn`)을 모달 밖으로 밀어내 잘리던 문제를 수정.
+    - 본문만 `min-h-0 flex-1 overflow-y-auto overscroll-contain`으로 스크롤되도록 분리하고, 모바일 이미지 상한을 `max-h-[34dvh] sm:max-h-[48vh]`로 조정하며, `<footer>`를 `shrink-0`로 하단 고정(`w-full sm:w-auto min-h-[44px]`).
+    - `<header>` 우측 상단에 `story-modal-close-btn`(`✕`)을 `shrink-0`로 고정하고 `showVideoPlayer`와 `useModalDismiss` LIFO 스택을 분리해 ESC/우클릭 시 영상 팝업이 먼저 닫히도록 통일.
+  - **2. 게임 전체 팝업 우측 상단 닫기(`✕`) 버튼 일관성 통일**:
+    - [`src/hearthstone/components/Modals.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/Modals.tsx): `GameOptionsModal`(`options-close-btn`), `PaymentSuccessModal`(`payment-success-close-btn`)에 우측 상단 `✕` 닫기 버튼 신설 및 `TavernShopModal` 닫기 버튼 `shrink-0` 보강.
+    - [`src/hearthstone/screens/HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx): 매칭 대기 팝업(`!wheelLocked`) 우측 상단 `✕` 닫기(`matchmaking-close-btn`) 및 배경 클릭 닫기 통일.
+    - [`src/hearthstone/screens/BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx): 패배 보강 팩 모달(`defeat-pack-close-btn`) 및 승/패 종료 모달(`gameover-close-btn`) 우측 상단 `✕` 닫기 버튼 추가.
+  - **3. 타입체크 · 빌드 · Playwright 모바일(`375×667`) 검증 완료**:
+    - `npx tsc --noEmit` (`src/stone/` 제외 에러 `0`건) 및 `npm run build` 통과.
+    - Playwright 모바일(`375×667`) `/game.html?mode=story`: `story-modal-close-btn`(`inViewport: true`, `hitSelf: true`) 및 `story-skip-start-btn`(`inViewport: true`, `hitSelf: true`) 확인 및 스킵 클릭 시 전투 진입 검증, 콘솔/페이지/로컬 HTTP 에러 `0`건.
+
 ## [2026-11-13 16:33 KST] [카드게임 대결 화면(`/game.html`) 저사양 기기 프레임 끊김 해소 및 렌더링 성능 최적화 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

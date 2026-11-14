@@ -725,7 +725,8 @@ export const TavernShopModal: React.FC<{
               hsAudio.playSfx('box_close');
               onClose();
             }}
-            className="hs-brass-btn rounded-xl px-3.5 py-1.5 text-sm font-extrabold text-amber-100"
+            aria-label={tr('닫기', 'Close')}
+            className="hs-brass-btn shrink-0 rounded-xl px-3.5 py-1.5 text-sm font-extrabold text-amber-100"
           >
             {tr('닫기 ✕', 'Close ✕')}
           </button>
@@ -1462,9 +1463,21 @@ export const PaymentSuccessModal: React.FC<{
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="hs-wood-panel w-full max-w-md rounded-3xl p-6 text-center text-amber-100"
+        className="hs-wood-panel relative w-full max-w-md rounded-3xl p-6 text-center text-amber-100"
       >
-        <h2 className="hs-title text-2xl font-extrabold text-yellow-300">
+        <button
+          type="button"
+          data-testid="payment-success-close-btn"
+          onClick={() => {
+            hsAudio.playSfx('box_close');
+            onClose();
+          }}
+          aria-label={tr('닫기', 'Close')}
+          className="hs-brass-btn absolute right-3.5 top-3.5 flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+        >
+          ✕
+        </button>
+        <h2 className="hs-title px-8 text-2xl font-extrabold text-yellow-300">
           {tr('결제가 완료되었습니다!', 'Payment Complete!')}
         </h2>
         <p className="mt-2 text-sm font-bold text-amber-100">
@@ -1576,11 +1589,25 @@ export const GameOptionsModal: React.FC<{
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="hs-wood-panel max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl p-5 sm:p-6 text-amber-100"
+        className="hs-wood-panel relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl p-5 text-amber-100 sm:p-6"
       >
-        <h2 className="hs-title mb-4 text-center text-2xl font-extrabold text-amber-100">
-          {tr('환경 설정', 'Settings')}
-        </h2>
+        <div className="mb-4 flex items-center justify-between gap-2 border-b border-amber-500/30 pb-3">
+          <h2 className="hs-title text-xl font-extrabold text-amber-100 sm:text-2xl">
+            {tr('환경 설정', 'Settings')}
+          </h2>
+          <button
+            type="button"
+            data-testid="options-close-btn"
+            onClick={() => {
+              hsAudio.playSfx('box_close');
+              onClose();
+            }}
+            aria-label={tr('닫기', 'Close')}
+            className="hs-brass-btn flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+          >
+            ✕
+          </button>
+        </div>
 
         {inBattle && onConcede && (
           <button

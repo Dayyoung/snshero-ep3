@@ -224,7 +224,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
     onStartBattle,
   ]);
 
-  useModalDismiss(true, () => {
+  useModalDismiss(!showVideoPlayer, () => {
     clearPendingAdvance();
     hsAudio.stopStoryNarration();
     if (isMidBattleReview && onCloseReview) {
@@ -233,6 +233,10 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
     } else {
       handleCloseOrStart();
     }
+  });
+
+  useModalDismiss(showVideoPlayer, () => {
+    setShowVideoPlayer(false);
   });
 
   useEffect(() => {
@@ -277,9 +281,9 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
       data-total-cuts={totalCuts}
       className="fixed inset-0 z-[120] flex items-center justify-center bg-black/88 p-2 backdrop-blur-sm sm:p-4"
     >
-      <div className="hs-wood-panel relative flex max-h-[96%] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border-2 border-[#e2be75] shadow-[0_24px_70px_rgba(0,0,0,0.95)] sm:rounded-3xl">
+      <div className="hs-wood-panel relative flex max-h-[94dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border-2 border-[#e2be75] shadow-[0_24px_70px_rgba(0,0,0,0.95)] sm:rounded-3xl">
         {/* 5-Segment Voice-Synced Sequential Progress Bar */}
-        <div className="grid grid-cols-5 gap-1.5 bg-stone-950 px-3 pt-2.5">
+        <div className="grid shrink-0 grid-cols-5 gap-1.5 bg-stone-950 px-3 pt-2.5">
           {cuts.map((cut, idx) => {
             const fillPct =
               idx < activeCutIdx
@@ -304,123 +308,126 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
         </div>
 
         {/* Compact Top Header */}
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/30 bg-stone-950/90 px-3.5 py-2 sm:px-5 sm:py-2.5">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="shrink-0 rounded-lg border border-amber-300/70 bg-amber-950 px-2 py-0.5 text-[11px] font-extrabold text-amber-200 sm:text-xs">
-              {epDef.episode === 0
-                ? tr('튜토리얼 · 에피소드 0', 'Tutorial · Episode 0')
-                : isKo
-                  ? `스토리모드 · ${reincarnation > 0 ? `${reincarnation}환생 ` : ''}제${epDef.episode}화`
-                  : `Story Mode · ${reincarnation > 0 ? `NG+${reincarnation} ` : ''}EP ${epDef.episode}`}
-            </span>
-            <h2 className="hs-title truncate text-sm font-extrabold text-amber-100 sm:text-lg">
-              {epDef.titleKo}
-            </h2>
-            <span className="hidden items-center gap-1.5 rounded-full border border-red-400/50 bg-red-950/75 py-0.5 pl-1 pr-2.5 text-[11px] font-bold text-amber-100 md:inline-flex">
-              <img
-                src={epDef.bossHeroSpec.portraitUrl}
-                alt=""
-                className="h-4 w-4 rounded-full border border-amber-300/80 bg-stone-900 object-cover object-top"
-              />
-              <span>
-                {epDef.episode === 0 ? tr('상대: ', 'Foe: ') : tr('보스: ', 'Boss: ')}
-                <strong className="text-red-200">{epDef.bossNameKo}</strong> (+{diffSpec.expectedWinGold}G
-                {diffSpec.isBossMilestone ? tr(' +1팩', ' +1 Pack') : ''})
+        <header className="flex shrink-0 items-start justify-between gap-2 border-b border-amber-500/30 bg-stone-950/90 px-3 py-2 sm:px-5 sm:py-2.5">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="shrink-0 rounded-lg border border-amber-300/70 bg-amber-950 px-2 py-0.5 text-[11px] font-extrabold text-amber-200 sm:text-xs">
+                {epDef.episode === 0
+                  ? tr('튜토리얼 · 에피소드 0', 'Tutorial · Episode 0')
+                  : isKo
+                    ? `스토리모드 · ${reincarnation > 0 ? `${reincarnation}환생 ` : ''}제${epDef.episode}화`
+                    : `Story Mode · ${reincarnation > 0 ? `NG+${reincarnation} ` : ''}EP ${epDef.episode}`}
               </span>
-            </span>
+              <h2 className="hs-title truncate text-sm font-extrabold text-amber-100 sm:text-lg">
+                {epDef.titleKo}
+              </h2>
+              <span className="hidden items-center gap-1.5 rounded-full border border-red-400/50 bg-red-950/75 py-0.5 pl-1 pr-2.5 text-[11px] font-bold text-amber-100 md:inline-flex">
+                <img
+                  src={epDef.bossHeroSpec.portraitUrl}
+                  alt=""
+                  className="h-4 w-4 rounded-full border border-amber-300/80 bg-stone-900 object-cover object-top"
+                />
+                <span>
+                  {epDef.episode === 0 ? tr('상대: ', 'Foe: ') : tr('보스: ', 'Boss: ')}
+                  <strong className="text-red-200">{epDef.bossNameKo}</strong> (+{diffSpec.expectedWinGold}G
+                  {diffSpec.isBossMilestone ? tr(' +1팩', ' +1 Pack') : ''})
+                </span>
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {!isMidBattleReview && (
+                <>
+                  <button
+                    type="button"
+                    data-testid="story-tts-toggle"
+                    onClick={() => {
+                      const next = !ttsEnabled;
+                      hsAudio.playSfx('ui_click', 0.7);
+                      hsAudio.updateSettings({ ttsEnabled: next });
+                      setTtsEnabled(next);
+                      if (!next) {
+                        setIsSpeaking(false);
+                        setUseSilentFallbackTimer(true);
+                      }
+                    }}
+                    className={`min-h-[32px] rounded-lg border px-2.5 py-1 text-[11px] font-extrabold transition sm:text-xs ${
+                      ttsEnabled
+                        ? 'border-sky-300/70 bg-sky-950/90 text-sky-200'
+                        : 'border-stone-500/60 bg-stone-900 text-stone-300'
+                    }`}
+                  >
+                    {ttsEnabled ? tr('🔊 낭독 ON', '🔊 Voice ON') : tr('🔇 낭독 OFF', '🔇 Voice OFF')}
+                  </button>
+
+                  <button
+                    type="button"
+                    data-testid="story-pause-toggle"
+                    onClick={handleTogglePause}
+                    className={`min-h-[32px] rounded-lg border px-2.5 py-1 text-[11px] font-extrabold transition sm:text-xs ${
+                      !autoPaused
+                        ? 'border-emerald-300/70 bg-emerald-950/90 text-emerald-200'
+                        : 'border-amber-400/60 bg-stone-900 text-amber-200'
+                    }`}
+                  >
+                    {!autoPaused
+                      ? isKo
+                        ? `⏸ ${activeCutIdx + 1}/${totalCuts}컷 (일시정지)`
+                        : `⏸ Cut ${activeCutIdx + 1}/${totalCuts} (Pause)`
+                      : tr('▶ 이어 듣기', '▶ Resume')}
+                  </button>
+                </>
+              )}
+
+              <select
+                aria-label={tr('에피소드 선택', 'Select Episode')}
+                value={viewingEpisode}
+                onChange={(e) => {
+                  hsAudio.playSfx('card_flip', 0.7);
+                  setAutoPaused(false);
+                  setViewingEpisode(Number(e.target.value));
+                }}
+                className="min-h-[32px] max-w-[165px] rounded-lg border border-amber-400/60 bg-stone-900 px-2 py-1 text-[11px] font-extrabold text-amber-100 outline-none sm:max-w-none sm:text-xs"
+              >
+                <option key={0} value={0}>
+                  {isKo ? `제0화 · 튜토리얼 (${ep0Title})` : `EP 0 · Tutorial (${ep0Title})`}
+                </option>
+                {KADAN_JOURNEY_EPISODES.map((ep) => {
+                  const locked = ep.episode > unlockedMax && reincarnation === 0;
+                  const displayTitle = isKo
+                    ? ep.titleKo
+                    : KADAN_JOURNEY_EPISODES_EN[ep.episode]?.titleEn || ep.titleKo;
+                  return (
+                    <option key={ep.episode} value={ep.episode} disabled={locked}>
+                      {isKo ? `제${ep.episode}화 · ` : `EP ${ep.episode} · `}
+                      {displayTitle} {locked ? '🔒' : ''}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {!isMidBattleReview && (
-              <>
-                <button
-                  type="button"
-                  data-testid="story-tts-toggle"
-                  onClick={() => {
-                    const next = !ttsEnabled;
-                    hsAudio.playSfx('ui_click', 0.7);
-                    hsAudio.updateSettings({ ttsEnabled: next });
-                    setTtsEnabled(next);
-                    if (!next) {
-                      setIsSpeaking(false);
-                      setUseSilentFallbackTimer(true);
-                    }
-                  }}
-                  className={`min-h-[32px] rounded-lg border px-2.5 py-1 text-[11px] font-extrabold transition sm:text-xs ${
-                    ttsEnabled
-                      ? 'border-sky-300/70 bg-sky-950/90 text-sky-200'
-                      : 'border-stone-500/60 bg-stone-900 text-stone-300'
-                  }`}
-                >
-                  {ttsEnabled ? tr('🔊 낭독 ON', '🔊 Voice ON') : tr('🔇 낭독 OFF', '🔇 Voice OFF')}
-                </button>
-
-                <button
-                  type="button"
-                  data-testid="story-pause-toggle"
-                  onClick={handleTogglePause}
-                  className={`min-h-[32px] rounded-lg border px-2.5 py-1 text-[11px] font-extrabold transition sm:text-xs ${
-                    !autoPaused
-                      ? 'border-emerald-300/70 bg-emerald-950/90 text-emerald-200'
-                      : 'border-amber-400/60 bg-stone-900 text-amber-200'
-                  }`}
-                >
-                  {!autoPaused
-                    ? isKo
-                      ? `⏸ ${activeCutIdx + 1}/${totalCuts}컷 (일시정지)`
-                      : `⏸ Cut ${activeCutIdx + 1}/${totalCuts} (Pause)`
-                    : tr('▶ 이어 듣기', '▶ Resume')}
-                </button>
-              </>
-            )}
-
-            <select
-              aria-label={tr('에피소드 선택', 'Select Episode')}
-              value={viewingEpisode}
-              onChange={(e) => {
-                hsAudio.playSfx('card_flip', 0.7);
-                setAutoPaused(false);
-                setViewingEpisode(Number(e.target.value));
-              }}
-              className="min-h-[32px] rounded-lg border border-amber-400/60 bg-stone-900 px-2 py-1 text-[11px] font-extrabold text-amber-100 outline-none sm:text-xs"
-            >
-              <option key={0} value={0}>
-                {isKo ? `제0화 · 튜토리얼 (${ep0Title})` : `EP 0 · Tutorial (${ep0Title})`}
-              </option>
-              {KADAN_JOURNEY_EPISODES.map((ep) => {
-                const locked = ep.episode > unlockedMax && reincarnation === 0;
-                const displayTitle = isKo
-                  ? ep.titleKo
-                  : KADAN_JOURNEY_EPISODES_EN[ep.episode]?.titleEn || ep.titleKo;
-                return (
-                  <option key={ep.episode} value={ep.episode} disabled={locked}>
-                    {isKo ? `제${ep.episode}화 · ` : `EP ${ep.episode} · `}
-                    {displayTitle} {locked ? '🔒' : ''}
-                  </option>
-                );
-              })}
-            </select>
-
-            <button
-              type="button"
-              onClick={handleCloseOrStart}
-              aria-label={tr('건너뛰기 및 닫기', 'Skip & Close')}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-400/50 bg-stone-900 text-xs font-black text-amber-200 hover:bg-stone-800"
-            >
-              ✕
-            </button>
-          </div>
+          <button
+            type="button"
+            data-testid="story-modal-close-btn"
+            onClick={handleCloseOrStart}
+            aria-label={tr('닫기', 'Close')}
+            className="hs-brass-btn flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+          >
+            ✕
+          </button>
         </header>
 
         {/* Single-Cut Sequential Spotlight Stage (1 Cut + Full Cohesive Story Summary + Studio Male Voiceover) */}
-        <div className="flex flex-1 flex-col justify-center px-3 py-2.5 sm:px-5 sm:py-3.5">
+        <div className="flex min-h-0 flex-1 flex-col justify-start overflow-y-auto overscroll-contain px-3 py-2 sm:justify-center sm:px-5 sm:py-3.5">
           {currentCut && (
             <div
               key={`${viewingEpisode}_${activeCutIdx}`}
               className="animate-[hsCardPop_0.22s_ease-out] overflow-hidden rounded-2xl border-2 border-[#d9b264] bg-stone-950 shadow-[0_14px_38px_rgba(0,0,0,0.9)]"
             >
               {/* 16:9 Full-Focus Webtoon Cut Artwork */}
-              <div className="relative aspect-[16/9] max-h-[50vh] w-full overflow-hidden bg-stone-900">
+              <div className="relative aspect-[16/9] max-h-[34dvh] w-full overflow-hidden bg-stone-900 sm:max-h-[48vh]">
                 <img
                   src={currentCut.illustrationUrl}
                   alt={`${epDef.titleKo} ${currentCut.stageLabel}`}
@@ -507,8 +514,8 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
         </div>
 
         {/* Bottom Bar: Tutorial Video Button + Direct Episode Webtoon / Novel Links + Skip / Start Battle Button */}
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/30 bg-stone-950/95 px-3.5 py-2.5 sm:px-5 sm:py-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <footer className="flex shrink-0 flex-col-reverse gap-2 border-t border-amber-500/30 bg-stone-950/95 px-3 py-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5 sm:py-3">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               data-testid="story-tutorial-video-btn"
@@ -520,7 +527,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                 setVideoLang(isKo ? 'ko' : 'en');
                 setShowVideoPlayer(true);
               }}
-              className="hs-brass-btn inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border-amber-300/80 px-3.5 py-1.5 text-xs font-extrabold text-yellow-200 sm:px-4 sm:text-sm"
+              className="hs-brass-btn inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border-amber-300/80 px-3 py-1.5 text-xs font-extrabold text-yellow-200 sm:min-h-[40px] sm:px-4 sm:text-sm"
             >
               <span>🎬</span>
               <span>{tr('튜토리얼 동영상 바로보기', 'Watch Tutorial Video')}</span>
@@ -538,7 +545,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                     hsAudio.pauseStoryNarration();
                     hsAudio.playSfx('ui_click', 0.7);
                   }}
-                  className="hs-brass-btn inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold text-amber-100 sm:px-3.5 sm:text-sm"
+                  className="hs-brass-btn inline-flex min-h-[38px] items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-amber-100 sm:min-h-[40px] sm:px-3.5 sm:text-sm"
                 >
                   <span>🎨</span>
                   <span>
@@ -556,7 +563,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
                     hsAudio.pauseStoryNarration();
                     hsAudio.playSfx('ui_click', 0.7);
                   }}
-                  className="hs-brass-btn inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold text-amber-100 sm:px-3.5 sm:text-sm"
+                  className="hs-brass-btn inline-flex min-h-[38px] items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-amber-100 sm:min-h-[40px] sm:px-3.5 sm:text-sm"
                 >
                   <span>📖</span>
                   <span>
@@ -571,7 +578,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
             type="button"
             data-testid="story-skip-start-btn"
             onClick={handleCloseOrStart}
-            className="hs-arcane-btn ml-auto min-h-[42px] rounded-xl px-4 py-2 text-xs font-extrabold tracking-wide text-white sm:px-6 sm:text-base"
+            className="hs-arcane-btn min-h-[44px] w-full shrink-0 rounded-xl px-4 py-2 text-sm font-extrabold tracking-wide text-white sm:ml-auto sm:w-auto sm:px-6 sm:text-base"
           >
             {isMidBattleReview && viewingEpisode === episode
               ? tr('⚔ 전장으로 돌아가기', '⚔ Return to Battle')
@@ -599,52 +606,55 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
           onClick={() => setShowVideoPlayer(false)}
         >
           <div
-            className="hs-wood-panel flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl border-2 border-amber-400/80 shadow-2xl"
+            className="hs-wood-panel relative flex max-h-[92dvh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border-2 border-amber-400/80 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/40 bg-stone-950/95 px-4 py-2.5">
-              <div className="flex items-center gap-2">
-                <span className="text-base">🎬</span>
-                <h3 className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
-                  {tr('눈히어로 초보자 튜토리얼 공식 가이드 영상 (16:9)',
-                    'SNSHero Official Beginner Tutorial Video (16:9)',
-                  )}
-                </h3>
+            <div className="flex shrink-0 items-start justify-between gap-2 border-b border-amber-500/40 bg-stone-950/95 px-4 py-2.5">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🎬</span>
+                  <h3 className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
+                    {tr('눈히어로 초보자 튜토리얼 공식 가이드 영상 (16:9)',
+                      'SNSHero Official Beginner Tutorial Video (16:9)',
+                    )}
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="tutorial-video-lang-ko"
+                    onClick={() => setVideoLang('ko')}
+                    className={`rounded-lg border px-2.5 py-1 text-xs font-extrabold ${
+                      videoLang === 'ko'
+                        ? 'border-amber-300 bg-amber-600 text-stone-950'
+                        : 'border-stone-600 bg-stone-900 text-stone-200'
+                    }`}
+                  >
+                    🇰🇷 한국어
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="tutorial-video-lang-en"
+                    onClick={() => setVideoLang('en')}
+                    className={`rounded-lg border px-2.5 py-1 text-xs font-extrabold ${
+                      videoLang === 'en'
+                        ? 'border-amber-300 bg-amber-600 text-stone-950'
+                        : 'border-stone-600 bg-stone-900 text-stone-200'
+                    }`}
+                  >
+                    🇺🇸 English
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  data-testid="tutorial-video-lang-ko"
-                  onClick={() => setVideoLang('ko')}
-                  className={`rounded-lg border px-2.5 py-1 text-xs font-extrabold ${
-                    videoLang === 'ko'
-                      ? 'border-amber-300 bg-amber-600 text-stone-950'
-                      : 'border-stone-600 bg-stone-900 text-stone-200'
-                  }`}
-                >
-                  🇰🇷 한국어
-                </button>
-                <button
-                  type="button"
-                  data-testid="tutorial-video-lang-en"
-                  onClick={() => setVideoLang('en')}
-                  className={`rounded-lg border px-2.5 py-1 text-xs font-extrabold ${
-                    videoLang === 'en'
-                      ? 'border-amber-300 bg-amber-600 text-stone-950'
-                      : 'border-stone-600 bg-stone-900 text-stone-200'
-                  }`}
-                >
-                  🇺🇸 English
-                </button>
-                <button
-                  type="button"
-                  data-testid="tutorial-video-close-btn"
-                  onClick={() => setShowVideoPlayer(false)}
-                  className="ml-1 flex h-8 w-8 items-center justify-center rounded-lg border border-amber-400/60 bg-stone-900 text-xs font-black text-amber-200 hover:bg-stone-800"
-                >
-                  ✕
-                </button>
-              </div>
+              <button
+                type="button"
+                data-testid="tutorial-video-close-btn"
+                aria-label={tr('닫기', 'Close')}
+                onClick={() => setShowVideoPlayer(false)}
+                className="hs-brass-btn flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+              >
+                ✕
+              </button>
             </div>
             <div className="aspect-video w-full bg-black">
               <video

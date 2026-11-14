@@ -558,8 +558,33 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
 
       {/* Matchmaking Wheel Modal */}
       {matching && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm">
-          <div className="hs-wood-panel flex w-full max-w-md flex-col items-center rounded-3xl p-7 text-center">
+        <div
+          onClick={() => {
+            if (!wheelLocked) {
+              hsAudio.playSfx('box_close');
+              setMatching(false);
+            }
+          }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="hs-wood-panel relative flex w-full max-w-md flex-col items-center rounded-3xl p-7 text-center"
+          >
+            {!wheelLocked && (
+              <button
+                type="button"
+                data-testid="matchmaking-close-btn"
+                onClick={() => {
+                  hsAudio.playSfx('box_close');
+                  setMatching(false);
+                }}
+                aria-label={tr('탐색 취소 및 닫기', 'Cancel & Close')}
+                className="hs-brass-btn absolute right-3.5 top-3.5 flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+              >
+                ✕
+              </button>
+            )}
             <SnsSnowCompassSeal
               size={56}
               spinning={!wheelLocked}

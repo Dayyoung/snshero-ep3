@@ -4021,6 +4021,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               data-testid="defeat-pack-reinforcement-modal"
               className="hs-wood-panel relative flex max-h-[95%] w-full max-w-3xl flex-col items-center overflow-y-auto rounded-3xl p-4 text-center text-amber-100 shadow-2xl sm:p-6"
             >
+              <button
+                type="button"
+                data-testid="defeat-pack-close-btn"
+                onClick={() => {
+                  drawRetryFiredRef.current = true;
+                  hsAudio.playSfx('menu_select');
+                  hsAudio.playBgm('tavern_hub');
+                  onExitBattle();
+                }}
+                aria-label={tr('닫기 (로비로 이동)', 'Close (Return to Hub)')}
+                className="hs-brass-btn absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+              >
+                ✕
+              </button>
               {autoPlay && !postGameAutoPaused && (
                 <div className="absolute left-0 right-0 top-0 h-1.5 bg-stone-900">
                   <div
@@ -4247,6 +4261,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             </div>
           ) : (
           <div className="hs-wood-panel relative flex max-h-[94%] w-full max-w-lg flex-col items-center overflow-y-auto rounded-3xl p-5 text-center text-amber-100 sm:p-6">
+            <button
+              type="button"
+              data-testid="gameover-close-btn"
+              onClick={() => {
+                hsAudio.playSfx('menu_select');
+                hsAudio.playBgm('tavern_hub');
+                onExitBattle();
+              }}
+              aria-label={tr('닫기 (로비로 이동)', 'Close (Return to Hub)')}
+              className="hs-brass-btn absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+            >
+              ✕
+            </button>
             {autoPlay && !postGameAutoPaused && (
               <div className="absolute left-0 right-0 top-0 h-1.5 bg-stone-900">
                 <div
