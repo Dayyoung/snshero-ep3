@@ -7,6 +7,8 @@
 - [공식 게임 소개 (/promotion)](https://snshero.com/promotion): 게임 세계관, 9대 영웅, 카드 라이브러리, 게임 모드, 미디어 믹스 통합 안내
 - [공식 웹소설 40부작 (/book)](https://snshero.com/book): 《눈히어로.com - 카단의 여정》 40화 완결 판타지 웹소설 전편 무료 감상
 - [공식 웹툰 40부작 (/webtoon)](https://snshero.com/webtoon): 《카단의 여정》 40화 풀컬러 웹툰 전편 무료 감상
+- [AI 지능 1,000판 벤치마크 & 100점 평가 리포트 (/sns)](https://snshero.com/sns): 눈히어로 AI vs ChatGPT · Gemini · Claude Code 전술 지능 비교(Artificial Analysis 기준) 및 기획·개발·디자인 100점 만점 심사 허브
+- [공식 MCP 서버 엔드포인트 (/mcp)](https://snshero.com/mcp): 외부 AI 에이전트(Claude Code, Gemini, ChatGPT)가 직접 게임을 플레이하고 1,000판 벤치마크 및 100점 평가를 제출할 수 있는 JSON-RPC 2.0 Model Context Protocol 서버
 
 ## 핵심 요약 (Quick Facts)
 - **장르**: 웹 기반 전략 턴제 카드 배틀 게임 (CCG / TCG)

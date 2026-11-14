@@ -5,14 +5,8 @@ class ClassicCardDatabase {
   private collectibleList: ClassicCardDef[] = [];
   private loaded = false;
 
-  async init(): Promise<void> {
+  hydrateFromJson(cardsJson: { cards: ClassicCardDef[]; tokens: ClassicCardDef[] }): void {
     if (this.loaded) return;
-    const cardsRes = await fetch('/hs-assets/data/classic-cards.json');
-    const cardsJson = (await cardsRes.json()) as {
-      cards: ClassicCardDef[];
-      tokens: ClassicCardDef[];
-    };
-
     this.collectibleList = cardsJson.cards;
     for (const c of cardsJson.cards) {
       this.cardsById.set(c.id, c);
@@ -27,6 +21,16 @@ class ClassicCardDatabase {
       }
     }
     this.loaded = true;
+  }
+
+  async init(): Promise<void> {
+    if (this.loaded) return;
+    const cardsRes = await fetch('/hs-assets/data/classic-cards.json');
+    const cardsJson = (await cardsRes.json()) as {
+      cards: ClassicCardDef[];
+      tokens: ClassicCardDef[];
+    };
+    this.hydrateFromJson(cardsJson);
   }
 
   isLoaded(): boolean {

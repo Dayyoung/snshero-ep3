@@ -10,6 +10,10 @@
     "watch-build": "node scripts/watch-build.js",
     "preview:live": "node scripts/watch-build.js & vite preview --host 0.0.0.0 --port 3000",
     "start-server": "bash scripts/start-server.sh",
+    "mcp:http": "tsx scripts/mcp-server.ts --http",
+    "mcp:stdio": "tsx scripts/mcp-server.ts --stdio",
+    "mcp:calibrate": "tsx scripts/mcp-server.ts --calibrate",
+    "mcp:bench": "tsx scripts/run-llm-1000-benchmark.ts",
     "lint": "node -e \"process.exit(0)\""
   },
   "dependencies": {

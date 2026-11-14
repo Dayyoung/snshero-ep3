@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
+import {createMcpHttpMiddleware} from './src/mcp/mcpServerNode';
 
 const MIME_TYPES: Record<string, string> = {
   '.png': 'image/png',
@@ -46,6 +47,7 @@ const MPA_REWRITES: Record<string, string> = {
   '/book': '/book.html',
   '/novel': '/novel.html',
   '/webtoon': '/webtoon.html',
+  '/sns': '/sns.html',
 };
 
 export default defineConfig(({mode}) => {
@@ -57,6 +59,15 @@ export default defineConfig(({mode}) => {
     plugins: [
       react(), 
       tailwindcss(),
+      {
+        name: 'mcp-arena-server-plugin',
+        configureServer(server: any) {
+          server.middlewares.use(createMcpHttpMiddleware(process.cwd()));
+        },
+        configurePreviewServer(server: any) {
+          server.middlewares.use(createMcpHttpMiddleware(process.cwd()));
+        },
+      },
       {
         name: 'mpa-dev-rewrite-plugin',
         configureServer(server: any) {
@@ -785,6 +796,7 @@ export default defineConfig(({mode}) => {
           book: path.resolve(process.cwd(), 'book.html'),
           novel: path.resolve(process.cwd(), 'novel.html'),
           webtoon: path.resolve(process.cwd(), 'webtoon.html'),
+          sns: path.resolve(process.cwd(), 'sns.html'),
         },
         output: {
           entryFileNames: `assets/[name]-[hash]-v2.js`,

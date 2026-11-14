@@ -55,7 +55,7 @@ const ensureAbsoluteAssetPaths = (html) =>
     .replace(/(src|href)=["']\.\/assets\//g, '$1="/assets/')
     .replace(/(src|href)=["']assets\//g, '$1="/assets/');
 
-for (const page of ['game', 'stone', 'promo', 'book', 'novel', 'webtoon']) {
+for (const page of ['game', 'stone', 'promo', 'book', 'novel', 'webtoon', 'sns']) {
   const htmlPath = path.join(distDir, `${page}.html`);
   if (!fs.existsSync(htmlPath)) continue;
   const fixed = ensureAbsoluteAssetPaths(fs.readFileSync(htmlPath, 'utf8'));
