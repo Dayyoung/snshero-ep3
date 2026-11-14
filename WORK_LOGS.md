@@ -162,5 +162,17 @@
     - `npm run build` 정상 종료 (exit code `0`, `dist/promo.html`·`dist/game.html`·`dist/assets/CardVisual-BWHBg9PW-v2.js` 갱신).
     - `http://localhost:3000/promo.html` 캐시 우회 리로드 검사: 콘솔 JS 에러 **0건**, 실패 요청 **0건**(50/50건 200 OK). 줌 모달 전설 카드 황금 테두리 및 첫 화면 카단·이그니시우스 좌우 구도·2행 헤드라인 육안 확인 완료.
 
+## [2026-11-15 06:45 KST] [`cardDatabase.ts` 382캐릭터 확장 및 눈히어로 세계관 투명 컷아웃 292종 전수 생성·적용 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. `src/cardDatabase.ts` · `src/types.ts` 382종 수집 캐릭터 확장 (로봇·용 슬롯 20종 보존)**:
+    - [`types.ts`](file:///Users/dayyoung/project/snshero/src/types.ts) 타입 정의 및 [`cardDatabase.ts`](file:///Users/dayyoung/project/snshero/src/cardDatabase.ts) 확장 완료 (`402`개 항목: 9개 종족 × 25장 = 225장 + 중립 157장 = 382장 + 보존된 `robot` 10장 [`91~100`] · `dragon` 10장 [`101~110`]).
+  - **2. 눈히어로(『카단의 여정』) 세계관 기반 7등신 투명 `RGBA WEBP` 컷아웃 292종 전수 생성 및 카드 적용**:
+    - 9개 종족 추가 영웅 135종(`111~245`, 종족별 15종) + 기타종족 157종(`301~457`) 총 **292종**의 한국 웹툰풍 7등신 전신 컷아웃을 생성·투명 배경제거·`RGBA WEBP` 변환하여 [`public/hs-assets/characters/cutouts/`](file:///Users/dayyoung/project/snshero/public/hs-assets/characters/cutouts)에 저장.
+    - [`classic-cards.json`](file:///Users/dayyoung/project/snshero/public/hs-assets/data/classic-cards.json) 전수 동기화: 수집 카드 **382장** 및 토큰 **123장** 전수 `/hs-assets/characters/cutouts/*.webp` 적용 (`non_cutout: 0`, `missing_files: 0`, `bad_rgba: 0`). `/stone.html` 및 `robot`/`dragon` 예약 슬롯 무변경.
+  - **3. 빌드 · 타입체크 · 구글 폼 보고**:
+    - `npx tsc --noEmit` (`src/cardDatabase.ts`, `src/types.ts`, `src/hearthstone/**` 에러 0건) 및 `npm run build` 정상 통과 (`5.96s`).
+    - 구글 폼 최종 완료 보고(`작업완료`) 제출 완료.
+
 
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*
