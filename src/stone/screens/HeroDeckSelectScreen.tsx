@@ -29,18 +29,21 @@ export interface HeroDeckSelectScreenProps {
 }
 
 const DEFAULT_SPINNER_TITLES = [
-  '가치 있는 상대',
-  '멀록 조련사',
-  '치즈 장인',
-  '전설의 카드 수집가',
-  '동전 던지기 달인',
-  '화난 닭 사육사',
-  '여관의 단골손님',
-  '비전 마법 학도',
-  '검투사 지망생',
-  '비밀 결사단원',
-  '주사위의 신',
-  '전장의 지휘관',
+  '적절한 상대',
+  '마성의 마법사',
+  '사나운 사냥꾼',
+  '전전긍긍하는 전사',
+  '드센 드루이드',
+  '도도한 도적',
+  '흑심 품은 흑마법사',
+  '주제넘은 주술사',
+  '성질내는 성기사',
+  '사랑받는 사제',
+  '밀하우스 마나스톰',
+  '답답해 미치는 코볼트',
+  '속삭이는 고대 신',
+  '블리자드 개발자',
+  '하스의 육촌 형',
 ];
 
 export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
@@ -64,7 +67,11 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const spinnerTitles = useMemo(() => {
     const fromManifest = cardDb.getManifest()?.koKR?.spinnerTitles;
     if (fromManifest && fromManifest.length >= 8) {
-      return ['가치 있는 상대', ...fromManifest.filter((x) => x !== '가치 있는 상대')];
+      return [
+        '적절한 상대',
+        ...DEFAULT_SPINNER_TITLES.slice(1, 10),
+        ...fromManifest.filter((x) => x !== '적절한 상대' && x !== '가치 있는 상대'),
+      ];
     }
     return DEFAULT_SPINNER_TITLES;
   }, []);
@@ -442,22 +449,31 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             </div>
           </div>
 
-          {/* Iconic Hearthstone Carved-Stone Swirl PLAY Medallion Button (Desktop Inside Right Panel) */}
+          {/* Iconic Hearthstone Circular Carved-Stone Swirl PLAY Medallion Button (Desktop Inside Right Panel) */}
           <div className="relative z-10 hidden flex-col items-center pt-1 lg:flex">
             <button
               type="button"
               disabled={selectedDeck.cards.length < 30}
               onClick={handleStartClick}
-              className="hs-arcane-btn group relative flex w-full items-center justify-center gap-3 rounded-2xl py-3.5 text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="group relative flex flex-col items-center justify-center transition-transform hover:scale-105 active:scale-97 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <img
-                src="/stone-assets/ui/play_swirl_medallion.webp"
-                alt=""
-                className="h-11 w-11 rounded-full object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.9)] transition group-hover:rotate-12 group-hover:scale-110"
-              />
-              <span className="hs-title hs-outline text-2xl font-extrabold tracking-widest">
-                대전 시작
-              </span>
+              <div className="relative flex h-28 w-28 items-center justify-center rounded-full border-[4px] border-[#f2cf7e] bg-radial from-sky-400 via-blue-700 to-slate-950 shadow-[0_12px_30px_rgba(0,0,0,0.9),0_0_28px_rgba(56,189,248,0.75)] group-hover:shadow-[0_14px_34px_rgba(0,0,0,0.95),0_0_42px_rgba(56,189,248,0.98)]">
+                <img
+                  src="/stone-assets/ui/hs_thebox_glowring.webp"
+                  alt=""
+                  draggable={false}
+                  className="pointer-events-none absolute -inset-3 h-[calc(100%+24px)] w-[calc(100%+24px)] animate-[hsSlowSpin_18s_linear_infinite] rounded-full object-contain opacity-90 mix-blend-screen"
+                />
+                <img
+                  src="/stone-assets/ui/play_swirl_medallion.webp"
+                  alt=""
+                  draggable={false}
+                  className="h-24 w-24 rounded-full object-contain mix-blend-luminosity drop-shadow-[0_0_14px_rgba(125,211,252,0.95)] transition duration-300 group-hover:rotate-12"
+                />
+                <span className="hs-title hs-outline pointer-events-none absolute inset-0 flex items-center justify-center text-2xl font-extrabold tracking-widest text-white">
+                  대전!
+                </span>
+              </div>
             </button>
           </div>
         </section>
@@ -477,47 +493,62 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             className="h-9 w-9 rounded-full object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.9)]"
           />
           <span className="hs-title hs-outline text-lg font-extrabold tracking-widest">
-            대전 시작 ({selectedDeck.name})
+            대전! ({selectedDeck.name})
           </span>
         </button>
       </div>
 
-      {/* Authentic Hearthstone Slot-Machine Matchmaking Wheel Modal */}
+      {/* Authentic Hearthstone 5-Row Cylindrical Slot-Machine Matchmaking Wheel Modal */}
       {matching && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm">
-          <div className="hs-wood-panel flex w-full max-w-md flex-col items-center rounded-3xl p-7 text-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/84 p-4 backdrop-blur-sm">
+          <div className="hs-wood-panel flex w-full max-w-md flex-col items-center rounded-3xl p-6 text-center sm:p-7">
             <img
               src="/stone-assets/ui/box_compass_medallion.webp"
               alt=""
+              draggable={false}
               className={`mb-2 h-14 w-14 object-contain drop-shadow ${
-                wheelLocked ? '' : 'animate-[hsSlowSpin_3s_linear_infinite]'
+                wheelLocked ? '' : 'animate-[hsSlowSpin_2.2s_linear_infinite]'
               }`}
             />
-            <div className="hs-title mb-2 text-base font-extrabold tracking-widest text-amber-200">
-              {wheelLocked ? '상대를 찾았습니다!' : '상대 찾는 중...'}
+            <div className="hs-title mb-2 text-lg font-extrabold tracking-wider text-amber-100">
+              {wheelLocked ? '상대를 찾았습니다!' : '상대를 찾는 중'}
             </div>
 
-            {/* Parchment Slot Machine Window */}
-            <div className="relative my-3 flex h-36 w-full flex-col items-center justify-center overflow-hidden rounded-2xl border-[4px] border-[#8b6532] bg-gradient-to-b from-[#d8c398] via-[#f7ecd2] to-[#d5be90] px-4 shadow-[inset_0_8px_18px_rgba(40,22,8,0.55)]">
-              <div className="text-xs font-extrabold text-[#4a2e16] opacity-85">
+            {/* Cylindrical Ivory Drum Slot Window (High-Contrast Legibility) */}
+            <div className="relative my-2 flex h-44 w-full flex-col items-center justify-between overflow-hidden rounded-2xl border-[4px] border-[#966d35] bg-gradient-to-b from-[#cbb082] via-[#fbf2dc] to-[#c7ac7d] px-5 py-2.5 shadow-[inset_0_12px_22px_rgba(32,18,6,0.62)]">
+              {/* Left & Right Brass Pointer Triangles */}
+              <div className="pointer-events-none absolute left-1.5 top-1/2 z-20 -translate-y-1/2 text-base font-black text-[#7c2d12]">
+                ▶
+              </div>
+              <div className="pointer-events-none absolute right-1.5 top-1/2 z-20 -translate-y-1/2 text-base font-black text-[#7c2d12]">
+                ◀
+              </div>
+
+              <div className="truncate text-[11px] font-extrabold text-[#5c3b1c]/65">
+                {spinnerTitles[(wheelIndex + spinnerTitles.length - 2) % spinnerTitles.length]}
+              </div>
+              <div className="truncate text-xs font-extrabold text-[#38210d]/90">
                 {spinnerTitles[(wheelIndex + spinnerTitles.length - 1) % spinnerTitles.length]}
               </div>
               <div
-                className={`my-2 w-full rounded-xl border-y-2 px-4 py-2 text-xl font-black tracking-tight shadow-md transition-all ${
+                className={`relative z-10 my-0.5 w-full rounded-xl border-y-2 px-4 py-2 text-xl font-black tracking-tight shadow-md transition-all ${
                   wheelLocked
-                    ? 'scale-105 border-yellow-300 bg-[#241207] text-[#fde68a] shadow-[0_0_16px_rgba(250,204,21,0.45)]'
-                    : 'border-amber-600/70 bg-[#2d180a] text-[#fff7dc]'
+                    ? 'scale-105 border-yellow-300 bg-[#231106] text-[#fde047] shadow-[0_0_20px_rgba(250,204,21,0.55)]'
+                    : 'border-amber-600/80 bg-[#2a1508] text-[#fff9e6]'
                 }`}
               >
                 {spinnerTitles[wheelIndex]}
               </div>
-              <div className="text-xs font-extrabold text-[#4a2e16] opacity-85">
+              <div className="truncate text-xs font-extrabold text-[#38210d]/90">
                 {spinnerTitles[(wheelIndex + 1) % spinnerTitles.length]}
+              </div>
+              <div className="truncate text-[11px] font-extrabold text-[#5c3b1c]/65">
+                {spinnerTitles[(wheelIndex + 2) % spinnerTitles.length]}
               </div>
             </div>
 
             <p className="mt-2 text-xs font-semibold text-amber-200/80">
-              스톤브루의 여관에서 실력이 비슷한 상대를 탐색하고 있습니다...
+              여관에서 실력이 비슷한 상대를 탐색하고 있습니다...
             </p>
 
             {!wheelLocked && (
@@ -527,9 +558,9 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                   hsAudio.playSfx('box_close');
                   setMatching(false);
                 }}
-                className="hs-brass-btn mt-4 rounded-xl px-6 py-1.5 text-xs font-extrabold text-amber-100"
+                className="hs-brass-btn mt-4 rounded-xl px-7 py-2 text-xs font-extrabold text-amber-100"
               >
-                탐색 취소
+                취소
               </button>
             )}
           </div>

@@ -95,6 +95,8 @@ export const PackOpeningScreen: React.FC<{
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [hoverTilt, setHoverTilt] = useState<{ idx: number; rx: number; ry: number } | null>(null);
   const [draggingPack, setDraggingPack] = useState(false);
+  const [packPointerDrag, setPackPointerDrag] = useState<{ x: number; y: number } | null>(null);
+  const altarRef = useRef<HTMLElement | null>(null);
   const [altarShake, setAltarShake] = useState(false);
   const [zoomedPackCard, setZoomedPackCard] = useState<OpenedPackCard | null>(null);
   const [isDesktopStage, setIsDesktopStage] = useState(
@@ -294,6 +296,38 @@ export const PackOpeningScreen: React.FC<{
     return () => window.removeEventListener('keydown', onKey);
   }, [profile.packs, triggerOpenPack, revealAll, finishPackSession, zoomedPackCard]);
 
+  useEffect(() => {
+    if (!packPointerDrag) return;
+    document.body.classList.add('hs-dragging-active');
+    const onMove = (ev: PointerEvent) => {
+      setPackPointerDrag({ x: ev.clientX, y: ev.clientY });
+    };
+    const onUp = (ev: PointerEvent) => {
+      document.body.classList.remove('hs-dragging-active');
+      const rect = altarRef.current?.getBoundingClientRect();
+      const insideAltar =
+        rect &&
+        ev.clientX >= rect.left &&
+        ev.clientX <= rect.right &&
+        ev.clientY >= rect.top &&
+        ev.clientY <= rect.bottom;
+      setPackPointerDrag(null);
+      setDraggingPack(false);
+      if (insideAltar) {
+        triggerOpenPack();
+      }
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      document.body.classList.remove('hs-dragging-active');
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [packPointerDrag, triggerOpenPack]);
+
   const allRevealed = Boolean(openedCards && revealed.every(Boolean));
   const backImg = CARD_BACK_MAP[profile.selectedCardBack] || CARD_BACK_MAP.classic;
 
@@ -383,19 +417,23 @@ export const PackOpeningScreen: React.FC<{
 
           {profile.packs > 0 ? (
             <div
-              draggable={!openedCards}
-              onDragStart={() => setDraggingPack(true)}
-              onDragEnd={() => setDraggingPack(false)}
+              onPointerDown={(e) => {
+                if (openedCards || e.button !== 0) return;
+                hsAudio.playSfx('card_hover', 0.7);
+                setDraggingPack(true);
+                setPackPointerDrag({ x: e.clientX, y: e.clientY });
+              }}
               onClick={triggerOpenPack}
-              className={`relative cursor-grab transition duration-200 hover:scale-106 active:cursor-grabbing ${
+              className={`hs-grabbable relative transition duration-200 hover:scale-106 ${
                 openedCards ? 'pointer-events-none opacity-40' : ''
-              }`}
+              } ${packPointerDrag ? 'opacity-55 scale-95' : ''}`}
             >
               {/* Stacked Pack Depth Illusion */}
               {profile.packs > 2 && (
                 <img
                   src="/stone-assets/ui/classic_pack.webp"
                   alt=""
+                  draggable={false}
                   className="pointer-events-none absolute -left-2 top-2 h-44 w-32 -rotate-3 object-contain opacity-65 brightness-75"
                 />
               )}
@@ -403,12 +441,14 @@ export const PackOpeningScreen: React.FC<{
                 <img
                   src="/stone-assets/ui/classic_pack.webp"
                   alt=""
+                  draggable={false}
                   className="pointer-events-none absolute left-1.5 top-1 h-44 w-32 rotate-2 object-contain opacity-80 brightness-90"
                 />
               )}
               <img
                 src="/stone-assets/ui/classic_pack.webp"
                 alt="오리지널 카드 팩"
+                draggable={false}
                 className="relative z-10 h-44 w-32 object-contain drop-shadow-[0_16px_26px_rgba(0,0,0,0.92)]"
               />
             </div>
@@ -429,6 +469,7 @@ export const PackOpeningScreen: React.FC<{
 
         {/* Right: Glowing Rune Altar + 5-Card Floating 3D Flip Stage */}
         <section
+          ref={altarRef}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
@@ -724,6 +765,25 @@ export const PackOpeningScreen: React.FC<{
           )}
         </section>
       </main>
+
+      {/* Floating Pointer-Dragged Pack Following Cursor */}
+      {packPointerDrag && (
+        <div
+          style={{
+            left: `${packPointerDrag.x}px`,
+            top: `${packPointerDrag.y}px`,
+            transform: 'translate(-50%, -50%) rotate(-4deg) scale(1.08)',
+          }}
+          className="pointer-events-none fixed z-[120]"
+        >
+          <img
+            src="/stone-assets/ui/classic_pack.webp"
+            alt=""
+            draggable={false}
+            className="h-44 w-32 object-contain drop-shadow-[0_0_28px_rgba(56,189,248,0.95)]"
+          />
+        </div>
+      )}
 
       <footer className="relative z-30 shrink-0 text-center text-[10.5px] font-bold text-amber-200/80 sm:text-[11px]">
         카드를 터치하면 입체 회전 개봉되며, 뒤집힌 카드를 다시 터치하면 크게 확대해 읽을 수 있습니다

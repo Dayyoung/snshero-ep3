@@ -570,16 +570,30 @@ export interface BoardMinionTokenProps {
   canAttack: boolean;
   isSelectedAttacker: boolean;
   isValidTarget: boolean;
+  isHiddenDuringAttack?: boolean;
   onSelect: () => void;
+  onPointerDown?: (e: React.PointerEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
   onHoverChange?: (hovering: boolean) => void;
 }
+
+const TRIGGER_CARD_IDS = new Set([
+  'EX1_402', 'EX1_604', 'CS2_235', 'NEW1_019', 'EX1_095', 'EX1_298',
+  'EX1_597', 'NEW1_012', 'EX1_044', 'EX1_595', 'NEW1_026', 'NEW1_020',
+  'EX1_007', 'EX1_399', 'EX1_001', 'EX1_080', 'EX1_575', 'EX1_004',
+  'NEW1_040', 'EX1_572', 'NEW1_038', 'EX1_614', 'EX1_559', 'EX1_506a',
+  'EX1_509', 'CS2_104', 'EX1_170', 'EX1_341', 'EX1_612', 'NEW1_027',
+]);
 
 export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
   minion,
   canAttack,
   isSelectedAttacker,
   isValidTarget,
+  isHiddenDuringAttack = false,
   onSelect,
+  onPointerDown,
+  onContextMenu,
   onHoverChange,
 }) => {
   const [imgErr, setImgErr] = useState(false);
@@ -608,40 +622,64 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
         'EX1_383',
       ].includes(minion.cardId));
 
+  const hasTrigger =
+    !minion.silenced &&
+    (TRIGGER_CARD_IDS.has(minion.cardId) ||
+      minion.blessingOfWisdomOwners.length > 0 ||
+      minion.powerOverwhelmingDieAtEndTurn ||
+      minion.corruptionOwner !== null);
+
   const showSleepZzz =
     minion.exhausted && !minion.charge && !minion.auraCharge && !minion.cantAttack;
 
   return (
     <div
       data-hs-entity={minion.uid}
+      onPointerDown={onPointerDown}
+      onContextMenu={(e) => {
+        if (onContextMenu) {
+          e.preventDefault();
+          e.stopPropagation();
+          onContextMenu(e);
+        }
+      }}
       onClick={(e) => {
         e.stopPropagation();
         onSelect();
       }}
       onMouseEnter={() => onHoverChange?.(true)}
       onMouseLeave={() => onHoverChange?.(false)}
-      className={`group relative flex h-[66px] w-[48px] shrink-0 cursor-pointer select-none items-center justify-center transition-transform duration-150 sm:h-[120px] sm:w-[96px] ${
+      style={{
+        animation: 'hsMinionSummonDrop 0.28s cubic-bezier(0.22, 1, 0.36, 1)',
+      }}
+      className={`group relative flex h-[68px] w-[52px] shrink-0 cursor-pointer select-none items-center justify-center transition-transform duration-150 sm:h-[118px] sm:w-[94px] ${
+        isHiddenDuringAttack ? 'opacity-0 pointer-events-none' : ''
+      } ${
         isSelectedAttacker ? 'z-30 -translate-y-2 scale-110 sm:-translate-y-3 sm:scale-112' : 'hover:z-20 hover:scale-106'
       }`}
     >
-      {/* Authentic Taunt Iron-Bound Shield Frame */}
+      {/* Ground Contact Cast Shadow on Sandy Board */}
+      <div className="pointer-events-none absolute -bottom-1 left-1/2 z-0 h-3 w-[82%] -translate-x-1/2 rounded-[50%] bg-black/60 blur-[3px]" />
+
+      {/* Authentic Taunt Iron-Bound Shield Frame (100% Centered Behind Oval Bezel) */}
       {isTaunt && (
         <img
           src="/stone-assets/ui/taunt_shield.webp"
           alt="도발"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[72px] w-[58px] -translate-x-1/2 -translate-y-[47%] object-fill drop-shadow-[0_6px_12px_rgba(0,0,0,0.92)] sm:h-[138px] sm:w-[110px]"
+          draggable={false}
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[76px] w-[62px] max-w-none -translate-x-1/2 -translate-y-[47%] object-fill drop-shadow-[0_6px_12px_rgba(0,0,0,0.94)] sm:h-[136px] sm:w-[110px]"
         />
       )}
 
       {/* Ready-to-Attack / Valid Target Organic Aura */}
       {(canAttack || isValidTarget || isSelectedAttacker) && (
         <div
-          className={`pointer-events-none absolute left-1/2 top-1/2 z-0 h-[62px] w-[47px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] transition-all sm:h-[114px] sm:w-[92px] ${
+          className={`pointer-events-none absolute left-1/2 top-1/2 z-0 h-[62px] w-[48px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] transition-all sm:h-[110px] sm:w-[88px] ${
             isSelectedAttacker
               ? 'shadow-[0_0_0_3px_#fde047,0_0_18px_5px_rgba(250,204,21,0.95)] sm:shadow-[0_0_0_4px_#fde047,0_0_26px_8px_rgba(250,204,21,0.95)]'
               : isValidTarget
                 ? 'animate-pulse shadow-[0_0_0_3px_#ef4444,0_0_18px_5px_rgba(239,68,68,0.92)] sm:shadow-[0_0_0_4px_#ef4444,0_0_24px_7px_rgba(239,68,68,0.92)]'
-                : 'shadow-[0_0_0_2.5px_#4ade80,0_0_14px_4px_rgba(34,197,94,0.88)] sm:shadow-[0_0_0_3.5px_#4ade80,0_0_20px_6px_rgba(34,197,94,0.88)]'
+                : 'shadow-[0_0_0_3px_#22c55e,0_0_15px_5px_rgba(34,197,94,0.92)] sm:shadow-[0_0_0_4px_#22c55e,0_0_22px_7px_rgba(34,197,94,0.92)]'
           }`}
         />
       )}
@@ -651,24 +689,22 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
         <img
           src="/stone-assets/ui/legendary_dragon.webp"
           alt="전설"
-          className="pointer-events-none absolute -right-2 -top-2.5 z-30 h-8 w-12 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] sm:-right-3 sm:-top-3.5 sm:h-14 sm:w-[86px]"
+          draggable={false}
+          className="pointer-events-none absolute -right-2 -top-2.5 z-30 h-8 w-12 max-w-none object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.92)] sm:-right-3.5 sm:-top-3.5 sm:h-14 sm:w-[84px]"
         />
       )}
 
-      {/* Oval Portrait + Chiseled Stone Bezel */}
+      {/* Oval Portrait Clipped Core */}
       <div
-        className={`relative z-10 h-[58px] w-[43px] overflow-hidden rounded-[50%] border-[2.5px] bg-stone-950 shadow-[0_8px_16px_rgba(0,0,0,0.88),inset_0_0_10px_rgba(0,0,0,0.85)] sm:h-[106px] sm:w-[84px] sm:border-[4px] ${
-          minion.frozen
-            ? 'border-cyan-200 ring-2 ring-sky-400/75 sm:ring-4'
-            : isTaunt
-              ? 'border-[#ebd094]'
-              : 'border-[#b9965b]'
+        className={`relative z-10 h-[56px] w-[43px] overflow-hidden rounded-[50%] bg-stone-950 shadow-[0_8px_16px_rgba(0,0,0,0.88),inset_0_0_10px_rgba(0,0,0,0.85)] sm:h-[98px] sm:w-[78px] ${
+          minion.frozen ? 'ring-2 ring-cyan-200 sm:ring-3' : ''
         }`}
       >
         {!imgErr ? (
           <img
             src={getCardArtUrl(minion.cardId)}
             alt={minion.name}
+            draggable={false}
             onError={() => setImgErr(true)}
             className={`h-full w-full scale-115 object-cover ${
               minion.stealth ? 'brightness-50 contrast-125 saturate-50' : ''
@@ -681,11 +717,11 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
         )}
 
         {/* Inner Vignette Rim */}
-        <div className="pointer-events-none absolute inset-0 rounded-[50%] shadow-[inset_0_0_14px_rgba(0,0,0,0.75)]" />
+        <div className="pointer-events-none absolute inset-0 rounded-[50%] shadow-[inset_0_0_14px_rgba(0,0,0,0.78)]" />
 
         {/* Stealth Shadow Fog */}
         {minion.stealth && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gradient-to-b from-slate-950/60 via-slate-900/35 to-slate-950/75">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gradient-to-b from-slate-950/65 via-slate-900/40 to-slate-950/80">
             <span className="hs-outline-sm rounded border border-slate-400/50 bg-slate-950/85 px-1 py-0.5 text-[7.5px] font-extrabold tracking-wider text-slate-200 sm:px-1.5 sm:text-[9px]">
               은신
             </span>
@@ -694,13 +730,13 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
 
         {/* Frozen Ice Glaze */}
         {minion.frozen && (
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-cyan-100/55 via-sky-400/25 to-blue-700/50" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-cyan-100/60 via-sky-300/30 to-blue-700/55" />
         )}
 
-        {/* Windfury Swirl */}
+        {/* Windfury Double Gust Swirl */}
         {minion.windfury && !minion.silenced && (
-          <div className="pointer-events-none absolute inset-x-0 top-1 flex justify-center sm:top-2">
-            <span className="hs-outline-sm rounded-full border border-cyan-300/60 bg-sky-950/85 px-1 text-[7px] font-extrabold text-cyan-200 sm:px-1.5 sm:text-[8.5px]">
+          <div className="pointer-events-none absolute inset-x-0 top-1 flex justify-center sm:top-1.5">
+            <span className="hs-outline-sm rounded-full border border-cyan-300/65 bg-sky-950/85 px-1 text-[7px] font-extrabold text-cyan-200 sm:px-1.5 sm:text-[8.5px]">
               질풍
             </span>
           </div>
@@ -708,7 +744,7 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
 
         {/* Silenced Arcane Seal */}
         {minion.silenced && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-purple-950/25">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-purple-950/28">
             <svg viewBox="0 0 48 48" className="h-7 w-7 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] sm:h-12 sm:w-12">
               <circle cx="24" cy="24" r="18" fill="none" stroke="#e879f9" strokeWidth="3.2" strokeDasharray="5 3" />
               <line x1="11" y1="11" x2="37" y2="37" stroke="#f0abfc" strokeWidth="4" strokeLinecap="round" />
@@ -718,35 +754,51 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
         )}
       </div>
 
+      {/* Authentic Extracted Blizzard Sculpted Stone Oval Bezel (`minion_oval_bezel.webp`) */}
+      <img
+        src="/stone-assets/ui/minion_oval_bezel.webp"
+        alt=""
+        draggable={false}
+        className={`pointer-events-none absolute left-1/2 top-1/2 z-20 h-[63px] w-[50px] max-w-none -translate-x-1/2 -translate-y-1/2 object-fill drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] sm:h-[111px] sm:w-[90px] ${
+          minion.frozen ? 'brightness-125 hue-rotate-180 saturate-150' : ''
+        }`}
+      />
+
       {/* Divine Shield Golden Dome */}
       {minion.divineShield && (
         <img
           src="/stone-assets/ui/divine_shield.webp"
           alt="천상의 보호막"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-20 h-[64px] w-[50px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] object-cover opacity-85 mix-blend-screen drop-shadow-[0_0_14px_rgba(250,204,21,0.9)] sm:h-[118px] sm:w-[96px]"
+          draggable={false}
+          className="pointer-events-none absolute left-1/2 top-1/2 z-25 h-[64px] w-[51px] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-[50%] object-cover opacity-88 mix-blend-screen drop-shadow-[0_0_14px_rgba(250,204,21,0.92)] sm:h-[115px] sm:w-[93px]"
         />
       )}
 
       {/* Summoning Sickness Zzz */}
       {showSleepZzz && (
-        <div className="hs-num pointer-events-none absolute -right-1 -top-1.5 z-30 animate-bounce text-[9px] text-sky-200 sm:-top-2 sm:text-xs">
+        <div className="hs-num pointer-events-none absolute -right-1 -top-1.5 z-30 animate-bounce text-[9px] text-emerald-200 sm:-top-2 sm:text-xs">
           Zzz
         </div>
       )}
 
-      {/* Deathrattle / Poison / Spell Power Pedestal Emblem */}
-      {(hasDeathrattle || (!minion.silenced && (minion.poisonous || minion.spellDamage > 0))) && (
-        <div className="pointer-events-none absolute -bottom-2 left-1/2 z-30 flex -translate-x-1/2 origin-bottom scale-[0.72] items-center gap-0.5 whitespace-nowrap rounded-full border border-[#d8b267] bg-stone-950/95 px-1.5 py-[1px] text-[9px] font-extrabold text-amber-200 shadow-lg sm:-bottom-2.5 sm:scale-100 sm:gap-1 sm:px-2 sm:py-[1.5px] sm:text-[9.5px]">
+      {/* Authentic Hearthstone Bottom-Center Ability Icon (Deathrattle Skull / Trigger Bolt / Poison / Spell Power) */}
+      {(hasDeathrattle || hasTrigger || (!minion.silenced && (minion.poisonous || minion.spellDamage > 0))) && (
+        <div className="pointer-events-none absolute -bottom-2 left-1/2 z-30 flex -translate-x-1/2 origin-bottom scale-[0.74] items-center gap-0.5 whitespace-nowrap rounded-full border border-[#d8b267] bg-stone-950/95 px-1.5 py-[1px] text-[9px] font-extrabold text-amber-200 shadow-lg sm:-bottom-2.5 sm:scale-100 sm:gap-1 sm:px-2 sm:py-[1.5px] sm:text-[9.5px]">
           {hasDeathrattle && (
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-stone-200" aria-label="죽음의 메아리">
               <path d="M12 2C7.5 2 4 5.4 4 9.7c0 2.8 1.5 5.2 3.8 6.5V19c0 .6.4 1 1 1h6.4c.6 0 1-.4 1-1v-2.8c2.3-1.3 3.8-3.7 3.8-6.5C20 5.4 16.5 2 12 2zm-3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
+            </svg>
+          )}
+          {hasTrigger && (
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-amber-300" aria-label="지속/발동 효과">
+              <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" />
             </svg>
           )}
           {!minion.silenced && minion.poisonous && (
             <span className="text-emerald-400">독성</span>
           )}
           {!minion.silenced && minion.spellDamage > 0 && (
-            <span className="text-sky-300">✦+{minion.spellDamage}</span>
+            <span className="text-sky-300">+{minion.spellDamage}</span>
           )}
         </div>
       )}
@@ -783,9 +835,12 @@ export interface HeroZoneProps {
   isHeroValidTarget: boolean;
   canUseHeroPower: boolean;
   isHeroPowerSelected: boolean;
+  isDefeated?: boolean;
   emoteBubbleText?: string | null;
   onClickHero: () => void;
   onClickHeroPower: () => void;
+  onHeroPointerDown?: (e: React.PointerEvent) => void;
+  onHeroPowerPointerDown?: (e: React.PointerEvent) => void;
 }
 
 export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
@@ -797,65 +852,87 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
   isHeroValidTarget,
   canUseHeroPower,
   isHeroPowerSelected,
+  isDefeated = false,
   emoteBubbleText,
   onClickHero,
   onClickHeroPower,
+  onHeroPointerDown,
+  onHeroPowerPointerDown,
 }) => {
   const entityId = isFriendly ? 'PLAYER_HERO' : 'OPPONENT_HERO';
+  const heroPowerEntityId = isFriendly ? 'PLAYER_HERO_POWER' : 'OPPONENT_HERO_POWER';
   const heroAtk = getHeroAttack(player, isActiveTurn);
   const heroMeta = CLASSIC_HEROES[player.heroClass];
   const weaponOpen = isActiveTurn && Boolean(player.weapon);
 
   return (
-    <div className="relative flex select-none items-center justify-center gap-2 sm:gap-3.5">
-      {/* Left: Equipped Weapon Medallion */}
-      <div className="relative flex h-[54px] w-[54px] items-center justify-center sm:h-[80px] sm:w-[80px]">
+    <div className="relative flex select-none items-center justify-center gap-2 sm:gap-4">
+      {/* Left: Equipped Weapon Medallion with Animated Shutter Blades */}
+      <div className="relative flex h-[54px] w-[54px] items-center justify-center sm:h-[82px] sm:w-[82px]">
         {player.weapon ? (
           <div
             title={`${player.weapon.name} (${player.weapon.attack}/${player.weapon.durability})`}
-            className={`relative flex h-[50px] w-[50px] items-center justify-center rounded-full border-[2.5px] shadow-[0_8px_20px_rgba(0,0,0,0.9)] transition-all sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
+            className={`relative flex h-[50px] w-[50px] items-center justify-center rounded-full border-[2.5px] shadow-[0_8px_20px_rgba(0,0,0,0.92)] transition-all duration-300 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
               weaponOpen
-                ? 'border-[#ebd08c] bg-stone-950 ring-2 ring-emerald-400/70'
-                : 'border-slate-500 bg-slate-900 brightness-80'
+                ? 'border-[#ebd08c] bg-stone-950 ring-2 ring-emerald-400/75'
+                : 'border-slate-500 bg-slate-900'
             }`}
           >
-            {weaponOpen ? (
+            <div className="relative h-full w-full overflow-hidden rounded-full">
               <img
                 src={getCardArtUrl(player.weapon.cardId)}
                 alt={player.weapon.name}
-                className="h-full w-full rounded-full object-cover"
+                draggable={false}
+                className={`h-full w-full object-cover transition duration-300 ${
+                  weaponOpen ? 'scale-105 brightness-105' : 'scale-95 brightness-45 grayscale-[0.4]'
+                }`}
               />
-            ) : (
-              /* Closed Steel Weapon Shutter on Opponent's Turn */
-              <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-gradient-to-b from-slate-600 via-slate-800 to-slate-950">
+              {/* Twin Steel Shutter Halves Closing on Opponent's Turn (Authentic Hearthstone Weapon Sheathe!) */}
+              <div
+                className={`pointer-events-none absolute inset-y-0 left-0 w-1/2 border-r border-slate-300/40 bg-gradient-to-br from-slate-500 via-slate-800 to-slate-950 transition-transform duration-300 ${
+                  weaponOpen ? '-translate-x-full' : 'translate-x-0'
+                }`}
+              />
+              <div
+                className={`pointer-events-none absolute inset-y-0 right-0 w-1/2 border-l border-slate-300/40 bg-gradient-to-bl from-slate-500 via-slate-800 to-slate-950 transition-transform duration-300 ${
+                  weaponOpen ? 'translate-x-full' : 'translate-x-0'
+                }`}
+              />
+              {!weaponOpen && (
                 <img
                   src="/stone-assets/ui/play_swirl_medallion.webp"
                   alt=""
-                  className="h-8 w-8 opacity-65 sm:h-11 sm:w-11"
+                  draggable={false}
+                  className="pointer-events-none absolute inset-0 m-auto h-8 w-8 opacity-75 sm:h-11 sm:w-11"
                 />
-              </div>
-            )}
+              )}
+            </div>
             <div className="pointer-events-none absolute -bottom-1.5 -left-1.5 z-20 origin-bottom-left scale-[0.72] sm:-bottom-2 sm:-left-2 sm:scale-100">
               <HsAttackBadge value={player.weapon.attack} isWeapon size={30} />
             </div>
-            <div className="hs-num pointer-events-none absolute -bottom-1 -right-1 z-20 flex h-5 w-5 items-center justify-center rounded border border-slate-200 bg-gradient-to-b from-slate-500 to-slate-900 text-[11px] text-white shadow-lg sm:-bottom-1.5 sm:-right-1.5 sm:h-7 sm:w-7 sm:rounded-md sm:border-2 sm:text-sm">
+            <div className="hs-num pointer-events-none absolute -bottom-1 -right-1 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-gradient-to-b from-slate-500 to-slate-900 text-[11px] text-white shadow-lg sm:-bottom-1.5 sm:-right-1.5 sm:h-7 sm:w-7 sm:border-2 sm:text-sm">
               {player.weapon.durability}
             </div>
           </div>
         ) : (
-          <div className="h-[46px] w-[46px] rounded-full border-2 border-[#543a1f]/45 bg-black/25 shadow-inner sm:h-[68px] sm:w-[68px]" />
+          <div className="h-[44px] w-[44px] rounded-full border border-[#543a1f]/35 bg-black/20 shadow-inner sm:h-[66px] sm:w-[66px]" />
         )}
       </div>
 
       {/* Center: Sculpted Stone & Brass Hero Arch */}
       <div
         data-hs-entity={entityId}
+        onPointerDown={onHeroPointerDown}
         onClick={(e) => {
           e.stopPropagation();
           onClickHero();
         }}
-        className={`relative flex h-[82px] w-[74px] cursor-pointer items-center justify-center transition-transform sm:h-[120px] sm:w-[108px] ${
-          isHeroSelectedAttacker ? '-translate-y-1.5 scale-106 sm:-translate-y-2' : 'hover:scale-[1.03]'
+        className={`relative flex h-[84px] w-[76px] cursor-pointer items-center justify-center transition-transform sm:h-[124px] sm:w-[112px] ${
+          isDefeated
+            ? 'scale-95 saturate-50'
+            : isHeroSelectedAttacker
+              ? '-translate-y-1.5 scale-106 sm:-translate-y-2'
+              : 'hover:scale-[1.03]'
         }`}
       >
         {/* Active Secrets Crown Medallions */}
@@ -874,7 +951,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
                   className="relative flex h-5 w-5 items-center justify-center rounded-full border border-amber-100 bg-stone-950 shadow-[0_3px_8px_rgba(0,0,0,0.9)] sm:h-7 sm:w-7 sm:border-2"
                 >
                   {secImg ? (
-                    <img src={secImg} alt="비밀" className="h-full w-full rounded-full object-cover" />
+                    <img src={secImg} alt="비밀" draggable={false} className="h-full w-full rounded-full object-cover" />
                   ) : (
                     <span className="hs-num text-[10px] text-amber-200 sm:text-xs">?</span>
                   )}
@@ -884,38 +961,44 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
           </div>
         )}
 
-        {/* Attack / Target Glow Ring */}
-        {(canHeroAttack || isHeroValidTarget || isHeroSelectedAttacker) && (
+        {/* Attack / Target Glow Ring (Exact Arch Contour) */}
+        {(canHeroAttack || isHeroValidTarget || isHeroSelectedAttacker) && !isDefeated && (
           <div
-            className={`pointer-events-none absolute -inset-1 rounded-t-[44px] rounded-b-[10px] sm:-inset-1.5 sm:rounded-t-[58px] sm:rounded-b-[14px] ${
+            className={`pointer-events-none absolute -inset-1 rounded-t-[44px] rounded-b-[10px] sm:-inset-1.5 sm:rounded-t-[60px] sm:rounded-b-[14px] ${
               isHeroSelectedAttacker
                 ? 'shadow-[0_0_0_3px_#fde047,0_0_20px_5px_rgba(250,204,21,0.92)] sm:shadow-[0_0_0_4px_#fde047,0_0_26px_7px_rgba(250,204,21,0.92)]'
                 : isHeroValidTarget
                   ? 'animate-pulse shadow-[0_0_0_3px_#ef4444,0_0_20px_5px_rgba(239,68,68,0.92)] sm:shadow-[0_0_0_4px_#ef4444,0_0_24px_7px_rgba(239,68,68,0.92)]'
-                  : 'shadow-[0_0_0_3px_#4ade80,0_0_16px_4px_rgba(34,197,94,0.88)] sm:shadow-[0_0_0_3.5px_#4ade80,0_0_18px_5px_rgba(34,197,94,0.88)]'
+                  : 'shadow-[0_0_0_3px_#22c55e,0_0_16px_4px_rgba(34,197,94,0.9)] sm:shadow-[0_0_0_3.5px_#22c55e,0_0_20px_6px_rgba(34,197,94,0.9)]'
             }`}
           />
         )}
 
         {/* Chiseled Gold-Trimmed Hero Arch */}
         <div
-          className={`relative h-full w-full overflow-hidden rounded-t-[44px] rounded-b-[10px] border-[3px] bg-stone-950 shadow-[0_10px_24px_rgba(0,0,0,0.92),inset_0_0_14px_rgba(0,0,0,0.85)] sm:rounded-t-[58px] sm:rounded-b-[14px] sm:border-[4.5px] ${
-            player.immuneThisTurn
-              ? 'border-yellow-200 ring-2 ring-amber-300 sm:ring-4'
-              : player.frozen
-                ? 'border-cyan-200 ring-2 ring-sky-400/75 sm:ring-4'
-                : 'border-[#deb96e]'
+          className={`relative h-full w-full overflow-hidden rounded-t-[44px] rounded-b-[10px] border-[3px] bg-stone-950 shadow-[0_10px_24px_rgba(0,0,0,0.92),inset_0_0_14px_rgba(0,0,0,0.85)] sm:rounded-t-[60px] sm:rounded-b-[14px] sm:border-[4.5px] ${
+            isDefeated
+              ? 'border-orange-500/80 ring-2 ring-red-600/80'
+              : player.immuneThisTurn
+                ? 'border-yellow-200 ring-2 ring-amber-300 sm:ring-4'
+                : player.frozen
+                  ? 'border-cyan-200 ring-2 ring-sky-400/75 sm:ring-4'
+                  : 'border-[#deb96e]'
           }`}
         >
           <img
             src={getHeroArtUrl(player.isJaraxxus ? 'EX1_323h' : player.heroId)}
             alt={player.heroNameKo}
-            className="h-full w-full scale-112 object-cover object-top"
+            draggable={false}
+            className={`h-full w-full scale-112 object-cover object-top transition duration-500 ${
+              isDefeated ? 'brightness-45 contrast-150 sepia-[0.35]' : ''
+            }`}
           />
           {/* Small Class Crest Pin Top-Left */}
           <img
             src={CLASS_CREST_URL[player.heroClass]}
             alt=""
+            draggable={false}
             className="pointer-events-none absolute left-1 top-1 h-4 w-4 rounded-full opacity-90 drop-shadow sm:left-1.5 sm:top-1.5 sm:h-5 sm:w-5"
           />
           {player.frozen && (
@@ -926,7 +1009,22 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
               면역
             </div>
           )}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-1 pb-0.5 pt-3 text-center sm:px-1.5 sm:pb-1 sm:pt-4">
+          {/* Defeated Fiery Fracture Cracks Overlay */}
+          {isDefeated && (
+            <svg
+              viewBox="0 0 100 120"
+              className="pointer-events-none absolute inset-0 h-full w-full drop-shadow-[0_0_8px_rgba(249,115,22,0.95)]"
+            >
+              <path
+                d="M50 56 L18 14 M50 56 L84 22 M50 56 L8 68 M50 56 L92 76 M50 56 L32 114 M50 56 L72 112"
+                stroke="#fb923c"
+                strokeWidth="3.2"
+                strokeLinecap="round"
+              />
+              <circle cx="50" cy="56" r="9" fill="#fde047" fillOpacity="0.85" />
+            </svg>
+          )}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/92 via-black/55 to-transparent px-1 pb-0.5 pt-3 text-center sm:px-1.5 sm:pb-1 sm:pt-4">
             <div className="hs-outline-sm truncate text-[8.5px] font-extrabold text-amber-100 sm:text-[10.5px]">
               {player.name}
             </div>
@@ -934,7 +1032,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
         </div>
 
         {/* Hero Attack Sword Orb */}
-        {heroAtk > 0 && (
+        {heroAtk > 0 && !isDefeated && (
           <div className="pointer-events-none absolute -bottom-2 -left-2.5 z-30 origin-bottom-left scale-[0.72] sm:-bottom-2.5 sm:-left-3 sm:scale-100">
             <HsAttackBadge value={heroAtk} size={40} />
           </div>
@@ -946,6 +1044,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
             <img
               src="/stone-assets/ui/armor_shield.webp"
               alt="방어도"
+              draggable={false}
               className="h-full w-full object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]"
             />
             <span className="hs-num absolute inset-0 flex items-center justify-center pb-0.5 text-xs text-white sm:text-base">
@@ -975,32 +1074,45 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
         )}
       </div>
 
-      {/* Right: Flipping Carved Brass Hero Power Coin */}
-      <div className="relative flex h-[56px] w-[56px] items-center justify-center sm:h-[80px] sm:w-[80px]">
+      {/* Right: 3D Flipping Carved Brass Hero Power Coin */}
+      <div
+        style={{ perspective: '700px' }}
+        className="relative flex h-[56px] w-[56px] items-center justify-center sm:h-[82px] sm:w-[82px]"
+      >
         <button
           type="button"
+          data-hs-entity={heroPowerEntityId}
+          onPointerDown={onHeroPowerPointerDown}
           onClick={(e) => {
             e.stopPropagation();
             onClickHeroPower();
           }}
           title={`${player.heroPowerNameKo} (비용 2): ${player.heroPowerTextKo}`}
-          className={`relative flex h-[52px] w-[52px] items-center justify-center rounded-full border-[2.5px] transition-all duration-300 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: player.heroPowerUsedThisTurn ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          }}
+          className={`relative flex h-[52px] w-[52px] items-center justify-center rounded-full border-[2.5px] transition-all duration-500 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
             player.heroPowerUsedThisTurn
-              ? 'border-stone-600 bg-stone-900 opacity-85'
+              ? 'border-stone-600 bg-stone-900 opacity-90'
               : isHeroPowerSelected
                 ? 'scale-110 border-yellow-200 shadow-[0_0_0_3px_#fde047,0_0_18px_rgba(250,204,21,0.95)]'
                 : canUseHeroPower
-                  ? 'cursor-pointer border-[#edd189] shadow-[0_0_0_2.5px_#4ade80,0_0_14px_rgba(34,197,94,0.85)] hover:scale-106'
+                  ? 'cursor-pointer border-[#edd189] shadow-[0_0_0_2.5px_#22c55e,0_0_15px_rgba(34,197,94,0.88)] hover:scale-106'
                   : 'border-[#b99554] bg-stone-950 shadow-[0_6px_16px_rgba(0,0,0,0.85)]'
           }`}
         >
           {player.heroPowerUsedThisTurn ? (
-            /* Flipped Carved Hearthstone Swirl Back (No Emoji!) */
-            <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full">
+            /* Flipped Carved Hearthstone Swirl Back */
+            <div
+              style={{ transform: 'rotateY(180deg)' }}
+              className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full"
+            >
               <img
                 src="/stone-assets/ui/play_swirl_medallion.webp"
                 alt="사용됨"
-                className="h-full w-full object-cover brightness-75"
+                draggable={false}
+                className="h-full w-full object-cover brightness-80"
               />
             </div>
           ) : (
@@ -1008,6 +1120,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
               <img
                 src={getCardTileUrl(player.heroPowerId)}
                 alt={player.heroPowerNameKo}
+                draggable={false}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = getHeroArtUrl(heroMeta.heroId);
                 }}
@@ -1016,7 +1129,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
               <div className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 scale-[0.82] sm:-top-2.5 sm:scale-100">
                 <HsManaGem value={2} size={26} />
               </div>
-              <div className="hs-outline-sm absolute inset-x-0 bottom-0 rounded-b-full bg-gradient-to-t from-black/90 via-black/65 to-transparent py-0.5 text-center text-[7px] font-extrabold text-amber-100 sm:py-1 sm:text-[8.5px]">
+              <div className="hs-outline-sm absolute inset-x-0 bottom-0 rounded-b-full bg-gradient-to-t from-black/92 via-black/65 to-transparent py-0.5 text-center text-[7px] font-extrabold text-amber-100 sm:py-1 sm:text-[8.5px]">
                 {player.heroPowerNameKo}
               </div>
             </>

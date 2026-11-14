@@ -2,6 +2,25 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-15 07:26 KST] [`/stone.html` 오리지널 블리자드 하스스톤 1:1 충실도 전면 재설계 및 전장 소켓·드래그 조작·상자 허브 고도화 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 로컬 `/Applications/Hearthstone` 추출 에셋·폰트(`BelweBdBT`)·공식 `koKR` 문자열(`GAMEPLAY.txt`, `GLUE.txt`) 전면 적용**:
+    - [`stone.html`](file:///Users/dayyoung/project/snshero/stone.html) & [`src/stone/hearthstone.css`](file:///Users/dayyoung/project/snshero/src/stone/hearthstone.css): 블리자드 공식 타이틀/숫자 서체 `BelweBdBTBold.ttf` 프리로드 및 `.hs-num`·`.hs-title` 연결, 드래그 중 건틀릿 그랩 커서(`grab.png`) 고정, 3D 상자 문 스윙·카드 드로우 비행·상대 카드 공개 쇼케이스·하수인 착지·밧줄 불꽃 키프레임 추가.
+  - **2. 여관 상자 허브(`The Box`) 3D 양문 개폐 & 3슬롯 황동 회전판 복원 (`BoxHubScreen.tsx`)**:
+    - [`src/stone/screens/BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/BoxHubScreen.tsx): `box_chest_left.webp` / `box_chest_right.webp` 3D 경첩 양문 스윙 오픈 연출, `hs_thebox_ring.webp` + `box_menu_disk.webp` 중앙 원형 회전판(`대전` / `연습` / `튜토리얼`), 하단 벨벳 서랍 트레이(`팩 개봉`, `내 수집품`, `퀘스트`, `상점`) 구성.
+  - **3. 영웅·덱 선택 메달리온 & 고대비 원통형 매칭 슬롯 휠 (`HeroDeckSelectScreen.tsx`)**:
+    - [`src/stone/screens/HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/HeroDeckSelectScreen.tsx): 우측 하단 원형 소용돌이 `대전!` 메달리온(`play_swirl_medallion.webp`) 적용 및 `/Applications/Hearthstone/Strings/koKR/GLUE.txt` 공식 `GLUE_SPINNER_*` 호칭 기반 5행 아이보리 원통 슬롯 휠 구현.
+  - **4. 전장 보드(`STORMWIND`/`ORGRIMMAR`/`PANDARIA`) 픽셀 정밀 소켓 정렬 및 포인터 드래그 앤 드롭 전투 (`BattleScreen.tsx`, `CardVisual.tsx`)**:
+    - [`src/stone/screens/BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/BattleScreen.tsx): 각 보드 이미지 원본 해상도 비율(`1110:700`, `1600:925`, `1600:931`)에 맞춘 데스크톱 스테이지 정렬로 배경의 영문 `"END TURN"` 위에 한국어 3상태 레버(`턴 종료` / `할 일 없음` / `상대 턴`)가 오차 없이 100% 덮이도록 교정하고, 상·하단 영웅 아치·우측 3D 덱 슬롯(탈진 카운터 포함)·좌측 행동 기록 타일·우측 하단 마나 수정 트레이(카드 호버 시 소모 예정 마나 점멸) 정밀 배치.
+    - 손패 카드 드래그 즉시 사용(하수인 전장 위치 갈라짐 프리뷰, 주문/무기 즉시 시전, 대상 지정 주문/전투의 함성 붉은 조준 화살표 연동) 및 아군 하수인/영웅/영웅 능력 드래그 타격 구현(단순 클릭 확대 `CardZoomModal` 완벽 병행).
+    - 1클릭 멀리건(`시작 카드` / `교환할 카드 선택` / `교체` ✕ 스탬프 + 후공 `동전 한 닢` 획득 연출), 상대 카드 사용 시 좌측 대형 카드 쇼케이스, 덱→손패 카드 드로우 비행 연출 추가.
+    - [`src/stone/components/CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/stone/components/CardVisual.tsx): 모든 전장 하수인에 추출 석재 타원 베젤(`minion_oval_bezel.webp`)·도발 방패(`taunt_shield.webp`)·지속 발동 번개(`⚡`)/죽음의 메아리 해골 배지 정렬, 상대 턴 무기 강철 셔터 닫힘 연출, 영웅 능력 사용 시 3D 코인 뒤집기, 패배 영웅 초상화 균열 연출 적용.
+  - **5. 수집품 1클릭 덱 편집 · 팩 제단 드래그 개봉 · 데이터 초기화 자동 새로고침 (`CollectionScreen.tsx`, `PackOpeningScreen.tsx`, `Modals.tsx`)**:
+    - 덱 편집 중 보유 카드 클릭 즉시 편입 / 우측 덱 타일 클릭 즉시 제외, 팩 개봉 화면에서 팩을 중앙 제단으로 직접 드래그해 개봉 지원, `/stone.html` 데이터 초기화 시 `window.location.reload()` 반영.
+  - **6. 382장 동결 원칙 준수 · 타입체크 · 프로덕션 빌드 · Playwright 실브라우저 검증 & 구글 폼 보고 완료**:
+    - 수집 가능 카드 **382장** 엄격 동결 및 100% 무료 정책 확인, `/game.html` 무간섭 격리 확인, `npx tsc --noEmit` 및 `npm run build` 에러 0건 통과, Playwright(`1440×900`) 전 화면 렌더링 및 `ERRORS: 0` 검증 완료, 구글 폼 작업완료 보고 제출.
+
 ## [2026-11-14 11:20 KST] [게임 시작 전 대결 양쪽 캐릭터 이름만 짧게 호명·표시하도록 음성 및 VS UI 최적화 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

@@ -15,6 +15,8 @@ export interface BoxHubScreenProps {
   onOpenReaModal: () => void;
 }
 
+let hasPlayedInitialChestUnlatch = false;
+
 export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   profile,
   onSelectPlayMode,
@@ -26,14 +28,45 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   onOpenReaModal,
 }) => {
   const [diskSpinning, setDiskSpinning] = useState(false);
+  const [doorsOpening, setDoorsOpening] = useState(() => !hasPlayedInitialChestUnlatch);
+  const [trayReady, setTrayReady] = useState(() => hasPlayedInitialChestUnlatch);
 
   useEffect(() => {
     hsAudio.playBgm('tavern_hub');
+    if (!hasPlayedInitialChestUnlatch) {
+      hasPlayedInitialChestUnlatch = true;
+      hsAudio.playSfx('box_open', 0.9);
+      const t1 = window.setTimeout(() => {
+        hsAudio.playSfx('box_tray_out', 0.72);
+        setTrayReady(true);
+      }, 360);
+      const t2 = window.setTimeout(() => {
+        setDoorsOpening(false);
+      }, 920);
+      return () => {
+        window.clearTimeout(t1);
+        window.clearTimeout(t2);
+      };
+    }
+    return undefined;
   }, []);
+
+  const replayBoxUnlatch = () => {
+    hsAudio.playSfx('box_open', 0.9);
+    setTrayReady(false);
+    setDoorsOpening(true);
+    window.setTimeout(() => {
+      hsAudio.playSfx('box_tray_out', 0.72);
+      setTrayReady(true);
+    }, 340);
+    window.setTimeout(() => {
+      setDoorsOpening(false);
+    }, 900);
+  };
 
   const triggerModeTransition = (mode: GameMode) => {
     hsAudio.playSfx('box_press');
-    hsAudio.playSfx('box_disk_flip', 0.85);
+    hsAudio.playSfx('box_disk_flip', 0.88);
     setDiskSpinning(true);
     window.setTimeout(() => {
       setDiskSpinning(false);
@@ -54,13 +87,13 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
       <div
         style={{
           background:
-            'radial-gradient(ellipse at 50% 48%, rgba(255,198,105,0.08) 0%, rgba(12,7,4,0.38) 62%, rgba(5,3,2,0.86) 100%)',
+            'radial-gradient(ellipse at 50% 48%, rgba(255,198,105,0.10) 0%, rgba(12,7,4,0.42) 64%, rgba(5,3,2,0.88) 100%)',
         }}
         className="pointer-events-none absolute inset-0"
       />
 
-      {/* Top Brass HUD Bar (All 4 Controls Visible on Mobile Portrait & Desktop!) */}
-      <header className="relative z-20 flex w-full max-w-6xl flex-wrap items-center justify-between gap-1.5 sm:gap-2">
+      {/* Top Brass HUD Bar */}
+      <header className="relative z-30 flex w-full max-w-6xl flex-wrap items-center justify-between gap-1.5 sm:gap-2">
         <div className="flex items-center gap-1.5 sm:gap-2.5">
           <button
             type="button"
@@ -73,17 +106,18 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
           >
             <img
               src="/stone-assets/ui/hs_questlog.webp"
-              alt="퀘스트 일지"
-              className="h-7 w-7 rounded-lg border border-amber-300/60 object-cover shadow sm:h-9 sm:w-9"
+              alt="일지"
+              draggable={false}
+              className="h-7 w-7 rounded-lg border border-amber-300/60 object-cover shadow sm:h-8 sm:w-8"
             />
             <div className="text-left">
               <div className="hs-title text-[11px] font-extrabold tracking-wide text-amber-100 sm:text-xs">
-                퀘스트 · 전적
+                일지
               </div>
               <div className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-amber-300/90 sm:gap-1.5 sm:text-[10.5px]">
-                <img src={rankMedalImg} alt="" className="h-3.5 w-3.5 object-contain sm:h-4 sm:w-4" />
+                <img src={rankMedalImg} alt="" draggable={false} className="h-3.5 w-3.5 object-contain sm:h-4 sm:w-4" />
                 <span>
-                  {profile.rank === 0 ? '전설 등급' : `${profile.rank}등급`}
+                  {profile.rank === 0 ? '전설' : `${profile.rank}등급`}
                   <span className="hidden sm:inline">{profile.rank > 0 ? ` · ${rankTitle}` : ''}</span>
                 </span>
               </div>
@@ -97,15 +131,16 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               onOpenReaModal();
             }}
             onMouseEnter={() => hsAudio.playSfx('box_hover', 0.45)}
+            title="원본 클라이언트 역설계 검증 리포트"
             className="hs-brass-btn flex min-h-[42px] items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold text-sky-200 sm:gap-2 sm:px-3 sm:py-2 sm:text-xs"
           >
             <img
               src="/stone-assets/ui/box_compass_medallion.webp"
               alt=""
+              draggable={false}
               className="h-5 w-5 object-contain sm:h-6 sm:w-6"
             />
-            <span className="sm:hidden">REA 검증</span>
-            <span className="hidden sm:inline">REA 원본 검증</span>
+            <span className="hidden sm:inline">원본 검증</span>
           </button>
         </div>
 
@@ -156,110 +191,138 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
         </div>
       </header>
 
-      {/* Centerpiece: THE HEARTHSTONE BOX (Carved Hinged Wooden Jewelry Box) */}
+      {/* Centerpiece: THE HEARTHSTONE BOX (3D Hinged Wooden Chest + Turntable Medallion) */}
       <main className="relative z-20 my-auto flex w-full max-w-[820px] flex-col items-center pt-4 sm:pt-0">
-        <div className="hs-wood-panel relative flex w-full flex-col items-center rounded-[28px] px-3.5 pb-4 pt-2 sm:rounded-[34px] sm:px-10 sm:pb-7 sm:pt-3">
-          {/* Authentic Extracted Wooden Chest Relief Texture */}
-          <div
-            style={{ backgroundImage: 'url(/stone-assets/ui/box_chest_full.webp)' }}
-            className="pointer-events-none absolute inset-2 rounded-[22px] bg-cover bg-center opacity-22 mix-blend-luminosity sm:rounded-[26px]"
-          />
-
-          {/* Inner Recessed Brass Filigree Frame */}
-          <div className="pointer-events-none absolute inset-2.5 rounded-[20px] border-2 border-[#e2be75]/35 shadow-[inset_0_0_28px_rgba(0,0,0,0.75)] sm:inset-3 sm:rounded-[24px]" />
-
-          {/* 4 Forged Brass Corner Rivets */}
-          <div className="pointer-events-none absolute left-4 top-4 h-3 w-3 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:left-5 sm:top-5 sm:h-3.5 sm:w-3.5" />
-          <div className="pointer-events-none absolute right-4 top-4 h-3 w-3 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:right-5 sm:top-5 sm:h-3.5 sm:w-3.5" />
-          <div className="pointer-events-none absolute bottom-4 left-4 h-3 w-3 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:bottom-5 sm:left-5 sm:h-3.5 sm:w-3.5" />
-          <div className="pointer-events-none absolute bottom-4 right-4 h-3 w-3 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:bottom-5 sm:right-5 sm:h-3.5 sm:w-3.5" />
-
-          {/* Master Sculpted Stone & Gold HEARTHSTONE Logo */}
-          <img
-            src="/stone-assets/ui/hs_logo_master.webp"
-            alt="Hearthstone"
-            className="relative z-10 -mt-7 w-[224px] drop-shadow-[0_14px_22px_rgba(0,0,0,0.92)] sm:-mt-12 sm:w-[345px]"
-          />
-
-          {/* Center Rotating Brass Medallion ("The Box" Turntable) */}
+        <div
+          style={{ perspective: '1600px' }}
+          className="hs-wood-panel relative flex w-full flex-col items-center rounded-[26px] px-3.5 pb-4 pt-2 sm:rounded-[32px] sm:px-10 sm:pb-6 sm:pt-3"
+        >
+          {/* Recessed Crimson-Mahogany Velvet Interior Cavity */}
           <div
             style={{
-              transform: diskSpinning
-                ? 'perspective(950px) rotateY(90deg) scale(0.95)'
-                : 'perspective(950px) rotateY(0deg) scale(1)',
-              transition: 'transform 0.34s cubic-bezier(0.22, 1, 0.36, 1)',
+              background:
+                'radial-gradient(ellipse at 50% 44%, #3c2110 0%, #221108 58%, #100703 100%)',
             }}
-            className="relative z-10 my-1 flex h-[262px] w-[262px] flex-col items-center justify-center rounded-full border-[5px] border-[#dfb96c] bg-radial from-[#f5e7c4] via-[#c7a467] to-[#5e4120] p-4 shadow-[0_18px_44px_rgba(0,0,0,0.9),inset_0_0_30px_rgba(44,26,10,0.85)] sm:h-[338px] sm:w-[338px] sm:border-[6px] sm:p-6"
+            className="pointer-events-none absolute inset-2.5 rounded-[20px] border-[3px] border-[#b98c44]/55 shadow-[inset_0_12px_42px_rgba(0,0,0,0.94)] sm:inset-3.5 sm:rounded-[24px]"
+          />
+
+          {/* Subtle Carved Chest Grain Relief */}
+          <div
+            style={{ backgroundImage: 'url(/stone-assets/ui/box_chest_full.webp)' }}
+            className="pointer-events-none absolute inset-2.5 rounded-[20px] bg-cover bg-center opacity-16 mix-blend-luminosity sm:inset-3.5 sm:rounded-[24px]"
+          />
+
+          {/* 4 Forged Brass Corner Brackets */}
+          <div className="pointer-events-none absolute left-4 top-4 h-3.5 w-3.5 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:left-5 sm:top-5 sm:h-4 sm:w-4" />
+          <div className="pointer-events-none absolute right-4 top-4 h-3.5 w-3.5 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:right-5 sm:top-5 sm:h-4 sm:w-4" />
+          <div className="pointer-events-none absolute bottom-4 left-4 h-3.5 w-3.5 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:bottom-5 sm:left-5 sm:h-4 sm:w-4" />
+          <div className="pointer-events-none absolute bottom-4 right-4 h-3.5 w-3.5 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:bottom-5 sm:right-5 sm:h-4 sm:w-4" />
+
+          {/* Master Sculpted Stone & Gold HEARTHSTONE Title Crest */}
+          <button
+            type="button"
+            onClick={replayBoxUnlatch}
+            title="클릭하여 여관 상자 개폐 연출 다시 보기"
+            className="relative z-30 -mt-7 transition-transform hover:scale-[1.02] sm:-mt-12"
           >
-            {/* Extracted Wooden Turntable Disk Texture */}
             <img
-              src="/stone-assets/ui/box_menu_disk.webp"
+              src="/stone-assets/ui/hs_logo_master.webp"
+              alt="Hearthstone"
+              draggable={false}
+              className="w-[224px] drop-shadow-[0_14px_22px_rgba(0,0,0,0.94)] sm:w-[348px]"
+            />
+          </button>
+
+          {/* Center Rotating Brass Medallion ("The Box" Turntable) */}
+          <div className="relative z-20 my-1 flex items-center justify-center sm:my-1.5">
+            {/* Outer Sculpted Bronze Ring (`hs_thebox_ring.webp`) */}
+            <img
+              src="/stone-assets/ui/hs_thebox_ring.webp"
               alt=""
-              className="pointer-events-none absolute inset-0 h-full w-full rounded-full object-cover opacity-50 mix-blend-multiply"
+              draggable={false}
+              className="pointer-events-none absolute -inset-3.5 h-[calc(100%+28px)] w-[calc(100%+28px)] rounded-full object-contain opacity-90 mix-blend-screen sm:-inset-5 sm:h-[calc(100%+40px)] sm:w-[calc(100%+40px)]"
             />
 
-            {/* Arcane Glow Ring around Turntable */}
+            {/* Rotating Arcane Blue Rune Halo (`hs_thebox_glowring.webp`) */}
             <img
               src="/stone-assets/ui/hs_thebox_glowring.webp"
               alt=""
-              className="pointer-events-none absolute -inset-5 h-[calc(100%+40px)] w-[calc(100%+40px)] animate-[hsSlowSpin_32s_linear_infinite] rounded-full object-contain opacity-85 mix-blend-screen sm:-inset-6 sm:h-[calc(100%+48px)] sm:w-[calc(100%+48px)]"
+              draggable={false}
+              className="pointer-events-none absolute -inset-6 h-[calc(100%+48px)] w-[calc(100%+48px)] animate-[hsSlowSpin_34s_linear_infinite] rounded-full object-contain opacity-90 mix-blend-screen sm:-inset-8 sm:h-[calc(100%+64px)] sm:w-[calc(100%+64px)]"
             />
 
-            {/* Top Sculpted Hearthstone Compass Swirl Seal */}
-            <img
-              src="/stone-assets/ui/box_compass_medallion.webp"
-              alt=""
-              className="relative z-10 -mt-1.5 mb-1 h-10 w-10 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] sm:-mt-2 sm:mb-1.5 sm:h-14 sm:w-14"
-            />
+            <div
+              style={{
+                transform: diskSpinning
+                  ? 'perspective(950px) rotateY(90deg) scale(0.95)'
+                  : 'perspective(950px) rotateY(0deg) scale(1)',
+                transition: 'transform 0.34s cubic-bezier(0.22, 1, 0.36, 1)',
+              }}
+              className="relative flex h-[258px] w-[258px] flex-col items-center justify-center rounded-full border-[5px] border-[#e2be74] bg-radial from-[#ead2a3] via-[#b88f4c] to-[#4f3417] p-4 shadow-[0_20px_48px_rgba(0,0,0,0.95),inset_0_0_26px_rgba(32,18,6,0.9)] sm:h-[336px] sm:w-[336px] sm:border-[6px] sm:p-6"
+            >
+              {/* Authentic Extracted 3-Slot Brass Disk (`box_menu_disk.webp`) */}
+              <img
+                src="/stone-assets/ui/box_menu_disk.webp"
+                alt=""
+                draggable={false}
+                className="pointer-events-none absolute inset-0 h-full w-full rounded-full object-cover opacity-85"
+              />
 
-            {/* 3 Authentic Beveled Ivory/Parchment Menu Plates */}
-            <div className="relative z-10 flex w-full max-w-[205px] flex-col gap-1.5 sm:max-w-[232px] sm:gap-2.5">
-              <button
-                type="button"
-                onMouseEnter={() => hsAudio.playSfx('box_hover', 0.55)}
-                onClick={() => triggerModeTransition('RANKED')}
-                className="hs-ivory-plate group flex flex-col items-center rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2.5"
-              >
-                <span className="hs-title text-base font-extrabold tracking-wider text-[#2d1a0b] group-hover:text-[#0c4a6e] sm:text-xl">
-                  대전
-                </span>
-                <span className="text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10px]">
-                  클래식 등급전 · 일반전
-                </span>
-              </button>
+              {/* Top Hearthstone Swirl Seal */}
+              <img
+                src="/stone-assets/ui/box_compass_medallion.webp"
+                alt=""
+                draggable={false}
+                className="relative z-10 -mt-2 mb-1.5 h-9 w-9 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.85)] sm:-mt-3 sm:mb-2 sm:h-12 sm:w-12"
+              />
 
-              <button
-                type="button"
-                onMouseEnter={() => hsAudio.playSfx('box_hover', 0.55)}
-                onClick={() => triggerModeTransition('PRACTICE_NORMAL')}
-                className="hs-ivory-plate group flex flex-col items-center rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2"
-              >
-                <span className="hs-title text-sm font-extrabold tracking-wider text-[#2d1a0b] group-hover:text-[#7c2d12] sm:text-lg">
-                  연습
-                </span>
-                <span className="text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10px]">
-                  여관주인 AI 대결 (일반 · 숙련)
-                </span>
-              </button>
+              {/* 3 Authentic Carved Ivory Mode Plates Aligned with `box_menu_disk.webp` */}
+              <div className="relative z-10 flex w-full max-w-[196px] flex-col gap-2 sm:max-w-[238px] sm:gap-2.5">
+                <button
+                  type="button"
+                  onMouseEnter={() => hsAudio.playSfx('box_hover', 0.55)}
+                  onClick={() => triggerModeTransition('RANKED')}
+                  className="hs-ivory-plate group flex min-h-[42px] items-center justify-center rounded-xl px-4 py-1.5 sm:min-h-[48px] sm:py-2"
+                >
+                  <span className="hs-title text-lg font-extrabold tracking-widest text-[#2a1708] group-hover:text-[#0c4a6e] sm:text-2xl">
+                    대전
+                  </span>
+                </button>
 
-              <button
-                type="button"
-                onMouseEnter={() => hsAudio.playSfx('box_hover', 0.55)}
-                onClick={() => triggerModeTransition('TUTORIAL')}
-                className="hs-ivory-plate group flex flex-col items-center rounded-2xl px-3 py-1 sm:px-4 sm:py-1.5"
-              >
-                <span className="hs-title text-xs font-extrabold tracking-wider text-[#2d1a0b] group-hover:text-[#14532d] sm:text-base">
-                  입문 튜토리얼
-                </span>
-                <span className="text-[9px] font-bold text-[#6b4826] sm:text-[9.5px]">
-                  실전 코칭 가이드 매치
-                </span>
-              </button>
+                <button
+                  type="button"
+                  onMouseEnter={() => hsAudio.playSfx('box_hover', 0.55)}
+                  onClick={() => triggerModeTransition('PRACTICE_NORMAL')}
+                  className="hs-ivory-plate group flex min-h-[40px] items-center justify-center rounded-xl px-4 py-1.5 sm:min-h-[46px] sm:py-2"
+                >
+                  <span className="hs-title text-base font-extrabold tracking-widest text-[#2a1708] group-hover:text-[#7c2d12] sm:text-xl">
+                    연습
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onMouseEnter={() => hsAudio.playSfx('box_hover', 0.55)}
+                  onClick={() => triggerModeTransition('TUTORIAL')}
+                  className="hs-ivory-plate group flex min-h-[38px] items-center justify-center rounded-xl px-4 py-1 sm:min-h-[44px] sm:py-1.5"
+                >
+                  <span className="hs-title text-sm font-extrabold tracking-wider text-[#2a1708] group-hover:text-[#14532d] sm:text-lg">
+                    튜토리얼
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Bottom Recessed Brass Drawer Tray: Packs · Collection · Quests · Shop */}
-          <div className="relative z-10 mt-2.5 grid w-full max-w-2xl grid-cols-2 gap-2 rounded-2xl border-[2.5px] border-[#a88246] bg-gradient-to-b from-[#231409] to-[#120a04] p-2.5 shadow-[inset_0_4px_14px_rgba(0,0,0,0.9)] sm:mt-3 sm:grid-cols-4 sm:gap-2.5 sm:border-[3px] sm:p-3">
+          {/* Bottom Recessed Drawer Tray (`팩 개봉` · `수집품` · `일지` · `상점`) */}
+          <div
+            style={{
+              transform: trayReady ? 'translateY(0) scale(1)' : 'translateY(14px) scale(0.97)',
+              opacity: trayReady ? 1 : 0.4,
+              transition: 'transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease',
+            }}
+            className="relative z-20 mt-2.5 grid w-full max-w-2xl grid-cols-2 gap-2 rounded-2xl border-[2.5px] border-[#b68d4c] bg-gradient-to-b from-[#231409] to-[#110904] p-2.5 shadow-[inset_0_4px_16px_rgba(0,0,0,0.92)] sm:mt-3.5 sm:grid-cols-4 sm:gap-2.5 sm:border-[3px] sm:p-3"
+          >
             <button
               type="button"
               onMouseEnter={() => hsAudio.playSfx('box_hover', 0.5)}
@@ -267,26 +330,22 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 hsAudio.playSfx('box_press');
                 onOpenPacks();
               }}
-              className="hs-brass-btn relative flex min-h-[48px] items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-amber-100 sm:gap-2.5 sm:px-3 sm:py-2"
+              className="hs-brass-btn relative flex min-h-[50px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-amber-100 sm:gap-2.5"
             >
               {profile.packs > 0 && (
-                <span className="hs-num absolute -right-1.5 -top-1.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-red-200 bg-gradient-to-b from-red-500 to-red-800 px-1 text-[11px] text-white shadow-[0_3px_10px_rgba(220,38,38,0.85)] sm:-right-2 sm:-top-2 sm:h-6 sm:min-w-6 sm:px-1.5 sm:text-xs">
+                <span className="hs-num absolute -right-1.5 -top-1.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-red-200 bg-gradient-to-b from-red-500 to-red-800 px-1 text-[11px] text-white shadow-[0_3px_10px_rgba(220,38,38,0.9)] sm:-right-2 sm:-top-2 sm:h-6 sm:min-w-6 sm:px-1.5 sm:text-xs">
                   {profile.packs}
                 </span>
               )}
               <img
                 src="/stone-assets/ui/classic_pack.webp"
                 alt=""
+                draggable={false}
                 className="h-9 w-7 shrink-0 object-contain drop-shadow sm:h-10 sm:w-8"
               />
-              <div className="min-w-0">
-                <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">
-                  카드 팩 개봉
-                </div>
-                <div className="text-[10px] font-bold text-amber-300/85">
-                  보유 {profile.packs}팩
-                </div>
-              </div>
+              <span className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
+                팩 개봉
+              </span>
             </button>
 
             <button
@@ -296,21 +355,17 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 hsAudio.playSfx('box_press');
                 onOpenCollection();
               }}
-              className="hs-brass-btn flex min-h-[48px] items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-amber-100 sm:gap-2.5 sm:px-3 sm:py-2"
+              className="hs-brass-btn flex min-h-[50px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-amber-100 sm:gap-2.5"
             >
               <img
-                src="/stone-assets/ui/crest_mage.webp"
+                src="/stone-assets/ui/box_compass_medallion.webp"
                 alt=""
-                className="h-8 w-8 shrink-0 rounded-full border border-amber-300/60 object-cover shadow sm:h-9 sm:w-9"
+                draggable={false}
+                className="h-8 w-8 shrink-0 object-contain drop-shadow sm:h-9 sm:w-9"
               />
-              <div className="min-w-0">
-                <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">
-                  내 카드첩
-                </div>
-                <div className="text-[10px] font-bold text-amber-300/85">
-                  덱 빌더 · 382종
-                </div>
-              </div>
+              <span className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
+                내 수집품
+              </span>
             </button>
 
             <button
@@ -320,21 +375,17 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 hsAudio.playSfx('box_open');
                 onOpenQuestLog();
               }}
-              className="hs-brass-btn flex min-h-[48px] items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-amber-100 sm:gap-2.5 sm:px-3 sm:py-2"
+              className="hs-brass-btn flex min-h-[50px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-amber-100 sm:gap-2.5"
             >
               <img
                 src="/stone-assets/ui/hs_questlog.webp"
                 alt=""
+                draggable={false}
                 className="h-8 w-8 shrink-0 rounded-lg border border-amber-300/50 object-cover shadow sm:h-9 sm:w-9"
               />
-              <div className="min-w-0">
-                <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">
-                  퀘스트 일지
-                </div>
-                <div className="text-[10px] font-bold text-amber-300/85">
-                  일일 보상 · 등급
-                </div>
-              </div>
+              <span className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
+                퀘스트
+              </span>
             </button>
 
             <button
@@ -344,27 +395,48 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 hsAudio.playSfx('box_press');
                 onOpenShop();
               }}
-              className="hs-brass-btn flex min-h-[48px] items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-amber-100 sm:gap-2.5 sm:px-3 sm:py-2"
+              className="hs-brass-btn flex min-h-[50px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-amber-100 sm:gap-2.5"
             >
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-300/50 bg-stone-950/60 sm:h-9 sm:w-9">
                 <HsGoldCoinIcon size={22} />
               </div>
-              <div className="min-w-0">
-                <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">
-                  여관 상점
-                </div>
-                <div className="text-[10px] font-bold text-amber-300/85">
-                  팩 구매 · 전체해금
-                </div>
-              </div>
+              <span className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
+                상점
+              </span>
             </button>
           </div>
+
+          {/* 3D Hinged Wooden Chest Doors (`box_chest_left.webp` & `box_chest_right.webp`) */}
+          {doorsOpening && (
+            <div className="pointer-events-none absolute inset-0 z-40 flex overflow-visible rounded-[26px] sm:rounded-[32px]">
+              <img
+                src="/stone-assets/ui/box_chest_left.webp"
+                alt=""
+                draggable={false}
+                style={{
+                  transformOrigin: 'left center',
+                  animation: 'hsBoxDoorLeftSwing 0.88s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+                }}
+                className="h-full w-1/2 rounded-l-[26px] object-fill shadow-[16px_0_40px_rgba(0,0,0,0.85)] sm:rounded-l-[32px]"
+              />
+              <img
+                src="/stone-assets/ui/box_chest_right.webp"
+                alt=""
+                draggable={false}
+                style={{
+                  transformOrigin: 'right center',
+                  animation: 'hsBoxDoorRightSwing 0.88s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+                }}
+                className="h-full w-1/2 rounded-r-[26px] object-fill shadow-[-16px_0_40px_rgba(0,0,0,0.85)] sm:rounded-r-[32px]"
+              />
+            </div>
+          )}
         </div>
       </main>
 
       {/* Subtle Footer Plaque */}
-      <footer className="relative z-20 pt-1 text-center text-[10.5px] font-bold tracking-wide text-amber-200/80 sm:text-[11px]">
-        오리지널 9직업 · 한국어 카드 382종 완비 · 모든 진행 데이터 로컬 자동 보존
+      <footer className="relative z-20 pt-1 text-center text-[10.5px] font-bold tracking-wide text-amber-200/75 sm:text-[11px]">
+        하스스톤: 워크래프트의 영웅들 — 클래식 9직업 · 382장 수집 가능 카드 완비
       </footer>
     </div>
   );

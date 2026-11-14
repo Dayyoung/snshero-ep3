@@ -8,10 +8,20 @@
   <meta name="robots" content="noindex, nofollow" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" href="/stone-assets/fonts/BelweBdBTBold.ttf" as="font" type="font/ttf" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
+    @font-face {
+      font-family: 'BelweBdBT';
+      src: url('/stone-assets/fonts/BelweBdBTBold.ttf') format('truetype');
+      font-weight: 700 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root {
       --hs-font-sans: 'Nanum Gothic', '나눔고딕', 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+      --hs-font-belwe: 'BelweBdBT', 'Nanum Gothic', '나눔고딕', 'Apple SD Gothic Neo', sans-serif;
     }
 
     *, *::before, *::after {
@@ -39,8 +49,13 @@
       cursor: url('/stone-assets/cursors/cursor.png') 6 2, auto;
     }
 
+    body.hs-dragging-active,
+    body.hs-dragging-active * {
+      cursor: url('/stone-assets/cursors/grab.png') 12 8, grabbing !important;
+    }
+
     button, input, select, textarea, [role="button"], .hs-clickable {
-      font-family: var(--hs-font-sans) !important;
+      font-family: var(--hs-font-sans);
       cursor: url('/stone-assets/cursors/click.png') 10 4, pointer;
     }
 
@@ -54,9 +69,9 @@
       cursor: url('/stone-assets/cursors/grab.png') 12 8, grab;
     }
 
-    /* High-legibility Nanum Gothic stat numbers (white fill + crisp dark outline) */
+    /* Authentic Blizzard Belwe Bold stat numbers + crisp black multi-stop stroke */
     .hs-num {
-      font-family: var(--hs-font-sans) !important;
+      font-family: var(--hs-font-belwe) !important;
       font-weight: 800;
       color: #ffffff;
       text-shadow:
@@ -64,12 +79,12 @@
          1.8px -1.8px 0 #000,
         -1.8px  1.8px 0 #000,
          1.8px  1.8px 0 #000,
-         0px -2px 0 #000,
-         0px  2px 0 #000,
-        -2px  0px 0 #000,
-         2px  0px 0 #000,
-         0 2px 5px rgba(0,0,0,0.85);
-      letter-spacing: -0.02em;
+         0px -2.1px 0 #000,
+         0px  2.1px 0 #000,
+        -2.1px  0px 0 #000,
+         2.1px  0px 0 #000,
+         0 2px 5px rgba(0,0,0,0.88);
+      letter-spacing: -0.015em;
       line-height: 1;
     }
 
@@ -82,7 +97,7 @@
     }
 
     .hs-title, .hs-title-stroke {
-      font-family: var(--hs-font-sans) !important;
+      font-family: var(--hs-font-belwe) !important;
       font-weight: 800;
       letter-spacing: -0.01em;
       text-shadow:

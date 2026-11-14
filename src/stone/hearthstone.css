@@ -270,3 +270,135 @@
     opacity: 0;
   }
 }
+
+/* The Box: 3D Hinged Left & Right Chest Doors Opening */
+@keyframes hsBoxDoorLeftSwing {
+  0% {
+    transform: perspective(1500px) rotateY(0deg);
+    opacity: 1;
+  }
+  68% {
+    transform: perspective(1500px) rotateY(-116deg);
+    opacity: 0.92;
+  }
+  100% {
+    transform: perspective(1500px) rotateY(-128deg);
+    opacity: 0;
+  }
+}
+
+@keyframes hsBoxDoorRightSwing {
+  0% {
+    transform: perspective(1500px) rotateY(0deg);
+    opacity: 1;
+  }
+  68% {
+    transform: perspective(1500px) rotateY(116deg);
+    opacity: 0.92;
+  }
+  100% {
+    transform: perspective(1500px) rotateY(128deg);
+    opacity: 0;
+  }
+}
+
+/* Battlefield: Card Drawn Flying from Right Deck Slot into Hand */
+@keyframes hsCardDrawFly {
+  0% {
+    transform: translate3d(34vw, -22vh, 0) scale(0.28) rotate(-26deg);
+    opacity: 0.25;
+  }
+  45% {
+    transform: translate3d(12vw, -14vh, 0) scale(0.92) rotate(-6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Battlefield: Authentic Left-Side Card Played / Secret Triggered Big Reveal */
+@keyframes hsCardPlayedShowcase {
+  0% {
+    transform: translate3d(-36px, -24px, 0) scale(0.45) rotate(-8deg);
+    opacity: 0;
+  }
+  18% {
+    transform: translate3d(0, 0, 0) scale(1.06) rotate(0deg);
+    opacity: 1;
+  }
+  30% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  84% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(18px, 8px, 0) scale(0.72) rotate(3deg);
+    opacity: 0;
+  }
+}
+
+/* Battlefield: Minion Summon Thud Slam */
+@keyframes hsMinionSummonDrop {
+  0% {
+    transform: translate3d(0, -34px, 0) scale(1.26);
+    opacity: 0.35;
+  }
+  65% {
+    transform: translate3d(0, 3px, 0) scale(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Mulligan: Crisp Red X Stamp */
+@keyframes hsMulliganCrossPop {
+  0% {
+    transform: scale(1.7) rotate(-14deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(0.93) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Rope Timer Fuse Spark Flicker */
+@keyframes hsRopeSpark {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    filter: brightness(1.1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.38) rotate(22deg);
+    filter: brightness(1.45);
+  }
+}
+
+/* Victory / Defeat Winged Heraldic Crest Entrance */
+@keyframes hsVictoryBannerPop {
+  0% {
+    transform: scale(0.42) translateY(28px);
+    opacity: 0;
+  }
+  62% {
+    transform: scale(1.06) translateY(-4px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+

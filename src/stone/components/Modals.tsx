@@ -787,6 +787,7 @@ export const GameOptionsModal: React.FC<{
                     setConfirmReset(false);
                     setDataNotice('✓ 하스스톤(stone_hs_*) 데이터가 초기 상태로 리셋되었습니다.');
                     onProfileChanged?.();
+                    window.location.reload();
                   }}
                   className="rounded bg-red-600 px-2.5 py-1 text-[11px] font-extrabold text-white"
                 >
@@ -881,7 +882,7 @@ export const ReaEvidenceModal: React.FC<{ onClose: () => void }> = ({ onClose })
                 REA (`morluto/rea@6.7.0`) 역설계 증명 리포트
               </h2>
               <p className="text-xs font-semibold text-amber-300/80">
-                로컬 설치본 `{manifest?.sourceInstallation || '/Applications/Hearthstone'}` 직접 추출 아티팩트 및 `src/hearthstone/design.md` 검증
+                로컬 설치본 `{manifest?.sourceInstallation || '/Applications/Hearthstone'}` 직접 추출 아티팩트 및 `src/stone/design.md` 검증
               </p>
             </div>
           </div>

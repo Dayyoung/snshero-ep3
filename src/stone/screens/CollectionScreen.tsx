@@ -585,6 +585,23 @@ export const CollectionScreen: React.FC<{
                         size={isCompactMobile ? 'XS' : 'SM'}
                         enableTilt
                         onClick={() => {
+                          if (editingDeck) {
+                            const maxCopy = card.rarity === 'LEGENDARY' ? 1 : 2;
+                            const canQuickAdd =
+                              owned > 0 &&
+                              editingDeck.cards.length < 30 &&
+                              inDeck < maxCopy &&
+                              inDeck < owned &&
+                              (card.cardClass === editingDeck.heroClass ||
+                                card.cardClass === 'NEUTRAL');
+                            if (canQuickAdd) {
+                              handleAddCardToDeck(card);
+                              showNotice(
+                                `[${card.name}] 덱에 추가 (${editingDeck.cards.length + 1}/30)`,
+                              );
+                              return;
+                            }
+                          }
                           hsAudio.playSfx('card_hover', 0.7);
                           setInspectCard(card);
                         }}
@@ -983,11 +1000,16 @@ export const CollectionScreen: React.FC<{
                     type="button"
                     onMouseEnter={() => setHoveredTileCard(card)}
                     onMouseLeave={() => setHoveredTileCard(null)}
-                    onClick={() => {
-                      hsAudio.playSfx('card_hover', 0.65);
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setHoveredTileCard(null);
                       setInspectCard(card);
                     }}
-                    title="클릭하여 카드 확대 및 덱 편집"
+                    onClick={() => {
+                      handleRemoveCardFromDeck(card.id);
+                      showNotice(`[${card.name}] 카드를 덱에서 1장 뺐습니다.`);
+                    }}
+                    title="클릭하여 덱에서 1장 빼기 · 우클릭하여 카드 확대"
                     className="group relative flex h-8 w-full items-center justify-between overflow-hidden rounded-md border border-[#b58e4c]/70 bg-[#18110b] pl-1 pr-1.5 text-left shadow transition hover:border-amber-300"
                   >
                     {/* Right-Side Cropped Card Art Tile */}
