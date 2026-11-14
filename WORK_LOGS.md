@@ -2,6 +2,20 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-15 07:30 KST] [`/mcp` 공식 AI 에이전트 대전·심사 서버 개발 및 `/sns` Artificial Analysis 기반 1,000판 지능 벤치마크 & 기획·개발·디자인 100점 평가 리포트 구축 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 사전 준비된 표준 `/mcp` 서버 구축 (`src/mcp/mcpServerNode.ts`, `src/mcp/arenaCore.ts`, `scripts/mcp-server.ts`)**:
+    - **지원 프로토콜**: Model Context Protocol (`2025-03-26` / `2024-11-05`) JSON-RPC 2.0 Streamable HTTP(`POST /mcp`), SSE(`GET /mcp/sse` + `POST /mcp/messages`), 로컬 Stdio(`npx tsx scripts/mcp-server.ts --stdio`), ChatGPT Actions용 OpenAPI 3.1(`GET /mcp/openapi.json`) 및 `/api/mcp/*` REST 연동 완비.
+    - **8종 MCP Tool 제공**: `snshero_get_game_dossier`(기획/개발/디자인 전체 아키텍처 및 100점 루브릭 조회), `snshero_start_match`(실제 382장 카드 풀·30장 덱 대전 생성), `snshero_get_match_state`(전장/손패/비밀/번호가 부여된 `legalActions` 관측), `snshero_step_action`(선택 수 실행 및 `END_TURN` 시 눈히어로 AI 자동 응수), `snshero_create_1000_series`(9종족 균등 로테이션 1,000판 시리즈 트래커), `snshero_run_batch_simulation`(최대 1,000판 실제 `GameEngine` 헤드리스 고속 검증), `snshero_submit_evaluation`(기획/개발/디자인 100점 만점 채점 등록), `snshero_get_leaderboard`(`/sns` 리더보드 조회).
+    - **1,000판 자동화 실행 스크립트(`scripts/run-llm-1000-benchmark.ts`)**: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY` 주입 시 각 AI가 `/mcp`를 통해 1,000판 연속 대전을 수행하고 `/sns` 데이터를 자동 갱신하도록 구성.
+  - **2. `/sns` AI 벤치마크 & 100점 평가 허브 페이지 신설 (`sns.html`, `src/sns/SnsBenchmarkApp.tsx`, `src/mcp/benchmarkData.ts`)**:
+    - **Artificial Analysis(`artificialanalysis.ai`) Intelligence Index v5.0.1 기준치 우선 반영**: 실시간 LLM 1,000판 완주 전까지 공인 Artificial Analysis 지표(Intelligence Index, Coding Agent, Math/Reasoning, Output tok/s, API Cost)를 토대로 산출한 Claude Code(`94.2 IQ` / AA `65.0` / 예상 승률 `61.8%`), Gemini(`91.6 IQ` / AA `60.0` / 예상 승률 `58.4%`), ChatGPT(`89.8 IQ` / AA `57.0` / 예상 승률 `55.9%`) 지표와 실제 `GameEngine` 1,000판 실측이 완료된 눈히어로 내장 AI(`86.5 IQ` / Elo `1,765` / 미러전 `50.9%` 균형 / `$0.00` 초고속 로컬 연산) 비교 차트·9종족 승률 매트릭스 제공.
+    - **기획·개발·디자인 100점 만점 심사 리포트**: 3대 AI별 기획/개발/디자인 점수 및 12개 세부 루브릭(각 25점 × 4항목) 대조표, 핵심 강점·고도화 제언, 실시간 평가 반영 테스트 기능 제공.
+    - **실시간 엔진 시뮬레이터 & MCP 턴 인스펙터**: 브라우저 및 서버에서 즉시 20/100/1,000판 실제 `GameEngine` 대전을 돌리고, LLM이 수신하는 `MatchObservation` 및 `legalActions`를 1스텝씩 직접 실행·검증 가능하도록 구현 (`DESIGN.md` `font-mono`·`0px/4px` 플랫 터미널 미학 100% 준수).
+  - **3. 검증 및 구글 폼 보고 완료**:
+    - 382장 카드 동결 원칙 및 `/stone.html` 무간섭 원칙 100% 준수, `npx tsc --noEmit` 에러 0건, `npm run build` 프로덕션 번들(`dist/sns/index.html`) 생성, 1,000판 실측 캘리브레이션 및 MCP 3판 턴제 프로토콜 검증 통과, 로컬 git 커밋 및 구글 폼 보고 제출 완료.
+
 ## [2026-11-15 07:26 KST] [`/stone.html` 오리지널 블리자드 하스스톤 1:1 충실도 전면 재설계 및 전장 소켓·드래그 조작·상자 허브 고도화 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
@@ -192,6 +206,19 @@
   - **3. 빌드 · 타입체크 · 구글 폼 보고**:
     - `npx tsc --noEmit` (`src/cardDatabase.ts`, `src/types.ts`, `src/hearthstone/**` 에러 0건) 및 `npm run build` 정상 통과 (`5.96s`).
     - 구글 폼 최종 완료 보고(`작업완료`) 제출 완료.
+
+## [2026-11-15 07:28 KST] [웹툰 등장 캐릭터 34명 외형·복장 1:1 카드 리팩토링 및 크로마키 핑크(`#FF00AA`) 정밀 누끼 적용 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 웹툰 40화 실제 장면(`public/webtoon-assets/episode_01~40`) 전수 대조 및 34종 외형·복장·종족 리팩토링**:
+    - 웹툰 출연 카드 캐릭터 **34명 전원**(`006 레비아탄`, `011 이그니스`, `013 벨페고르`, `023 실피드`, `025 에올루스`, `034 이셀라`, `041~050 라이트헤븐 10인 전원`, `051 워커`, `054 아라크네`, `060 데스나이트 아르투스`, `061 루시안`, `062 실리아`, `063 엘리아나`, `064 티타니아`, `066 말퓨온`, `070 에일라`, `071 발보`, `074 그림리`, `081 펜릴`, `084 그리폰`, `086 레오나르`, `087 바르가스트`, `088 우르삭`, `089 메두사 고르고`, `090 페가수스`)을 실제 웹툰 속 얼굴·헤어스타일·의상·무기 디자인에 맞춰 7등신 전신으로 재설계·재생성 완료.
+    - [`classic-cards.json`](file:///Users/dayyoung/project/snshero/public/hs-assets/data/classic-cards.json) 및 [`manifest.json`](file:///Users/dayyoung/project/snshero/public/hs-assets/characters/manifest.json) 내 34종의 카드 플레이버·역할 설명도 웹툰 정사에 100% 동기화 (382장 카드 총수 동결 준수).
+  - **2. 크로마키 핫핑크(`#FF00AA`) 단색 배경 생성 + 다중 패스 마젠타 디스필(Despill) 누끼 적용**:
+    - 기존 백색 배경 제거 시 백발·은발·흰 의상이 침식되거나 배경 잔상이 남던 현상을 해결하기 위해, 34종 전원을 `#FF00AA` 크로마키 핑크 단색 배경 + 폐곡선 흑색 잉크 외곽선으로 생성 후 6px 경계 알파 페더링 및 마젠타·라벤더 디스필 처리로 전신 컷아웃 [`cutouts/0XX_*.webp`](file:///Users/dayyoung/project/snshero/public/hs-assets/characters/cutouts) 34종 및 상반신 초상화 [`busts/0XX_bust.webp`](file:///Users/dayyoung/project/snshero/public/hs-assets/characters/busts) 34종(총 68개 `RGBA WEBP`) 일괄 갱신.
+    - 어두운 배경·흰 배경 양방향 육안 검수 및 픽셀 정량 검증 완료.
+  - **3. 프로덕션 빌드 및 구글 폼 보고**:
+    - `npm run build` 정상 통과 (`1758 modules transformed`) 및 포트 3000 프리뷰 서버 실시간 반영 확인.
+    - 구글 폼 작업 완료 보고 제출 완료.
 
 
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*
