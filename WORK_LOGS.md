@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-15 07:57 KST] [`/sns` 페이지 접속 불가 원인 전수 해결 — macOS 듀얼스택(`::`) IPv6/IPv4 바인딩, 절대경로/SW 자동갱신 및 정적 호스팅 404/대소문자 라우팅 보강 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 로컬 프리뷰/개발 서버(`localhost:3000`) IPv6 `[::1]` 접속 거부 수정 (`scripts/start-server.sh`, `vite.config.ts`)**:
+    - 기존 `--host 0.0.0.0` 설정이 IPv4 소켓만 바인딩하여 macOS `/etc/hosts`(`::1 localhost`) 환경에서 IPv6 우선 연결 시 접속이 거부되던 문제를 `--host ::` (듀얼스택 IPv6 + IPv4 동시 리스닝)로 전환하여 `http://[::1]:3000/sns`, `http://127.0.0.1:3000/sns`, `http://localhost:3000/sns`, LAN/Tailscale 전 경로 `HTTP 200` 즉시 응답 보장.
+    - `MPA_REWRITES` 대소문자 무관 정규화(`/sns`, `/sns/`, `/SNS`) 및 `index.html`의 `#sns` 해시 리다이렉트 지원 추가.
+  - **2. 정적 호스팅(`snshero.com`) 및 구버전 서비스워커 캐시 간섭 차단 (`sns.html`, `scripts/post-build.js`, `public/sitemap.xml`)**:
+    - `sns.html` 로드 시 최신 `/sw.js`(`updateViaCache: 'none'`) 즉시 강제 업데이트 등록 추가.
+    - `scripts/post-build.js`에서 `./favicon.png`, `./hs-assets/` 상대경로를 루트 절대경로(`/favicon.png`, `/hs-assets/`)로 일괄 보정하여 `/sns/` 슬래시 경로에서도 깨짐 원천 차단.
+    - 정적 GitHub Pages 환경에서도 `/mcp`, `/mcp/guide.md` 진입 시 404 대신 안내 문서가 응답하도록 `dist/mcp/` 미러링 및 대소문자/하위경로 자동 복구용 `dist/404.html` 라우터 생성, `public/sitemap.xml`에 `https://snshero.com/sns` 등록 완료.
+  - **3. 검증 및 구글 폼 보고 완료**:
+    - `npx tsc --noEmit` 및 `npm run build` 무결성 통과, IPv6/IPv4/대소문자/트레일링 슬래시 전 경로 `200 OK` 검증, 로컬 git 커밋 및 구글 폼 제출 완료.
+
 ## [2026-11-15 07:30 KST] [`/mcp` 공식 AI 에이전트 대전·심사 서버 개발 및 `/sns` Artificial Analysis 기반 1,000판 지능 벤치마크 & 기획·개발·디자인 100점 평가 리포트 구축 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

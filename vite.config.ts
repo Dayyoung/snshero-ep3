@@ -76,7 +76,7 @@ export default defineConfig(({mode}) => {
             const [pathname, search] = req.url.split('?');
             const query = search ? `?${search}` : '';
             const normalized = (pathname || '').replace(/\/+/g, '/');
-            const cleanNormalized = normalized.replace(/\/+$/, '') || '/';
+            const cleanNormalized = (normalized.replace(/\/+$/, '') || '/').toLowerCase();
             if (MPA_REWRITES[cleanNormalized]) {
               req.url = `${MPA_REWRITES[cleanNormalized]}${query}`;
             }
@@ -89,7 +89,7 @@ export default defineConfig(({mode}) => {
             const [pathname, search] = req.url.split('?');
             const query = search ? `?${search}` : '';
             const normalized = (pathname || '').replace(/\/+/g, '/');
-            const cleanNormalized = normalized.replace(/\/+$/, '') || '/';
+            const cleanNormalized = (normalized.replace(/\/+$/, '') || '/').toLowerCase();
             if (MPA_REWRITES[cleanNormalized]) {
               req.url = `${MPA_REWRITES[cleanNormalized]}${query}`;
             }
@@ -854,7 +854,7 @@ export default defineConfig(({mode}) => {
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
-      host: '0.0.0.0',
+      host: '::',
       port: 3000,
       hmr: process.env.DISABLE_HMR !== 'true' ? true : false,
       allowedHosts: true,
@@ -870,7 +870,7 @@ export default defineConfig(({mode}) => {
       }
     },
     preview: {
-      host: '0.0.0.0',
+      host: '::',
       port: 3000,
       allowedHosts: true,
       proxy: {

@@ -376,6 +376,9 @@
         } else if (h === '#webtoon' || h.indexOf('#webtoon?') === 0) {
           var wq = h.indexOf('?') >= 0 ? h.slice(h.indexOf('?')) : '';
           window.location.replace('/webtoon.html' + wq);
+        } else if (h === '#sns' || h.indexOf('#sns?') === 0) {
+          var sq = h.indexOf('?') >= 0 ? h.slice(h.indexOf('?')) : '';
+          window.location.replace('/sns' + sq);
         }
       }
       redirectLegacyHash();

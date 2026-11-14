@@ -18,7 +18,7 @@ if [ -n "$WATCH_PID" ]; then
   kill -9 $WATCH_PID 2>/dev/null || true
 fi
 
-if [ ! -f "dist/index.html" ] || [ ! -f "dist/game.html" ] || [ "$1" = "--build" ]; then
+if [ ! -f "dist/index.html" ] || [ ! -f "dist/game.html" ] || [ ! -f "dist/sns.html" ] || [ "$1" = "--build" ]; then
   npm run build
 fi
 
@@ -28,4 +28,4 @@ cleanup() {
 trap cleanup SIGINT SIGTERM EXIT
 
 node scripts/watch-build.js &
-exec npx vite preview --host 0.0.0.0 --port $PORT
+exec npx vite preview --host :: --port $PORT

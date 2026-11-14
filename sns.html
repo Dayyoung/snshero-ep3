@@ -23,5 +23,15 @@
 <body class="bg-[#090d16] text-[#fdfcfc] font-mono antialiased">
   <div id="sns-root"></div>
   <script type="module" src="/src/sns/main.tsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker
+          .register('/sw.js', { scope: '/', updateViaCache: 'none' })
+          .then(function (reg) { return reg.update(); })
+          .catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>
