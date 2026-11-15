@@ -65,6 +65,8 @@ const RARITY_FILTER_OPTIONS: {
   { id: 'LEGENDARY', labelKo: '전설', labelEn: 'Legendary', dotColor: '#f59e0b' },
 ];
 
+const ALL_CLASS_TABS: CardClass[] = [...HERO_CLASS_ORDER, 'NEUTRAL'];
+
 export const CollectionScreen: React.FC<{
   onBack: () => void;
   onProfileChanged: () => void;
@@ -154,47 +156,97 @@ export const CollectionScreen: React.FC<{
     }
   }, [editingDeck, activeTab]);
 
+  const matchesBaseFilters = useCallback(
+    (c: ClassicCardDef) => {
+      if (editingDeck) {
+        if (c.cardClass !== editingDeck.heroClass && c.cardClass !== 'NEUTRAL') return false;
+      }
+      if (!craftingMode && (collection[c.id] || 0) <= 0) return false;
+      if (manaFilter !== 'ALL') {
+        if (manaFilter === 7 ? c.cost < 7 : c.cost !== manaFilter) return false;
+      }
+      if (rarityFilter !== 'ALL' && c.rarity !== rarityFilter) return false;
+      const q = searchQuery.trim().toLowerCase();
+      if (q) {
+        const raceKo = c.race ? RACE_KO[c.race] || '' : '';
+        const raceEn = c.race ? CARD_RACE_LABELS_EN[c.race] || '' : '';
+        const rarityKo = RARITY_KO[c.rarity] || '';
+        const rarityEn = CARD_RARITY_LABELS_EN[c.rarity] || '';
+        const typeKo =
+          c.type === 'WEAPON'
+            ? '무기 병기 장착 weapon'
+            : c.type === 'SPELL'
+              ? c.mechanics?.includes('SECRET')
+                ? '비밀 주문 secret spell'
+                : '주문 spell'
+              : '하수인 minion';
+        const goldenTag = (goldenCollection[c.id] || 0) > 0 ? '황금 golden' : '';
+        const charAll = `${c.snsCharName || ''} ${c.snsFactionKo || ''} ${c.snsCharNameEn || ''} ${c.snsFactionEn || ''}`;
+        const hay = `${c.name} ${c.nameEn || ''} ${c.text} ${c.textEn || ''} ${typeKo} ${raceKo} ${raceEn} ${rarityKo} ${rarityEn} ${c.rarity} ${goldenTag} ${charAll}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    },
+    [craftingMode, collection, goldenCollection, manaFilter, rarityFilter, searchQuery, editingDeck],
+  );
+
   const filteredCards = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
     return cardDb
       .getAllCollectible()
-      .filter((c) => {
-        if (editingDeck) {
-          if (c.cardClass !== editingDeck.heroClass && c.cardClass !== 'NEUTRAL') return false;
-        }
-        if (c.cardClass !== activeTab) return false;
-        if (!craftingMode && (collection[c.id] || 0) <= 0) return false;
-        if (manaFilter !== 'ALL') {
-          if (manaFilter === 7 ? c.cost < 7 : c.cost !== manaFilter) return false;
-        }
-        if (rarityFilter !== 'ALL' && c.rarity !== rarityFilter) return false;
-        if (q) {
-          const raceKo = c.race ? RACE_KO[c.race] || '' : '';
-          const raceEn = c.race ? CARD_RACE_LABELS_EN[c.race] || '' : '';
-          const rarityKo = RARITY_KO[c.rarity] || '';
-          const rarityEn = CARD_RARITY_LABELS_EN[c.rarity] || '';
-          const typeKo =
-            c.type === 'WEAPON'
-              ? '무기 병기 장착 weapon'
-              : c.type === 'SPELL'
-                ? c.mechanics?.includes('SECRET')
-                  ? '비밀 주문 secret spell'
-                  : '주문 spell'
-                : '하수인 minion';
-          const goldenTag = (goldenCollection[c.id] || 0) > 0 ? '황금 golden' : '';
-          const charAll = `${c.snsCharName || ''} ${c.snsFactionKo || ''} ${c.snsCharNameEn || ''} ${c.snsFactionEn || ''}`;
-          const hay = `${c.name} ${c.nameEn || ''} ${c.text} ${c.textEn || ''} ${typeKo} ${raceKo} ${raceEn} ${rarityKo} ${rarityEn} ${c.rarity} ${goldenTag} ${charAll}`.toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      })
+      .filter((c) => c.cardClass === activeTab && matchesBaseFilters(c))
       .sort(compareCardsStoneOrder);
-  }, [activeTab, craftingMode, collection, goldenCollection, manaFilter, rarityFilter, searchQuery, editingDeck]);
+  }, [activeTab, matchesBaseFilters]);
+
+  // 전체 카드첩 순회 리스트: 9개 진영 + 중립 전수(기본 382장 전체, 덱 편집 시 해당 진영+중립 전체)를 탭·비용·이름 순으로 연결
+  const allNavigableCards = useMemo(() => {
+    const allCollectible = cardDb.getAllCollectible();
+    const tabOrder: CardClass[] = editingDeck
+      ? [editingDeck.heroClass, 'NEUTRAL']
+      : ALL_CLASS_TABS;
+    const ordered: ClassicCardDef[] = [];
+    for (const tab of tabOrder) {
+      const group = allCollectible
+        .filter((c) => c.cardClass === tab && matchesBaseFilters(c))
+        .sort(compareCardsStoneOrder);
+      ordered.push(...group);
+    }
+    return ordered;
+  }, [editingDeck, matchesBaseFilters]);
+
+  const allFallbackCards = useMemo(() => {
+    const allCollectible = cardDb.getAllCollectible();
+    const ordered: ClassicCardDef[] = [];
+    for (const tab of ALL_CLASS_TABS) {
+      ordered.push(
+        ...allCollectible.filter((c) => c.cardClass === tab).sort(compareCardsStoneOrder),
+      );
+    }
+    return ordered;
+  }, []);
 
   const PAGE_SIZE = 8;
   const totalPages = Math.max(1, Math.ceil(filteredCards.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
   const pageCards = filteredCards.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
+  const navigateToInspectCard = useCallback(
+    (targetCard: ClassicCardDef) => {
+      setInspectCard(targetCard);
+      const nextTab = targetCard.cardClass;
+      if (nextTab !== activeTab) {
+        setActiveTab(nextTab);
+      }
+      const tabCards = cardDb
+        .getAllCollectible()
+        .filter((c) => c.cardClass === nextTab && matchesBaseFilters(c))
+        .sort(compareCardsStoneOrder);
+      const idxInTab = tabCards.findIndex((c) => c.id === targetCard.id);
+      if (idxInTab >= 0) {
+        setPage(Math.floor(idxInTab / PAGE_SIZE));
+      }
+    },
+    [activeTab, matchesBaseFilters],
+  );
 
   const turnPrevPage = useCallback(() => {
     setPage((p) => {
@@ -1205,6 +1257,7 @@ export const CollectionScreen: React.FC<{
                 ),
                 variant: 'emerald',
                 onClick: () => {
+                  const willFillDeck = editingDeck.cards.length + 1 >= 30;
                   handleAddCardToDeck(inspectCard);
                   showNotice(
                     tr(
@@ -1212,7 +1265,9 @@ export const CollectionScreen: React.FC<{
                       `Added [${inspectCardName}] to deck (${editingDeck.cards.length + 1}/30)`,
                     ),
                   );
-                  setInspectCard(null);
+                  if (willFillDeck) {
+                    setInspectCard(null);
+                  }
                 },
               };
             } else if (owned === 0 && inspectCard.rarity !== 'FREE') {
@@ -1248,7 +1303,6 @@ export const CollectionScreen: React.FC<{
                       `Removed [${inspectCardName}] from deck.`,
                     ),
                   );
-                  setInspectCard(null);
                 },
               };
             } else {
@@ -1276,7 +1330,6 @@ export const CollectionScreen: React.FC<{
                       `Removed [${inspectCardName}] from deck.`,
                     ),
                   );
-                  setInspectCard(null);
                 },
               });
             }
@@ -1387,6 +1440,29 @@ export const CollectionScreen: React.FC<{
             goldenCollection[inspectCard.id] || 0,
           );
 
+          const navList = allNavigableCards.some((c) => c.id === inspectCard.id)
+            ? allNavigableCards
+            : allFallbackCards;
+          const navIdx = navList.findIndex((c) => c.id === inspectCard.id);
+          const classLabel =
+            inspectCard.cardClass === 'NEUTRAL'
+              ? tr('중립', 'Neutral')
+              : getLocalizedHeroInfo(inspectCard.cardClass, lang).className;
+          const zoomNavigation =
+            navIdx >= 0 && navList.length > 1
+              ? {
+                  currentIndex: navIdx,
+                  totalCount: navList.length,
+                  positionLabel: `${classLabel} · ${navIdx + 1} / ${navList.length}`,
+                  onPrev: () =>
+                    navigateToInspectCard(
+                      navList[(navIdx - 1 + navList.length) % navList.length],
+                    ),
+                  onNext: () =>
+                    navigateToInspectCard(navList[(navIdx + 1) % navList.length]),
+                }
+              : undefined;
+
           return (
             <CardZoomModal
               card={inspectCard}
@@ -1404,6 +1480,7 @@ export const CollectionScreen: React.FC<{
                     )
               }
               showFlavor
+              navigation={zoomNavigation}
               primaryAction={primaryAction}
               secondaryActions={secondaryActions}
               onCancel={() => setInspectCard(null)}

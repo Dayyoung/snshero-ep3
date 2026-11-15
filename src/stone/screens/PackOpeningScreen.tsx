@@ -790,30 +790,57 @@ export const PackOpeningScreen: React.FC<{
       </footer>
 
       {/* Card Zoom Modal for Inspecting Any Flipped Pack Card */}
-      {zoomedPackCard && (
-        <CardZoomModal
-          card={zoomedPackCard.card}
-          isGolden={zoomedPackCard.isGolden}
-          rarityAura={zoomedPackCard.card.rarity}
-          subtitleBadge={
-            zoomedPackCard.isNew
-              ? '신규 획득 카드!'
-              : zoomedPackCard.isGolden
-                ? '황금 카드 획득!'
-                : '카드 팩 개봉 획득'
-          }
-          showFlavor
-          primaryAction={{
-            label: '확인 (닫기)',
-            variant: 'arcane',
-            onClick: () => {
-              hsAudio.playSfx('ui_click', 0.65);
-              setZoomedPackCard(null);
-            },
-          }}
-          onCancel={() => setZoomedPackCard(null)}
-        />
-      )}
+      {zoomedPackCard &&
+        (() => {
+          const revealedPackCards = openedCards
+            ? openedCards.filter((_, idx) => revealed[idx])
+            : [];
+          const curIdx = revealedPackCards.indexOf(zoomedPackCard);
+          const packNav =
+            curIdx >= 0 && revealedPackCards.length > 1
+              ? {
+                  currentIndex: curIdx,
+                  totalCount: revealedPackCards.length,
+                  positionLabel: `개봉 카드 ${curIdx + 1} / ${revealedPackCards.length}`,
+                  onPrev: () =>
+                    setZoomedPackCard(
+                      revealedPackCards[
+                        (curIdx - 1 + revealedPackCards.length) %
+                          revealedPackCards.length
+                      ],
+                    ),
+                  onNext: () =>
+                    setZoomedPackCard(
+                      revealedPackCards[(curIdx + 1) % revealedPackCards.length],
+                    ),
+                }
+              : undefined;
+          return (
+            <CardZoomModal
+              card={zoomedPackCard.card}
+              isGolden={zoomedPackCard.isGolden}
+              rarityAura={zoomedPackCard.card.rarity}
+              subtitleBadge={
+                zoomedPackCard.isNew
+                  ? '신규 획득 카드!'
+                  : zoomedPackCard.isGolden
+                    ? '황금 카드 획득!'
+                    : '카드 팩 개봉 획득'
+              }
+              showFlavor
+              navigation={packNav}
+              primaryAction={{
+                label: '확인 (닫기)',
+                variant: 'arcane',
+                onClick: () => {
+                  hsAudio.playSfx('ui_click', 0.65);
+                  setZoomedPackCard(null);
+                },
+              }}
+              onCancel={() => setZoomedPackCard(null)}
+            />
+          );
+        })()}
     </div>
   );
 };

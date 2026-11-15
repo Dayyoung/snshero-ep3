@@ -108,7 +108,7 @@ type BattleZoomState =
   | { kind: 'HAND_CARD'; handUid: string }
   | { kind: 'MULLIGAN_CARD'; handUid: string }
   | { kind: 'CHOOSE_ONE_CARD'; optionIndex: 0 | 1 }
-  | { kind: 'TRACKING_CARD'; cardId: string }
+  | { kind: 'TRACKING_CARD'; cardId: string; index?: number }
   | { kind: 'BOARD_MINION'; minion: MinionInstance; isFriendly: boolean }
   | { kind: 'HISTORY_ITEM'; item: ActionHistoryItem };
 
@@ -1735,6 +1735,27 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             ]
           : [];
 
+      const hand = matchState.player.hand;
+      const handIdx = hand.findIndex((h) => h.uid === hc.uid);
+      const handNav =
+        handIdx >= 0 && hand.length > 1
+          ? {
+              currentIndex: handIdx,
+              totalCount: hand.length,
+              positionLabel: `내 손패 ${handIdx + 1} / ${hand.length}`,
+              onPrev: () =>
+                setZoomState({
+                  kind: 'HAND_CARD',
+                  handUid: hand[(handIdx - 1 + hand.length) % hand.length].uid,
+                }),
+              onNext: () =>
+                setZoomState({
+                  kind: 'HAND_CARD',
+                  handUid: hand[(handIdx + 1) % hand.length].uid,
+                }),
+            }
+          : undefined;
+
       return (
         <CardZoomModal
           card={def}
@@ -1743,6 +1764,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           velenMultiplier={playerVelenMult}
           playableGlow={!canPlayNow ? 'NONE' : check.isComboReady ? 'COMBO' : 'GREEN'}
           subtitleBadge={`내 손패 · 보유 마나 ${matchState.player.mana}/${matchState.player.maxMana} (드래그로도 즉시 사용 가능)`}
+          navigation={handNav}
           primaryAction={primaryAction}
           secondaryActions={secondaryActions}
           onCancel={() => setZoomState(null)}
@@ -1755,18 +1777,45 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (!hc) return null;
       const def = cardDb.mustGetCard(hc.cardId);
       const marked = matchState.mulliganSelectedUids.includes(hc.uid);
+      const hand = matchState.player.hand;
+      const handIdx = hand.findIndex((h) => h.uid === hc.uid);
+      const mulliganNav =
+        handIdx >= 0 && hand.length > 1
+          ? {
+              currentIndex: handIdx,
+              totalCount: hand.length,
+              positionLabel: `시작 카드 ${handIdx + 1} / ${hand.length}`,
+              onPrev: () =>
+                setZoomState({
+                  kind: 'MULLIGAN_CARD',
+                  handUid: hand[(handIdx - 1 + hand.length) % hand.length].uid,
+                }),
+              onNext: () =>
+                setZoomState({
+                  kind: 'MULLIGAN_CARD',
+                  handUid: hand[(handIdx + 1) % hand.length].uid,
+                }),
+            }
+          : undefined;
       return (
         <CardZoomModal
           card={def}
           subtitleBadge={marked ? '시작 카드 · 현재 [교체 ✕]' : '시작 카드 · 현재 [유지]'}
+          navigation={mulliganNav}
           primaryAction={{
             label: marked ? '교체 취소 (손패에 유지)' : '교체 선택 (덱에서 새 카드 뽑기)',
             variant: marked ? 'arcane' : 'crimson',
             onClick: () => {
               toggleMulliganCard(hc.uid);
-              setZoomState(null);
             },
           }}
+          secondaryActions={[
+            {
+              label: '확인 (닫기)',
+              variant: 'brass',
+              onClick: () => setZoomState(null),
+            },
+          ]}
           onCancel={() => setZoomState(null)}
         />
       );
@@ -1778,10 +1827,31 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const opt = prompt.options.find((o) => o.index === zoomState.optionIndex);
       if (!opt) return null;
       const optCard = cardDb.mustGetCard(opt.optionCardId);
+      const opts = prompt.options;
+      const optIdx = opts.findIndex((o) => o.index === opt.index);
+      const chooseNav =
+        optIdx >= 0 && opts.length > 1
+          ? {
+              currentIndex: optIdx,
+              totalCount: opts.length,
+              positionLabel: `선택 효과 ${optIdx + 1} / ${opts.length}`,
+              onPrev: () =>
+                setZoomState({
+                  kind: 'CHOOSE_ONE_CARD',
+                  optionIndex: opts[(optIdx - 1 + opts.length) % opts.length].index,
+                }),
+              onNext: () =>
+                setZoomState({
+                  kind: 'CHOOSE_ONE_CARD',
+                  optionIndex: opts[(optIdx + 1) % opts.length].index,
+                }),
+            }
+          : undefined;
       return (
         <CardZoomModal
           card={optCard}
           subtitleBadge={`선택 · ${opt.title}`}
+          navigation={chooseNav}
           primaryAction={{
             label: opt.needsTarget ? '이 효과 선택 · 대상 지정' : '이 효과 사용',
             variant: 'emerald',
@@ -1814,10 +1884,40 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const prompt = matchState.trackingPrompt;
       if (!prompt) return null;
       const def = cardDb.mustGetCard(zoomState.cardId);
+      const tCards = prompt.cards;
+      const tIdx =
+        zoomState.index !== undefined && tCards[zoomState.index] === zoomState.cardId
+          ? zoomState.index
+          : tCards.indexOf(zoomState.cardId);
+      const trackingNav =
+        tIdx >= 0 && tCards.length > 1
+          ? {
+              currentIndex: tIdx,
+              totalCount: tCards.length,
+              positionLabel: `추적 카드 ${tIdx + 1} / ${tCards.length}`,
+              onPrev: () => {
+                const prevIdx = (tIdx - 1 + tCards.length) % tCards.length;
+                setZoomState({
+                  kind: 'TRACKING_CARD',
+                  cardId: tCards[prevIdx],
+                  index: prevIdx,
+                });
+              },
+              onNext: () => {
+                const nextIdx = (tIdx + 1) % tCards.length;
+                setZoomState({
+                  kind: 'TRACKING_CARD',
+                  cardId: tCards[nextIdx],
+                  index: nextIdx,
+                });
+              },
+            }
+          : undefined;
       return (
         <CardZoomModal
           card={def}
           subtitleBadge="추적 — 가져올 카드 1장 선택 (나머지 2장 버림)"
+          navigation={trackingNav}
           primaryAction={{
             label: '이 카드 손으로 가져오기',
             variant: 'emerald',
@@ -1847,6 +1947,38 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const validTargets = canSwing
         ? engine.getValidAttackTargets('PLAYER', liveMinion.uid)
         : [];
+      const allBoardMinions = [
+        ...matchState.opponent.board.map((m) => ({ minion: m, isFriendly: false })),
+        ...matchState.player.board.map((m) => ({ minion: m, isFriendly: true })),
+      ];
+      const mIdx = allBoardMinions.findIndex((x) => x.minion.uid === liveMinion.uid);
+      const boardNav =
+        mIdx >= 0 && allBoardMinions.length > 1
+          ? {
+              currentIndex: mIdx,
+              totalCount: allBoardMinions.length,
+              positionLabel: `전장 하수인 ${mIdx + 1} / ${allBoardMinions.length}`,
+              onPrev: () => {
+                const prev =
+                  allBoardMinions[
+                    (mIdx - 1 + allBoardMinions.length) % allBoardMinions.length
+                  ];
+                setZoomState({
+                  kind: 'BOARD_MINION',
+                  minion: prev.minion,
+                  isFriendly: prev.isFriendly,
+                });
+              },
+              onNext: () => {
+                const next = allBoardMinions[(mIdx + 1) % allBoardMinions.length];
+                setZoomState({
+                  kind: 'BOARD_MINION',
+                  minion: next.minion,
+                  isFriendly: next.isFriendly,
+                });
+              },
+            }
+          : undefined;
 
       return (
         <CardZoomModal
@@ -1858,6 +1990,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             maxHealth: getMinionMaxHealth(liveMinion),
             statuses: buildMinionStatusPills(liveMinion),
           }}
+          navigation={boardNav}
           primaryAction={
             canSwing && validTargets.length > 0
               ? {
@@ -1886,10 +2019,31 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (zoomState.kind === 'HISTORY_ITEM') {
       const item = zoomState.item;
       const def = cardDb.mustGetCard(item.cardId);
+      const cardHistory = matchState.history.filter((h) => Boolean(cardDb.getCard(h.cardId)));
+      const hIdx = cardHistory.findIndex((h) => h.id === item.id);
+      const historyNav =
+        hIdx >= 0 && cardHistory.length > 1
+          ? {
+              currentIndex: hIdx,
+              totalCount: cardHistory.length,
+              positionLabel: `전투 기록 ${hIdx + 1} / ${cardHistory.length}`,
+              onPrev: () =>
+                setZoomState({
+                  kind: 'HISTORY_ITEM',
+                  item: cardHistory[(hIdx - 1 + cardHistory.length) % cardHistory.length],
+                }),
+              onNext: () =>
+                setZoomState({
+                  kind: 'HISTORY_ITEM',
+                  item: cardHistory[(hIdx + 1) % cardHistory.length],
+                }),
+            }
+          : undefined;
       return (
         <CardZoomModal
           card={def}
           subtitleBadge={`${item.turn}턴 기록 · ${item.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'} — ${item.detail}`}
+          navigation={historyNav}
           primaryAction={{
             label: '확인 (닫기)',
             variant: 'brass',
@@ -3018,7 +3172,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 onContextMenu={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setZoomState({ kind: 'TRACKING_CARD', cardId: cid });
+                  setZoomState({ kind: 'TRACKING_CARD', cardId: cid, index: idx });
                 }}
                 className="cursor-pointer transition hover:scale-108"
               >

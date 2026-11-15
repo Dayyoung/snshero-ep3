@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { hsAudio } from '../audio';
 import {
   CLASS_CREST_URL,
@@ -44,6 +44,10 @@ const RARITY_FILTER_OPTIONS: { id: 'ALL' | CardRarity; label: string; dotColor: 
   { id: 'EPIC', label: '특급', dotColor: '#a855f7' },
   { id: 'LEGENDARY', label: '전설', dotColor: '#f59e0b' },
 ];
+
+const ALL_CLASS_TABS: CardClass[] = [...HERO_CLASS_ORDER, 'NEUTRAL'];
+const sortBinderCards = (a: ClassicCardDef, b: ClassicCardDef) =>
+  a.cost - b.cost || a.name.localeCompare(b.name, 'ko');
 
 export const CollectionScreen: React.FC<{
   onBack: () => void;
@@ -104,35 +108,85 @@ export const CollectionScreen: React.FC<{
     }
   }, [editingDeck, activeTab]);
 
+  const matchesBaseFilters = useCallback(
+    (c: ClassicCardDef) => {
+      if (editingDeck) {
+        if (c.cardClass !== editingDeck.heroClass && c.cardClass !== 'NEUTRAL') return false;
+      }
+      if (!craftingMode && (collection[c.id] || 0) <= 0) return false;
+      if (manaFilter !== 'ALL') {
+        if (manaFilter === 7 ? c.cost < 7 : c.cost !== manaFilter) return false;
+      }
+      if (rarityFilter !== 'ALL' && c.rarity !== rarityFilter) return false;
+      const q = searchQuery.trim().toLowerCase();
+      if (q) {
+        const raceKo = c.race ? RACE_KO[c.race] || '' : '';
+        const rarityKo = RARITY_KO[c.rarity] || '';
+        const hay = `${c.name} ${c.text} ${raceKo} ${rarityKo} ${c.rarity}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    },
+    [craftingMode, collection, manaFilter, rarityFilter, searchQuery, editingDeck],
+  );
+
   const filteredCards = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
     return cardDb
       .getAllCollectible()
-      .filter((c) => {
-        if (editingDeck) {
-          if (c.cardClass !== editingDeck.heroClass && c.cardClass !== 'NEUTRAL') return false;
-        }
-        if (c.cardClass !== activeTab) return false;
-        if (!craftingMode && (collection[c.id] || 0) <= 0) return false;
-        if (manaFilter !== 'ALL') {
-          if (manaFilter === 7 ? c.cost < 7 : c.cost !== manaFilter) return false;
-        }
-        if (rarityFilter !== 'ALL' && c.rarity !== rarityFilter) return false;
-        if (q) {
-          const raceKo = c.race ? RACE_KO[c.race] || '' : '';
-          const rarityKo = RARITY_KO[c.rarity] || '';
-          const hay = `${c.name} ${c.text} ${raceKo} ${rarityKo} ${c.rarity}`.toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      })
-      .sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name, 'ko'));
-  }, [activeTab, craftingMode, collection, manaFilter, rarityFilter, searchQuery, editingDeck]);
+      .filter((c) => c.cardClass === activeTab && matchesBaseFilters(c))
+      .sort(sortBinderCards);
+  }, [activeTab, matchesBaseFilters]);
+
+  // 전체 카드첩 순회 리스트: 9개 직업 + 중립 전수(기본 382장 전체, 덱 편집 시 해당 직업+중립 전체)를 탭·비용·이름 순으로 연결
+  const allNavigableCards = useMemo(() => {
+    const allCollectible = cardDb.getAllCollectible();
+    const tabOrder: CardClass[] = editingDeck
+      ? [editingDeck.heroClass, 'NEUTRAL']
+      : ALL_CLASS_TABS;
+    const ordered: ClassicCardDef[] = [];
+    for (const tab of tabOrder) {
+      const group = allCollectible
+        .filter((c) => c.cardClass === tab && matchesBaseFilters(c))
+        .sort(sortBinderCards);
+      ordered.push(...group);
+    }
+    return ordered;
+  }, [editingDeck, matchesBaseFilters]);
+
+  const allFallbackCards = useMemo(() => {
+    const allCollectible = cardDb.getAllCollectible();
+    const ordered: ClassicCardDef[] = [];
+    for (const tab of ALL_CLASS_TABS) {
+      ordered.push(
+        ...allCollectible.filter((c) => c.cardClass === tab).sort(sortBinderCards),
+      );
+    }
+    return ordered;
+  }, []);
 
   const PAGE_SIZE = 8;
   const totalPages = Math.max(1, Math.ceil(filteredCards.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
   const pageCards = filteredCards.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
+  const navigateToInspectCard = useCallback(
+    (targetCard: ClassicCardDef) => {
+      setInspectCard(targetCard);
+      const nextTab = targetCard.cardClass;
+      if (nextTab !== activeTab) {
+        setActiveTab(nextTab);
+      }
+      const tabCards = cardDb
+        .getAllCollectible()
+        .filter((c) => c.cardClass === nextTab && matchesBaseFilters(c))
+        .sort(sortBinderCards);
+      const idxInTab = tabCards.findIndex((c) => c.id === targetCard.id);
+      if (idxInTab >= 0) {
+        setPage(Math.floor(idxInTab / PAGE_SIZE));
+      }
+    },
+    [activeTab, matchesBaseFilters],
+  );
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -1113,11 +1167,14 @@ export const CollectionScreen: React.FC<{
                 label: `덱에 카드 넣기 (${editingDeck.cards.length + 1}/30)`,
                 variant: 'emerald',
                 onClick: () => {
+                  const willFillDeck = editingDeck.cards.length + 1 >= 30;
                   handleAddCardToDeck(inspectCard);
                   showNotice(
                     `[${inspectCard.name}] 카드를 덱에 넣었습니다 (${editingDeck.cards.length + 1}/30)`,
                   );
-                  setInspectCard(null);
+                  if (willFillDeck) {
+                    setInspectCard(null);
+                  }
                 },
               };
             } else if (owned === 0 && inspectCard.rarity !== 'FREE') {
@@ -1142,7 +1199,6 @@ export const CollectionScreen: React.FC<{
                 onClick: () => {
                   handleRemoveCardFromDeck(inspectCard.id);
                   showNotice(`[${inspectCard.name}] 카드를 덱에서 1장 뺐습니다.`);
-                  setInspectCard(null);
                 },
               };
             } else {
@@ -1165,7 +1221,6 @@ export const CollectionScreen: React.FC<{
                 onClick: () => {
                   handleRemoveCardFromDeck(inspectCard.id);
                   showNotice(`[${inspectCard.name}] 카드를 덱에서 1장 뺐습니다.`);
-                  setInspectCard(null);
                 },
               });
             }
@@ -1227,6 +1282,29 @@ export const CollectionScreen: React.FC<{
             }
           }
 
+          const navList = allNavigableCards.some((c) => c.id === inspectCard.id)
+            ? allNavigableCards
+            : allFallbackCards;
+          const navIdx = navList.findIndex((c) => c.id === inspectCard.id);
+          const classLabelKo =
+            inspectCard.cardClass === 'NEUTRAL'
+              ? '중립'
+              : CLASSIC_HEROES[inspectCard.cardClass].classNameKo;
+          const zoomNavigation =
+            navIdx >= 0 && navList.length > 1
+              ? {
+                  currentIndex: navIdx,
+                  totalCount: navList.length,
+                  positionLabel: `${classLabelKo} · ${navIdx + 1} / ${navList.length}`,
+                  onPrev: () =>
+                    navigateToInspectCard(
+                      navList[(navIdx - 1 + navList.length) % navList.length],
+                    ),
+                  onNext: () =>
+                    navigateToInspectCard(navList[(navIdx + 1) % navList.length]),
+                }
+              : undefined;
+
           return (
             <CardZoomModal
               card={inspectCard}
@@ -1237,6 +1315,7 @@ export const CollectionScreen: React.FC<{
                   : `보유 수량: ${owned}장`
               }
               showFlavor
+              navigation={zoomNavigation}
               primaryAction={primaryAction}
               secondaryActions={secondaryActions}
               onCancel={() => setInspectCard(null)}

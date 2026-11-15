@@ -1105,39 +1105,69 @@ export const PackOpeningScreen: React.FC<{
       )}
 
       {/* Card Zoom Modal for Inspecting Any Flipped Pack Card */}
-      {zoomedPackCard && (
-        <CardZoomModal
-          card={zoomedPackCard.card}
-          isGolden={zoomedPackCard.isGolden}
-          rarityAura={zoomedPackCard.card.rarity}
-          journeyMultiplier={zoomedPackCard.newJourneyMultiplier}
-          subtitleBadge={
-            zoomedPackCard.newJourneyMultiplier > 1
-              ? tr(
-                  `보유 ${zoomedPackCard.newOwnedCount}장 달성! · 카단의 여정 ×${zoomedPackCard.newJourneyMultiplier}배 각성`,
-                  `${zoomedPackCard.newOwnedCount} Owned! · Story ×${zoomedPackCard.newJourneyMultiplier} Awakening`,
-                )
-              : zoomedPackCard.isNew
-                ? tr('신규 영웅 카드 획득!', 'New Hero Card Unlocked!')
-                : zoomedPackCard.isGolden
-                  ? tr('황금 영웅 카드 획득!', 'Golden Card Unlocked!')
-                  : tr(
-                      `눈히어로 팩 개봉 획득 (보유 ${zoomedPackCard.newOwnedCount}장)`,
-                      `Obtained from Pack (Owned: ${zoomedPackCard.newOwnedCount})`,
+      {zoomedPackCard &&
+        (() => {
+          const revealedPackCards = openedCards
+            ? openedCards.filter((_, idx) => revealed[idx])
+            : [];
+          const curIdx = revealedPackCards.indexOf(zoomedPackCard);
+          const packNav =
+            curIdx >= 0 && revealedPackCards.length > 1
+              ? {
+                  currentIndex: curIdx,
+                  totalCount: revealedPackCards.length,
+                  positionLabel: tr(
+                    `개봉 카드 ${curIdx + 1} / ${revealedPackCards.length}`,
+                    `Pack Card ${curIdx + 1} / ${revealedPackCards.length}`,
+                  ),
+                  onPrev: () =>
+                    setZoomedPackCard(
+                      revealedPackCards[
+                        (curIdx - 1 + revealedPackCards.length) %
+                          revealedPackCards.length
+                      ],
+                    ),
+                  onNext: () =>
+                    setZoomedPackCard(
+                      revealedPackCards[(curIdx + 1) % revealedPackCards.length],
+                    ),
+                }
+              : undefined;
+          return (
+            <CardZoomModal
+              card={zoomedPackCard.card}
+              isGolden={zoomedPackCard.isGolden}
+              rarityAura={zoomedPackCard.card.rarity}
+              journeyMultiplier={zoomedPackCard.newJourneyMultiplier}
+              subtitleBadge={
+                zoomedPackCard.newJourneyMultiplier > 1
+                  ? tr(
+                      `보유 ${zoomedPackCard.newOwnedCount}장 달성! · 카단의 여정 ×${zoomedPackCard.newJourneyMultiplier}배 각성`,
+                      `${zoomedPackCard.newOwnedCount} Owned! · Story ×${zoomedPackCard.newJourneyMultiplier} Awakening`,
                     )
-          }
-          showFlavor
-          primaryAction={{
-            label: tr('확인 (닫기)', 'OK (Close)'),
-            variant: 'arcane',
-            onClick: () => {
-              hsAudio.playSfx('ui_click', 0.65);
-              setZoomedPackCard(null);
-            },
-          }}
-          onCancel={() => setZoomedPackCard(null)}
-        />
-      )}
+                  : zoomedPackCard.isNew
+                    ? tr('신규 영웅 카드 획득!', 'New Hero Card Unlocked!')
+                    : zoomedPackCard.isGolden
+                      ? tr('황금 영웅 카드 획득!', 'Golden Card Unlocked!')
+                      : tr(
+                          `눈히어로 팩 개봉 획득 (보유 ${zoomedPackCard.newOwnedCount}장)`,
+                          `Obtained from Pack (Owned: ${zoomedPackCard.newOwnedCount})`,
+                        )
+              }
+              showFlavor
+              navigation={packNav}
+              primaryAction={{
+                label: tr('확인 (닫기)', 'OK (Close)'),
+                variant: 'arcane',
+                onClick: () => {
+                  hsAudio.playSfx('ui_click', 0.65);
+                  setZoomedPackCard(null);
+                },
+              }}
+              onCancel={() => setZoomedPackCard(null)}
+            />
+          );
+        })()}
     </div>
   );
 };

@@ -2,6 +2,21 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-15 09:36 KST] [`/stone.html` 및 `/game.html` 카드 확대 모달(`CardZoomModal`) 좌우 스와이프·이동 버튼·키보드 조작 및 카드첩 382장 전체 순회 네비게이션 구현 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 카드 확대 모달 좌우 이동 UI·터치 스와이프·키보드 조작 구현 (`src/stone/components/CardZoomModal.tsx`, `src/hearthstone/components/CardZoomModal.tsx`)**:
+    - 확대된 `LG` 카드 좌우에 황동 원형 이동 버튼(`‹` / `›`, 44px+ 모바일 원핸드 터치 타깃) 및 현재 위치 카운터 배지(`직업/진영 · N / 전체`) 추가.
+    - 포인터/터치 수평 드래그 스와이프(`38px` 임계값, 드래그 추종 오프셋 + 슬라이드 전환 애니메이션, 스와이프 직후 배경 클릭 닫힘 오작동 차단 가드) 및 키보드 `ArrowLeft`/`ArrowRight`, `A`/`D` 방향 전환 지원.
+  - **2. 카드첩(`CollectionScreen.tsx`) 382장 전체 카드 무경계 이동 및 탭·페이지 실시간 동기화 (`src/stone/screens/CollectionScreen.tsx`, `src/hearthstone/screens/CollectionScreen.tsx`)**:
+    - 단일 직업 탭(25장) 경계를 넘어 9개 직업 + 중립 전수 **382장 전체**(덱 편집 중에는 해당 직업 + 중립 전체, 필터 적용 시 필터 결과 전체)를 순환 이동 가능하도록 `allNavigableCards` 및 `navigateToInspectCard` 구현.
+    - 이전/다음 카드로 이동할 때 카드첩 하단 직업 탭(`activeTab`)과 바인더 페이지(`page`)가 해당 카드가 위치한 페이지로 자동 동기화되며, 덱 편집 중 `[덱에 카드 넣기]` / `[덱에서 1장 빼기]` 실행 시 모달이 닫히지 않고(30/30 완성 시에만 자동 닫힘) 연속 편성 및 옆 카드 이동 가능.
+  - **3. 팩 개봉(`PackOpeningScreen.tsx`) 및 대전 전장(`BattleScreen.tsx`) 모든 확대 카드 뷰 연동**:
+    - 팩 개봉 화면에서 뒤집힌 개봉 카드들 간 좌우 스와이프/버튼 이동 지원.
+    - 대전 중 내 손패(`HAND_CARD`), 멀리건 시작 손패(`MULLIGAN_CARD`), 선택 효과(`CHOOSE_ONE_CARD`), 추적 카드(`TRACKING_CARD`), 전장 하수인(`BOARD_MINION`), 전투 기록(`HISTORY_ITEM`) 전 영역에서 좌우 이동 지원.
+  - **4. 검증 및 구글 폼 보고 완료**:
+    - 382장 카드 동결 원칙 및 `/stone.html` 무료 원칙 100% 준수, `npx tsc --noEmit` 및 `npm run build` 에러 0건 통과, Playwright E2E 검증(`1 / 382` ➔ `2 / 382` ➔ `382 / 382` 탭 경계 순환·터치 스와이프·키보드 전환·콘솔 에러 0건) 완료, 로컬 git 커밋 및 구글 폼 제출 완료.
+
 ## [2026-11-15 07:57 KST] [`/sns` 페이지 접속 불가 원인 전수 해결 — macOS 듀얼스택(`::`) IPv6/IPv4 바인딩, 절대경로/SW 자동갱신 및 정적 호스팅 404/대소문자 라우팅 보강 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
