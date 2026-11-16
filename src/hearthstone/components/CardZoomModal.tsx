@@ -488,12 +488,19 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
             <span className="rounded bg-[#422813] px-1.5 py-0.5 text-[10.5px] font-extrabold text-amber-100">
               {getClassLabel(card.cardClass)}
             </span>
-            {cardCharLabel && (
+            {cardCharLabel && cardCharLabel !== cardDisplayName && (
               <span className="rounded border border-[#8c6432]/60 bg-[#f6e7c5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#4a2b0f]">
                 {cardCharLabel}
                 {cardFactionLabel && card.cardClass === 'NEUTRAL' ? ` · ${cardFactionLabel}` : ''}
               </span>
             )}
+            {(!cardCharLabel || cardCharLabel === cardDisplayName) &&
+              cardFactionLabel &&
+              card.cardClass === 'NEUTRAL' && (
+                <span className="rounded border border-[#8c6432]/60 bg-[#f6e7c5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#4a2b0f]">
+                  {cardFactionLabel}
+                </span>
+              )}
             <span>·</span>
             <span>{isKo ? TYPE_LABEL_KO[card.type] : TYPE_LABEL_EN[card.type]}</span>
             <span>·</span>
