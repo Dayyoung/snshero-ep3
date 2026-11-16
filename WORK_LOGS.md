@@ -2,6 +2,30 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 16:29 KST] [마케팅 분석 로그(MKT-001~MKT-034) 코드 반영 및 스프레드시트 상태 갱신 완료]
+- **작업자**: `Antigravity Assistant`
+- **연동 스프레드시트**: `1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU` (`마케팅 분석 로그` / `요약 대시보드`)
+- **작업 개요**:
+  - **1. SEO · AEO · 라우팅 및 레거시 제거 (`index.html`, `book.html`, `webtoon.html`, `public/llms*.txt`, `public/robots.txt`, `vite.config.ts`, `scripts/post-build.js`, `TavernIntroScreen.tsx`, `BoxHubScreen.tsx`, `README.md`, `.gitignore`)**:
+    - `index.html`, `book.html`, `webtoon.html` 한·영 병기 메타·OG·JSON-LD(`alternateName` 음성 오인식 대응 포함) 및 크롤러용 정적 초록/내비게이션 보강, `public/llms.txt` & `public/llms-full.txt` Zero-Legacy 현행화.
+    - 구버전 오염 경로(`/reddit`, `/wiki/*`, `/shop/*`, `/bench/*`) 301/404 리다이렉트 및 `robots.txt` 차단, `public/promotion/index.html` 정적 프리렌더 배치.
+    - `TavernIntroScreen.tsx`·`BoxHubScreen.tsx` 내 잔존 `11종족 110영웅` / `110 Heroes` 문구를 `9대 종족 수호자` / `9 Guardian Heroes`로 교정.
+    - `README.md` KO/EN 듀얼 리브랜딩 및 `.gitignore` 내부 마케팅 CSV·로그 패턴 차단.
+  - **2. 프로모션 랜딩 · Pre-Game FTUE 전환 퍼널 (`src/i18n/heroLang.ts`, `src/promo/PromoApp.tsx`, `src/promo/PromoCard.tsx`)**:
+    - `?lang=en`/`?lang=ko` URL 쿼리 동기화, 네이버 도전만화 링크 단일 통일(`857363` → `856677`), 히어로 딥링크 3원화(`?open=pack3`, `?mode=story&ep=1`, `?mode=story&ep=0`) 및 9대 종족 선택 바(`?faction=...&open=pack3`) 적용.
+    - 무료 1호 카드팩(5장) 랜딩 선개봉 위젯(`hero_hs_promo_pack` → `/game?claim_promo=1`), 카드 라이브러리 `🔥 3장=3배 각성 시뮬레이터` 토글, `10초 핵심 전술 키워드` 인터랙티브 프리뷰, 게임 모드 보상 배지·UTM, 인페이지 제1화 성우 보이스+5컷 웹툰 극장 모달 구현.
+  - **3. 공식 웹소설·웹툰 리더 & 양방향 진행도 연동 (`src/reader/episodeBridge.ts`, `src/reader/BookSection.tsx`, `src/reader/WebtoonSection.tsx`)**:
+    - `book.html` 상단 성우 보이스·등장 보스 스탯 토글, 4대 막(Act I~IV) 목차 탭 및 막 보스 레이드 직행 버튼, 5배수 마일스톤·핵심 카드 3종 하단 브릿지, `hero_hs_last_novel_ep` ↔ `hero_hs_profile.journeyMaxStageCleared` 양방향 자동 연동 구현.
+    - `webtoon.html` 하단 에피소드 보스 카드 & 인게임 보스전 직행 배너 추가.
+  - **4. 인게임 리텐션 · 과금 브릿지 · 세이프가드 (`src/hearthstone/`)**:
+    - `HearthstoneApp.tsx`·`storage.ts`: `?open=pack3|shop`, `?claim_promo=1`, `?mode=story&ep=N`, `?faction=`, `?deck=`, `?restore=` 딥링크 및 `hero_hs_last_novel_ep` 이어하기 토스트 구현.
+    - `GameAdSenseLayout.tsx`: `TAVERN_INTRO` 및 초기 FTUE 구간 AdSense 비노출 유예 & 광고 제거(`$2.99`) 숏컷 버튼 추가.
+    - `PackOpeningScreen.tsx`·`CollectionScreen.tsx`·`Modals.tsx`·`BoxHubScreen.tsx`·`BattleScreen.tsx`: 첫 전설 확정 프로그레스 바 및 7팩 이하 5팩/광고제거 브릿지, 전설 획득/결제 완료 1초 백업(+100G) 세이프가드, 여분 분해/가루 부족 시 보급소 브릿지, 덱 공유 URL 복사, PC↔모바일 3초 QR/복원 URL(`?restore=`) 생성기, 인앱 브라우저(카카오톡·네이버 등) 외부 브라우저 탈출 배너, 스토리 패배 시 2장 보유 카드 하이라이트 & 보급소 리벤지 버튼 구현.
+  - **5. 검증, 시트 갱신 및 보고 완료**:
+    - `npx tsc --noEmit && npm run build` 0에러 통과 및 레거시 문자열(`110 Heroes`, `11종족 110영웅`, `857363`) 0건 확인.
+    - 구글 시트 `마케팅 분석 로그` 갱신: 코드 반영 완결 **12건(`완료`)**, 코드 반영 완료·외부 채널 잔여 **16건(`진행중`)**, 외부 채널 전용 **6건(`점검완료·실행대기`)** (총 34건 중 28건 코드/저장소 조치).
+    - 로컬 git 커밋 및 구글 폼 보고 완료.
+
 ## [2026-11-16 16:19 KST] [`https://snshero.com/stone.html` 영문 유튜브 16:9 본편 + 9:16 쇼츠 동영상 및 후킹 썸네일 제작 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

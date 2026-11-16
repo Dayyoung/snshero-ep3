@@ -67,6 +67,25 @@ function mpaRewriteMiddleware(req: any, res: any, next: any) {
     res.end();
     return;
   }
+  if (
+    cleanNormalized === '/reddit' ||
+    cleanNormalized.startsWith('/reddit/') ||
+    cleanNormalized === '/wiki' ||
+    cleanNormalized.startsWith('/wiki/') ||
+    cleanNormalized === '/bench' ||
+    cleanNormalized.startsWith('/bench/')
+  ) {
+    res.statusCode = 301;
+    res.setHeader('Location', `/${query}`);
+    res.end();
+    return;
+  }
+  if (cleanNormalized === '/shop' || cleanNormalized.startsWith('/shop/')) {
+    res.statusCode = 301;
+    res.setHeader('Location', `/game?open=shop${search ? `&${search}` : ''}`);
+    res.end();
+    return;
+  }
   if (MPA_REWRITES[cleanNormalized]) {
     req.url = `${MPA_REWRITES[cleanNormalized]}${query}`;
   }

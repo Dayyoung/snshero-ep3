@@ -15,6 +15,7 @@
  */
 
 import { EXTERNAL_LINKS } from './types';
+import { getEpisodeBridgeInfo } from './episodeBridge';
 import WEBTOON_MANIFEST_DATA from '../content/webtoonEpisodeManifest.json';
 import { chapterTitles } from '../content/kadanRpgStory';
 import { isKoreanLanguage, tr } from './i18n';
@@ -178,6 +179,7 @@ export function renderWebtoonSection(): string {
   const cacheBustVer = `20261110_${Math.floor(Date.now() / 60000)}`;
   const ep = currentWebtoonEpisode;
   const isKo = isKoreanLanguage();
+  const bridge = getEpisodeBridgeInfo(ep);
   const epData = MANIFEST[String(ep)];
   const rawTitle = isKo
     ? epData?.episodeTitleKo || chapterTitles[ep - 1]?.titleKo || epData?.episodeTitle || `제 ${ep}화`
@@ -702,7 +704,7 @@ export function renderWebtoonSection(): string {
                   .join('')
           }
 
-          <!-- Bottom Endmark & Navigation -->
+          <!-- Bottom Endmark & Episode Boss Card Bridge (MKT-029) -->
           <div class="pt-8 pb-4 text-center border-t border-amber-700/40 space-y-4">
             <div class="space-y-1">
               <span class="text-xs font-extrabold text-amber-300 tracking-widest uppercase">
@@ -719,6 +721,28 @@ export function renderWebtoonSection(): string {
                   '次のエピソードでも伝説のバトルと物語が続きます。'
                 )}
               </p>
+            </div>
+
+            <div class="p-4 sm:p-5 rounded-2xl bg-[#1b1008] border-2 border-[#c8a158]/70 text-left space-y-3 shadow-xl">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                  <img src="${bridge.bossImageUrl}" alt="${escapeHtml(isKo ? bridge.bossNameKo : bridge.bossNameEn)}" class="h-12 w-12 rounded-xl object-cover border border-amber-400/60 bg-black" />
+                  <div>
+                    <div class="text-xs font-extrabold text-amber-300">
+                      ${escapeHtml(isKo ? bridge.bossNameKo : bridge.bossNameEn)} · ${tr('인게임 382종 카드 소환 가능', 'Playable in 382-Card Web TCG')}
+                    </div>
+                    <div class="text-[11px] font-bold text-amber-100/75">
+                      ${tr('첫 방문 무료 3팩 + 250골드 즉시 지급 (첫 10팩 내 전설 100% 확정!)', 'Claim 3 Free Packs + 250 Gold instantly (Guaranteed 1st Legendary in 10 Packs!)')}
+                    </div>
+                  </div>
+                </div>
+                <a
+                  href="/game?mode=story&ep=${ep}&utm_source=webtoon_ep"
+                  class="hs-promo-cta-purple px-5 py-2.5 rounded-full text-xs font-extrabold no-underline shrink-0"
+                >
+                  ⚔ ${tr(`제${ep}화 보스전 바로 도전하기 →`, `Challenge EP.${ep} Boss →`)}
+                </a>
+              </div>
             </div>
 
             <!-- Big Prev / Top / Next Navigation Buttons -->

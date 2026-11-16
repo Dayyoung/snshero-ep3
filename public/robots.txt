@@ -21,6 +21,10 @@ Disallow: /promo
 Disallow: /promo.html
 Disallow: /promotion
 Disallow: /promotion.html
+Disallow: /reddit
+Disallow: /wiki
+Disallow: /shop
+Disallow: /bench
 Disallow: /setting
 Disallow: /*?lang=*
 Disallow: /test/
@@ -40,6 +44,10 @@ Disallow: /promo
 Disallow: /promo.html
 Disallow: /promotion
 Disallow: /promotion.html
+Disallow: /reddit
+Disallow: /wiki
+Disallow: /shop
+Disallow: /bench
 
 User-agent: Mediapartners-Google
 Allow: /

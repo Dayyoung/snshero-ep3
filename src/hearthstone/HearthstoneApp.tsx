@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import LZString from 'lz-string';
 import { tr, useHeroLanguage } from '../i18n/heroLang';
-import { cardDb } from './cardDb';
+import { cardDb, decodeDeckShareCode } from './cardDb';
 import { GameAdSenseLayout } from './components/GameAdSenseLayout';
 import {
   KadanChatbotWidget,
@@ -76,9 +77,10 @@ export const HearthstoneApp: React.FC = () => {
     'launching',
   );
 
-  // Global Modals
+  // Global Modals & Deep-link Notice
   const [questLogOpen, setQuestLogOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
+  const [launchNotice, setLaunchNotice] = useState<string | null>(null);
   const [paymentResult, setPaymentResult] = useState<GamePaymentReturnResult | null>(null);
   const [optionsState, setOptionsState] = useState<{
     open: boolean;
@@ -148,22 +150,120 @@ export const HearthstoneApp: React.FC = () => {
             setScreen('BOX_HUB');
           }
         } else {
-          // PWA App Shortcuts (`?mode=story` / `?mode=ranked` / `?mode=ai` / `?mode=pack` / `?mode=collection` / `?mode=battle`) or standalone launch
+          // PWA App Shortcuts & Marketing Deep Links (`?mode=story&ep=N`, `?open=pack3|shop`, `?claim_promo=1`, `?faction=PRIEST`, `?deck=...`, `?restore=...`)
           const params = new URLSearchParams(window.location.search);
           const launchMode = params.get('mode')?.toLowerCase();
+          const openParam = params.get('open')?.toLowerCase();
+          const claimPromo = params.get('claim_promo') === '1';
+          const factionParam = params.get('faction')?.toUpperCase() as HeroClass | undefined;
+          const deckParam = params.get('deck');
+          const restoreParam = params.get('restore');
+          const epParamRaw = params.get('ep');
+          const epNum =
+            epParamRaw !== null && !Number.isNaN(Number(epParamRaw))
+              ? Math.max(0, Math.min(40, Math.floor(Number(epParamRaw))))
+              : undefined;
+
           const wantAutoPlay =
             params.get('autoplay') === '1' || params.get('autoplay') === 'true';
           setGlobalAutoPlay(wantAutoPlay);
           const decks = hsStorage.getDecks();
-          const kadanDeck = decks.find((d) => d.heroClass === 'PRIEST') || decks[0];
+          const chosenDeck =
+            (factionParam && decks.find((d) => d.heroClass === factionParam)) ||
+            decks.find((d) => d.heroClass === 'PRIEST') ||
+            decks[0];
 
-          if (launchMode === 'story') {
+          if (restoreParam) {
+            try {
+              const jsonText = LZString.decompressFromEncodedURIComponent(restoreParam);
+              if (jsonText) {
+                const restoreRes = hsStorage.restoreGameBackupJson(jsonText);
+                setLaunchNotice(restoreRes.message);
+                try {
+                  const cleanUrl = new URL(window.location.href);
+                  cleanUrl.searchParams.delete('restore');
+                  window.history.replaceState(window.history.state, '', cleanUrl.toString());
+                } catch {
+                  // ignore url clean error
+                }
+              }
+            } catch {
+              // ignore restore error
+            }
+            setScreen('BOX_HUB');
+          } else if (claimPromo) {
             hsStorage.markJourneyGuideDone();
+            const claimRes = hsStorage.claimPromoPrePack();
+            if (claimRes.claimed) {
+              setLaunchNotice(
+                tr(
+                  `🎉 프로모션 무료 1호 팩 5장이 내 카드첩에 영구 보관되었습니다! 남은 무료 팩을 지금 개봉하세요.`,
+                  `🎉 Your 5 promo pack cards are now saved in your Collection! Open your remaining free packs below.`,
+                ),
+              );
+            }
+            setScreen('PACK_OPENING');
+          } else if (deckParam) {
+            hsStorage.markJourneyGuideDone();
+            const parsedDeck = decodeDeckShareCode(deckParam);
+            if (parsedDeck) {
+              const col = hsStorage.getCollection();
+              const validCards: string[] = [];
+              for (const cid of parsedDeck.cards) {
+                const def = cardDb.getCard(cid);
+                if (
+                  def &&
+                  (def.cardClass === parsedDeck.heroClass || def.cardClass === 'NEUTRAL') &&
+                  validCards.length < 30
+                ) {
+                  const owned = col[def.id] || 0;
+                  const cap = Math.min(owned, def.rarity === 'LEGENDARY' ? 1 : 2);
+                  if (validCards.filter((x) => x === def.id).length < cap) {
+                    validCards.push(def.id);
+                  }
+                }
+              }
+              const newDeck: CustomDeck = {
+                id: `deck_${Date.now()}`,
+                name: parsedDeck.name || `${parsedDeck.heroClass} Shared Deck`,
+                heroClass: parsedDeck.heroClass,
+                cards: validCards,
+              };
+              hsStorage.saveDecks([newDeck, ...decks]);
+              setLaunchNotice(
+                tr(
+                  `🔗 공유된 덱 [${newDeck.name}] (${validCards.length}/30장)을 내 덱 목록에 불러왔습니다!`,
+                  `🔗 Imported shared deck [${newDeck.name}] (${validCards.length}/30 cards)!`,
+                ),
+              );
+            }
+            setScreen('COLLECTION');
+          } else if (openParam === 'pack3' || openParam === 'pack') {
+            hsStorage.markJourneyGuideDone();
+            if (factionParam) {
+              setLaunchNotice(
+                tr(
+                  `🔥 [${factionParam}] 종족 선택 완료! 무료 3팩을 먼저 개봉한 뒤 스토리모드·랭킹전에 출정하세요!`,
+                  `🔥 Faction [${factionParam}] selected! Open your 3 Free Packs and jump into battle!`,
+                ),
+              );
+            }
+            setScreen('PACK_OPENING');
+          } else if (openParam === 'shop') {
+            hsStorage.markJourneyGuideDone();
+            setScreen('BOX_HUB');
+            setShopOpen(true);
+          } else if (launchMode === 'story') {
+            hsStorage.markJourneyGuideDone();
+            if (epNum !== undefined) {
+              hsStorage.setJourneyProgress(epNum, hsStorage.getProfile().journeyReincarnation);
+            }
             setActiveBattleParams({
               mode: 'TUTORIAL',
-              deck: kadanDeck,
+              deck: chosenDeck,
               preferredOpponentClass: 'ROGUE',
               boardTheme: 'ELWIN_SNOW',
+              journeyEpisodeOverride: epNum,
               skipStoryIntro: params.get('skipIntro') === '1' || params.get('skipIntro') === 'true',
             });
             setScreen('BATTLE');
@@ -171,9 +271,10 @@ export const HearthstoneApp: React.FC = () => {
             hsStorage.markJourneyGuideDone();
             setActiveBattleParams({
               mode: 'TUTORIAL',
-              deck: kadanDeck,
+              deck: chosenDeck,
               preferredOpponentClass: 'ROGUE',
               boardTheme: 'ELWIN_SNOW',
+              journeyEpisodeOverride: epNum,
               skipStoryIntro: true,
             });
             setScreen('BATTLE');
@@ -181,7 +282,7 @@ export const HearthstoneApp: React.FC = () => {
             hsStorage.markJourneyGuideDone();
             setActiveBattleParams({
               mode: 'RANKED',
-              deck: kadanDeck,
+              deck: chosenDeck,
               preferredOpponentClass: 'WARRIOR',
               boardTheme: 'CRIMSON_FORGE',
               skipStoryIntro: true,
@@ -191,7 +292,7 @@ export const HearthstoneApp: React.FC = () => {
             hsStorage.markJourneyGuideDone();
             setActiveBattleParams({
               mode: 'PRACTICE_NORMAL',
-              deck: kadanDeck,
+              deck: chosenDeck,
               preferredOpponentClass: 'HUNTER',
               boardTheme: 'EMERALD_WIND',
               skipStoryIntro: true,
@@ -211,6 +312,23 @@ export const HearthstoneApp: React.FC = () => {
             setScreen('HERO_SELECT');
           } else if (isStandalonePwa()) {
             setScreen('BOX_HUB');
+          }
+
+          if (!launchMode && !openParam && !claimPromo && !deckParam && !restoreParam) {
+            try {
+              const lastNovelEpRaw = localStorage.getItem('hero_hs_last_novel_ep');
+              const lastNovelEp = lastNovelEpRaw ? parseInt(lastNovelEpRaw, 10) : 0;
+              if (lastNovelEp >= 1 && lastNovelEp <= 40) {
+                setLaunchNotice(
+                  tr(
+                    `📖 방금 웹소설 제${lastNovelEp}화를 읽으셨군요! 상단 스토리모드에서 제${lastNovelEp}화 성우 풀보이스 보스전으로 바로 이어서 플레이하세요!`,
+                    `📖 Just read Web Novel EP.${lastNovelEp}? Jump straight into Story Mode EP.${lastNovelEp} Boss Battle!`,
+                  ),
+                );
+              }
+            } catch {
+              // ignore storage error
+            }
           }
         }
         setProfile(hsStorage.getProfile());
@@ -402,9 +520,29 @@ export const HearthstoneApp: React.FC = () => {
     );
   }
 
+  const hideAdsForFtue =
+    screen === 'TAVERN_INTRO' ||
+    (!profile.journeyGuideDone && profile.packs >= 3 && profile.totalGames === 0);
+
   return (
     <>
-      <GameAdSenseLayout screenKey={screen}>
+      <GameAdSenseLayout
+        screenKey={screen}
+        hideAdsForFtue={hideAdsForFtue}
+        onOpenAdRemovalShop={() => setShopOpen(true)}
+      >
+        {launchNotice && (
+          <div className="pointer-events-auto fixed left-1/2 top-14 z-[140] flex w-[92%] max-w-xl -translate-x-1/2 items-center justify-between gap-2 rounded-2xl border-2 border-amber-300 bg-[#1a0f08]/95 px-4 py-2.5 text-xs font-extrabold text-amber-100 shadow-2xl">
+            <span>{launchNotice}</span>
+            <button
+              type="button"
+              onClick={() => setLaunchNotice(null)}
+              className="shrink-0 rounded-lg border border-amber-400/50 bg-black/50 px-2 py-1 text-[11px] text-amber-200 hover:bg-black"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         {screen === 'TAVERN_INTRO' && (
           <TavernIntroScreen onEnterHub={() => setScreen('BOX_HUB')} />
         )}
@@ -469,6 +607,7 @@ export const HearthstoneApp: React.FC = () => {
               refreshProfile();
               setScreen('BOX_HUB');
             }}
+            onOpenShop={() => setShopOpen(true)}
             onProfileChanged={refreshProfile}
             onReturnToJourney={
               returnToJourneyActive

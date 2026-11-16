@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import LZString from 'lz-string';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
+import { renderQrCodeSvg } from '../services/qrCodeSvg';
 import { AudioSettings, hsAudio } from '../audio';
 import { getModeRewardGuide, getGoldPackBundleLabel } from '../storage';
 import { getRankTitle } from '../i18nData';
@@ -1446,6 +1448,7 @@ export const PaymentSuccessModal: React.FC<{
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   useModalDismiss(true, onClose);
+  const [backupNotice, setBackupNotice] = useState<string | null>(null);
   const displayLabel = isKo
     ? info.label
     : info.packsGranted === 5
@@ -1495,6 +1498,60 @@ export const PaymentSuccessModal: React.FC<{
             </span>
           </div>
         )}
+
+        {/* MKT-024: 1-Second Vault Backup Safeguard */}
+        <div className="mt-3 rounded-2xl border border-emerald-400/50 bg-emerald-950/60 p-3 text-left">
+          <div className="text-[11px] font-extrabold text-emerald-200">
+            🛡️ {tr('구매 내역 & 덱 1초 안전 금고 백업', '1-Second Vault Backup Safeguard')}
+          </div>
+          <p className="mt-0.5 text-[10.5px] font-semibold text-amber-100/85">
+            {tr(
+              '캐시가 삭제되어도 100% 복원되도록 지금 백업하세요! (최초 백업 시 +100 골드)',
+              'Back up your purchase & decks locally now! (+100 Gold on first backup)',
+            )}
+          </p>
+          {backupNotice && (
+            <div className="mt-1 text-[10.5px] font-extrabold text-yellow-300">{backupNotice}</div>
+          )}
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                hsStorage.downloadGameBackupFile();
+                const bonus = hsStorage.claimSafeguardBackupBonus();
+                setBackupNotice(
+                  bonus.granted
+                    ? tr('✓ 백업 저장 완료! +100 골드 지급!', '✓ Backup saved! +100 Gold granted!')
+                    : tr('✓ 백업 파일 저장 완료!', '✓ Backup file saved!'),
+                );
+              }}
+              className="hs-gold-btn flex-1 rounded-lg py-1.5 text-[11px] font-extrabold"
+            >
+              💾 {tr('백업 파일 저장', 'Save Backup')}
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                const { jsonString } = hsStorage.exportGameBackupData();
+                try {
+                  await navigator.clipboard.writeText(jsonString);
+                  const bonus = hsStorage.claimSafeguardBackupBonus();
+                  setBackupNotice(
+                    bonus.granted
+                      ? tr('✓ 코드 복사 완료! +100 골드 지급!', '✓ Copied! +100 Gold granted!')
+                      : tr('✓ 백업 코드 복사 완료!', '✓ Backup code copied!'),
+                  );
+                } catch {
+                  hsStorage.downloadGameBackupFile();
+                }
+              }}
+              className="hs-brass-btn flex-1 rounded-lg py-1.5 text-[11px] font-extrabold text-amber-100"
+            >
+              📋 {tr('코드 복사', 'Copy Code')}
+            </button>
+          </div>
+        </div>
+
         <div className="mt-5 flex gap-2.5">
           {info.packsGranted && info.packsGranted > 0 && (
             <button
@@ -1531,6 +1588,8 @@ export const GameOptionsModal: React.FC<{
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [dataNotice, setDataNotice] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
+  const [mobileQrUrl, setMobileQrUrl] = useState<string | null>(null);
+  const [mobileQrSvg, setMobileQrSvg] = useState<string | null>(null);
   const vibSupport = useMemo(() => hsAudio.getVibrationSupportInfo(), []);
 
   useEffect(() => {
@@ -1950,6 +2009,66 @@ export const GameOptionsModal: React.FC<{
                 📥 {tr('코드 붙여넣기', 'Paste Backup Code')}
               </button>
             </div>
+
+            {/* MKT-018: PC <-> Mobile 3-Second QR & 1-Click Restore URL Generator */}
+            <button
+              type="button"
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.8);
+                if (mobileQrUrl) {
+                  setMobileQrUrl(null);
+                  setMobileQrSvg(null);
+                  return;
+                }
+                const { jsonString } = hsStorage.exportGameBackupData();
+                const compressed = LZString.compressToEncodedURIComponent(jsonString);
+                const origin = typeof window !== 'undefined' ? window.location.origin : 'https://snshero.com';
+                const restoreUrl = `${origin}/game?restore=${compressed}`;
+                setMobileQrUrl(restoreUrl);
+                setMobileQrSvg(renderQrCodeSvg(restoreUrl, 160));
+                const bonus = hsStorage.claimSafeguardBackupBonus();
+                if (bonus.granted) {
+                  setDataNotice(
+                    tr(
+                      '🎉 QR 연동 생성 완료! 최초 보호 보상 +100 골드가 지급되었습니다!',
+                      '🎉 QR Sync Ready! +100 Gold safeguard bonus granted!',
+                    ),
+                  );
+                }
+              }}
+              className="hs-arcane-btn mt-1.5 w-full rounded-lg py-2 text-[11px] font-extrabold text-white"
+            >
+              📱 {tr('스마트폰으로 내 30장 덱 3초 만에 옮기기 (QR 스캔)', 'Move My Decks to Phone in 3s (QR Sync)')}
+            </button>
+
+            {mobileQrUrl && mobileQrSvg && (
+              <div className="mt-2 flex flex-col items-center gap-2 rounded-xl border border-sky-400/50 bg-stone-950/90 p-3 text-center">
+                <div
+                  className="rounded-lg bg-white p-1.5"
+                  dangerouslySetInnerHTML={{ __html: mobileQrSvg }}
+                />
+                <div className="text-[10.5px] font-bold text-sky-200">
+                  {tr(
+                    '스마트폰 카메라로 QR코드를 찍거나 아래 링크를 복사해 열면 즉시 덱이 복원됩니다!',
+                    'Scan with your phone camera or copy the 1-click restore URL below:',
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(mobileQrUrl);
+                      setDataNotice(tr('✓ 1클릭 복원 URL이 복사되었습니다!', '✓ 1-Click Restore URL copied!'));
+                    } catch {
+                      window.prompt('Restore URL:', mobileQrUrl);
+                    }
+                  }}
+                  className="hs-gold-btn w-full rounded-lg py-1.5 text-[11px] font-extrabold"
+                >
+                  🔗 {tr('1클릭 복원 URL 복사하기', 'Copy 1-Click Restore URL')}
+                </button>
+              </div>
+            )}
 
             {!confirmReset ? (
               <button

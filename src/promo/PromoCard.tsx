@@ -28,9 +28,10 @@ export function getPromoRarityLabel(rarity: CardRarity, isKo: boolean): string {
 export const PromoCard: React.FC<{
   card: ClassicCardDef;
   isGolden?: boolean;
+  journeyMultiplier?: number;
   onClick?: (card: ClassicCardDef) => void;
   size?: 'sm' | 'md' | 'lg';
-}> = ({ card, isGolden = false, onClick, size = 'md' }) => {
+}> = ({ card, isGolden = false, journeyMultiplier = 1, onClick, size = 'md' }) => {
   useHeroLanguage();
   const hsSize = size === 'lg' ? 'LG' : size === 'sm' ? 'SM' : 'MD';
   const rarityAura =
@@ -48,6 +49,7 @@ export const PromoCard: React.FC<{
         card={card}
         size={hsSize}
         isGolden={isGolden}
+        journeyMultiplier={journeyMultiplier}
         enableTilt={Boolean(onClick)}
         rarityAura={rarityAura}
         onClick={onClick ? () => onClick(card) : undefined}

@@ -1,20 +1,52 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <img width="1200" height="475" alt="SNSHero — Elwin Village 382-Card Tactical Web TCG" src="https://snshero.com/hs-assets/bg/elwin_intro_bg.webp" />
+  <h1>눈히어로 (SNSHero) — Heroes of Elwin Village</h1>
+  <p>
+    <strong>Zero-Install 382-Card Tactical Web TCG &amp; 40-Episode Full-Voice Fantasy Saga</strong><br/>
+    9 Factions · 9 Guardian Heroes · 382 Collectible Cards · 3 Free Packs on First Visit · Guaranteed 1st Legendary within 10 Packs
+  </p>
+  <p>
+    <a href="https://snshero.com/?utm_source=github&utm_medium=readme"><strong>🎁 Official Showcase &amp; Free Pack Preview (snshero.com)</strong></a>
+    &nbsp;|&nbsp;
+    <a href="https://snshero.com/game?open=pack3&utm_source=github&utm_medium=readme"><strong>⚔️ Play Now &amp; Open 3 Free Packs (/game)</strong></a>
+    &nbsp;|&nbsp;
+    <a href="https://snshero.com/book?utm_source=github&utm_medium=readme"><strong>📖 40-EP Novel (/book)</strong></a>
+    &nbsp;|&nbsp;
+    <a href="https://snshero.com/webtoon?utm_source=github&utm_medium=readme"><strong>🎨 40-EP Webtoon (/webtoon)</strong></a>
+  </p>
 </div>
 
-# Run and deploy your AI Studio app
+---
 
-This contains everything you need to run your app locally.
+## ✨ Key Features (한눈에 보는 눈히어로)
 
-View your app in AI Studio: https://aistudio.google.com/apps/636a37c3-97ce-4c80-be46-8c9a6f793f2d
+- **즉시 실행 무설치 웹 TCG (Zero-Install, Zero Sign-Up)**: 설치와 회원가입 대기 없이 PC·모바일 웹 브라우저(PWA 전체화면 지원)에서 3초 만에 플레이할 수 있습니다.
+- **첫 방문 3팩 무료 개봉 & 10팩 내 전설 100% 확정**: 접속 즉시 **무료 카드팩 3개 + 250골드 + 160 영웅 가루**가 지급되며, 첫 10팩 이내에 24K 황금빛 전설 카드 1장을 100% 확정으로 획득합니다 (전 등급 중복 보호 적용).
+- **9대 종족 × 25장 + 중립 157장 = 총 382종 고유 카드**: 물(포세이돈), 불(이그니스), 바람(토람), 땅(오르테가), 인간(카단), 언데드(아르투스), 엘프(메릴), 드워프(발린), 동물(펜릴) 9대 종족 수호자와 382종의 고유 아트워크를 수집하고 30장 전략 덱을 구축하세요.
+- **40부작 성우 풀보이스 스토리모드 & `3장 = 3배 각성`**: 200트랙 이상의 스튜디오 성우 내레이션이 수록된 《카단의 여정》 40화 스토리모드에서는 동일 카드를 3장 이상(전설 2장 이상) 보유할 경우 공격력과 생명력이 보유 장수 배수(`×3`, `×4`, `×N`)로 폭증합니다! (랭킹대전·AI대전은 정통 1배수 규칙 유지)
+- **로컬 퍼스트 영구 보존 (`hero_hs_*`) & 3초 QR 복원**: 모든 카드·덱·재화 데이터는 `localStorage`(`hero_hs_*`)에 즉시 보존되며, JSON 백업 파일 및 스마트폰 QR 1클릭 복원을 지원합니다.
 
-## Run Locally
+---
 
-**Prerequisites:**  Node.js
+## 🛠 Tech Stack & Architecture
 
+- **Frontend**: React 19 + TypeScript 5.8 + Tailwind CSS 4.1 + Vite 6 (Multi-Page App: `/`, `/game`, `/book`, `/webtoon`, `/sns`)
+- **AI / MCP Arena**: Native JSON-RPC 2.0 Model Context Protocol endpoint (`/mcp`) & 1,000-match headless `GameEngine` evaluation benchmark (`/sns`)
+- **PWA & Audio**: Offline-friendly Service Worker (`sw.js`), Web Audio API + 200-track voiced narration (`audio.ts`)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+---
+
+## 🚀 Run Locally
+
+**Prerequisites:** Node.js 20+
+
+```bash
+npm install
+npm run dev
+```
+
+Build production bundle:
+
+```bash
+npm run build
+```

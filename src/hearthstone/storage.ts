@@ -1582,6 +1582,123 @@ class HearthstoneStorage {
     this.ensureInitialized();
     emitStateChanged();
   }
+
+  isSafeguardBonusClaimed(): boolean {
+    try {
+      return localStorage.getItem('hero_hs_safeguard_bonus_claimed') === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  claimSafeguardBackupBonus(): { granted: boolean; goldAdded: number } {
+    try {
+      if (localStorage.getItem('hero_hs_safeguard_bonus_claimed') === '1') {
+        return { granted: false, goldAdded: 0 };
+      }
+      localStorage.setItem('hero_hs_safeguard_bonus_claimed', '1');
+      const p = this.getProfile();
+      p.gold += 100;
+      this.saveProfile(p);
+      return { granted: true, goldAdded: 100 };
+    } catch {
+      return { granted: false, goldAdded: 0 };
+    }
+  }
+
+  claimPromoPrePack(): { claimed: boolean; cards: OpenedPackCard[] } {
+    try {
+      const raw = localStorage.getItem('hero_hs_promo_pack');
+      if (!raw) return { claimed: false, cards: [] };
+      const parsed = JSON.parse(raw) as { id: string; isGolden?: boolean }[];
+      localStorage.removeItem('hero_hs_promo_pack');
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        return { claimed: false, cards: [] };
+      }
+      this.ensureInitialized();
+      const col = this.getCollection();
+      const gcol = this.getGoldenCollection();
+      const pity = this.getPackPityState();
+      const claimedCards: OpenedPackCard[] = [];
+      let pulledLeg = false;
+      let pulledEpic = false;
+
+      for (const item of parsed) {
+        const def = cardDb.getCard(item.id);
+        if (!def) continue;
+        const prevCount = col[def.id] || 0;
+        const nextCount = prevCount + 1;
+        col[def.id] = nextCount;
+        const isGolden = Boolean(item.isGolden);
+        if (isGolden) {
+          gcol[def.id] = (gcol[def.id] || 0) + 1;
+        }
+        pity.everObtainedMaxCopies[def.id] = Math.max(
+          pity.everObtainedMaxCopies[def.id] || 0,
+          nextCount,
+        );
+        if (def.rarity === 'LEGENDARY') pulledLeg = true;
+        if (def.rarity === 'EPIC') pulledEpic = true;
+        claimedCards.push({
+          card: def,
+          isGolden,
+          isNew: prevCount === 0,
+          newOwnedCount: nextCount,
+          newJourneyMultiplier: getJourneyCardMultiplier(def, nextCount),
+        });
+      }
+
+      if (claimedCards.length === 0) {
+        return { claimed: false, cards: [] };
+      }
+
+      const p = this.getProfile();
+      if (p.packs > 0) {
+        p.packs -= 1;
+      }
+      pity.totalPacksOpened += 1;
+      if (pulledLeg) {
+        pity.firstTenLegendaryClaimed = true;
+        pity.packsSinceLegendary = 0;
+      } else {
+        pity.packsSinceLegendary += 1;
+      }
+      if (pulledEpic) {
+        pity.packsSinceEpic = 0;
+      } else {
+        pity.packsSinceEpic += 1;
+      }
+
+      this.saveProfile(p);
+      this.saveCollection(col);
+      this.saveGoldenCollection(gcol);
+      this.savePackPityState(pity);
+      return { claimed: true, cards: claimedCards };
+    } catch {
+      return { claimed: false, cards: [] };
+    }
+  }
+
+  countTwoCopyAwakenableCards(isKo: boolean = isKoreanLanguage()): {
+    count: number;
+    sampleNames: string[];
+  } {
+    const col = this.getCollection();
+    let count = 0;
+    const sampleNames: string[] = [];
+    for (const c of cardDb.getAllCollectible()) {
+      if (!hasCombatStatsForJourney(c) || c.rarity === 'FREE') continue;
+      const owned = col[c.id] || 0;
+      const neededOneMore = c.rarity === 'LEGENDARY' ? owned === 1 : owned === 2;
+      if (neededOneMore) {
+        count += 1;
+        if (sampleNames.length < 3) {
+          sampleNames.push(isKo ? c.name : c.nameEn || c.name);
+        }
+      }
+    }
+    return { count, sampleNames };
+  }
 }
 
 export const hsStorage = new HearthstoneStorage();

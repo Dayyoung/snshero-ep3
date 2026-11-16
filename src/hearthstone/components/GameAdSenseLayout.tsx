@@ -9,6 +9,8 @@ import { isHsGameAdRemoved } from '../paymentGateway';
 
 export interface GameAdSenseLayoutProps {
   screenKey: string;
+  hideAdsForFtue?: boolean;
+  onOpenAdRemovalShop?: () => void;
   children: React.ReactNode;
 }
 
@@ -88,9 +90,12 @@ function computeStageMetrics(availW: number, availH: number): StageMetrics {
  */
 export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
   screenKey,
+  hideAdsForFtue = false,
+  onOpenAdRemovalShop,
   children,
 }) => {
   const [vipAdRemoved, setVipAdRemoved] = useState<boolean>(() => isHsGameAdRemoved());
+  const hideAllAds = vipAdRemoved || hideAdsForFtue;
   const mobileTopRef = useRef<HTMLDivElement | null>(null);
   const leftGutterRef = useRef<HTMLElement | null>(null);
   const rightGutterRef = useRef<HTMLElement | null>(null);
@@ -190,7 +195,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
       className="fixed inset-0 flex h-full w-full flex-col overflow-hidden bg-[#070402] text-[#f8ebd2]"
     >
       {/* Tablet & Smartphone Top Ribbon Banner (320x50 inside 52px safe bar) */}
-      {!vipAdRemoved && (
+      {!hideAllAds && (
         <div
           id="adsense-mobile-top"
           ref={mobileTopRef}
@@ -199,9 +204,20 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
           aria-label="Google AdSense Top Banner"
         >
           <div className="adsense-banner-inner relative mx-auto flex h-[50px] max-w-[360px] items-center justify-center gap-1.5 overflow-hidden">
-            <span className="shrink-0 rounded border border-amber-500/35 bg-black/70 px-1 py-0.5 text-[8px] font-extrabold tracking-wider text-amber-200/75 uppercase">
-              AD
-            </span>
+            {onOpenAdRemovalShop ? (
+              <button
+                type="button"
+                onClick={onOpenAdRemovalShop}
+                title="광고 영구 제거 (4,000원 / $2.99)"
+                className="shrink-0 cursor-pointer rounded border border-amber-400/50 bg-amber-950/90 px-1.5 py-0.5 text-[8px] font-extrabold text-amber-200 hover:bg-amber-900"
+              >
+                ✨AD제거
+              </button>
+            ) : (
+              <span className="shrink-0 rounded border border-amber-500/35 bg-black/70 px-1 py-0.5 text-[8px] font-extrabold tracking-wider text-amber-200/75 uppercase">
+                AD
+              </span>
+            )}
             <div className="adsense-slot-wrapper relative flex h-[50px] max-h-[50px] min-h-[50px] flex-1 items-center justify-center overflow-hidden" />
           </div>
         </div>
@@ -209,7 +225,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
 
       {/* Central Row: PC Left Gutter + Scaled/Letterboxed Game Viewport + PC Right Gutter */}
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-row justify-center overflow-hidden">
-        {!vipAdRemoved && (
+        {!hideAllAds && (
           <aside
             id="adsense-desktop-left"
             ref={leftGutterRef}
@@ -220,7 +236,17 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
             <div className="w-[160px] overflow-hidden rounded-xl border border-[#c8a158]/25 bg-black/55 p-1.5">
               <div className="mb-1 flex items-center justify-between border-b border-amber-500/20 pb-1 text-[9px] font-bold tracking-wider text-amber-200/65 uppercase">
                 <span>AD</span>
-                <span>Google Ads</span>
+                {onOpenAdRemovalShop ? (
+                  <button
+                    type="button"
+                    onClick={onOpenAdRemovalShop}
+                    className="cursor-pointer rounded bg-amber-950/80 px-1.5 py-0.5 text-[8.5px] font-extrabold text-amber-300 hover:text-yellow-200"
+                  >
+                    ✨광고제거 $2.99
+                  </button>
+                ) : (
+                  <span>Google Ads</span>
+                )}
               </div>
               <div className="adsense-slot-wrapper relative flex min-h-[600px] w-full items-center justify-center overflow-hidden" />
             </div>
@@ -263,7 +289,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
           </div>
         </main>
 
-        {!vipAdRemoved && (
+        {!hideAllAds && (
           <aside
             id="adsense-desktop-right"
             ref={rightGutterRef}
@@ -274,7 +300,17 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
             <div className="w-[160px] overflow-hidden rounded-xl border border-[#c8a158]/25 bg-black/55 p-1.5">
               <div className="mb-1 flex items-center justify-between border-b border-amber-500/20 pb-1 text-[9px] font-bold tracking-wider text-amber-200/65 uppercase">
                 <span>AD</span>
-                <span>Google Ads</span>
+                {onOpenAdRemovalShop ? (
+                  <button
+                    type="button"
+                    onClick={onOpenAdRemovalShop}
+                    className="cursor-pointer rounded bg-amber-950/80 px-1.5 py-0.5 text-[8.5px] font-extrabold text-amber-300 hover:text-yellow-200"
+                  >
+                    ✨광고제거 4,000원
+                  </button>
+                ) : (
+                  <span>Google Ads</span>
+                )}
               </div>
               <div className="adsense-slot-wrapper relative flex min-h-[600px] w-full items-center justify-center overflow-hidden" />
             </div>

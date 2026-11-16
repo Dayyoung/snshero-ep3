@@ -78,8 +78,73 @@ export const PromoApp: React.FC = () => {
   const [filterRarity, setFilterRarity] = useState<string>('LEGENDARY');
   const [searchQuery, setSearchQuery] = useState('');
   const [showGolden, setShowGolden] = useState(false);
+  const [showAwakened3x, setShowAwakened3x] = useState(false);
   const [visibleLimit, setVisibleLimit] = useState(12);
   const [zoomedCard, setZoomedCard] = useState<ClassicCardDef | null>(null);
+
+  // MKT-033: Pre-Game Free Pack Tear Widget (persisted to hero_hs_promo_pack)
+  const [promoPackModalOpen, setPromoPackModalOpen] = useState(false);
+  const [promoPackCards, setPromoPackCards] = useState<{ card: ClassicCardDef; isGolden: boolean }[] | null>(null);
+
+  // MKT-021: 10-second Keyword Interactive Mini Preview
+  const [activeKeywordDemo, setActiveKeywordDemo] = useState<'shield' | 'taunt' | 'awake'>('awake');
+  const [shieldBroken, setShieldBroken] = useState(false);
+
+  // MKT-027: In-page Episode 1 Voiced Webtoon Theater Modal
+  const [mediaTheaterOpen, setMediaTheaterOpen] = useState(false);
+
+  const handleOpenPromoPrePack = () => {
+    if (cards.length === 0) return;
+    const savedRaw = localStorage.getItem('hero_hs_promo_pack');
+    if (savedRaw) {
+      try {
+        const parsed = JSON.parse(savedRaw) as { id: string; isGolden: boolean }[];
+        if (Array.isArray(parsed) && parsed.length === 5) {
+          const restored = parsed
+            .map((item) => {
+              const found = cards.find((c) => c.id === item.id);
+              return found ? { card: found, isGolden: Boolean(item.isGolden) } : null;
+            })
+            .filter(Boolean) as { card: ClassicCardDef; isGolden: boolean }[];
+          if (restored.length === 5) {
+            setPromoPackCards(restored);
+            setPromoPackModalOpen(true);
+            return;
+          }
+        }
+      } catch {
+        // ignore malformed cache
+      }
+    }
+
+    const collectible = cards.filter((c) => c.rarity !== 'FREE');
+    const byRarity: Record<string, ClassicCardDef[]> = {
+      COMMON: collectible.filter((c) => c.rarity === 'COMMON'),
+      RARE: collectible.filter((c) => c.rarity === 'RARE'),
+      EPIC: collectible.filter((c) => c.rarity === 'EPIC'),
+      LEGENDARY: collectible.filter((c) => c.rarity === 'LEGENDARY'),
+    };
+    const pickFrom = (rar: string) => {
+      const pool = byRarity[rar]?.length ? byRarity[rar] : collectible;
+      return pool[Math.floor(Math.random() * pool.length)];
+    };
+    // 5 cards: slot 0 guaranteed Rare+, chance for Epic/Legendary in showcase pack
+    const rarities = ['RARE', Math.random() < 0.35 ? 'EPIC' : 'COMMON', Math.random() < 0.18 ? 'LEGENDARY' : 'RARE', 'COMMON', 'COMMON'];
+    const drawn = rarities.map((rar, idx) => ({
+      card: pickFrom(rar),
+      isGolden: idx === 2 ? Math.random() < 0.25 : Math.random() < 0.08,
+    }));
+    try {
+      localStorage.setItem(
+        'hero_hs_promo_pack',
+        JSON.stringify(drawn.map((d) => ({ id: d.card.id, isGolden: d.isGolden }))),
+      );
+    } catch {
+      // ignore quota error
+    }
+    setPromoPackCards(drawn);
+    setPromoPackModalOpen(true);
+  };
 
   useEffect(() => {
     document.documentElement.lang = isKo ? 'ko' : 'en';
@@ -542,28 +607,77 @@ export const PromoApp: React.FC = () => {
             {tr('믿기 힘들 만큼 재미있습니다', 'Insanely Fun')}
           </h1>
 
-          <p className="promo-outline mt-4 max-w-2xl text-sm font-bold leading-relaxed text-amber-100/90 sm:text-lg">
+          <p className="promo-outline mt-4 max-w-2xl text-sm font-bold leading-relaxed text-amber-100/95 sm:text-lg">
             {tr(
-              '전략 카드 게임 • 무료 웹 플레이 • 첫 방문 3카드팩 즉시 지급',
-              'Strategic Card Battle • Free Web Play • 3 Bonus Packs on First Visit',
+              '설치 0초 · 가입 0초! 클릭 즉시 무료 카드팩 3개 개봉 + 첫 10팩 내 전설 100% 확정 · 40화 성우 풀보이스 & 3장=3배 각성!',
+              'Zero Install, Zero Sign-up. Open 3 Free Card Packs in 3 Seconds, Guarantee Your First Legendary Within 10 Packs, and Unleash 3x Awakening Power Across 382 Cards & 40 Full-Voice Episodes!',
             )}
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <a
-              href="/game"
-              className="hs-promo-cta-purple inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-9 py-3.5 text-base font-extrabold tracking-wide sm:text-lg"
+              href="/game?open=pack3&utm_source=promotion_hero"
+              className="hs-promo-cta-purple inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-8 py-3.5 text-base font-extrabold tracking-wide sm:text-lg"
             >
               <Gamepad2 className="h-5 w-5" />
-              <span>{tr('지금 플레이', 'Play Now')}</span>
+              <span>{tr('🎁 무료 3팩 지금 바로 뜯기', '🎁 Open 3 Free Packs Now')}</span>
             </a>
             <a
-              href="/game?mode=story"
-              className="hs-promo-cta-teal-dark inline-flex min-h-[52px] items-center gap-2 rounded-full px-7 py-3.5 text-sm font-extrabold sm:text-base"
+              href="/game?mode=story&ep=1&utm_source=promotion_ep1"
+              className="hs-promo-cta-teal-dark inline-flex min-h-[52px] items-center gap-2 rounded-full px-6 py-3.5 text-sm font-extrabold sm:text-base"
             >
               <Swords className="h-4 w-4" />
-              <span>{tr('카단의 여정 1화 체험', "Play Kadan's Journey")}</span>
+              <span>{tr('⚔ 카단의 여정 1화 보스전 즉시 출정', '⚔ Battle Ep.1 Boss Now')}</span>
             </a>
+            <button
+              type="button"
+              onClick={handleOpenPromoPrePack}
+              disabled={cards.length === 0}
+              className="inline-flex min-h-[52px] cursor-pointer items-center gap-2 rounded-full border-2 border-amber-300/80 bg-amber-950/85 px-6 py-3.5 text-sm font-extrabold text-amber-100 shadow-[0_0_24px_rgba(251,191,36,0.35)] transition hover:scale-105 hover:bg-amber-900 disabled:opacity-50"
+            >
+              <Sparkles className="h-4 w-4 text-yellow-300" />
+              <span>{tr('✨ 무료 1호 팩(5장) 여기서 먼저 뜯어보기', '✨ Tear Free Pack #1 Here First')}</span>
+            </button>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <a
+              href="/game?mode=story&ep=0&utm_source=promo_ep0"
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-950/75 px-4 py-1.5 text-xs font-extrabold text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-900/90"
+            >
+              <span>🎯</span>
+              <span>
+                {tr(
+                  '카드 게임이 처음이신가요? 30초 허수아비 기초 훈련(제0화) 깨고 무료 3팩 받기 →',
+                  'New to Card Games? Beat 30s Tutorial (Ep.0) & Claim 3 Free Packs →',
+                )}
+              </span>
+            </a>
+          </div>
+
+          {/* MKT-015: 9 Faction Quick-Pick FTUE Bar */}
+          <div className="mt-5 w-full max-w-2xl rounded-2xl border border-amber-400/35 bg-black/55 px-3 py-2.5 backdrop-blur-sm">
+            <div className="mb-2 text-[11px] font-extrabold text-amber-200">
+              {tr(
+                '🔥 내 운명의 9대 종족 선택 → 무료 3팩 + 해당 종족 전설 체험덱 즉시 출정:',
+                '🔥 Pick Your Faction → Instant 3 Free Packs + Signature Legendary Trial:',
+              )}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              {HERO_CLASS_ORDER.map((cls) => {
+                const ui = getLocalizedHeroInfo(cls, lang);
+                return (
+                  <a
+                    key={cls}
+                    href={`/game?faction=${cls}&open=pack3&utm_source=promo_faction`}
+                    className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-[#1a0f08]/90 px-2.5 py-1 text-[11px] font-extrabold text-amber-100 transition hover:border-amber-300 hover:bg-amber-900/80"
+                  >
+                    <img src={CLASS_CREST_URL[cls]} alt="" className="h-4 w-4 rounded-full" />
+                    <span>{ui.className}</span>
+                  </a>
+                );
+              })}
+            </div>
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-bold text-amber-200/80">
@@ -895,6 +1009,91 @@ export const PromoApp: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {/* MKT-021: 10-Second Tactical Keyword Mini Preview Widget */}
+          <div className="hs-promo-gold-frame mt-10 rounded-2xl bg-[#120d26]/95 p-5 sm:p-7">
+            <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <div className="text-xs font-extrabold uppercase tracking-wider text-sky-300">
+                  {tr('🎯 10초 핵심 전술 키워드 체험', '🎯 10-SECOND KEYWORD MINI PREVIEW')}
+                </div>
+                <h3 className="mt-1 text-xl font-black text-white sm:text-2xl">
+                  {tr('클릭 한 번으로 3대 핵심 손맛을 미리 만져보세요!', 'Tap a keyword below to preview SNSHero combat feel!')}
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveKeywordDemo('awake');
+                  }}
+                  className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-extrabold transition ${
+                    activeKeywordDemo === 'awake'
+                      ? 'border-emerald-300 bg-emerald-600 text-white'
+                      : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
+                  }`}
+                >
+                  ⚡ {tr('3장=3배 각성', '3-Copy 3x Awakening')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveKeywordDemo('shield');
+                    setShieldBroken((b) => !b);
+                  }}
+                  className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-extrabold transition ${
+                    activeKeywordDemo === 'shield'
+                      ? 'border-yellow-300 bg-amber-600 text-white'
+                      : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
+                  }`}
+                >
+                  ✨ {tr('천상의 보호막 (클릭해 깨기)', 'Divine Shield (Tap to Pop)')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveKeywordDemo('taunt')}
+                  className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-extrabold transition ${
+                    activeKeywordDemo === 'taunt'
+                      ? 'border-sky-300 bg-sky-600 text-white'
+                      : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
+                  }`}
+                >
+                  🛡️ {tr('도발 수호', 'Taunt Frontline')}
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col items-center justify-between gap-4 rounded-xl border border-amber-400/25 bg-black/45 p-4 sm:flex-row">
+              <div className="text-sm font-bold text-amber-100">
+                {activeKeywordDemo === 'awake' &&
+                  tr(
+                    '🔥 스토리모드 전용! 동일 카드 3장 보유 시 알렉산다르(6/6) → 공격력 18 / 생명력 18로 3배 폭증!',
+                    '🔥 Story-only! Owning 3+ copies multiplies stats by 3x (6/6 → 18/18) to crush bosses!',
+                  )}
+                {activeKeywordDemo === 'shield' &&
+                  (shieldBroken
+                    ? tr(
+                        '💥 천상의 보호막이 첫 타격을 0 데미지로 막아내고 깨졌습니다! (다시 누르면 보호막 재장착)',
+                        '💥 Divine Shield absorbed the first hit for 0 damage! (Tap again to restore)',
+                      )
+                    : tr(
+                        '✨ 황금빛 천상의 보호막이 활성화되어 있습니다 — 어떤 강력한 공격도 첫 1회는 완벽 무효화!',
+                        '✨ Golden Divine Shield active — blocks the very first instance of damage completely!',
+                      ))}
+                {activeKeywordDemo === 'taunt' &&
+                  tr(
+                    '🛡️ 도발 하수인이 전열 방패를 세우면 적 하수인은 본체 영웅을 절대 직접 공격할 수 없습니다!',
+                    '🛡️ Taunt minions form a frontline shield — enemies must break through them before hitting your Hero!',
+                  )}
+              </div>
+              <a
+                href="/game?mode=story&ep=0&utm_source=promo_keyword_demo"
+                className="hs-promo-cta-purple shrink-0 rounded-full px-5 py-2.5 text-xs font-extrabold"
+              >
+                {tr('30초 제0화 훈련으로 바로 체험 →', 'Try Ep.0 30s Tutorial →')}
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1044,28 +1243,57 @@ export const PromoApp: React.FC = () => {
               </h2>
               <p className="mt-1.5 text-sm font-bold text-[#5c3a1a]">
                 {tr(
-                  '/game에 수록된 실제 382장 카드(9종족 × 25장 + 중립 157장)를 미리 살펴보고 황금 포일까지 확인하세요.',
-                  'Preview all 382 playable cards (9 factions × 25 + 157 Neutral) including 24K Golden foils.',
+                  '9종족 225장 + 중립 157장(총 382종)의 영롱한 24K 황금 아트워크와 스토리모드 전용 3장=3배 각성 위력을 미리 확인하세요!',
+                  'Preview all 382 playable cards (9 factions × 25 + 157 Neutral) with 24K Golden foils and Story 3x Awakening stats.',
                 )}
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowGolden((g) => !g)}
-              className={`inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-xs font-extrabold shadow transition ${
-                showGolden
-                  ? 'border-yellow-300 bg-gradient-to-b from-amber-400 to-amber-700 text-white'
-                  : 'border-[#8b5a1b] bg-[#2a1709] text-amber-200 hover:bg-[#3e220e]'
-              }`}
-            >
-              <Crown className="h-4 w-4" />
-              <span>
-                {showGolden
-                  ? tr('24K 황금 카드 미리보기 ON', '24K Golden Foil Preview ON')
-                  : tr('24K 황금 카드 미리보기', 'Preview 24K Golden Foil')}
-              </span>
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={handleOpenPromoPrePack}
+                disabled={cards.length === 0}
+                className="hs-promo-cta-purple inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-extrabold shadow transition disabled:opacity-50"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>{tr('🎁 무료 1호 팩(5장) 선개봉', '🎁 Open Free Pack #1')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowAwakened3x((a) => !a)}
+                className={`inline-flex cursor-pointer items-center gap-2 rounded-full border-2 px-4 py-2.5 text-xs font-extrabold shadow transition ${
+                  showAwakened3x
+                    ? 'border-emerald-300 bg-gradient-to-b from-emerald-500 to-emerald-800 text-white'
+                    : 'border-[#8b5a1b] bg-[#2a1709] text-emerald-200 hover:bg-[#3e220e]'
+                }`}
+              >
+                <span>🔥</span>
+                <span>
+                  {showAwakened3x
+                    ? tr('3장=3배 각성 ON (×3)', '3x Awakening ON')
+                    : tr('3장=3배 각성 시뮬레이터', 'Simulate 3x Awakening')}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowGolden((g) => !g)}
+                className={`inline-flex cursor-pointer items-center gap-2 rounded-full border-2 px-5 py-2.5 text-xs font-extrabold shadow transition ${
+                  showGolden
+                    ? 'border-yellow-300 bg-gradient-to-b from-amber-400 to-amber-700 text-white'
+                    : 'border-[#8b5a1b] bg-[#2a1709] text-amber-200 hover:bg-[#3e220e]'
+                }`}
+              >
+                <Crown className="h-4 w-4" />
+                <span>
+                  {showGolden
+                    ? tr('24K 황금 카드 미리보기 ON', '24K Golden Foil Preview ON')
+                    : tr('24K 황금 카드 미리보기', 'Preview 24K Golden Foil')}
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="mt-7 rounded-2xl border-2 border-[#b88a44] bg-[#241409] p-4 text-amber-100 shadow-xl">
@@ -1197,6 +1425,9 @@ export const PromoApp: React.FC = () => {
                     key={c.id}
                     card={c}
                     isGolden={showGolden}
+                    journeyMultiplier={
+                      showAwakened3x && (c.type === 'MINION' || c.type === 'WEAPON') ? 3 : 1
+                    }
                     onClick={setZoomedCard}
                     size="md"
                   />
@@ -1272,12 +1503,23 @@ export const PromoApp: React.FC = () => {
                     'Choose any of the 9 Factions with a 30-card deck and climb from Rank 25 Apprentice all the way to Legend Hero. Earn +25 Gold per win, Win-Streak bonus stars, and +30G every 3 victories.',
                   )}
                 </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-amber-400/50 bg-amber-950/70 px-3 py-1 text-[11px] font-extrabold text-amber-200">
+                    {tr('공정 1배수 룰', 'Fair 1x Rules')}
+                  </span>
+                  <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
+                    {tr('3연승 별★ +2 고속 승급', '3-Win Streak +2 Stars')}
+                  </span>
+                  <span className="rounded-full border border-yellow-400/50 bg-yellow-950/70 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
+                    {tr('3승마다 +30G', '+30G Every 3 Wins')}
+                  </span>
+                </div>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="/game?mode=ranked"
+                    href="/game?mode=ranked&utm_source=promo_mode_ranked"
                     className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
-                    <span>{tr('랭킹대전 도전', 'Enter Ranked Play')}</span>
+                    <span>{tr('등급전 바로 매칭', 'Enter Ranked Play')}</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
@@ -1299,12 +1541,20 @@ export const PromoApp: React.FC = () => {
                     'Test custom decks anytime against all 9 Faction AI opponents. Earn +25G–+50G first-clear rewards per champion and 2 Bonus Card Packs for sweeping Expert AI.',
                   )}
                 </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-emerald-400/50 bg-emerald-950/70 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
+                    {tr('종족별 첫 격파 +25~50G', 'First-Clear +25~50G')}
+                  </span>
+                  <span className="rounded-full border border-yellow-400/50 bg-yellow-950/70 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
+                    {tr('숙련 AI 9종족 올클리어 +2팩!', 'All-9 Expert Sweep +2 Packs!')}
+                  </span>
+                </div>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="/game?mode=ai"
+                    href="/game?mode=ai&utm_source=promo_mode_ai"
                     className="hs-promo-cta-teal-dark inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
-                    <span>{tr('AI대전 수련하기', 'Train vs AI')}</span>
+                    <span>{tr('9종족 AI 도전하기', 'Train vs AI')}</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
@@ -1344,12 +1594,23 @@ export const PromoApp: React.FC = () => {
                     'Begin with the Episode 0 Tutorial alongside Kazan & the Scarecrow Bot, then battle all 40 episodes! Unlock 3x Awakening multipliers, milestone boss packs, and Infinite Reincarnation.',
                   )}
                 </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-emerald-400/50 bg-emerald-950/70 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
+                    {tr('3장=3배 각성', '3-Copy 3x Awakening')}
+                  </span>
+                  <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
+                    {tr('매 5화 보스팩 +1', '+1 Boss Pack / 5 EP')}
+                  </span>
+                  <span className="rounded-full border border-amber-400/50 bg-amber-950/70 px-3 py-1 text-[11px] font-extrabold text-amber-200">
+                    {tr('40화 완주 +300G & 3팩 + 무한 환생', 'EP.40 +300G & 3 Packs')}
+                  </span>
+                </div>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="/game?mode=story"
+                    href="/game?mode=story&ep=1&utm_source=promo_mode_story"
                     className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
-                    <span>{tr('1화부터 여정 시작', 'Start Story Mode')}</span>
+                    <span>{tr('스토리 1화 바로 출격', 'Start Story Mode')}</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
@@ -1430,7 +1691,30 @@ export const PromoApp: React.FC = () => {
             </h2>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10">
+            <div className="mb-5 flex flex-col items-center justify-between gap-3 rounded-2xl border border-amber-400/35 bg-[#12192c] p-4 sm:flex-row">
+              <div className="text-left">
+                <div className="text-xs font-extrabold text-amber-300">
+                  {tr('🎧 인페이지 1화 미니 극장 (외부 이탈 없이 바로 감상)', '🎧 IN-PAGE EP.1 MINI THEATER')}
+                </div>
+                <div className="mt-0.5 text-sm font-extrabold text-white">
+                  {tr(
+                    '제1화 《눈보라 아래 두 서약》 5컷 웹툰 + 한국어 성우 보이스 미리듣기',
+                    'Preview Ep.1 5-Panel Webtoon + Studio Voice Narration right here',
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMediaTheaterOpen(true)}
+                className="hs-promo-cta-purple shrink-0 cursor-pointer rounded-full px-5 py-2.5 text-xs font-extrabold"
+              >
+                {tr('🎬 제1화 미니 극장 바로 열기', '🎬 Open Ep.1 Mini Theater')}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 icon: <BookOpen className="h-5 w-5 text-amber-300" />,
@@ -1461,7 +1745,7 @@ export const PromoApp: React.FC = () => {
                 title: tr('네이버웹툰', 'Naver Webtoon'),
                 sub: tr('네이버 도전만화 공식 연재처 바로가기', 'Official Naver Challenge Comic series'),
                 img: '/webtoon-assets/episode_01/scene_01.webp',
-                href: 'https://comic.naver.com/challenge/list?titleId=857363',
+                href: 'https://comic.naver.com/challenge/list?titleId=856677',
                 external: true,
               },
             ].map((item) => (
@@ -1504,7 +1788,7 @@ export const PromoApp: React.FC = () => {
                 {tr('네이버 웹소설', 'Naver Web Novel')}
               </a>
               <a
-                href="https://comic.naver.com/challenge/list?titleId=857363"
+                href="https://comic.naver.com/challenge/list?titleId=856677"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
@@ -1627,7 +1911,16 @@ export const PromoApp: React.FC = () => {
             </button>
 
             <div className="flex items-center justify-center pt-5 sm:col-span-5">
-              <PromoCard card={zoomedCard} isGolden={showGolden} size="lg" />
+              <PromoCard
+                card={zoomedCard}
+                isGolden={showGolden}
+                journeyMultiplier={
+                  showAwakened3x && (zoomedCard.type === 'MINION' || zoomedCard.type === 'WEAPON')
+                    ? 3
+                    : 1
+                }
+                size="lg"
+              />
             </div>
 
             <div className="flex flex-col justify-between sm:col-span-7">
@@ -1708,6 +2001,133 @@ export const PromoApp: React.FC = () => {
                   <span>{tr('게임에서 카드 얻기 (/game)', 'Collect Card in Game (/game)')}</span>
                   <ChevronRight className="h-4 w-4" />
                 </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MKT-033: Pre-Game Free Pack #1 Tear Modal (5 Cards + Claim CTA)
+      ===================================================================== */}
+      {promoPackModalOpen && promoPackCards && (
+        <div
+          onClick={() => setPromoPackModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="hs-promo-gold-frame relative w-full max-w-4xl rounded-3xl bg-[#1a0f08] p-5 text-center text-amber-50 sm:p-8"
+          >
+            <button
+              type="button"
+              onClick={() => setPromoPackModalOpen(false)}
+              aria-label={tr('닫기', 'Close')}
+              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-300/60 bg-amber-950/90 px-3 py-1 text-xs font-extrabold text-yellow-200">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{tr('무료 1호 카드팩 개봉 완료! (첫 10팩 내 전설 확정 1/10 적립)', 'FREE PACK #1 OPENED! (1/10 First Legendary Pity)')}</span>
+            </div>
+            <h3 className="mt-2.5 text-2xl font-black text-white sm:text-3xl">
+              {tr('🎉 축하합니다! 5장의 영웅 카드가 소환되었습니다!', '🎉 5 Hero Cards Summoned!')}
+            </h3>
+            <p className="mx-auto mt-2 max-w-2xl text-xs font-bold text-amber-200/90 sm:text-sm">
+              {tr(
+                '아래 버튼을 눌러 인게임 카드첩에 방금 뽑은 5장을 영구 보관하고, 남은 무료 카드팩 2개 + 250골드 + 160가루를 마저 개봉하세요!',
+                'Claim these 5 cards permanently into your in-game Collection and open your remaining 2 Free Packs + 250 Gold + 160 Dust!',
+              )}
+            </p>
+            <div className="my-6 flex flex-wrap items-center justify-center gap-4 pt-3">
+              {promoPackCards.map((item, idx) => (
+                <PromoCard
+                  key={`${item.card.id}_${idx}`}
+                  card={item.card}
+                  isGolden={item.isGolden}
+                  size="sm"
+                  onClick={setZoomedCard}
+                />
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <a
+                href="/game?claim_promo=1&utm_source=promo_prepack"
+                className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-extrabold sm:text-base"
+              >
+                <span>{tr('내 카드 5장 즉시 수령 & 남은 무료 2팩 마저 열기 →', 'Claim 5 Cards & Open 2 Remaining Packs →')}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MKT-027: In-Page Ep.1 Voiced Webtoon Mini Theater Modal
+      ===================================================================== */}
+      {mediaTheaterOpen && (
+        <div
+          onClick={() => setMediaTheaterOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="hs-promo-gold-frame relative w-full max-w-3xl rounded-3xl bg-[#150d07] p-5 text-amber-50 sm:p-7"
+          >
+            <button
+              type="button"
+              onClick={() => setMediaTheaterOpen(false)}
+              aria-label={tr('닫기', 'Close')}
+              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="text-xs font-extrabold text-amber-300">
+              {tr('제1화 · 눈보라 아래 두 서약 (5컷 하이라이트)', 'EP.1 · Two Oaths Beneath the Blizzard')}
+            </div>
+            <h3 className="mt-1 text-xl font-black text-white sm:text-2xl">
+              {tr('성우 풀보이스 & 웹툰 극장 미리보기', 'Full-Voice Narration & Webtoon Theater')}
+            </h3>
+            <div className="mt-3 rounded-xl border border-amber-500/35 bg-black/50 p-3">
+              <div className="mb-1.5 text-xs font-extrabold text-sky-300">
+                🔊 {tr('제1화 도입부 한국어 성우 내레이션 듣기', 'Listen to Ep.1 Voice Narration')}
+              </div>
+              <audio
+                controls
+                preload="none"
+                src="/hs-assets/snshero-audio/story/ep01_cut1.mp3"
+                className="w-full"
+              />
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-5">
+              {[0, 1, 2, 3, 4].map((idx) => (
+                <div key={idx} className="overflow-hidden rounded-xl border border-amber-500/30 bg-black">
+                  <img
+                    src={`/webtoon-assets/episode_01/scene_0${idx}.webp`}
+                    alt={`EP1 Panel ${idx + 1}`}
+                    className="aspect-[3/4] w-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs font-bold leading-relaxed text-amber-100/90 sm:text-sm">
+              {tr(
+                '방금 미리 들으신 한국어 성우 풀보이스와 웹툰 연출이 인게임 40화 전 구간에 수록되어 있습니다! 지금 무료 카드팩 3개 + 250골드를 받고 제1화 전장으로 입장하세요.',
+                'All 40 episodes feature full-voice narration & webtoon panels in-game! Claim 3 Free Packs + 250 Gold and jump straight into Ep.1!',
+              )}
+            </p>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <a
+                href="/game?mode=story&ep=1&utm_source=promo_media_modal"
+                className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-extrabold"
+              >
+                <span>{tr('무료 3팩 받고 제1화 전장 입장 →', 'Claim 3 Packs & Play Ep.1 →')}</span>
+              </a>
+              <div className="flex flex-wrap gap-3 text-[11px] font-bold text-amber-200/80">
+                <a href="/book.html?ep=1" className="underline hover:text-amber-100">{tr('웹소설 전문 보기', 'Read Novel')}</a>
+                <a href="/webtoon.html?ep=1" className="underline hover:text-amber-100">{tr('웹툰 전체 보기', 'Read Webtoon')}</a>
+                <a href="https://comic.naver.com/challenge/list?titleId=856677" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-100">{tr('네이버 도전만화', 'Naver Webtoon')}</a>
               </div>
             </div>
           </div>

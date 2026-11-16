@@ -138,6 +138,18 @@ fs.writeFileSync(
         window.location.replace(routes[p] + q + h);
         return;
       }
+      if (p === '/shop' || p.indexOf('/shop/') === 0) {
+        window.location.replace('/game?open=shop' + (q ? '&' + q.slice(1) : ''));
+        return;
+      }
+      if (
+        p === '/reddit' || p.indexOf('/reddit/') === 0 ||
+        p === '/wiki' || p.indexOf('/wiki/') === 0 ||
+        p === '/bench' || p.indexOf('/bench/') === 0
+      ) {
+        window.location.replace('/' + q + h);
+        return;
+      }
       if (p.indexOf('/sns/') === 0) {
         window.location.replace('/sns' + q + h);
         return;

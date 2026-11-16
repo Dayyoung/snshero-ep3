@@ -70,8 +70,9 @@ const ALL_CLASS_TABS: CardClass[] = [...HERO_CLASS_ORDER, 'NEUTRAL'];
 export const CollectionScreen: React.FC<{
   onBack: () => void;
   onProfileChanged: () => void;
+  onOpenShop?: () => void;
   onReturnToJourney?: () => void;
-}> = ({ onBack, onProfileChanged, onReturnToJourney }) => {
+}> = ({ onBack, onProfileChanged, onOpenShop, onReturnToJourney }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   const [collection, setCollection] = useState(() => hsStorage.getCollection());
@@ -105,6 +106,7 @@ export const CollectionScreen: React.FC<{
   const [disenchantModalPreview, setDisenchantModalPreview] =
     useState<MassDisenchantPreview | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [dustShortageCard, setDustShortageCard] = useState<ClassicCardDef | null>(null);
 
   useModalDismiss(importModalOpen, () => setImportModalOpen(false));
   useModalDismiss(Boolean(disenchantModalPreview), () => setDisenchantModalPreview(null));
@@ -398,12 +400,17 @@ export const CollectionScreen: React.FC<{
 
   const handleCopyDeckCode = async (deck: CustomDeck) => {
     const code = encodeDeckShareCode(deck);
+    const classLabel = getLocalizedHeroInfo(deck.heroClass, lang).className;
+    const shareUrl = `https://snshero.com/game?deck=${encodeURIComponent(code)}&utm_source=deck_share`;
+    const shareText = isKo
+      ? `[눈히어로 덱 공유] ${deck.name} (${classLabel} · ${deck.cards.length}/30장)\n바로 불러오기: ${shareUrl}\n덱 코드: ${code}`
+      : `[SNSHero Deck] ${deck.name} (${classLabel} · ${deck.cards.length}/30 cards)\nPlay link: ${shareUrl}\nCode: ${code}`;
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(shareText);
       hsAudio.playSfx('menu_select', 0.8);
-      showNotice(tr('클립보드에 눈히어로 덱 공유 코드가 복사되었습니다!', 'SNSHero deck code copied to clipboard!'));
+      showNotice(tr('클립보드에 덱 공유 링크 & 코드가 복사되었습니다!', 'Deck share link & code copied to clipboard!'));
     } catch {
-      window.prompt(tr('아래 눈히어로 덱 공유 코드를 복사하세요:', 'Copy this SNSHero deck code:'), code);
+      window.prompt(tr('아래 눈히어로 덱 공유 링크를 복사하세요:', 'Copy this SNSHero deck share URL:'), shareUrl);
     }
   };
 
@@ -1419,6 +1426,9 @@ export const CollectionScreen: React.FC<{
                   showNotice(tr(`[${inspectCardName}] 카드를 제작했습니다!`, `Crafted [${inspectCardName}]!`));
                 } else {
                   showNotice(res.reason || tr('제작할 수 없습니다.', 'Cannot craft card.'));
+                  if (onOpenShop && profile.arcaneDust < (CRAFTING_COST[inspectCard.rarity] || 40)) {
+                    setDustShortageCard(inspectCard);
+                  }
                 }
               },
             };
@@ -1723,6 +1733,65 @@ export const CollectionScreen: React.FC<{
                   )}
                 </button>
               )}
+            </div>
+
+            {onOpenShop && disenchantModalPreview.extraCardCount > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click');
+                  setDisenchantModalPreview(null);
+                  onOpenShop();
+                }}
+                className="hs-gold-btn mt-2.5 w-full rounded-xl py-2.5 text-xs font-extrabold"
+              >
+                🎁 {tr(
+                  '갈지 않고 보급소에서 1팩($1)·5팩($4)으로 가루와 3배 각성 동시 확보하기 →',
+                  'Keep 3x Copies & Get 1 Pack ($1) / 5 Packs ($4) in Shop →',
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MKT-024: Insufficient Dust Shop Bridge Modal */}
+      {dustShortageCard && onOpenShop && (
+        <div
+          onClick={() => setDustShortageCard(null)}
+          className="fixed inset-0 z-[135] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="hs-wood-panel relative w-full max-w-md rounded-3xl p-5 text-center text-amber-100 shadow-2xl"
+          >
+            <h3 className="hs-title text-lg font-extrabold text-yellow-300">
+              {tr('✨ 영웅 가루가 조금 부족하신가요?', '✨ Need More Arcane Dust?')}
+            </h3>
+            <p className="mt-2 text-xs font-bold leading-relaxed text-amber-100/90">
+              {tr(
+                `[${getCardName(dustShortageCard, lang)}] 제작에는 ${CRAFTING_COST[dustShortageCard.rarity]} 가루가 필요합니다 (현재 ${profile.arcaneDust} 가루). 보급소 5팩 묶음(5,600원/$4 또는 450G) 개봉 시 전설 확정 카운트 +5 & 제작 가루를 동시에 모을 수 있습니다!`,
+                `Crafting [${getCardName(dustShortageCard, lang)}] requires ${CRAFTING_COST[dustShortageCard.rarity]} Dust (Current: ${profile.arcaneDust}). Open 5 Packs ($4 or 450G) to advance Legendary pity +5 & earn Dust!`,
+              )}
+            </p>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDustShortageCard(null);
+                  onOpenShop();
+                }}
+                className="hs-gold-btn flex-1 rounded-xl py-2.5 text-xs font-extrabold"
+              >
+                🎁 {tr('보급소에서 5팩 묶음 보기', 'View 5-Pack Bundle')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDustShortageCard(null)}
+                className="hs-brass-btn rounded-xl px-4 py-2.5 text-xs font-extrabold text-amber-100"
+              >
+                {tr('닫기', 'Close')}
+              </button>
             </div>
           </div>
         </div>

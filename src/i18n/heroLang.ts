@@ -27,6 +27,16 @@ export function detectBrowserLanguage(): HeroLanguage {
 }
 
 export function getCurrentLanguage(): HeroLanguage {
+  if (typeof window !== 'undefined' && window.location?.search) {
+    try {
+      const urlLang = new URLSearchParams(window.location.search).get('lang')?.toLowerCase();
+      if (urlLang === 'ko' || urlLang === 'en') {
+        return urlLang;
+      }
+    } catch {
+      // Ignore URL parse error
+    }
+  }
   if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') {
     try {
       const saved = localStorage.getItem(HERO_LANG_STORAGE_KEY);
@@ -53,6 +63,13 @@ export function setLanguage(lang: HeroLanguage): void {
     document.documentElement.lang = normalized;
   }
   if (typeof window !== 'undefined') {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', normalized);
+      window.history.replaceState(window.history.state, '', url.toString());
+    } catch {
+      // Ignore URL replace error
+    }
     window.dispatchEvent(new CustomEvent(HERO_LANG_EVENT, { detail: normalized }));
   }
 }

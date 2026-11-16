@@ -631,15 +631,28 @@ export const PackOpeningScreen: React.FC<{
             <div>
               {!pityState.firstTenLegendaryClaimed
                 ? tr(
-                    `첫 전설 확정 천장: ${pityState.packsSinceLegendary} / 10팩`,
-                    `First Legendary Pity: ${pityState.packsSinceLegendary} / 10`,
+                    `첫 전설 확정까지 ${Math.max(1, 10 - pityState.packsSinceLegendary)}팩 남음 (${pityState.packsSinceLegendary} / 10팩)`,
+                    `${Math.max(1, 10 - pityState.packsSinceLegendary)} packs to 1st Legendary (${pityState.packsSinceLegendary}/10)`,
                   )
                 : tr(
                     `전설 천장: ${pityState.packsSinceLegendary} / 40팩`,
                     `Legendary Pity: ${pityState.packsSinceLegendary} / 40`,
                   )}
             </div>
-            <div className="mt-0.5 text-purple-300">
+            <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full border border-amber-400/30 bg-stone-900">
+              <div
+                style={{
+                  width: `${Math.min(
+                    100,
+                    ((pityState.packsSinceLegendary || 0) /
+                      (!pityState.firstTenLegendaryClaimed ? 10 : 40)) *
+                      100,
+                  )}%`,
+                }}
+                className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 transition-all duration-300"
+              />
+            </div>
+            <div className="mt-1 text-purple-300">
               {tr(
                 `특급 천장: ${pityState.packsSinceEpic} / 10팩 · 중복 방지 ON`,
                 `Epic Pity: ${pityState.packsSinceEpic} / 10 · Duplicate Protection ON`,
@@ -749,6 +762,36 @@ export const PackOpeningScreen: React.FC<{
                     ? tr('터치하여 눈히어로 팩 개봉', 'Tap to Open Card Pack')
                     : tr('개봉할 카드 팩이 없습니다', 'No Packs Available')}
               </span>
+              {profile.packs === 0 && !pityState.firstTenLegendaryClaimed && 10 - pityState.packsSinceLegendary <= 7 && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-3 max-w-xs rounded-2xl border-2 border-amber-300/75 bg-[#1a0f08]/95 px-4 py-3 text-center shadow-2xl"
+                >
+                  <div className="text-xs font-extrabold text-yellow-300">
+                    {tr(
+                      `⚡ 첫 전설 100% 확정까지 딱 ${Math.max(1, 10 - pityState.packsSinceLegendary)}팩 남았습니다!`,
+                      `⚡ Only ${Math.max(1, 10 - pityState.packsSinceLegendary)} pack(s) left to Guaranteed 1st Legendary!`,
+                    )}
+                  </div>
+                  <p className="mt-1 text-[11px] font-bold text-amber-100/85">
+                    {tr(
+                      '5팩 묶음(5,600원/$4) · 광고 영구 제거(4,000원/$2.99)로 전설 영웅을 즉시 만나세요!',
+                      'Grab 5 Packs ($4) or Permanent Ad Removal ($2.99) to unlock your Legendary!',
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      hsAudio.playSfx('ui_click');
+                      onOpenShop();
+                    }}
+                    className="hs-gold-btn mt-2 w-full rounded-xl py-2 text-xs font-extrabold"
+                  >
+                    🎁 {tr('보급소 5팩 · 광고제거 바로 보기', 'Open Shop (5 Packs / VIP)')}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             /* ==================== 5-CARD FLOATING PENTAGON + 3D FLIP STAGE ==================== */
@@ -792,6 +835,39 @@ export const PackOpeningScreen: React.FC<{
                   </>
                 )}
               </div>
+
+              {/* MKT-006 / MKT-012 / MKT-024: Post-Legendary 1-Second Vault Backup & PWA Safeguard */}
+              {allRevealed &&
+                openedCards.some((c) => c.card.rarity === 'LEGENDARY') &&
+                !hsStorage.isSafeguardBonusClaimed() && (
+                  <div className="relative z-50 mt-2 flex flex-wrap items-center justify-center gap-2 rounded-2xl border-2 border-emerald-300/75 bg-emerald-950/90 px-3.5 py-2 text-center shadow-xl">
+                    <span className="text-[11px] font-extrabold text-emerald-100">
+                      {tr(
+                        '🛡️ 전설 카드 획득! 캐시 삭제 보호를 위해 백업 저장 시 [+100 골드] 즉시 지급:',
+                        '🛡️ Legendary Pulled! Save backup now to protect your deck & earn [+100 Gold]:',
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const { jsonString } = hsStorage.exportGameBackupData();
+                        try {
+                          await navigator.clipboard.writeText(jsonString);
+                        } catch {
+                          hsStorage.downloadGameBackupFile();
+                        }
+                        const bonus = hsStorage.claimSafeguardBackupBonus();
+                        sync();
+                        if (bonus.granted) {
+                          hsAudio.playSfx('purchase');
+                        }
+                      }}
+                      className="hs-gold-btn rounded-xl px-3 py-1 text-[11px] font-extrabold"
+                    >
+                      💾 {tr('1초 백업 저장 (+100G)', '1s Backup (+100G)')}
+                    </button>
+                  </div>
+                )}
 
               {/* 5-Point Radial Floating Stage (Mobile Constellation < md, Pentagon >= md) */}
               <div className="relative my-auto flex min-h-[440px] w-full flex-1 items-center justify-center md:min-h-[470px]">

@@ -54,9 +54,18 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   const [diskSpinning, setDiskSpinning] = useState(false);
   const [quickRulesOpen, setQuickRulesOpen] = useState(false);
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
+  const [inAppDismissed, setInAppDismissed] = useState(false);
   const [, setPwaTick] = useState(0);
   const isFirstVisitGuide = !profile.journeyGuideDone;
   const currentEp = getJourneyEpisodeDef(profile.journeyEpisode ?? 0, lang === 'ko');
+  const quests = hsStorage.getQuests();
+  const incompleteQuestsCount = quests.filter((q) => !q.completed).length;
+  const remainingExpertAiCount = Math.max(0, 9 - (profile.practiceExpertCleared?.length || 0));
+  const isInAppWebView =
+    typeof navigator !== 'undefined' &&
+    /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line|YouTube/i.test(navigator.userAgent || '');
+  const isAndroidUa =
+    typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
 
   useEffect(() => {
     hsAudio.playBgm('tavern_hub');
@@ -249,6 +258,74 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
       {/* Centerpiece: THE SNSHERO BOX */}
       <main className="relative z-20 my-auto flex w-full max-w-[820px] flex-col items-center pt-3 sm:pt-0">
+        {/* MKT-030: In-App WebView Escape & Data Protection Banner */}
+        {isInAppWebView && !inAppDismissed && (
+          <div className="mb-2 flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-amber-300/80 bg-[#1c1008]/95 px-3.5 py-2 text-xs font-extrabold text-amber-100 shadow-xl">
+            <span className="min-w-0 flex-1">
+              📲{' '}
+              {tr(
+                '인앱 브라우저에서는 덱 데이터(hero_hs_*)가 초기화될 수 있습니다! 크롬/사파리로 열어 보호하세요 (+PWA 설치 시 100G)',
+                'In-app browser may clear local data! Open in Chrome/Safari to protect your decks (+100G on PWA install)',
+              )}
+            </span>
+            <div className="flex shrink-0 items-center gap-1.5">
+              {isAndroidUa ? (
+                <a
+                  href={`intent://${typeof window !== 'undefined' ? window.location.host + window.location.pathname + window.location.search : 'snshero.com/game'}#Intent;scheme=https;package=com.android.chrome;end`}
+                  className="hs-gold-btn rounded-lg px-2.5 py-1 text-[11px] font-extrabold"
+                >
+                  {tr('크롬으로 열기', 'Open in Chrome')}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(window.location.href);
+                    } catch {
+                      // ignore clipboard error
+                    }
+                    setInstallGuideOpen(true);
+                  }}
+                  className="hs-gold-btn rounded-lg px-2.5 py-1 text-[11px] font-extrabold"
+                >
+                  {tr('사파리 URL 복사', 'Copy Safari URL')}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setInAppDismissed(true)}
+                className="rounded-lg border border-amber-400/40 bg-black/50 px-2 py-1 text-[10px] text-amber-200"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* MKT-018: Daily Quest & Expert AI 9-Faction (+2 Packs) Quick Briefing */}
+        {!isFirstVisitGuide && (incompleteQuestsCount > 0 || remainingExpertAiCount > 0) && (
+          <div className="mb-2 flex w-full flex-wrap items-center justify-between gap-2 rounded-full border border-sky-400/45 bg-sky-950/75 px-3.5 py-1 text-[11px] font-extrabold text-sky-100 shadow-lg">
+            <span>
+              🌙{' '}
+              {tr(
+                `일일 의뢰 ${incompleteQuestsCount}건 진행 가능 · 숙련 AI ${9 - remainingExpertAiCount}/9종족 격파 (올클리어 시 무료 +2팩!)`,
+                `${incompleteQuestsCount} Daily Quest(s) active · Expert AI ${9 - remainingExpertAiCount}/9 cleared (+2 Packs for sweep!)`,
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                hsAudio.playSfx('ui_click');
+                onOpenQuestLog();
+              }}
+              className="rounded-full border border-sky-300/60 bg-sky-800/80 px-2.5 py-0.5 text-[10.5px] font-extrabold text-white hover:bg-sky-700"
+            >
+              {tr('의뢰 확인 →', 'View Quests →')}
+            </button>
+          </div>
+        )}
+
         {isFirstVisitGuide && (
           <div className="mb-2 rounded-full border-2 border-emerald-300 bg-gradient-to-r from-emerald-950/95 via-teal-900/95 to-emerald-950/95 px-4 py-1.5 text-center text-xs font-extrabold text-emerald-100 shadow-[0_0_24px_rgba(16,185,129,0.55)] sm:text-sm">
             {tr('✨ 첫 방문 가이드: 아래 손가락이 가리키는 ', '✨ First Visit Guide: Click ')}
@@ -575,8 +652,8 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
       {/* Subtle Footer Plaque */}
       <footer className="relative z-20 pt-1 text-center text-[10.5px] font-bold tracking-wide text-amber-200/80 sm:text-[11px]">
         {tr(
-          '눈히어로 11종족 110영웅 · 수집 카드 382종 완비 · 배경음 기본 15%',
-          'SNSHero · 9 Factions · 382 Collectible Cards · Free-to-Play',
+          '눈히어로 9대 종족 수호자 · 수집 카드 382종 완비 · 배경음 기본 15%',
+          'SNSHero · 9 Guardian Heroes · 382 Collectible Cards · Free-to-Play',
         )}
       </footer>
 

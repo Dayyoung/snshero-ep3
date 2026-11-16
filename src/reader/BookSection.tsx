@@ -17,6 +17,7 @@
  */
 
 import { EXTERNAL_LINKS } from './types';
+import { getEpisodeBridgeInfo, getActLabel } from './episodeBridge';
 import { getNovelRawEpisode } from '../content/novelRawEpisodes';
 import { getNovelRawEpisodeEn } from '../content/novelRawEpisodesEn';
 import { chapterTitles } from '../content/kadanRpgStory';
@@ -24,6 +25,9 @@ import { isKoreanLanguage, tr } from './i18n';
 
 let currentBookEpisode: number = 1;
 let isEpisodeListOpen: boolean = false;
+let selectedTocAct: 0 | 1 | 2 | 3 | 4 = 0;
+let isVoicePreviewOpen: boolean = false;
+let isBossStatsOpen: boolean = false;
 let bookFontSize: 'normal' | 'large' | 'xlarge' = 'normal';
 
 export function getBookEpisode(): number {
@@ -45,6 +49,13 @@ function scrollToTopPage(): void {
 export function setBookEpisode(ep: number, updateUrl: boolean = true): void {
   if (typeof ep !== 'number' || isNaN(ep)) ep = 1;
   currentBookEpisode = Math.max(1, Math.min(40, Math.floor(ep)));
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem('hero_hs_last_novel_ep', String(currentBookEpisode));
+    } catch {
+      // Ignore storage quota errors
+    }
+  }
 
   if (updateUrl && typeof window !== 'undefined') {
     try {
@@ -68,6 +79,26 @@ export function initBookEpisodeFromUrl(): void {
     const epNum = parseInt(match[1], 10);
     if (!isNaN(epNum) && epNum >= 1 && epNum <= 40) {
       currentBookEpisode = epNum;
+    }
+  } else if (typeof localStorage !== 'undefined') {
+    try {
+      const profileRaw = localStorage.getItem('hero_hs_profile');
+      if (profileRaw) {
+        const parsed = JSON.parse(profileRaw) as { journeyMaxStageCleared?: number };
+        const cleared = parsed?.journeyMaxStageCleared || 0;
+        if (cleared > 0) {
+          currentBookEpisode = Math.max(1, Math.min(40, cleared + 1));
+        }
+      }
+    } catch {
+      // ignore storage parse error
+    }
+  }
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem('hero_hs_last_novel_ep', String(currentBookEpisode));
+    } catch {
+      // ignore storage quota error
     }
   }
 }
@@ -98,6 +129,15 @@ export function handleBookAction(action: string, target?: HTMLElement): void {
     }
   } else if (action === 'book-toggle-index') {
     isEpisodeListOpen = !isEpisodeListOpen;
+  } else if (action === 'book-select-toc-act') {
+    const actAttr = Number(target?.getAttribute('data-act') || '0');
+    if (actAttr >= 0 && actAttr <= 4) {
+      selectedTocAct = actAttr as 0 | 1 | 2 | 3 | 4;
+    }
+  } else if (action === 'book-toggle-voice') {
+    isVoicePreviewOpen = !isVoicePreviewOpen;
+  } else if (action === 'book-toggle-boss') {
+    isBossStatsOpen = !isBossStatsOpen;
   } else if (action === 'book-font-normal') {
     bookFontSize = 'normal';
   } else if (action === 'book-font-large') {
@@ -191,6 +231,7 @@ export function renderBookSection(): string {
 
   const ep = currentBookEpisode;
   const isKo = isKoreanLanguage();
+  const bridge = getEpisodeBridgeInfo(ep);
   const rawContent = isKo ? getNovelRawEpisode(ep) : getNovelRawEpisodeEn(ep) || getNovelRawEpisode(ep);
   const parsed = parseRawNovel(rawContent, ep);
   const epTitle = isKo
@@ -249,6 +290,22 @@ export function renderBookSection(): string {
                   ${tr('더크게', 'A++', '特大')}
                 </button>
               </div>
+
+              <button
+                type="button"
+                data-action="book-toggle-voice"
+                class="px-3 py-1.5 bg-sky-950/70 text-sky-200 hover:bg-sky-900/90 border border-sky-400/40 text-xs font-extrabold rounded-full min-h-[36px] flex items-center gap-1 cursor-pointer transition"
+              >
+                <span>🔊 ${tr('성우 보이스', 'Voice')}</span>
+              </button>
+
+              <button
+                type="button"
+                data-action="book-toggle-boss"
+                class="px-3 py-1.5 bg-rose-950/70 text-rose-200 hover:bg-rose-900/90 border border-rose-400/40 text-xs font-extrabold rounded-full min-h-[36px] flex items-center gap-1 cursor-pointer transition"
+              >
+                <span>⚔ ${tr('등장 보스', 'Boss')}</span>
+              </button>
 
               <!-- Full Episode List Toggle -->
               <button
@@ -331,15 +388,42 @@ export function renderBookSection(): string {
                 [${tr('닫기', 'Close', '閉じる')} ✕]
               </button>
             </div>
+            <div class="flex flex-wrap gap-1.5 mb-3">
+              ${([0, 1, 2, 3, 4] as const)
+                .map(
+                  (act) => `
+                  <button
+                    type="button"
+                    data-action="book-select-toc-act"
+                    data-act="${act}"
+                    class="px-3 py-1.5 rounded-full text-[11px] font-extrabold border cursor-pointer transition ${
+                      selectedTocAct === act
+                        ? 'bg-amber-500 text-[#1b0f05] border-amber-300'
+                        : 'bg-[#1f1209] text-amber-200/80 border-amber-700/40 hover:border-amber-400'
+                    }"
+                  >
+                    ${getActLabel(act)}
+                  </button>
+                `,
+                )
+                .join('')}
+            </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[320px] overflow-y-auto pr-1">
-              ${Array.from({ length: 40 }, (_, idx) => {
-                const num = idx + 1;
-                const title = isKo
-                  ? chapterTitles[idx]?.titleKo || `제 ${num}화`
-                  : chapterTitles[idx]?.titleEn || `Episode ${num}`;
-                const isCurrent = num === ep;
-                const epBadge = isKo ? `[${num}화]` : `[EP.${String(num).padStart(2, '0')}]`;
-                return `
+              ${Array.from({ length: 40 }, (_, idx) => idx + 1)
+                .filter((num) => {
+                  if (selectedTocAct === 0) return true;
+                  const actStart = (selectedTocAct - 1) * 10 + 1;
+                  const actEnd = selectedTocAct * 10;
+                  return num >= actStart && num <= actEnd;
+                })
+                .map((num) => {
+                  const idx = num - 1;
+                  const title = isKo
+                    ? chapterTitles[idx]?.titleKo || `제 ${num}화`
+                    : chapterTitles[idx]?.titleEn || `Episode ${num}`;
+                  const isCurrent = num === ep;
+                  const epBadge = isKo ? `[${num}화]` : `[EP.${String(num).padStart(2, '0')}]`;
+                  return `
                   <button
                     type="button"
                     data-action="book-jump-episode"
@@ -355,7 +439,68 @@ export function renderBookSection(): string {
                     <span class="truncate">${title}</span>
                   </button>
                 `;
-              }).join('')}
+                })
+                .join('')}
+            </div>
+            ${
+              selectedTocAct > 0
+                ? `
+              <div class="mt-3 pt-2.5 border-t border-amber-700/30 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span class="font-extrabold text-amber-200">
+                  ⚔ ${tr(`제${selectedTocAct}막 최종 보스 (${selectedTocAct * 10}화) 인게임 직접 도전`, `Battle Act ${selectedTocAct} Final Boss (EP.${selectedTocAct * 10})`)}
+                </span>
+                <a
+                  href="/game?mode=story&ep=${selectedTocAct * 10}&utm_source=book_toc_act"
+                  class="hs-promo-cta-purple px-4 py-1.5 rounded-full text-[11px] font-extrabold no-underline"
+                >
+                  ${tr(`제${selectedTocAct * 10}화 보스 레이드 →`, `Play EP.${selectedTocAct * 10} Boss →`)}
+                </a>
+              </div>
+            `
+                : ''
+            }
+          </div>
+        `
+            : ''
+        }
+
+        ${
+          isVoicePreviewOpen
+            ? `
+          <div class="w-full max-w-5xl mx-auto px-4 py-3 sm:px-6 bg-[#140c06] border-t border-sky-500/30">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="text-xs font-extrabold text-sky-200">
+                🔊 ${tr(`제${ep}화 스튜디오 성우 풀보이스 미리듣기`, `EP.${ep} Studio Full-Voice Narration Preview`)}
+              </div>
+              <audio controls preload="none" src="${bridge.voiceAudioUrl}" class="w-full sm:max-w-md h-9"></audio>
+            </div>
+          </div>
+        `
+            : ''
+        }
+
+        ${
+          isBossStatsOpen
+            ? `
+          <div class="w-full max-w-5xl mx-auto px-4 py-3 sm:px-6 bg-[#140c06] border-t border-rose-500/30">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <img src="${bridge.bossImageUrl}" alt="${escapeHtml(isKo ? bridge.bossNameKo : bridge.bossNameEn)}" class="h-12 w-12 rounded-xl object-cover border border-rose-400/60 bg-black" />
+                <div>
+                  <div class="text-xs font-extrabold text-rose-300">
+                    ${isKo ? bridge.bossNameKo : bridge.bossNameEn} · HP ${bridge.bossHp}
+                  </div>
+                  <div class="text-[11px] font-bold text-amber-200/80">
+                    ${isKo ? bridge.bossRoleKo : bridge.bossRoleEn}
+                  </div>
+                </div>
+              </div>
+              <a
+                href="/game?mode=story&ep=${ep}&utm_source=book_header_boss"
+                class="hs-promo-cta-purple px-4 py-2 rounded-full text-xs font-extrabold no-underline"
+              >
+                ⚔ ${tr(`제${ep}화 보스전 직접 격파하기 (무료 3팩)`, `Challenge EP.${ep} Boss (3 Free Packs)`)}
+              </a>
             </div>
           </div>
         `
@@ -421,22 +566,72 @@ export function renderBookSection(): string {
               .join('')}
           </div>
 
-          <!-- Episode Completion Endmark -->
-          <div class="pt-10 pb-6 text-center border-t-2 border-[#b88a44]/40 space-y-2">
-            <span class="text-xs font-extrabold text-[#6e4621] tracking-widest uppercase">
-              ${tr(
-                `— 《카단의 여정》 제 ${ep}화 끝 —`,
-                `— End of Kadan's Journey Episode ${ep} —`,
-                `— 《カダンの旅》 第${ep}話 完 —`
-              )}
-            </span>
-            <p class="text-xs text-[#5c3c1e] font-bold m-0">
-              ${tr(
-                '다음 화에서 카단과 수호자들의 모험이 계속 이어집니다.',
-                'The adventure of Kadan and the Guardians continues in the next episode.',
-                '次話でもカダンと守護者たちの冒険が続きます。'
-              )}
-            </p>
+          <!-- Episode Completion Endmark & In-Game Boss Bridge (MKT-010, MKT-016, MKT-022, MKT-028) -->
+          <div class="pt-10 pb-4 text-center border-t-2 border-[#b88a44]/40 space-y-4">
+            <div class="space-y-1">
+              <span class="text-xs font-extrabold text-[#6e4621] tracking-widest uppercase">
+                ${tr(
+                  `— 《카단의 여정》 제 ${ep}화 끝 —`,
+                  `— End of Kadan's Journey Episode ${ep} —`,
+                  `— 《カダンの旅》 第${ep}話 完 —`
+                )}
+              </span>
+              <p class="text-xs text-[#5c3c1e] font-bold m-0">
+                ${tr(
+                  '다음 화에서 카단과 수호자들의 모험이 계속 이어집니다.',
+                  'The adventure of Kadan and the Guardians continues in the next episode.',
+                  '次話でもカダンと守護者たちの冒険が続きます。'
+                )}
+              </p>
+            </div>
+
+            <div class="p-4 sm:p-5 rounded-2xl bg-[#1b1008] text-[#f8ebd2] border-2 border-[#c8a158]/70 text-left space-y-4 shadow-xl">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[11px] font-extrabold">
+                  ${
+                    ep % 10 === 0
+                      ? tr(`🔥 제${bridge.actNumber}막 완독 달성! 막 최종 보스전`, `🔥 Act ${bridge.actNumber} Finale Boss Raid!`)
+                      : ep % 5 === 0
+                        ? tr('🎁 보스 토벌 카드팩 +1개 확정 지급 구간!', '🎁 Milestone: +1 Boss Card Pack Reward!')
+                        : tr(`⚔ 제${ep}화 서사-전투 연동 브릿지`, `⚔ EP.${ep} Story-to-Battle Bridge`)
+                  }
+                </span>
+                <span class="text-[11px] font-bold text-emerald-300">
+                  ${tr('3장=3배 각성 & 성우 200트랙 풀보이스', '3x Awakening & 200 Voice Tracks')}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                ${bridge.featuredCards
+                  .map(
+                    (fc) => `
+                    <a
+                      href="/game?mode=story&ep=${ep}&utm_source=book_card_widget"
+                      class="flex items-center gap-2.5 p-2 rounded-xl bg-black/45 border border-amber-500/30 hover:border-amber-300 no-underline transition"
+                    >
+                      <img src="${fc.imgUrl}" alt="${escapeHtml(isKo ? fc.nameKo : fc.nameEn)}" class="h-11 w-11 rounded-lg object-cover bg-stone-900 shrink-0" />
+                      <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-amber-200 truncate">${escapeHtml(isKo ? fc.nameKo : fc.nameEn)}</div>
+                        <div class="text-[10px] font-bold text-amber-100/70 truncate">${escapeHtml(fc.statsLabel)}</div>
+                      </div>
+                    </a>
+                  `,
+                  )
+                  .join('')}
+              </div>
+
+              <a
+                href="/game?mode=story&ep=${ep}&utm_source=book_card_widget"
+                class="hs-promo-cta-purple w-full py-3 px-5 rounded-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline"
+              >
+                <span>
+                  ⚔ ${tr(
+                    `제${ep}화 보스전 풀보이스로 직접 돌파하기 (무료 3팩 + 250G)`,
+                    `Play EP.${ep} Boss Battle with Full Voice (3 Free Packs + 250G)`,
+                  )}
+                </span>
+              </a>
+            </div>
           </div>
 
           <!-- Bottom Big Navigation Buttons -->

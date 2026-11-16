@@ -5802,6 +5802,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     {tr('엘윈마을 로비로 돌아가기', 'Return to Elwin Village Hub')}
                   </button>
                 </div>
+                {onOpenShopFromBattle && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      drawRetryFiredRef.current = true;
+                      hsAudio.playSfx('ui_click');
+                      onOpenShopFromBattle();
+                    }}
+                    className="hs-gold-btn w-full rounded-xl py-2 text-xs font-extrabold"
+                  >
+                    🎁 {tr('보급소 1팩($1)·5팩($4)으로 3배 각성 즉시 보강', 'Shop 1-Pack ($1) / 5-Pack ($4) Power Up')}
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -5917,11 +5930,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 />
                 <div className="min-w-0 flex-1">
                   <div className="text-[11px] font-black text-sky-300">
-                    {tr('카단 · 튜토리얼 수료 환영 인사', 'Kadan · Tutorial Complete')}
+                    {tr('카단 · 튜토리얼 수료 & 자동 추천 30장 덱 안내', 'Kadan · Tutorial Complete & Auto-Deck Ready')}
                   </div>
                   <div className="mt-0.5 text-xs font-extrabold leading-snug text-white sm:text-sm">
-                    {tr('“허수아비 로봇을 훌륭하게 쓰러뜨리셨어요! 눈히어로 세계에 오신 것을 진심으로 환영합니다. 이제 제1화에서 진짜 여정을 시작합시다!”',
-                      '“Well done defeating the Scarecrow Bot! Welcome to the world of SNSHero. Let’s begin our true journey in Episode 1!”',
+                    {tr('“허수아비 로봇을 쓰러뜨리셨어요! 복잡한 덱 짜기 없이 카단 추천 30장 스타터 덱과 스마트 오토 배틀로 제1화 웹툰 스토리를 바로 감상하세요!”',
+                      '“Scarecrow Bot defeated! Jump straight into Episode 1 with our Auto-Recommended 30-Card Starter Deck & Smart Auto-Play!”',
                     )}
                   </div>
                 </div>
@@ -6035,6 +6048,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                                 : '엘윈 성소 구호 지원팩 1개를 보급'}
                           </b>
                           하여 <b className="text-emerald-300">5장을 개봉(동일 카드 3장 = 공격력·생명력 ×3배 각성)</b>한 뒤 강화된 덱으로 다시 도전합니다!
+                          {(() => {
+                            const twoCopyInfo = hsStorage.countTwoCopyAwakenableCards(isKo);
+                            return twoCopyInfo.count > 0 ? (
+                              <span className="mt-1 block text-[11px] font-extrabold text-sky-300">
+                                💡 현재 1장만 더 얻으면 3배 각성되는 카드 {twoCopyInfo.count}종 대기 중! ({twoCopyInfo.sampleNames.join(', ')})
+                              </span>
+                            ) : null;
+                          })()}
                         </>
                       ) : (
                         <>
@@ -6047,6 +6068,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                                 : 'claim 1 free Elwin Sanctuary Aid pack'}
                           </b>{' '}
                           and awaken <b className="text-emerald-300">3+ duplicate cards (×3 ATK/HP)</b>!
+                          {(() => {
+                            const twoCopyInfo = hsStorage.countTwoCopyAwakenableCards(isKo);
+                            return twoCopyInfo.count > 0 ? (
+                              <span className="mt-1 block text-[11px] font-extrabold text-sky-300">
+                                💡 {twoCopyInfo.count} card(s) only need 1 more copy for 3x Awakening! ({twoCopyInfo.sampleNames.join(', ')})
+                              </span>
+                            ) : null;
+                          })()}
                         </>
                       )}
                     </p>
@@ -6137,6 +6166,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                         : ' ▶'}
                     </span>
                   </button>
+                  {onOpenShopFromBattle && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        postGameFiredRef.current = true;
+                        hsAudio.playSfx('ui_click');
+                        onOpenShopFromBattle();
+                      }}
+                      className="hs-gold-btn w-full rounded-xl py-2.5 text-xs font-extrabold"
+                    >
+                      🎁 {tr('보급소 1팩($1)·5팩($4) 개봉해 3배 각성 즉시 완성하기', 'Open 1-Pack ($1) / 5-Pack ($4) in Shop')}
+                    </button>
+                  )}
 
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {onStartJourneyEpisode && (

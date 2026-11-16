@@ -293,7 +293,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
           </button>
 
           <div className="mt-0.5 flex flex-wrap items-center justify-center gap-2 rounded-xl border border-[#8d6732]/60 bg-[#130b05]/85 px-3.5 py-1.5 text-[11px] font-bold text-[#e7cda0] shadow-xl sm:gap-2.5 sm:px-4 sm:text-xs">
-            <span>{tr('11종족 110영웅', '9 Factions · 110 Heroes')}</span>
+            <span>{tr('9대 종족 수호자', '9 Guardian Heroes')}</span>
             <span className="text-amber-500">·</span>
             <span>{tr('수집 카드 382종 완비', '382 Collectible Cards')}</span>
             <span className="text-amber-500">·</span>

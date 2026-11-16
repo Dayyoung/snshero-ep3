@@ -16,3 +16,6 @@ public/anime-character-sheets/cutscenes/**/images/*.jpg
 __pycache__/
 *.pyc
 exports/
+google_ads_*.csv
+*_sheet*.csv
+pending_tasks.txt
