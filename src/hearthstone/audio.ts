@@ -129,6 +129,9 @@ class SnsHeroCardAudioEngine {
   private currentBgmKey: string | null = null;
   private currentVo: HTMLAudioElement | null = null;
   private currentVoResolve: (() => void) | null = null;
+  private currentVoSequenceCancel: (() => void) | null = null;
+  private voSequenceToken = 0;
+  private decodedVoBufferCache = new Map<string, Promise<AudioBuffer | null>>();
   private currentStoryAudio: HTMLAudioElement | null = null;
   private currentStoryCleanup: (() => void) | null = null;
   private storyManuallyPaused = false;
@@ -238,18 +241,7 @@ class SnsHeroCardAudioEngine {
       this.activeSfx.clear();
     }
 
-    if (this.currentVo) {
-      try {
-        this.currentVo.pause();
-        this.currentVo.src = '';
-      } catch {
-        // ignore
-      }
-      this.currentVo = null;
-      const done = this.currentVoResolve;
-      this.currentVoResolve = null;
-      done?.();
-    }
+    this.cancelActiveVo();
 
     if (this.currentStoryAudio) {
       try {
@@ -393,13 +385,7 @@ class SnsHeroCardAudioEngine {
       }
     }
     if (this.settings.muted) {
-      if (this.currentVo) {
-        this.currentVo.pause();
-        this.currentVo = null;
-        const done = this.currentVoResolve;
-        this.currentVoResolve = null;
-        done?.();
-      }
+      this.cancelActiveVo();
       if (this.activeSfx.size > 0) {
         for (const sfx of this.activeSfx) {
           sfx.pause();
@@ -708,6 +694,39 @@ class SnsHeroCardAudioEngine {
     }
   }
 
+  private cancelActiveVo() {
+    this.voSequenceToken += 1;
+    const seqCancel = this.currentVoSequenceCancel;
+    this.currentVoSequenceCancel = null;
+    if (seqCancel) {
+      try {
+        seqCancel();
+      } catch {
+        // ignore
+      }
+    }
+    if (this.currentVo) {
+      try {
+        this.currentVo.pause();
+        this.currentVo.src = '';
+      } catch {
+        // ignore
+      }
+      this.currentVo = null;
+      const prevResolve = this.currentVoResolve;
+      this.currentVoResolve = null;
+      prevResolve?.();
+    }
+  }
+
+  private withVoVersion(url: string): string {
+    if (url.includes('?')) return url;
+    if (url.includes('/short_') || url.includes('/announcer_versus.mp3')) {
+      return `${url}?v=tight1`;
+    }
+    return url;
+  }
+
   playVoFile(voKey: string): Promise<void> {
     if (
       !isKoreanLanguage() ||
@@ -717,36 +736,8 @@ class SnsHeroCardAudioEngine {
     ) {
       return Promise.resolve();
     }
-    return new Promise((resolve) => {
-      try {
-        if (this.currentVo) {
-          this.currentVo.pause();
-          this.currentVo = null;
-          const prevResolve = this.currentVoResolve;
-          this.currentVoResolve = null;
-          prevResolve?.();
-        }
-        const a = new Audio(`/hs-assets/snshero-audio/vo/${voKey}.mp3`);
-        a.volume = this.settings.voVolume;
-        this.currentVo = a;
-        let settled = false;
-        const finish = () => {
-          if (settled) return;
-          settled = true;
-          if (this.currentVo === a) {
-            this.currentVo = null;
-            this.currentVoResolve = null;
-          }
-          resolve();
-        };
-        this.currentVoResolve = finish;
-        a.onended = finish;
-        a.onerror = finish;
-        a.play().catch(finish);
-      } catch {
-        resolve();
-      }
-    });
+    const url = this.withVoVersion(`/hs-assets/snshero-audio/vo/${voKey}.mp3`);
+    return this.playCustomVoUrl(url);
   }
 
   playInnkeeper(
@@ -984,25 +975,15 @@ class SnsHeroCardAudioEngine {
     return this.heroNameVoMapPromise;
   }
 
-  private playCustomVoUrl(url: string): Promise<void> {
+  private playCustomVoUrl(url: string, preloaded?: HTMLAudioElement): Promise<void> {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.voVolume <= 0) {
       return Promise.resolve();
     }
-    if (this.currentVo) {
-      try {
-        this.currentVo.pause();
-        this.currentVo.src = '';
-      } catch {
-        // ignore
-      }
-      const prevResolve = this.currentVoResolve;
-      this.currentVo = null;
-      this.currentVoResolve = null;
-      prevResolve?.();
-    }
+    this.cancelActiveVo();
+    const versionedUrl = this.withVoVersion(url);
     return new Promise((resolve) => {
       try {
-        const a = new Audio(url);
+        const a = preloaded || new Audio(versionedUrl);
         a.volume = Math.min(1, this.settings.voVolume);
         this.currentVo = a;
         let settled = false;
@@ -1030,21 +1011,185 @@ class SnsHeroCardAudioEngine {
     return this.playCustomVoUrl(url);
   }
 
-  private async announceHeroName(nameLocalized: string): Promise<void> {
-    if (!this.settings.ttsEnabled) return;
-    const trimmed = nameLocalized.trim();
-    if (!trimmed) return;
-    if (!isKoreanLanguage()) {
-      await this.speakTts(trimmed, 1.0, 0.86);
-      return;
+  private trimAudioBufferSilence(ctx: AudioContext, buf: AudioBuffer): AudioBuffer {
+    const sr = buf.sampleRate;
+    const len = buf.length;
+    if (len <= Math.floor(sr * 0.06)) return buf;
+
+    const threshold = 0.0022;
+    let first = len;
+    let last = -1;
+
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const data = buf.getChannelData(ch);
+      for (let i = 0; i < first; i++) {
+        if (Math.abs(data[i]) > threshold) {
+          first = i;
+          break;
+        }
+      }
+      for (let i = len - 1; i > last; i--) {
+        if (Math.abs(data[i]) > threshold) {
+          last = i;
+          break;
+        }
+      }
     }
-    const map = await this.loadHeroNameVoMap();
-    const studioUrl = map[trimmed];
-    if (studioUrl) {
-      await this.playCustomVoUrl(studioUrl);
-      return;
+
+    if (first >= last || last < 0) return buf;
+
+    const leadPad = Math.floor(sr * 0.008);
+    const tailPad = Math.floor(sr * 0.012);
+    const start = Math.max(0, first - leadPad);
+    const end = Math.min(len, last + 1 + tailPad);
+    const trimmedLen = end - start;
+    if (trimmedLen <= 0 || trimmedLen >= len - Math.floor(sr * 0.008)) return buf;
+
+    const out = ctx.createBuffer(buf.numberOfChannels, trimmedLen, sr);
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      out.copyToChannel(buf.getChannelData(ch).subarray(start, end), ch);
     }
-    await this.speakTts(trimmed, 1.0, 0.82);
+    return out;
+  }
+
+  private loadDecodedVoBuffer(url: string, ctx: AudioContext): Promise<AudioBuffer | null> {
+    const versionedUrl = this.withVoVersion(url);
+    const cached = this.decodedVoBufferCache.get(versionedUrl);
+    if (cached) return cached;
+
+    const pending = fetch(versionedUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((raw) => ctx.decodeAudioData(raw))
+      .then((decoded) => this.trimAudioBufferSilence(ctx, decoded))
+      .catch(() => {
+        this.decodedVoBufferCache.delete(versionedUrl);
+        return null;
+      });
+
+    this.decodedVoBufferCache.set(versionedUrl, pending);
+    return pending;
+  }
+
+  private async playGaplessVoSequence(
+    urls: string[],
+  ): Promise<'played' | 'cancelled' | 'fallback'> {
+    if (
+      urls.length === 0 ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.voVolume <= 0
+    ) {
+      return 'cancelled';
+    }
+
+    const ctx = this.getAudioCtx();
+    if (!ctx) return 'fallback';
+
+    this.cancelActiveVo();
+    const token = this.voSequenceToken;
+
+    if (ctx.state === 'suspended') {
+      await ctx.resume().catch(() => {});
+    }
+
+    const buffers = await Promise.all(urls.map((u) => this.loadDecodedVoBuffer(u, ctx)));
+    if (
+      this.voSequenceToken !== token ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.voVolume <= 0
+    ) {
+      return 'cancelled';
+    }
+    if (ctx.state !== 'running' || buffers.some((b) => !b)) {
+      return 'fallback';
+    }
+
+    const validBuffers = buffers as AudioBuffer[];
+
+    return new Promise<'played' | 'cancelled' | 'fallback'>((resolve) => {
+      let settled = false;
+      let timerId: number | null = null;
+      const sources: AudioBufferSourceNode[] = [];
+      const gain = ctx.createGain();
+      gain.gain.value = Math.min(1, this.settings.voVolume);
+      gain.connect(ctx.destination);
+
+      const cleanup = (outcome: 'played' | 'cancelled' | 'fallback') => {
+        if (settled) return;
+        settled = true;
+        if (timerId !== null) {
+          window.clearTimeout(timerId);
+          timerId = null;
+        }
+        if (this.currentVoSequenceCancel === cancelHandler) {
+          this.currentVoSequenceCancel = null;
+        }
+        for (const s of sources) {
+          s.onended = null;
+          try {
+            s.stop();
+          } catch {
+            // ignore
+          }
+          try {
+            s.disconnect();
+          } catch {
+            // ignore
+          }
+        }
+        try {
+          gain.disconnect();
+        } catch {
+          // ignore
+        }
+        resolve(outcome);
+      };
+
+      const cancelHandler = () => cleanup('cancelled');
+      this.currentVoSequenceCancel = cancelHandler;
+
+      let cursor = ctx.currentTime + 0.012;
+      for (const buf of validBuffers) {
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(gain);
+        src.start(cursor);
+        cursor += buf.duration;
+        sources.push(src);
+      }
+
+      const lastSrc = sources[sources.length - 1];
+      if (!lastSrc) {
+        cleanup('fallback');
+        return;
+      }
+
+      lastSrc.onended = () => cleanup('played');
+      const totalWaitMs = Math.max(150, Math.ceil((cursor - ctx.currentTime) * 1000) + 240);
+      timerId = window.setTimeout(() => cleanup('played'), totalWaitMs);
+    });
+  }
+
+  private async playSequentialPreloadedUrls(urls: string[]): Promise<void> {
+    const preloaded = urls.map((rawUrl) => {
+      const a = new Audio(this.withVoVersion(rawUrl));
+      a.preload = 'auto';
+      try {
+        a.load();
+      } catch {
+        // ignore
+      }
+      return { url: rawUrl, audio: a };
+    });
+
+    for (const item of preloaded) {
+      if (!this.checkWindowActive() || this.settings.muted) return;
+      await this.playCustomVoUrl(item.url, item.audio);
+    }
   }
 
   /**
@@ -1141,7 +1286,7 @@ class SnsHeroCardAudioEngine {
     _isPlayerCustom = false,
     _isOpponentCustom = false,
   ) {
-    if (!this.checkWindowActive() || this.settings.muted) return;
+    if (!this.checkWindowActive() || this.settings.muted || this.settings.voVolume <= 0) return;
     const isKo = isKoreanLanguage();
     const pShort = extractShortHeroCalloutName(playerName, playerClass, isKo);
     const oShort = extractShortHeroCalloutName(opponentName, opponentClass, isKo);
@@ -1151,18 +1296,44 @@ class SnsHeroCardAudioEngine {
       return;
     }
 
-    // 1. 플레이어 짧은 이름만 아나운서 호명
-    await this.announceHeroName(pShort);
+    const map = await this.loadHeroNameVoMap();
+    if (!this.checkWindowActive() || this.settings.muted) return;
 
-    if (!this.checkWindowActive()) return;
+    const pUrl = this.settings.ttsEnabled && map[pShort] ? this.withVoVersion(map[pShort]) : null;
+    const oUrl = this.settings.ttsEnabled && map[oShort] ? this.withVoVersion(map[oShort]) : null;
+    const versusUrl = this.withVoVersion('/hs-assets/snshero-audio/vo/announcer_versus.mp3');
 
-    // 2. "대!" (Versus) 아나운서
-    await this.playVoFile('announcer_versus');
+    // 모든 표준/스토리 캐릭터는 3클립(플레이어 → 대! → 상대방)을 공백 없이 Web Audio로 연속 스케줄링 재생
+    if (pUrl && oUrl) {
+      const outcome = await this.playGaplessVoSequence([pUrl, versusUrl, oUrl]);
+      if (outcome === 'fallback' && this.checkWindowActive() && !this.settings.muted) {
+        await this.playSequentialPreloadedUrls([pUrl, versusUrl, oUrl]);
+      }
+      return;
+    }
 
-    if (!this.checkWindowActive()) return;
+    // 일부 커스텀 이름 등 맵에 없는 이름이 섞인 경우에도 스튜디오 클립 구간은 공백 없이 연결
+    if (pUrl) {
+      const outcome = await this.playGaplessVoSequence([pUrl, versusUrl]);
+      if (outcome === 'cancelled') return;
+      if (outcome === 'fallback' && this.checkWindowActive() && !this.settings.muted) {
+        await this.playSequentialPreloadedUrls([pUrl, versusUrl]);
+      }
+    } else {
+      if (this.settings.ttsEnabled) {
+        await this.speakTts(pShort, 1.0, 0.82);
+      }
+      if (!this.checkWindowActive() || this.settings.muted) return;
+      await this.playCustomVoUrl(versusUrl);
+    }
 
-    // 3. 상대방 짧은 이름만 아나운서 호명
-    await this.announceHeroName(oShort);
+    if (!this.checkWindowActive() || this.settings.muted) return;
+
+    if (oUrl) {
+      await this.playCustomVoUrl(oUrl);
+    } else if (this.settings.ttsEnabled) {
+      await this.speakTts(oShort, 1.0, 0.82);
+    }
   }
 }
 

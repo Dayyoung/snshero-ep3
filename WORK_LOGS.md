@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 12:46 KST] [게임 시작 VS 캐릭터 호명 음성 무공백 연속 재생 최적화 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 32종 짧은 캐릭터 이름(`short_*.mp3`) 및 `announcer_versus.mp3` 전후 무음 구간 정밀 트리밍**:
+    - 기존 `public/hs-assets/snshero-audio/story/short_*.mp3` 32개 파일(각 앞 무음 ~0.35초 + 뒤 무음 ~1.0초)과 `public/hs-assets/snshero-audio/vo/announcer_versus.mp3`(뒤 무음 ~1.39초) 때문에 "알렉산다르 대 루시안" 소개 시 약 3.5~4초의 빈 공백이 발생하던 원인을 제거.
+    - `ffmpeg` `-55dB` 기준 발화 경계 검출 + 미세 페이드(`8ms`/`10ms`) 트리밍으로 단어 내부 호흡은 보존하면서 전후 무음을 20ms 수준으로 압축(`short_aleksandar.mp3` `1.87s → 0.779s`, `announcer_versus.mp3` `1.69s → 0.355s`, `short_lucian.mp3` `1.94s → 0.547s`).
+  - **2. Web Audio API 병렬 디코딩 & 0ms 무공백 연속 스케줄링 도입 (`src/hearthstone/audio.ts`)**:
+    - [`src/hearthstone/audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts): `playGaplessVoSequence()`, `loadDecodedVoBuffer()`, `trimAudioBufferSilence()`, `playSequentialPreloadedUrls()` 신설 및 `playMatchupAnnouncement()` 고도화.
+    - 플레이어 이름 · `"대!"` · 상대방 이름 3개 음원을 병렬 fetch/decode하고 디코딩된 PCM의 MP3 인코더 패딩 무음까지 제거한 뒤 `AudioBufferSourceNode`로 정확히 이어 붙여 공백 없이 순서대로 호명하도록 구현(AudioContext 미활성 시 병렬 프리로드 `<audio>` 폴백 + `?v=tight1` 캐시 버스팅 적용).
+  - **3. 타입체크 · 프로덕션 빌드 · Playwright 실브라우저 검증 완료**:
+    - `npx tsc --noEmit` 및 `npm run build` 에러 0건 통과.
+    - Playwright(`1280×800`, `ko-KR`) 1화("알렉산다르 대 루시안") 실전 테스트: VS 화면 진입부터 3개 음원 병렬 요청(`?v=tight1`, `deltaMs: 0`) 및 VS 전환 완료까지 `1963ms` 기록, `PAGE_ERRORS: []` 확인.
+
 ## [2026-11-16 12:42 KST] [`/` 공식 게임 소개(구 `/promo`) 승격 및 `/game` 게임 엔트리포인트 전환 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
