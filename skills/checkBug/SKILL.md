@@ -1,6 +1,6 @@
 ---
 name: checkBug
-description: SNSHero 개발문서(1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU, 개발개선점 분석 로그)를 gsheets CLI로 조회해 미해결 결함·개발 개선 항목을 소스코드에 적용하고, 실제 빌드 및 E2E 테스트 통과 후 원격 배포(git push) 및 시트 상태·조치내역 최신화까지 일괄 수행하는 스킬. Use whenever the user types /checkBug or asks to check/fix the SNSHero dev/bug spreadsheet.
+description: SNSHero 개발문서(1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU, 개발개선점 분석 로그)를 gsheets CLI로 조회해 미해결 결함·개발 개선 항목을 소스코드에 적용하고, 실제 빌드 및 E2E 테스트 통과 후 로컬 커밋(git commit · 푸시 대기) 및 시트 상태·조치내역 최신화까지 일괄 수행하는 스킬 (자동 git push 금지, 사용자 확인 후 수동 푸시). Use whenever the user types /checkBug or asks to check/fix the SNSHero dev/bug spreadsheet.
 ---
 
 # /checkBug 스킬 지침서
@@ -53,12 +53,12 @@ description: SNSHero 개발문서(1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU, 
    - 로컬 프리뷰 서버(`vite preview` 또는 `scripts/start-server.sh`)와 Playwright E2E/엔진 스크립트로 수정한 버그의 재현 시나리오(전투 판정, UI 조작, 모바일/데스크톱 뷰포트, 콘솔/페이지 에러 `0`건 등)를 직접 실행해 통과를 확인합니다.
    - 테스트 실패 시 통과할 때까지 수정 후 재검증합니다.
 
-### 4단계: 로컬 커밋 및 원격 배포 (`git push`)
-- 모든 테스트가 통과한 후 커밋 및 원격 배포를 실행합니다:
+### 4단계: 로컬 커밋 (`git commit` · 원격 푸시 보류)
+- 모든 테스트가 통과한 후 **로컬 커밋만** 실행하고, **절대 `git push`를 실행하지 않습니다**. 사용자가 확인 후 수동으로 푸시(`/git-push`)할 수 있도록 대기합니다:
   ```bash
   git add <수정된 파일들>
   git commit -m "fix(dev): resolve [DEV-XXX 목록] from SNSHero dev/bug log"
-  git push origin main
+  # 주의: git push는 자동 실행하지 않고 사용자 수동 확인 후 진행합니다.
   ```
 
 ### 5단계: 구글 시트 최신화(`J`열 + `K`열) & 작업 보고 후 종료
@@ -66,6 +66,6 @@ description: SNSHero 개발문서(1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU, 
 2. `'요약 대시보드'`(`'요약 대시보드'!A1:H15`)를 조회해 집계 수치가 정상 반영되었는지 확인합니다.
 3. `WORK_LOGS.md` 누적 기록 및 구글 폼 보고 스크립트를 실행합니다:
    ```bash
-   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkBug] 개발개선점 패치 및 배포 완료" --status "작업완료" --details "[처리한 DEV ID, 패치 내역, 테스트 통과 결과, 커밋/푸시 해시, 시트 최신화 완료]"
+   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkBug] 개발개선점 패치 및 로컬 커밋 완료 (푸시 대기)" --status "작업완료" --details "[처리한 DEV ID, 패치 내역, 테스트 통과 결과, 로컬 커밋 해시(푸시 대기), 시트 최신화 완료]"
    ```
 4. 수정·검증·배포·문서 최신화 내역을 사용자에게 한국어로 상세히 보고하고 종료합니다.

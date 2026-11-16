@@ -1,6 +1,6 @@
 ---
 name: checkMarket
-description: SNSHero 마케팅문서(1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU, 마케팅 분석 로그)를 gsheets CLI로 조회해 미완료 항목 중 코드·저장소에서 적용 가능한 항목을 수정하고, 실제 빌드 및 테스트 통과 후 원격 배포(git push) 및 시트 상태 최신화까지 일괄 수행하는 스킬. Use whenever the user types /checkMarket or asks to check/apply the SNSHero marketing spreadsheet.
+description: SNSHero 마케팅문서(1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU, 마케팅 분석 로그)를 gsheets CLI로 조회해 미완료 항목 중 코드·저장소에서 적용 가능한 항목을 수정하고, 실제 빌드 및 테스트 통과 후 로컬 커밋(git commit · 푸시 대기) 및 시트 상태 최신화까지 일괄 수행하는 스킬 (자동 git push 금지, 사용자 확인 후 수동 푸시). Use whenever the user types /checkMarket or asks to check/apply the SNSHero marketing spreadsheet.
 ---
 
 # /checkMarket 스킬 지침서
@@ -53,12 +53,12 @@ description: SNSHero 마케팅문서(1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKE
    - 로컬 프리뷰 서버(`vite preview`) 또는 Playwright/HTTP 검증을 통해 수정된 페이지(`/`, `/game`, `/book`, `/webtoon`, `/sitemap.xml`, `/llms.txt`, 리다이렉트 경로 등)의 실제 렌더링, 딥링크 작동, 콘솔/페이지 에러 `0`건을 확인합니다.
    - 실패 시 수정 후 재검증하여 통과할 때까지 진행합니다.
 
-### 4단계: 로컬 커밋 및 원격 배포 (`git push`)
-- 테스트 통과 확인 후 커밋 및 원격 푸시를 실행합니다:
+### 4단계: 로컬 커밋 (`git commit` · 원격 푸시 보류)
+- 테스트 통과 확인 후 **로컬 커밋만** 실행하고, **절대 `git push`를 실행하지 않습니다**. 사용자가 확인 후 수동으로 푸시(`/git-push`)할 수 있도록 대기합니다:
   ```bash
   git add <수정된 파일들>
   git commit -m "feat(marketing): apply [MKT-XXX 목록] and verify live bundle"
-  git push origin main
+  # 주의: git push는 자동 실행하지 않고 사용자 수동 확인 후 진행합니다.
   ```
 
 ### 5단계: 구글 시트 최신화 & 작업 보고 후 종료
@@ -66,6 +66,6 @@ description: SNSHero 마케팅문서(1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKE
 2. `'요약 대시보드'`(`'요약 대시보드'!B9:H15`)를 조회해 상태 집계 반영을 확인합니다.
 3. `WORK_LOGS.md` 누적 기록 및 구글 폼 보고 스크립트를 실행합니다:
    ```bash
-   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkMarket] 마케팅 개선사항 적용 및 배포 완료" --status "작업완료" --details "[처리한 MKT ID, 구현/테스트 결과, 커밋/푸시 해시, 시트 최신화 결과]"
+   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkMarket] 마케팅 개선사항 적용 및 로컬 커밋 완료 (푸시 대기)" --status "작업완료" --details "[처리한 MKT ID, 구현/테스트 결과, 로컬 커밋 해시(푸시 대기), 시트 최신화 결과]"
    ```
 4. 완료/진행중/외부대기 내역과 테스트·배포 결과를 한국어로 보고하고 종료합니다.

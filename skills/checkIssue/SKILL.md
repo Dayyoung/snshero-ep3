@@ -1,6 +1,6 @@
 ---
 name: checkIssue
-description: SNSHero 이슈문서(1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4, 게임 이슈 관리 로그)를 gsheets CLI로 조회해 미해결 이슈를 소스코드에 구현·수정하고, 실제 빌드 및 E2E 테스트 통과 후 원격 배포(git push) 및 시트 상태 최신화까지 일괄 수행하는 스킬. Use whenever the user types /checkIssue or asks to check/resolve the SNSHero issue spreadsheet.
+description: SNSHero 이슈문서(1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4, 게임 이슈 관리 로그)를 gsheets CLI로 조회해 미해결 이슈를 소스코드에 구현·수정하고, 실제 빌드 및 E2E 테스트 통과 후 로컬 커밋(git commit · 푸시 대기) 및 시트 상태 최신화까지 일괄 수행하는 스킬 (자동 git push 금지, 사용자 확인 후 수동 푸시). Use whenever the user types /checkIssue or asks to check/resolve the SNSHero issue spreadsheet.
 ---
 
 # /checkIssue 스킬 지침서
@@ -52,12 +52,12 @@ description: SNSHero 이슈문서(1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4, 
    - 프리뷰 서버(`vite preview` 또는 `scripts/start-server.sh`)를 기동하거나 Playwright/Node E2E 스크립트로 수정된 이슈 영역(`/`, `/game`, `/stone.html`, `/sns`, `/book`, `/webtoon` 등)의 실제 동작, 레이아웃, 콘솔/페이지 에러 `0`건, 핵심 KPI 기준(`H`열)을 직접 검증합니다.
    - 테스트 실패 시 통과할 때까지 코드를 수정하고 재검증합니다. (테스트 미통과 시 절대 배포하지 않습니다.)
 
-### 4단계: 로컬 커밋 및 원격 배포 (`git push`)
-- 모든 테스트가 통과하면 변경 파일을 스테이징하여 커밋하고, 사용자가 스킬을 통해 배포를 요청한 workflow에 따라 `origin main`으로 푸시합니다:
+### 4단계: 로컬 커밋 (`git commit` · 원격 푸시 보류)
+- 모든 테스트가 통과하면 변경 파일을 스테이징하여 **로컬 커밋만** 수행하고, **절대 `git push`를 실행하지 않습니다**. 사용자가 변경 내역을 확인한 뒤 수동으로 푸시(`/git-push`)할 수 있도록 대기합니다:
   ```bash
   git add <수정된 파일들>
   git commit -m "fix(issue): resolve [이슈 ID 목록] from SNSHero issue tracker"
-  git push origin main
+  # 주의: git push는 자동 실행하지 않고 사용자 수동 확인 후 진행합니다.
   ```
 
 ### 5단계: 구글 시트 최신화 & 작업 보고 후 종료
@@ -65,6 +65,6 @@ description: SNSHero 이슈문서(1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4, 
 2. `'요약 대시보드'`(`'요약 대시보드'!A1:H15`)를 조회해 `"완료"` 건수가 정상 반영되었는지 검증합니다.
 3. `WORK_LOGS.md`에 처리 내역을 기록하고, 구글 폼 보고 스크립트를 실행합니다:
    ```bash
-   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkIssue] 이슈 처리 및 배포 완료" --status "작업완료" --details "[처리한 이슈 ID, 수정 요약, 테스트 결과, 커밋/푸시 해시, 시트 최신화 완료]"
+   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkIssue] 이슈 처리 및 로컬 커밋 완료 (푸시 대기)" --status "작업완료" --details "[처리한 이슈 ID, 수정 요약, 테스트 결과, 로컬 커밋 해시(푸시 대기), 시트 최신화 완료]"
    ```
 4. 처리한 이슈 목록, 테스트 결과, 배포 커밋, 문서 갱신 현황을 사용자에게 한국어로 보고하고 종료합니다.

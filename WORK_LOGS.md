@@ -2,6 +2,15 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 08:06 KST] [스킬 정책 변경: `/checkIssue`, `/checkBug`, `/checkMarket` 자동 `git push` 중단 및 수동 푸시 대기 전환]
+- **요청**: `checkIssue`, `checkBug`, `checkMarket` 모두 `git push`는 실행하지 않고 사용자 확인 후 수동 푸시하도록 대기 정책 반영
+- **수정 파일**:
+  - `skills/checkIssue/SKILL.md`: 4단계를 로컬 커밋 전용으로 변경(`git push origin main` 제거), 자동 푸시 금지 명시
+  - `skills/checkBug/SKILL.md`: 4단계를 로컬 커밋 전용으로 변경(`git push origin main` 제거), 자동 푸시 금지 명시
+  - `skills/checkMarket/SKILL.md`: 4단계를 로컬 커밋 전용으로 변경(`git push origin main` 제거), 자동 푸시 금지 명시
+  - `AGENTS.md`: `/checkIssue`, `/checkMarket`, `/checkBug` 설명을 로컬 커밋 + 사용자 수동 푸시 대기 정책으로 갱신
+- **배포 상태**: 정책에 따라 로컬 `git commit`만 수행하며 `git push`는 보류
+
 ## [2026-11-17 08:04 KST] [`/checkIssue` 추가 2건(드럼리스 판타지 BGM · `/webtoon`/`/book` AdSense 전면 적용) 완료]
 - **작업자**: `Antigravity Assistant`
 - **해결 내역**:
