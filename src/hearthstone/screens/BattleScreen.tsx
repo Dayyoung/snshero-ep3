@@ -18,8 +18,13 @@ import {
   HsManaGem,
 } from '../components/CardVisual';
 import { CardZoomAction, CardZoomModal } from '../components/CardZoomModal';
-import { KadanJourneyStoryModal } from '../components/KadanJourneyStoryModal';
+import {
+  StoryDuelDialogueOverlay,
+  StoryEpisodeSelectorModal,
+  StoryVictorySceneOverlay,
+} from '../components/StoryEncounterOverlays';
 import { QuickRulesModal, hasSeenQuickRules } from '../components/OnboardingGuideModal';
+import { getStoryEpisodeEncounter } from '../storyEncounterData';
 import { useModalDismiss } from '../useModalDismiss';
 import {
   SNS_LOCATIONS,
@@ -421,7 +426,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ? buildTutorialEp0ScarecrowDeck()
           : buildJourneyBossDeck(epDef.bossHeroClass, ep, reinc);
 
-        return createBattleMatch({
+        const rawMatch = createBattleMatch({
           mode: 'TUTORIAL',
           playerName: epDef.playerHeroSpec.heroNameKo,
           playerClass: 'PRIEST',
@@ -443,6 +448,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             playerCardMultipliers: playerJourney.playerCardMultipliers,
           },
         });
+        // 스토리모드에서는 대사 종료 즉시 카드 대결(Turn 1)이 시작되도록 초기 손패 교체를 자동 완료합니다.
+        const autoSwapUids = rawMatch.player.hand
+          .filter((hc) => cardDb.mustGetCard(hc.cardId).cost >= 4)
+          .map((hc) => hc.uid);
+        return createEngine(rawMatch).confirmMulligan(autoSwapUids);
       }
 
       const opp = buildAiOpponentSetup(mode, preferredOpponentClass);
@@ -465,11 +475,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   );
   const [liveProfile, setLiveProfile] = useState(() => hsStorage.getProfile());
 
-  // 스토리모드 = 에피소드 스토리 극장 먼저 오픈 + 자동 플레이 기본 ON (단, 1화 초회 플레이는 직접 조작 유도)
+  // 스토리모드 = 웹툰 5컷 인트로 없이 즉시 [에피소드 - 제목 + VS 대결화면] 표시 -> 카드 전장 위 상반신 교차 대사(최대 6대사) -> 대사 종료 즉시 카드 대결 개시!
   // 랭킹대전 / AI대전 = 매판 시작 시 자동플레이 비활성화(OFF) 시작, 전투 종료 시에도 즉시 비활성화(OFF) 초기화!
-  const [storyPhase, setStoryPhase] = useState<'PRE_BATTLE' | 'CLOSED' | 'REVIEW'>(() =>
-    mode === 'TUTORIAL' && !skipStoryIntro ? 'PRE_BATTLE' : 'CLOSED',
+  const [storyPhase, setStoryPhase] = useState<'DIALOGUE' | 'CLOSED'>(() =>
+    mode === 'TUTORIAL' && !skipStoryIntro ? 'DIALOGUE' : 'CLOSED',
   );
+  const [episodeSelectorOpen, setEpisodeSelectorOpen] = useState(false);
   const [autoPlay, setAutoPlay] = useState<boolean>(() => {
     if (mode !== 'TUTORIAL') return false;
     const epNum = matchState.journeyMeta?.episode ?? 1;
@@ -508,9 +519,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [matchState.matchId, mode]);
 
-  const [vsIntroActive, setVsIntroActive] = useState(
-    () => mode !== 'TUTORIAL' || skipStoryIntro,
-  );
+  const [vsIntroActive, setVsIntroActive] = useState(true);
   const [selection, setSelection] = useState<PendingSelection | null>(null);
   const [zoomState, setZoomState] = useState<BattleZoomState | null>(null);
   const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false);
@@ -844,42 +853,58 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     [],
   );
 
-  // Opening VS Clash + Matchup Fanfare (runs immediately for non-TUTORIAL or skipStoryIntro retry, or right after Story Theater closes in TUTORIAL)
+  // Opening VS Clash + Episode Title Banner (runs immediately on battle mount for ALL modes including Story Mode!)
   useEffect(() => {
     hsAudio.playBgm('mulligan');
-    if (mode === 'TUTORIAL' && !skipStoryIntro) return;
-    runVsIntroAndTransition(matchState, skipStoryIntro ? 1200 : 1400);
+    runVsIntroAndTransition(matchState, mode === 'TUTORIAL' ? 1500 : skipStoryIntro ? 1200 : 1400);
     return () => {
       vsIntroRunIdRef.current += 1;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleCompletePreBattleStory = useCallback(
-    (selectedEpisode?: number) => {
+  const storyEncounter = useMemo(() => {
+    if (mode !== 'TUTORIAL' || !matchState.journeyMeta) return null;
+    return getStoryEpisodeEncounter(matchState.journeyMeta.episode);
+  }, [mode, matchState.journeyMeta]);
+
+  const handleFinishStoryDialogue = useCallback(() => {
+    setStoryPhase('CLOSED');
+    hsAudio.playBgm(Math.random() < 0.5 ? 'duel_1' : 'duel_2');
+    const snap = matchStateRef.current;
+    if (snap.firstPlayer === 'OPPONENT' && snap.turnNumber <= 1) {
+      hsAudio.playInnkeeper('coin');
+      setCoinGiftShowcase(true);
+      window.setTimeout(() => setCoinGiftShowcase(false), 1650);
+    }
+    setMatchState((s) => ({
+      ...s,
+      bannerMessage:
+        s.activeSide === 'PLAYER'
+          ? isKo
+            ? '내 턴!'
+            : 'YOUR TURN!'
+          : isKo
+            ? '상대 턴'
+            : 'ENEMY TURN',
+    }));
+  }, [isKo]);
+
+  const handleSelectStoryEpisode = useCallback(
+    (selectedEpisode: number) => {
+      setEpisodeSelectorOpen(false);
+      if (onStartJourneyEpisode) {
+        onStartJourneyEpisode(selectedEpisode, false);
+        return;
+      }
       const curP = hsStorage.getProfile();
-      let activeMatch = matchState;
-      if (
-        mode === 'TUTORIAL' &&
-        selectedEpisode &&
-        selectedEpisode !== matchState.journeyMeta?.episode
-      ) {
-        hsStorage.setJourneyProgress(selectedEpisode, curP.journeyReincarnation);
-        activeMatch = buildBattleMatchState(selectedEpisode);
-        setMatchState(activeMatch);
-      }
-      setStoryPhase('CLOSED');
-      if (
-        mode === 'TUTORIAL' &&
-        (activeMatch.journeyMeta?.episode ?? 1) === 1 &&
-        curP.totalGames === 0 &&
-        !hasSeenQuickRules()
-      ) {
-        setQuickRulesOpen(true);
-      }
-      runVsIntroAndTransition(activeMatch, 1200);
+      hsStorage.setJourneyProgress(selectedEpisode, curP.journeyReincarnation);
+      const nextMatch = buildBattleMatchState(selectedEpisode);
+      setMatchState(nextMatch);
+      setStoryPhase('DIALOGUE');
+      runVsIntroAndTransition(nextMatch, 1400);
     },
-    [mode, matchState, buildBattleMatchState, runVsIntroAndTransition],
+    [onStartJourneyEpisode, buildBattleMatchState, runVsIntroAndTransition],
   );
 
   // 실시간 초보자 코치 배너 1줄 메시지 계산
@@ -1138,7 +1163,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       !outcomeSummary ||
       !autoPlay ||
       postGameAutoPaused ||
-      defeatPackResult !== null
+      defeatPackResult !== null ||
+      (mode === 'TUTORIAL' && matchState.winner === 'PLAYER')
     ) {
       return;
     }
@@ -4032,16 +4058,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             {mode === 'TUTORIAL' && matchState.journeyMeta && (
               <button
                 type="button"
+                data-testid="story-episode-menu-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   hsAudio.playSfx('open_menu', 0.75);
-                  setStoryPhase('REVIEW');
+                  setEpisodeSelectorOpen(true);
                 }}
                 className="rounded-xl border border-emerald-300/70 bg-emerald-950/90 px-2 py-1 text-[10px] font-extrabold text-emerald-200 shadow sm:px-2.5 sm:text-xs"
               >
                 {isKo
-                  ? `📖 제${matchState.journeyMeta.episode}화 줄거리`
-                  : `📖 EP ${matchState.journeyMeta.episode} Story`}
+                  ? `📖 제${matchState.journeyMeta.episode}화 · 회차/대사`
+                  : `📖 EP ${matchState.journeyMeta.episode} · Stages`}
               </button>
             )}
 
@@ -5021,7 +5048,35 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           );
 
           return (
-            <div className="absolute inset-0 z-[92] flex flex-col items-center justify-center bg-black/88 px-3">
+            <div
+              data-testid="vs-intro-overlay"
+              className="absolute inset-0 z-[92] flex flex-col items-center justify-center bg-black/88 px-3"
+            >
+              {/* Story Mode: Episode - Title Header Directly Above VS Matchup! */}
+              {mode === 'TUTORIAL' && matchState.journeyMeta && (
+                <div
+                  data-testid="vs-episode-title-banner"
+                  className="mb-4 flex flex-col items-center text-center sm:mb-7"
+                >
+                  <span className="rounded-full border border-amber-400/50 bg-amber-950/70 px-3.5 py-0.5 text-[10.5px] font-extrabold tracking-wider text-amber-200 sm:text-xs">
+                    {matchState.journeyMeta.reincarnation > 0
+                      ? isKo
+                        ? `환생 ${matchState.journeyMeta.reincarnation}회차 · ${matchState.journeyMeta.actTitle}`
+                        : `Reincarnation #${matchState.journeyMeta.reincarnation} · ${matchState.journeyMeta.actTitle}`
+                      : matchState.journeyMeta.actTitle}
+                  </span>
+                  <h2 className="hs-title hs-outline mt-1.5 text-xl font-black tracking-wide text-amber-100 sm:text-4xl">
+                    {matchState.journeyMeta.episode === 0
+                      ? isKo
+                        ? `에피소드 0 - ${getJourneyEpisodeDef(0, true).titleKo}`
+                        : `Episode 0 - ${getJourneyEpisodeDef(0, false).titleKo}`
+                      : isKo
+                        ? `제${matchState.journeyMeta.episode}화 - ${getJourneyEpisodeDef(matchState.journeyMeta.episode, true).titleKo}`
+                        : `Episode ${matchState.journeyMeta.episode} - ${getJourneyEpisodeDef(matchState.journeyMeta.episode, false).titleKo}`}
+                  </h2>
+                </div>
+              )}
+
               <div className="flex items-center gap-3 sm:gap-14">
                 <div className="flex flex-col items-center text-center">
                   <div
@@ -5089,6 +5144,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             </div>
           );
         })()}
+
+      {/* 1B. Story Mode Pre-Duel Alternating Upper-Body Character Dialogue (`캐릭터 대사 장면.mp4` Style, <= 6 Lines!) */}
+      {mode === 'TUTORIAL' &&
+        !vsIntroActive &&
+        storyPhase === 'DIALOGUE' &&
+        storyEncounter &&
+        matchState.journeyMeta && (
+          <StoryDuelDialogueOverlay
+            encounter={storyEncounter}
+            episodeTitle={
+              getJourneyEpisodeDef(matchState.journeyMeta.episode, isKo).titleKo
+            }
+            onComplete={handleFinishStoryDialogue}
+          />
+        )}
 
       {/* 2. Mulligan (시작 손패 교체) Overlay — 1-Click Replace Stamp (✕) + Optional Card Zoom! */}
       {storyPhase === 'CLOSED' && !vsIntroActive && matchState.phase === 'MULLIGAN' && (
@@ -5360,8 +5430,32 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         </div>
       )}
 
-      {/* 5. Victory / Defeat Heraldry Banner, 3s Auto-Advance & Defeat Pack Purchase -> 5-Card Open -> Auto-Retry Loop */}
-      {matchState.phase === 'GAME_OVER' && (
+      {/* 5A. Story Mode Victory Scene: Item Acquisition Showcase (`아이템 획득 장면.mp4`) or Character Victory Ment! */}
+      {mode === 'TUTORIAL' &&
+        matchState.phase === 'GAME_OVER' &&
+        matchState.winner === 'PLAYER' &&
+        storyEncounter && (
+          <StoryVictorySceneOverlay
+            encounter={storyEncounter}
+            outcomeSummary={outcomeSummary}
+            onFinishEpisode={(act) => {
+              postGameFiredRef.current = true;
+              if (
+                act === 'NEXT_EPISODE' &&
+                onStartJourneyEpisode &&
+                outcomeSummary?.nextEpisode
+              ) {
+                onStartJourneyEpisode(outcomeSummary.nextEpisode, false);
+              } else {
+                onExitBattle();
+              }
+            }}
+          />
+        )}
+
+      {/* 5B. Victory / Defeat Heraldry Banner, 3s Auto-Advance & Defeat Pack Purchase -> 5-Card Open -> Auto-Retry Loop */}
+      {matchState.phase === 'GAME_OVER' &&
+        !(mode === 'TUTORIAL' && matchState.winner === 'PLAYER' && storyEncounter) && (
         <div className="absolute inset-0 z-[94] flex items-center justify-center overflow-y-auto bg-black/88 p-3 sm:p-4">
           {defeatPackResult ? (
             <div
@@ -6019,20 +6113,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         </div>
       )}
 
-      {/* Episode Novel Storyboard Theater (Pre-Battle & Mid-Battle Review in 카단의 여정) */}
-      {mode === 'TUTORIAL' && storyPhase !== 'CLOSED' && matchState.journeyMeta && (
-        <KadanJourneyStoryModal
-          episode={matchState.journeyMeta.episode}
-          reincarnation={matchState.journeyMeta.reincarnation}
+      {/* Story Mode Compact Episode Selector & Dialogue Replay Modal */}
+      {mode === 'TUTORIAL' && episodeSelectorOpen && matchState.journeyMeta && (
+        <StoryEpisodeSelectorModal
+          currentEpisode={matchState.journeyMeta.episode}
           maxClearedEpisode={
             matchState.journeyMeta.reincarnation > 0 ? 40 : profile.journeyMaxStageCleared
           }
-          playerBoostedCount={journeyDeckStats.boostedCount}
-          playerMaxMultiplier={journeyDeckStats.maxMultiplier}
-          autoPlayEnabled={autoPlay}
-          isMidBattleReview={storyPhase === 'REVIEW'}
-          onStartBattle={handleCompletePreBattleStory}
-          onCloseReview={() => setStoryPhase('CLOSED')}
+          reincarnation={matchState.journeyMeta.reincarnation}
+          onSelectEpisode={handleSelectStoryEpisode}
+          onReplayDialogue={() => setStoryPhase('DIALOGUE')}
+          onClose={() => setEpisodeSelectorOpen(false)}
         />
       )}
 
