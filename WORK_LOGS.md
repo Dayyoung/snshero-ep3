@@ -2,6 +2,18 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 16:19 KST] [`https://snshero.com/stone.html` 영문 유튜브 16:9 본편 + 9:16 쇼츠 동영상 및 후킹 썸네일 제작 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **실제 브라우저 플레이 녹화(`https://snshero.com/stone.html`, `en-US`)**: Playwright로 데스크톱(`1280x720`) 4개 화면(`desktop_hub.mp4`, `desktop_packs.mp4`, `desktop_collection.mp4`, `desktop_battle.mp4`) 및 모바일 세로(`540x960`→`720x1280`) 플레이(`mobile_gameplay.mp4`) 직접 녹화.
+  - **유튜브 본편(`1920x1080`, 91.27초) & 유튜브 쇼츠(`1080x1920`, ~42.5초) HyperFrames 합성**:
+    - 쾌활한 영어 남성 음성 내레이션(`edge-tts` `en-US-RogerNeural`, `rate=+14%`, `pitch=+3Hz`) + 정품 BGM(`tavern_hub.mp3`, `duel_1.mp3`) 및 게임 SFX(`box_open`, `pack_open`, `pack_legendary`, `card_flip`, `big_attack`, `victory`) 정밀 믹싱.
+    - 구글 안티그래비티 제미나이 카본 × REA 1시간 복제 과정, 화면별 소개(여관/상자 허브, 카드 팩 개봉, 382장 카드첩·덱 빌더, 실시간 전투·멀리건·자동플레이), 영문 동기화 자막, 마지막 `https://snshero.com/stone.html` 참여 유도 엔드카드 구성.
+  - **유튜브 후킹 썸네일 1920x1080 제작**: `stone_youtube_thumbnail.png` (1.5MB) 및 `stone_youtube_thumbnail.jpg` (328KB).
+- **검증 및 보고**:
+  - HyperFrames `check --json`(오류 0건) 및 `audio --json` 측정 검증, `ffprobe` 및 디코드 프레임 시각 검수 완료.
+  - 아티팩트 디렉토리에 최종 MP4/썸네일 산출물 인도 및 구글 폼 보고 완료.
+
 ## [2026-11-16 15:57 KST] [`/stone-assets/audio/sfx/whoosh.mp3` 효과음 완전 제거 및 `stone.html` 전투 사운드 정제]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
