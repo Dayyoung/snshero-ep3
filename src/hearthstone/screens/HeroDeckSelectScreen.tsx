@@ -653,29 +653,39 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 : tr('맞수 탐색 중...', 'Finding Opponent...')}
             </div>
 
-            {/* High-Contrast Dark Arcane Oak Slot Machine Window */}
+            {/* 5-Row Cylindrical Ivory & Oak Drum Slot Machine Window */}
             <div
-              style={{
-                backgroundColor: '#160d06',
-                backgroundImage:
-                  'linear-gradient(180deg, #100904 0%, #26160b 50%, #100904 100%)',
-              }}
-              className="relative my-3 flex h-36 w-full flex-col items-center justify-center overflow-hidden rounded-2xl border-[3.5px] border-[#d4a857] px-4 shadow-[inset_0_8px_20px_rgba(0,0,0,0.85),0_0_18px_rgba(212,168,87,0.22)]"
+              data-testid="matchmaking-slot-drum"
+              className="relative my-2 flex h-44 w-full flex-col items-center justify-between overflow-hidden rounded-2xl border-[4px] border-[#966d35] bg-gradient-to-b from-[#cbb082] via-[#fbf2dc] to-[#c7ac7d] px-5 py-2.5 shadow-[inset_0_12px_22px_rgba(32,18,6,0.62)]"
             >
-              <div className="hs-outline-sm text-xs font-bold text-amber-100/75">
+              {/* Left & Right Brass Pointer Triangles */}
+              <div className="pointer-events-none absolute left-1.5 top-1/2 z-20 -translate-y-1/2 text-base font-black text-[#7c2d12]">
+                ▶
+              </div>
+              <div className="pointer-events-none absolute right-1.5 top-1/2 z-20 -translate-y-1/2 text-base font-black text-[#7c2d12]">
+                ◀
+              </div>
+
+              <div className="max-w-full truncate text-[11px] font-extrabold text-[#5c3b1c]/65">
+                {spinnerTitles[(wheelIndex + spinnerTitles.length - 2) % spinnerTitles.length]}
+              </div>
+              <div className="max-w-full truncate text-xs font-extrabold text-[#38210d]/90">
                 {spinnerTitles[(wheelIndex + spinnerTitles.length - 1) % spinnerTitles.length]}
               </div>
               <div
-                className={`hs-title hs-outline-sm my-2 w-full rounded-xl border-y-2 px-4 py-2 text-xl font-black tracking-tight transition-transform duration-150 ${
+                className={`hs-title relative z-10 my-0.5 w-full rounded-xl border-y-2 px-4 py-2 text-xl font-black tracking-tight shadow-md transition-all duration-150 ${
                   wheelLocked
-                    ? 'scale-105 border-yellow-300 bg-amber-400/30 text-[#fef08a] shadow-[0_0_20px_rgba(250,204,21,0.45)]'
-                    : 'border-amber-300/55 bg-amber-400/15 text-white'
+                    ? 'scale-105 border-yellow-300 bg-[#231106] text-[#fde047] shadow-[0_0_20px_rgba(250,204,21,0.55)]'
+                    : 'border-amber-600/80 bg-[#2a1508] text-[#fff9e6]'
                 }`}
               >
                 {spinnerTitles[wheelIndex]}
               </div>
-              <div className="hs-outline-sm text-xs font-bold text-amber-100/75">
+              <div className="max-w-full truncate text-xs font-extrabold text-[#38210d]/90">
                 {spinnerTitles[(wheelIndex + 1) % spinnerTitles.length]}
+              </div>
+              <div className="max-w-full truncate text-[11px] font-extrabold text-[#5c3b1c]/65">
+                {spinnerTitles[(wheelIndex + 2) % spinnerTitles.length]}
               </div>
             </div>
 

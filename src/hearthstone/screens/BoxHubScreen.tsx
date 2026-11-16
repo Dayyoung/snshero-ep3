@@ -37,6 +37,8 @@ export interface BoxHubScreenProps {
   onOpenOptions: () => void;
 }
 
+let hubBoxOpenedInSession = false;
+
 export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   profile,
   onSelectPlayMode,
@@ -47,6 +49,8 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   onOpenOptions,
 }) => {
   const { lang } = useHeroLanguage();
+  const [doorsOpening, setDoorsOpening] = useState(() => !hubBoxOpenedInSession);
+  const [trayReady, setTrayReady] = useState(() => hubBoxOpenedInSession);
   const [diskSpinning, setDiskSpinning] = useState(false);
   const [quickRulesOpen, setQuickRulesOpen] = useState(false);
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
@@ -56,8 +60,29 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
   useEffect(() => {
     hsAudio.playBgm('tavern_hub');
-    return subscribePwaFullscreen(() => setPwaTick((n) => n + 1));
+    const unsub = subscribePwaFullscreen(() => setPwaTick((n) => n + 1));
+    if (!hubBoxOpenedInSession) {
+      hubBoxOpenedInSession = true;
+      hsAudio.playSfx('box_open', 0.85);
+      const tTray = window.setTimeout(() => setTrayReady(true), 260);
+      const tDoors = window.setTimeout(() => setDoorsOpening(false), 880);
+      return () => {
+        unsub();
+        window.clearTimeout(tTray);
+        window.clearTimeout(tDoors);
+      };
+    }
+    return unsub;
   }, []);
+
+  const replayBoxUnlatch = () => {
+    if (doorsOpening) return;
+    hsAudio.playSfx('box_open', 0.85);
+    setTrayReady(false);
+    setDoorsOpening(true);
+    window.setTimeout(() => setTrayReady(true), 240);
+    window.setTimeout(() => setDoorsOpening(false), 880);
+  };
 
   const fullscreenActive = isBrowserFullscreen() || isStandalonePwa();
   const showFullscreenBtn = isFullscreenSupported() && !isStandalonePwa();
@@ -232,7 +257,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
           </div>
         )}
 
-        <div className="hs-wood-panel relative flex w-full flex-col items-center rounded-[28px] px-3.5 pb-4 pt-2 sm:rounded-[34px] sm:px-10 sm:pb-7 sm:pt-3">
+        <div
+          style={{ perspective: '1600px' }}
+          className="hs-wood-panel relative flex w-full flex-col items-center rounded-[28px] px-3.5 pb-4 pt-2 sm:rounded-[34px] sm:px-10 sm:pb-7 sm:pt-3"
+        >
           {/* Carved Wooden Chest Relief Grain & Brass Corner Inlay */}
           <div
             style={{
@@ -250,13 +278,21 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
           <div className="pointer-events-none absolute bottom-4 left-4 h-3 w-3 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:bottom-5 sm:left-5 sm:h-3.5 sm:w-3.5" />
           <div className="pointer-events-none absolute bottom-4 right-4 h-3 w-3 rounded-full border border-amber-100 bg-gradient-to-b from-amber-300 to-amber-800 shadow-md sm:bottom-5 sm:right-5 sm:h-3.5 sm:w-3.5" />
 
-          {/* Overhanging Official 눈히어로 Logo Crest */}
-          <img
-            src={getSnsLogoUrl(lang)}
-            alt={lang === 'en' ? 'SNSHero' : '눈히어로'}
-            draggable={false}
-            className="relative z-10 -mt-6 w-[196px] drop-shadow-[0_14px_22px_rgba(0,0,0,0.94)] sm:-mt-11 sm:w-[308px]"
-          />
+          {/* Overhanging Official 눈히어로 Logo Crest (Click to Replay Chest Door Unlatch!) */}
+          <button
+            type="button"
+            data-testid="hub-logo-replay-btn"
+            onClick={replayBoxUnlatch}
+            title={tr('클릭하여 성소 보관함 개폐 연출 다시 보기', 'Click to replay Sanctuary Box unlatch')}
+            className="relative z-30 -mt-6 transition-transform hover:scale-[1.02] sm:-mt-11"
+          >
+            <img
+              src={getSnsLogoUrl(lang)}
+              alt={lang === 'en' ? 'SNSHero' : '눈히어로'}
+              draggable={false}
+              className="w-[196px] drop-shadow-[0_14px_22px_rgba(0,0,0,0.94)] sm:w-[308px]"
+            />
+          </button>
 
           {/* Center 3D Rotating Brass & Ivory Medallion ("The Box" Turntable) */}
           <div
@@ -384,7 +420,14 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
           </div>
 
           {/* Bottom Recessed Brass Drawer Tray */}
-          <div className="relative z-10 mt-2.5 grid w-full max-w-2xl grid-cols-2 gap-2 rounded-2xl border-[2.5px] border-[#a88246] bg-gradient-to-b from-[#231409] to-[#120a04] p-2.5 shadow-[inset_0_4px_14px_rgba(0,0,0,0.9)] sm:mt-3 sm:grid-cols-4 sm:gap-2.5 sm:border-[3px] sm:p-3">
+          <div
+            style={{
+              transform: trayReady ? 'translateY(0) scale(1)' : 'translateY(14px) scale(0.97)',
+              opacity: trayReady ? 1 : 0.4,
+              transition: 'transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease',
+            }}
+            className="relative z-10 mt-2.5 grid w-full max-w-2xl grid-cols-2 gap-2 rounded-2xl border-[2.5px] border-[#a88246] bg-gradient-to-b from-[#231409] to-[#120a04] p-2.5 shadow-[inset_0_4px_14px_rgba(0,0,0,0.9)] sm:mt-3 sm:grid-cols-4 sm:gap-2.5 sm:border-[3px] sm:p-3"
+          >
             <button
               type="button"
               disabled={isFirstVisitGuide}
@@ -486,6 +529,46 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               </div>
             </button>
           </div>
+
+          {/* 3D Hinged Sanctuary Oak & Brass Chest Double Doors (`hsBoxDoorLeftSwing` & `hsBoxDoorRightSwing`) */}
+          {doorsOpening && (
+            <div
+              data-testid="hub-chest-doors"
+              className="pointer-events-none absolute inset-0 z-40 flex overflow-visible rounded-[28px] sm:rounded-[34px]"
+            >
+              {/* Left Hinged Door */}
+              <div
+                style={{
+                  transformOrigin: 'left center',
+                  animation: 'hsBoxDoorLeftSwing 0.88s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+                  background:
+                    'linear-gradient(135deg, #4b2d15 0%, #2d180a 48%, #1d0e05 100%)',
+                }}
+                className="relative flex h-full w-1/2 items-center justify-end overflow-hidden rounded-l-[28px] border-r-2 border-y-[3px] border-l-[3px] border-[#d6ab5b] shadow-[16px_0_40px_rgba(0,0,0,0.88)] sm:rounded-l-[34px]"
+              >
+                <div className="pointer-events-none absolute inset-3 rounded-l-[20px] border-2 border-[#e2be75]/45 shadow-[inset_0_0_24px_rgba(0,0,0,0.85)]" />
+                <div className="pointer-events-none mr-[-28px] opacity-90 drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)]">
+                  <SnsSnowCompassSeal size={56} />
+                </div>
+              </div>
+
+              {/* Right Hinged Door */}
+              <div
+                style={{
+                  transformOrigin: 'right center',
+                  animation: 'hsBoxDoorRightSwing 0.88s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+                  background:
+                    'linear-gradient(225deg, #4b2d15 0%, #2d180a 48%, #1d0e05 100%)',
+                }}
+                className="relative flex h-full w-1/2 items-center justify-start overflow-hidden rounded-r-[28px] border-l-2 border-y-[3px] border-r-[3px] border-[#d6ab5b] shadow-[-16px_0_40px_rgba(0,0,0,0.88)] sm:rounded-r-[34px]"
+              >
+                <div className="pointer-events-none absolute inset-3 rounded-r-[20px] border-2 border-[#e2be75]/45 shadow-[inset_0_0_24px_rgba(0,0,0,0.85)]" />
+                <div className="pointer-events-none ml-[-28px] opacity-90 drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)]">
+                  <SnsSnowCompassSeal size={56} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 

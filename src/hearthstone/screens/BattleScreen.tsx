@@ -1329,10 +1329,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
    *   공중으로 부양(WINDUP) -> 대상에게 고속 돌진(LUNGE) -> 정면 충돌 파열 & 피해 반영(IMPACT) -> 제자리 복귀(RETURN) 수행!
    */
   const triggerPhysicalAttack = useCallback(
-    (side: PlayerSide, attackerId: string, defenderId: string) => {
-      if (attackLockRef.current) return;
+    (side: PlayerSide, attackerId: string, defenderId: string): boolean => {
+      if (attackLockRef.current) return false;
       const cur = matchStateRef.current;
-      if (cur.phase !== 'PLAYING') return;
+      if (cur.phase !== 'PLAYING') return false;
 
       const enemySide: PlayerSide = side === 'PLAYER' ? 'OPPONENT' : 'PLAYER';
       const atkPlayer = side === 'PLAYER' ? cur.player : cur.opponent;
@@ -1343,12 +1343,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const atkMinion = isHeroAttacker
         ? null
         : atkPlayer.board.find((m) => m.uid === attackerId) || null;
-      if (!isHeroAttacker && !atkMinion) return;
+      if (!isHeroAttacker && !atkMinion) return false;
 
       const defMinion = isHeroDefender
         ? null
         : defPlayer.board.find((m) => m.uid === defenderId) || null;
-      if (!isHeroDefender && !defMinion) return;
+      if (!isHeroDefender && !defMinion) return false;
 
       const { width: stageW, height: stageH } = getStageSize();
       const atkEl = document.querySelector(`[data-hs-entity="${attackerId}"]`);
@@ -1476,8 +1476,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         tImpact,
         tDone,
       ];
+      return true;
     },
-    [resolveHeroPortraitUrl, triggerDamageImpact],
+    [resolveHeroPortraitUrl, triggerDamageImpact, isKo, lang],
   );
 
   const describeEp0Action = useCallback(
@@ -1585,6 +1586,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           .map((hc) => hc.uid);
         hsAudio.playSfx('box_press', 0.8);
         hsAudio.playBgm(Math.random() < 0.5 ? 'duel_1' : 'duel_2');
+        if (snap.firstPlayer === 'OPPONENT') {
+          hsAudio.playInnkeeper('coin');
+          setCoinGiftShowcase(true);
+          window.setTimeout(() => setCoinGiftShowcase(false), 1750);
+        }
         const eng = createEngine(snap);
         if (isEp0Tutorial) {
           ep0TurnPlaysRef.current = [];
@@ -1595,7 +1601,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             badge: isKo ? '1턴 개시 · 멀리건 완료' : 'Turn 1 Start · Mulligan Done',
             headline: isKo ? '저비용 카드 확보 완료!' : 'Low-Cost Hand Ready!',
             reason: isKo
-              ? '초반에 바로 낼 수 있는 저코스트 카드를 남겼어요!'
+              ? '초반에 바로 낼 수 있는 저비용 카드를 남겼어요!'
               : 'Kept low-Mana cards to play right away early on!',
           });
         }
@@ -1636,16 +1642,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       // Handle Choose-One prompt automatically
       if (snap.chooseOnePrompt) {
         const prompt = snap.chooseOnePrompt;
-        const opt = prompt.options[0];
-        const targetId = opt.needsTarget ? opt.validTargets[0] : undefined;
+        const viableOpt =
+          prompt.options.find((o) => !o.needsTarget || o.validTargets.length > 0) ||
+          prompt.options[0];
+        const targetId = viableOpt.needsTarget ? viableOpt.validTargets[0] : undefined;
         hsAudio.playSfx('card_place', 0.8);
-        setMatchState(
-          sim.playCardFromHand('PLAYER', prompt.sourceHandUid, {
-            chooseOptionIndex: opt.index,
-            insertIndex: prompt.insertIndex,
-            targetId,
-          }),
-        );
+        const next = sim.playCardFromHand('PLAYER', prompt.sourceHandUid, {
+          chooseOptionIndex: viableOpt.index,
+          insertIndex: prompt.insertIndex,
+          targetId,
+        });
+        if (next.errorBanner) {
+          setMatchState({ ...snap, chooseOnePrompt: null, errorBanner: null });
+          return;
+        }
+        setMatchState(next);
         return;
       }
 
@@ -1675,6 +1686,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           insertIndex: action.insertIndex,
           chooseOptionIndex: action.chooseOptionIndex,
         });
+        // Safety fallback: prevent deadlock if action failed to advance state
+        if (
+          next.errorBanner ||
+          (next.history.length <= snap.history.length &&
+            !next.chooseOnePrompt &&
+            !next.trackingPrompt)
+        ) {
+          setAiHighlightText(null);
+          setMatchState(createEngine(snap).endTurn());
+          return;
+        }
         if (next.chooseOnePrompt === null) {
           if (def.type === 'MINION') hsStorage.recordQuestProgress('MINION', 1);
           else if (def.type === 'SPELL') hsStorage.recordQuestProgress('SPELL', 1);
@@ -1701,7 +1723,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             reason: hpReason,
           });
         }
-        setMatchState(sim.useHeroPower('PLAYER', action.targetId));
+        const next = sim.useHeroPower('PLAYER', action.targetId);
+        if (next.errorBanner || next.history.length <= snap.history.length) {
+          setAiHighlightText(null);
+          setMatchState(createEngine(snap).endTurn());
+          return;
+        }
+        setMatchState(next);
       } else if (action.kind === 'ATTACK') {
         if (isEp0Tutorial) {
           const isFace = action.defenderId === 'OPPONENT_HERO';
@@ -1724,7 +1752,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 : 'Trade with enemy minions first to hold the board!',
           });
         }
-        triggerPhysicalAttack('PLAYER', action.attackerId, action.defenderId);
+        const started = triggerPhysicalAttack('PLAYER', action.attackerId, action.defenderId);
+        if (!started) {
+          setAiHighlightText(null);
+          setMatchState(sim.endTurn());
+        }
       } else {
         if (isEp0Tutorial) {
           const turnKey = `${snap.turnNumber}_PLAYER`;
@@ -1864,13 +1896,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ep0OpponentPlaysRef.current.push(`[${dispName}] → ${info.reason}`);
           setEp0Dialogue({ speaker: 'SCARECROW', ...info });
         }
-        setMatchState(
-          sim.playCardFromHand('OPPONENT', action.handUid, {
-            targetId: action.targetId,
-            insertIndex: action.insertIndex,
-            chooseOptionIndex: action.chooseOptionIndex,
-          }),
-        );
+        const next = sim.playCardFromHand('OPPONENT', action.handUid, {
+          targetId: action.targetId,
+          insertIndex: action.insertIndex,
+          chooseOptionIndex: action.chooseOptionIndex,
+        });
+        if (next.errorBanner || next.history.length <= snap.history.length) {
+          setAiHighlightText(null);
+          setMatchState(createEngine(snap).endTurn());
+          return;
+        }
+        setMatchState(next);
       } else if (action.kind === 'HERO_POWER') {
         hsAudio.playSfx('hero_power', 0.85);
         setAiHighlightText(
@@ -1892,7 +1928,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             reason: botHpReason,
           });
         }
-        setMatchState(sim.useHeroPower('OPPONENT', action.targetId));
+        const next = sim.useHeroPower('OPPONENT', action.targetId);
+        if (next.errorBanner || next.history.length <= snap.history.length) {
+          setAiHighlightText(null);
+          setMatchState(createEngine(snap).endTurn());
+          return;
+        }
+        setMatchState(next);
       } else if (action.kind === 'ATTACK') {
         if (isEp0Tutorial) {
           setEp0Dialogue({
@@ -1904,7 +1946,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               : 'Minions can attack starting the turn after they enter.',
           });
         }
-        triggerPhysicalAttack('OPPONENT', action.attackerId, action.defenderId);
+        const started = triggerPhysicalAttack('OPPONENT', action.attackerId, action.defenderId);
+        if (!started) {
+          setAiHighlightText(null);
+          setMatchState(sim.endTurn());
+        }
       } else {
         if (isEp0Tutorial) {
           const turnKey = `${snap.turnNumber}_OPPONENT`;
@@ -5181,63 +5227,133 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         </div>
       )}
 
-      {/* 3. Choose One (선택) Modal — Tap Option Card to Enlarge & Confirm! */}
+      {/* 3. Choose One (선택) Modal — 1-Click Direct Selection + Inspect Pill! */}
       {matchState.chooseOnePrompt && (
         <div className="absolute inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/88 p-3 text-center sm:p-4">
-          <h3 className="hs-title hs-outline mb-3 text-xl font-extrabold text-amber-200 sm:mb-4 sm:text-2xl">
-            {tr('운명의 선택 — 카드를 터치해 확대 후 선택하세요', 'Choose One — Tap a card to inspect and choose')}
+          <h3 className="hs-title hs-outline mb-1 text-xl font-extrabold text-amber-200 sm:text-2xl">
+            {tr('운명의 선택 — 사용할 효과를 클릭하세요', 'Choose One — Tap an effect to play immediately')}
           </h3>
+          <p className="mb-3 text-[11px] font-bold text-amber-200/80 sm:mb-4 sm:text-xs">
+            {tr('카드 클릭 시 즉시 발동 · 우클릭 또는 [카드 확대] 버튼으로 상세 보기', 'Click a card to cast immediately · Right-click or tap [Zoom] to inspect')}
+          </p>
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
             {matchState.chooseOnePrompt.options.map((opt) => {
+              const prompt = matchState.chooseOnePrompt!;
               const optCard = cardDb.mustGetCard(opt.optionCardId);
               return (
-                <button
+                <div
                   key={opt.index}
-                  type="button"
-                  onClick={(e) => {
+                  onContextMenu={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     hsAudio.playSfx('card_hover', 0.7);
                     setZoomState({ kind: 'CHOOSE_ONE_CARD', optionIndex: opt.index });
                   }}
-                  className="hs-wood-panel flex max-w-[162px] flex-col items-center rounded-2xl p-2.5 transition hover:scale-105 hover:border-emerald-300 sm:max-w-none sm:p-4"
+                  className="hs-wood-panel flex max-w-[166px] flex-col items-center rounded-2xl p-2.5 transition hover:border-emerald-300 sm:max-w-none sm:p-4"
                 >
-                  <HearthstoneCard card={optCard} size={isCompactMobile ? 'XS' : 'MD'} />
-                  <div className="hs-title mt-1.5 text-xs font-extrabold text-amber-200 sm:mt-2 sm:text-sm">
-                    {opt.title}
-                  </div>
-                  <div className="mt-0.5 text-[11px] font-bold text-amber-100/85 sm:text-xs">
-                    {opt.description}
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setZoomState(null);
+                      if (opt.needsTarget && opt.validTargets.length > 0) {
+                        hsAudio.playSfx('ui_click', 0.8);
+                        setMatchState((s) => ({ ...s, chooseOnePrompt: null }));
+                        setSelection({
+                          kind: 'CHOOSE_OPTION_TARGET',
+                          handUid: prompt.sourceHandUid,
+                          cardId: prompt.cardId,
+                          optionIndex: opt.index,
+                          insertIndex: prompt.insertIndex,
+                          validTargets: opt.validTargets,
+                        });
+                      } else {
+                        executePlayPlayerCard(prompt.sourceHandUid, {
+                          chooseOptionIndex: opt.index,
+                          insertIndex: prompt.insertIndex,
+                        });
+                      }
+                    }}
+                    className="flex flex-col items-center transition hover:scale-105"
+                  >
+                    <HearthstoneCard
+                      card={optCard}
+                      playableGlow="GREEN"
+                      size={isCompactMobile ? 'XS' : 'MD'}
+                    />
+                    <div className="hs-title mt-1.5 text-xs font-extrabold text-amber-200 sm:mt-2 sm:text-sm">
+                      {opt.title}
+                    </div>
+                    <div className="mt-0.5 text-[11px] font-bold text-amber-100/85 sm:text-xs">
+                      {opt.description}
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      hsAudio.playSfx('card_hover', 0.7);
+                      setZoomState({ kind: 'CHOOSE_ONE_CARD', optionIndex: opt.index });
+                    }}
+                    className="hs-brass-btn mt-2 rounded-lg px-2.5 py-0.5 text-[10px] font-extrabold text-amber-100 sm:text-[11px]"
+                  >
+                    🔍 {tr('카드 확대', 'Zoom')}
+                  </button>
+                </div>
               );
             })}
           </div>
         </div>
       )}
 
-      {/* 4. Tracking (정찰 추적) 3-Card Picker Modal — Tap Card to Enlarge & Pick! */}
+      {/* 4. Tracking (정찰 추적) 3-Card Picker Modal — 1-Click Direct Draw + Inspect Pill! */}
       {matchState.trackingPrompt && (
         <div className="absolute inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/88 p-3 text-center sm:p-4">
-          <h3 className="hs-title hs-outline mb-1.5 text-xl font-extrabold text-emerald-300 sm:mb-2 sm:text-2xl">
-            {tr('정찰 추적 — 카드를 터치해 확대 후 1장을 가져오세요',
-              'Tracking — Tap a card to inspect and draw 1',
-            )}
+          <h3 className="hs-title hs-outline mb-1 text-xl font-extrabold text-emerald-300 sm:text-2xl">
+            {tr('정찰 추적 — 손으로 가져올 카드 1장을 클릭하세요', 'Tracking — Tap 1 card to draw immediately')}
           </h3>
           <p className="mb-4 text-xs font-bold text-amber-200/85 sm:mb-5">
-            {tr('선택하지 않은 나머지 카드는 버려집니다.', 'The other cards will be discarded.')}
+            {tr('선택하지 않은 나머지 2장은 버려집니다. (우클릭 또는 [카드 확대]로 상세 확인)', 'The other 2 cards will be discarded. (Right-click or tap [Zoom] to inspect)')}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-5">
             {matchState.trackingPrompt.cards.map((cid, idx) => (
               <div
                 key={`${cid}_${idx}`}
-                onClick={(e) => {
+                onContextMenu={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   hsAudio.playSfx('card_hover', 0.7);
                   setZoomState({ kind: 'TRACKING_CARD', cardId: cid, index: idx });
                 }}
-                className="cursor-pointer transition hover:scale-108"
+                className="flex flex-col items-center gap-1.5"
               >
-                <HearthstoneCard card={cardDb.mustGetCard(cid)} size={isCompactMobile ? 'XS' : 'MD'} />
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setZoomState(null);
+                    hsAudio.playSfx('card_place', 0.9);
+                    const eng = createEngine(matchState);
+                    setMatchState(eng.resolveTrackingChoice(cid));
+                  }}
+                  className="cursor-pointer transition hover:scale-108"
+                >
+                  <HearthstoneCard
+                    card={cardDb.mustGetCard(cid)}
+                    playableGlow="GREEN"
+                    size={isCompactMobile ? 'XS' : 'MD'}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    hsAudio.playSfx('card_hover', 0.7);
+                    setZoomState({ kind: 'TRACKING_CARD', cardId: cid, index: idx });
+                  }}
+                  className="hs-brass-btn rounded-lg px-2.5 py-0.5 text-[10px] font-extrabold text-amber-100 sm:text-[11px]"
+                >
+                  🔍 {tr('카드 확대', 'Zoom')}
+                </button>
               </div>
             ))}
           </div>

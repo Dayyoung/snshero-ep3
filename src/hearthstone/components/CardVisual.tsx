@@ -1319,6 +1319,14 @@ export interface BoardMinionTokenProps {
   onHoverMinion?: (minion: MinionInstance, hovering: boolean) => void;
 }
 
+const TRIGGER_CARD_IDS = new Set([
+  'EX1_402', 'EX1_604', 'CS2_235', 'NEW1_019', 'EX1_095', 'EX1_298',
+  'EX1_597', 'NEW1_012', 'EX1_044', 'EX1_595', 'NEW1_026', 'NEW1_020',
+  'EX1_007', 'EX1_399', 'EX1_001', 'EX1_080', 'EX1_575', 'EX1_004',
+  'NEW1_040', 'EX1_572', 'NEW1_038', 'EX1_614', 'EX1_559', 'EX1_506a',
+  'EX1_509', 'CS2_104', 'EX1_170', 'EX1_341', 'EX1_612', 'NEW1_027',
+]);
+
 export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
   minion,
   canAttack,
@@ -1392,6 +1400,13 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
         'EX1_383',
       ].includes(minion.cardId));
 
+  const hasTrigger =
+    !minion.silenced &&
+    (TRIGGER_CARD_IDS.has(minion.cardId) ||
+      minion.blessingOfWisdomOwners.length > 0 ||
+      minion.powerOverwhelmingDieAtEndTurn ||
+      Boolean(minion.corruptionOwner));
+
   const showSleepZzz =
     minion.exhausted && !minion.charge && !minion.auraCharge && !minion.cantAttack;
 
@@ -1429,6 +1444,9 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
             : 'hover:z-20 hover:scale-106'
       }`}
     >
+      {/* Ground Contact Cast Shadow Under Token */}
+      <div className="pointer-events-none absolute -bottom-1 left-1/2 z-0 h-3 w-[82%] -translate-x-1/2 rounded-[50%] bg-black/60 blur-[3px]" />
+
       {/* Sculpted Taunt Shield Frame */}
       {isTaunt && (
         <SnsTauntShieldSvg className="absolute -inset-1.5 z-0 h-[calc(100%+12px)] w-[calc(100%+12px)] sm:-inset-2.5 sm:h-[calc(100%+20px)] sm:w-[calc(100%+20px)]" />
@@ -1529,11 +1547,20 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
         </div>
       )}
 
-      {(hasDeathrattle || (!minion.silenced && (minion.poisonous || minion.spellDamage > 0))) && (
+      {(hasDeathrattle || hasTrigger || (!minion.silenced && (minion.poisonous || minion.spellDamage > 0))) && (
         <div className="pointer-events-none absolute -bottom-2 left-1/2 z-30 flex -translate-x-1/2 origin-bottom scale-[0.72] items-center gap-0.5 whitespace-nowrap rounded-full border border-[#d8b267] bg-stone-950/95 px-1.5 py-[1px] text-[9px] font-extrabold text-amber-200 shadow-lg sm:-bottom-2.5 sm:scale-100 sm:gap-1 sm:px-2 sm:py-[1.5px] sm:text-[9.5px]">
           {hasDeathrattle && (
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-stone-200" aria-label={tr('죽음의 메아리', 'Deathrattle')}>
               <path d="M12 2C7.5 2 4 5.4 4 9.7c0 2.8 1.5 5.2 3.8 6.5V19c0 .6.4 1 1 1h6.4c.6 0 1-.4 1-1v-2.8c2.3-1.3 3.8-3.7 3.8-6.5C20 5.4 16.5 2 12 2zm-3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
+            </svg>
+          )}
+          {hasTrigger && (
+            <svg
+              viewBox="0 0 24 24"
+              className="h-3.5 w-3.5 fill-amber-300 drop-shadow-[0_0_4px_rgba(251,191,36,0.9)]"
+              aria-label={tr('지속·격발 능력', 'Triggered Effect')}
+            >
+              <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" />
             </svg>
           )}
           {!minion.silenced && minion.poisonous && (
@@ -1662,36 +1689,51 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
 
   return (
     <div className="relative flex select-none items-center justify-center gap-2 sm:gap-3.5">
-      {/* Left: Equipped Weapon Medallion (Symmetric 56px/80px width with Right Hero Power so Hero Arch is 100% dead-center!) */}
+      {/* Left: Equipped Weapon Medallion with Twin Steel Shutters (Symmetric 56px/80px width with Right Hero Power!) */}
       <div className="relative flex h-[56px] w-[56px] items-center justify-center sm:h-[80px] sm:w-[80px]">
         {player.weapon ? (
           <div
             title={`${weaponDisplayName} (${player.weapon.attack}/${player.weapon.durability})`}
-            className={`relative flex h-[50px] w-[50px] items-center justify-center overflow-hidden rounded-full border-[2.5px] shadow-[0_8px_20px_rgba(0,0,0,0.9)] transition-all sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
+            className={`relative flex h-[50px] w-[50px] items-center justify-center rounded-full border-[2.5px] shadow-[0_8px_20px_rgba(0,0,0,0.92)] transition-all duration-300 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
               weaponOpen
-                ? 'border-[#ebd08c] bg-slate-900 ring-2 ring-emerald-400/70'
-                : 'border-slate-500 bg-slate-950 brightness-80'
+                ? 'border-[#ebd08c] bg-slate-900 ring-2 ring-emerald-400/75'
+                : 'border-slate-500 bg-slate-950'
             }`}
           >
-            {weaponOpen ? (
+            <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full">
               <img
                 src={weaponArtSrc}
                 alt={weaponDisplayName}
-                className={
+                draggable={false}
+                className={`${
                   isWeaponCutout
                     ? 'h-[145%] w-[120%] max-w-none object-cover object-top'
-                    : 'h-full w-full scale-[1.06] object-cover object-center'
-                }
+                    : 'h-full w-full object-cover object-center'
+                } transition duration-300 ${
+                  weaponOpen ? 'scale-105 brightness-105' : 'scale-95 brightness-45 grayscale-[0.4]'
+                }`}
               />
-            ) : (
-              <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-gradient-to-b from-slate-600 via-slate-800 to-slate-950">
-                <SnsSnowCompassSeal size={34} className="opacity-80" />
-              </div>
-            )}
+              {/* Twin Steel Shutter Halves Closing on Opponent's Turn */}
+              <div
+                className={`pointer-events-none absolute inset-y-0 left-0 w-1/2 border-r border-slate-300/40 bg-gradient-to-br from-slate-500 via-slate-800 to-slate-950 transition-transform duration-300 ${
+                  weaponOpen ? '-translate-x-full' : 'translate-x-0'
+                }`}
+              />
+              <div
+                className={`pointer-events-none absolute inset-y-0 right-0 w-1/2 border-l border-slate-300/40 bg-gradient-to-bl from-slate-500 via-slate-800 to-slate-950 transition-transform duration-300 ${
+                  weaponOpen ? 'translate-x-full' : 'translate-x-0'
+                }`}
+              />
+              {!weaponOpen && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <SnsSnowCompassSeal size={34} className="opacity-85 drop-shadow" />
+                </div>
+              )}
+            </div>
             <div className="pointer-events-none absolute -bottom-1.5 -left-1.5 z-20 origin-bottom-left scale-[0.72] sm:-bottom-2 sm:-left-2 sm:scale-100">
               <HsAttackBadge value={player.weapon.attack} isWeapon size={30} />
             </div>
-            <div className="hs-num pointer-events-none absolute -bottom-1 -right-1 z-20 flex h-5 w-5 items-center justify-center rounded border border-slate-200 bg-gradient-to-b from-slate-500 to-slate-900 text-[11px] text-white shadow-lg sm:-bottom-1.5 sm:-right-1.5 sm:h-7 sm:w-7 sm:rounded-md sm:border-2 sm:text-sm">
+            <div className="hs-num pointer-events-none absolute -bottom-1 -right-1 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-gradient-to-b from-slate-500 to-slate-900 text-[11px] text-white shadow-lg sm:-bottom-1.5 sm:-right-1.5 sm:h-7 sm:w-7 sm:border-2 sm:text-sm">
               {player.weapon.durability}
             </div>
           </div>
@@ -1864,8 +1906,11 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
         )}
       </div>
 
-      {/* Right: Carved Brass Hero Power Medallion */}
-      <div className="relative flex h-[56px] w-[56px] items-center justify-center sm:h-[80px] sm:w-[80px]">
+      {/* Right: 3D Flipping Carved Brass Hero Power Coin */}
+      <div
+        style={{ perspective: '700px' }}
+        className="relative flex h-[56px] w-[56px] items-center justify-center sm:h-[80px] sm:w-[80px]"
+      >
         <button
           type="button"
           data-hs-entity={isFriendly ? 'PLAYER_HERO_POWER' : 'OPPONENT_HERO_POWER'}
@@ -1875,16 +1920,18 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
             onClickHeroPower();
           }}
           title={`${heroPowerDisplayName} (${tr('비용 2', 'Cost 2')}): ${heroPowerDisplayText}`}
-          style={
-            !player.heroPowerUsedThisTurn
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: player.heroPowerUsedThisTurn ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            ...(!player.heroPowerUsedThisTurn
               ? {
                   background: `radial-gradient(circle at 50% 35%, ${pal.halo} 0%, ${pal.skyMid} 65%, ${pal.skyBot} 100%)`,
                 }
-              : undefined
-          }
-          className={`relative flex h-[52px] w-[52px] touch-none items-center justify-center rounded-full border-[2.5px] transition-all duration-300 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
+              : undefined),
+          }}
+          className={`relative flex h-[52px] w-[52px] touch-none items-center justify-center rounded-full border-[2.5px] transition-all duration-500 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
             player.heroPowerUsedThisTurn
-              ? 'border-stone-600 bg-stone-900 opacity-85'
+              ? 'border-stone-600 bg-stone-900 opacity-90'
               : isHeroPowerSelected
                 ? 'scale-110 border-yellow-200 shadow-[0_0_0_3px_#fde047,0_0_18px_rgba(250,204,21,0.95)]'
                 : canUseHeroPower
@@ -1893,8 +1940,11 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
           }`}
         >
           {player.heroPowerUsedThisTurn ? (
-            <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-stone-950">
-              <SnsSnowCompassSeal size={44} className="opacity-70" />
+            <div
+              style={{ transform: 'rotateY(180deg)' }}
+              className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-stone-950"
+            >
+              <SnsSnowCompassSeal size={44} className="opacity-80 drop-shadow" />
             </div>
           ) : (
             <>

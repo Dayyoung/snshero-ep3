@@ -630,8 +630,12 @@ export const CollectionScreen: React.FC<{
 
       {/* Floating Deck-Tile Hover Card Preview (Desktop >= lg) */}
       {hoveredTileCard && !inspectCard && (
-        <div className="pointer-events-none fixed right-[26.5%] top-1/2 z-[90] hidden -translate-y-1/2 lg:block">
-          <HearthstoneCard card={hoveredTileCard} size="MD" />
+        <div className="pointer-events-none absolute right-[26.5%] top-1/2 z-[90] hidden -translate-y-1/2 lg:block">
+          <HearthstoneCard
+            card={hoveredTileCard}
+            isGolden={(goldenCollection[hoveredTileCard.id] || 0) > 0}
+            size="MD"
+          />
         </div>
       )}
 
@@ -739,6 +743,25 @@ export const CollectionScreen: React.FC<{
                         size={isCompactMobile ? 'XS' : 'SM'}
                         enableTilt
                         onClick={() => {
+                          if (editingDeck && owned > 0) {
+                            const maxCopy = card.rarity === 'LEGENDARY' ? 1 : 2;
+                            const canQuickAdd =
+                              editingDeck.cards.length < 30 &&
+                              inDeck < maxCopy &&
+                              inDeck < owned &&
+                              (card.cardClass === editingDeck.heroClass ||
+                                card.cardClass === 'NEUTRAL');
+                            handleAddCardToDeck(card);
+                            if (canQuickAdd) {
+                              showNotice(
+                                tr(
+                                  `[${getCardName(card, lang)}] 덱에 추가 (${editingDeck.cards.length + 1}/30)`,
+                                  `Added [${getCardName(card, lang)}] (${editingDeck.cards.length + 1}/30)`,
+                                ),
+                              );
+                            }
+                            return;
+                          }
                           hsAudio.playSfx('card_hover', 0.7);
                           setInspectCard(card);
                         }}
@@ -1153,17 +1176,16 @@ export const CollectionScreen: React.FC<{
 
               <div className="flex-1 space-y-1 overflow-y-auto pr-1">
                 {deckGrouped.entries.map(({ card, count }) => (
-                  <button
+                  <div
                     key={card.id}
-                    type="button"
                     onMouseEnter={() => setHoveredTileCard(card)}
                     onMouseLeave={() => setHoveredTileCard(null)}
-                    onClick={() => {
+                    onContextMenu={(e) => {
+                      e.preventDefault();
                       hsAudio.playSfx('card_hover', 0.65);
                       setInspectCard(card);
                     }}
-                    title={tr('클릭하여 카드 확대 및 덱 편집', 'Click to inspect & edit')}
-                    className="group relative flex h-8 w-full items-center justify-between overflow-hidden rounded-md border border-[#b58e4c]/70 bg-[#18110b] pl-1 pr-1.5 text-left shadow transition hover:border-amber-300"
+                    className="group relative flex h-8 w-full items-center justify-between overflow-hidden rounded-md border border-[#b58e4c]/70 bg-[#18110b] pl-1 pr-1 text-left shadow transition hover:border-amber-300"
                   >
                     {/* Right-Side Cropped Character Portrait Tile */}
                     <img
@@ -1179,26 +1201,59 @@ export const CollectionScreen: React.FC<{
                       className="pointer-events-none absolute inset-0"
                     />
 
-                    <div className="relative z-10 flex min-w-0 items-center gap-1.5">
-                      <HsManaGem value={card.cost} size={23} />
-                      <span className="hs-outline-sm truncate text-xs font-extrabold text-white">
-                        {getCardName(card, lang)}
-                      </span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextLen = Math.max(0, editingDeck.cards.length - 1);
+                        handleRemoveCardFromDeck(card.id);
+                        setHoveredTileCard(null);
+                        showNotice(
+                          tr(
+                            `[${getCardName(card, lang)}] 덱에서 제외 (${nextLen}/30)`,
+                            `Removed [${getCardName(card, lang)}] (${nextLen}/30)`,
+                          ),
+                        );
+                      }}
+                      title={tr(
+                        '클릭하여 덱에서 1장 제외 (우클릭 또는 🔍 버튼으로 카드 확대)',
+                        'Click to remove 1 copy (Right-click or tap 🔍 to inspect)',
+                      )}
+                      className="relative z-10 flex h-full min-w-0 flex-1 items-center justify-between pr-1 text-left"
+                    >
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <HsManaGem value={card.cost} size={23} />
+                        <span className="hs-outline-sm truncate text-xs font-extrabold text-white">
+                          {getCardName(card, lang)}
+                        </span>
+                      </div>
 
-                    {(card.rarity === 'LEGENDARY' || count > 1) && (
-                      <span className="hs-num relative z-10 ml-1 flex h-5 min-w-5 items-center justify-center rounded border border-amber-300/70 bg-[#2a1a0c]/95 px-1 text-[11px] text-amber-300 shadow">
-                        {card.rarity === 'LEGENDARY' ? '★' : count}
-                      </span>
-                    )}
-                  </button>
+                      {(card.rarity === 'LEGENDARY' || count > 1) && (
+                        <span className="hs-num ml-1 flex h-5 min-w-5 items-center justify-center rounded border border-amber-300/70 bg-[#2a1a0c]/95 px-1 text-[11px] text-amber-300 shadow">
+                          {card.rarity === 'LEGENDARY' ? '★' : count}
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        hsAudio.playSfx('card_hover', 0.65);
+                        setInspectCard(card);
+                      }}
+                      title={tr('카드 상세 보기', 'Inspect Card')}
+                      className="relative z-10 ml-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded border border-amber-300/50 bg-black/65 text-[10px] text-amber-200 hover:border-amber-200 hover:bg-amber-900/70"
+                    >
+                      🔍
+                    </button>
+                  </div>
                 ))}
 
                 {deckGrouped.entries.length === 0 && (
                   <div className="rounded-xl border border-amber-500/20 bg-black/35 px-3 py-8 text-center text-xs font-semibold text-amber-200/70">
                     {tr(
-                      '카드첩에서 카드를 클릭해 확대한 뒤 [덱에 넣기]를 누르거나 아래 [자동 완성]을 누르세요.',
-                      'Tap any card in the tome to add it to your deck, or tap [Auto Complete] below.',
+                      '카드첩에서 보유 카드를 클릭하면 1장씩 즉시 덱에 추가됩니다! (아래 [자동 완성]도 가능)',
+                      'Click any owned card in the tome to add it in 1 click, or tap [Auto Complete] below!',
                     )}
                   </div>
                 )}

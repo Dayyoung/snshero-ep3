@@ -2,6 +2,25 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 13:00 KST] [`/stone.html` 적용 전체 개선사항 `/game.html`(눈히어로) 전수 동기화 및 실브라우저 검증 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 대전 전장(`BattleScreen.tsx`, `CardVisual.tsx`) 연출·UX·자동전투 안정성 전수 동기화**:
+    - [`src/hearthstone/components/CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/CardVisual.tsx):
+      - `BoardMinionToken`에 전장 접지 그림자(`bg-black/60 blur-[3px]`) 및 지속·격발 능력 하수인 번개(`⚡`) 배지(`TRIGGER_CARD_IDS` + 지혜의 축복·압도적인 힘·부패 상태 포함) 추가.
+      - `HeroPortraitZone` 장착 무기 슬롯에 상대 턴 진입 시 좌우 강철 셔터가 닫히는 트윈 셔터 연출(`-translate-x-full` / `translate-x-full` + `SnsSnowCompassSeal` 잠금 인장) 적용, 영웅 능력 메달리온에 사용 시 3D 코인 뒤집힘(`perspective: 700px`, `rotateY(180deg)`) 애니메이션 적용.
+    - [`src/hearthstone/screens/BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx):
+      - `triggerPhysicalAttack` 시작 여부(`boolean`) 반환 및 플레이어 자동전투(`autoPlay`)·상대 AI 턴 실행 루프에 무진행 안전 폴백(`errorBanner` 또는 `history` 미증가 시 즉시 `endTurn()`), 유효 대상 있는 선택 옵션 우선 채택(`viableOpt`), 자동 멀리건 후공 보너스 은화 쇼케이스(`coinGiftShowcase`) 추가.
+      - `운명의 선택`(`chooseOnePrompt`) 및 `정찰 추적`(`trackingPrompt`) 모달을 1클릭 즉시 발동·선택 + `🔍 카드 확대`(또는 우클릭) 구조로 업그레이드.
+  - **2. 성소 로비(`BoxHubScreen.tsx`, `hearthstone.css`) · 팩 개봉(`PackOpeningScreen.tsx`) · 카드첩(`CollectionScreen.tsx`) · 매치메이킹(`HeroDeckSelectScreen.tsx`) 동기화**:
+    - [`src/hearthstone/screens/BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx), [`src/hearthstone/hearthstone.css`](file:///Users/dayyoung/project/snshero/src/hearthstone/hearthstone.css): 성소 보관함 3D 양문 스윙 개방(`hsBoxDoorLeftSwing` / `hsBoxDoorRightSwing`), 하단 황동 서랍 슬라이드인(`trayReady`), 상단 `눈히어로` 로고 클릭 시 상자 개폐 연출 다시 보기(`replayBoxUnlatch`) 구현.
+    - [`src/hearthstone/screens/PackOpeningScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/PackOpeningScreen.tsx): 레거시 HTML5 `draggable` 대신 `#hs-stage-canvas` 스케일 좌표를 반영한 포인터/터치 드래그-투-천공제단(`packPointerDrag` + 부유 팩 추종 + 제단 드롭 개봉) 구현.
+    - [`src/hearthstone/screens/CollectionScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/CollectionScreen.tsx): 덱 편집 중 바인더 보유 카드 1클릭 즉시 덱 추가, 우측 덱 타일 1클릭 즉시 1장 제외 + `🔍` 상세 버튼, 덱 타일 호버 플로팅 카드 프리뷰(`isGolden` 반영 및 `#hs-stage-canvas` 내부 `absolute` 정렬) 적용.
+    - [`src/hearthstone/screens/HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx): 랭킹대전 맞수 탐색 모달을 좌우 황동 포인터(`▶`/`◀`)와 5단 원통형 아이보리 슬롯 드럼(`matchmaking-slot-drum`)으로 업그레이드.
+  - **3. 거버넌스 준수 · 프로덕션 빌드 · Playwright E2E 검증 완료**:
+    - 수집 가능 카드 총수 **382장** 엄격 동결(`game.html: 382`, `stone.html: 382`) 및 눈히어로 독자 IP·스토리지 격리(`hero_hs_*`, `/hs-assets/**`, `stone-assets` 참조 0건) 100% 확인.
+    - `npx tsc --noEmit` 및 `npm run build` 에러 `0`건 통과, Playwright 데스크톱(`1440×900`)·모바일(`390×844`) 통합 E2E 검증 전 항목 통과(`Total app errors: 0`).
+
 ## [2026-11-16 12:46 KST] [게임 시작 VS 캐릭터 호명 음성 무공백 연속 재생 최적화 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

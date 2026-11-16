@@ -106,6 +106,18 @@ export const PackOpeningScreen: React.FC<{
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [hoverTilt, setHoverTilt] = useState<{ idx: number; rx: number; ry: number } | null>(null);
   const [draggingPack, setDraggingPack] = useState(false);
+  const [packPointerDrag, setPackPointerDrag] = useState<{
+    stageX: number;
+    stageY: number;
+  } | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const altarRef = useRef<HTMLElement | null>(null);
+  const packDragRef = useRef<{
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
+  const suppressPackClickRef = useRef(false);
   const [altarShake, setAltarShake] = useState(false);
   const [zoomedPackCard, setZoomedPackCard] = useState<OpenedPackCard | null>(null);
   const [isDesktopStage, setIsDesktopStage] = useState(
@@ -361,12 +373,107 @@ export const PackOpeningScreen: React.FC<{
 
   const allRevealed = Boolean(openedCards && revealed.every(Boolean));
 
+  const clientToStagePoint = useCallback((clientX: number, clientY: number) => {
+    const el = rootRef.current;
+    if (!el) return { x: clientX, y: clientY };
+    const rect = el.getBoundingClientRect();
+    const scaleX = el.offsetWidth > 0 ? rect.width / el.offsetWidth : 1;
+    const scaleY = el.offsetHeight > 0 ? rect.height / el.offsetHeight : 1;
+    return {
+      x: (clientX - rect.left) / (scaleX || 1),
+      y: (clientY - rect.top) / (scaleY || 1),
+    };
+  }, []);
+
+  const handlePackPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (e.button !== 0 || openedCards || packBursting || profile.packs <= 0) return;
+      packDragRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        moved: false,
+      };
+    },
+    [openedCards, packBursting, profile.packs],
+  );
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      const pd = packDragRef.current;
+      if (!pd) return;
+      const dist = Math.hypot(e.clientX - pd.startX, e.clientY - pd.startY);
+      if (!pd.moved && dist > 10) {
+        pd.moved = true;
+        setDraggingPack(true);
+        document.body.classList.add('hs-dragging-active');
+        hsAudio.playSfx('card_hover', 0.72);
+      }
+      if (pd.moved) {
+        const pt = clientToStagePoint(e.clientX, e.clientY);
+        setPackPointerDrag({ stageX: pt.x, stageY: pt.y });
+      }
+    };
+
+    const onUp = (e: PointerEvent) => {
+      const pd = packDragRef.current;
+      if (!pd) return;
+      packDragRef.current = null;
+      document.body.classList.remove('hs-dragging-active');
+      setDraggingPack(false);
+      setPackPointerDrag(null);
+
+      if (pd.moved) {
+        suppressPackClickRef.current = true;
+        window.setTimeout(() => {
+          suppressPackClickRef.current = false;
+        }, 80);
+
+        const altarEl = altarRef.current;
+        if (altarEl) {
+          const r = altarEl.getBoundingClientRect();
+          if (
+            e.clientX >= r.left &&
+            e.clientX <= r.right &&
+            e.clientY >= r.top &&
+            e.clientY <= r.bottom
+          ) {
+            triggerOpenPack();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [clientToStagePoint, triggerOpenPack]);
+
   return (
     <div
+      ref={rootRef}
       style={{ backgroundImage: `url(${SNS_LOCATIONS.PACK_ALTAR})` }}
       className="relative flex h-full w-full select-none flex-col justify-between overflow-hidden bg-cover bg-center p-2.5 text-amber-100 sm:p-4"
     >
       <div className="pointer-events-none absolute inset-0 bg-radial from-sky-500/14 via-black/52 to-black/90" />
+
+      {/* Floating Pack Under Pointer / Finger During Drag-to-Altar */}
+      {packPointerDrag && (
+        <div
+          style={{
+            left: packPointerDrag.stageX,
+            top: packPointerDrag.stageY,
+            transform: 'translate(-50%, -50%) scale(1.06) rotate(-4deg)',
+          }}
+          className="pointer-events-none absolute z-[120] h-44 w-32 drop-shadow-[0_24px_38px_rgba(0,0,0,0.95)]"
+        >
+          <SnsBoosterPackArt glowing />
+        </div>
+      )}
 
       {/* Top Brass Header */}
       <header className="relative z-30 mx-auto flex w-full max-w-6xl shrink-0 flex-wrap items-center justify-between gap-1.5">
@@ -426,7 +533,12 @@ export const PackOpeningScreen: React.FC<{
 
       {/* Mobile Portrait Compact Unopened Pack Strip (`< md`) */}
       <div className="relative z-20 mx-auto mt-1.5 flex w-full max-w-6xl shrink-0 items-center justify-between rounded-2xl border-2 border-[#c8a158]/70 bg-stone-950/85 px-3 py-1.5 shadow-lg md:hidden">
-        <div className="flex items-center gap-2">
+        <div
+          onPointerDown={handlePackPointerDown}
+          className={`flex items-center gap-2 ${
+            !openedCards && profile.packs > 0 ? 'hs-grabbable touch-none' : ''
+          }`}
+        >
           <div className="h-8 w-6 shrink-0">
             <SnsBoosterPackArt />
           </div>
@@ -466,13 +578,15 @@ export const PackOpeningScreen: React.FC<{
 
           {profile.packs > 0 ? (
             <div
-              draggable={!openedCards}
-              onDragStart={() => setDraggingPack(true)}
-              onDragEnd={() => setDraggingPack(false)}
-              onClick={triggerOpenPack}
-              className={`relative cursor-grab transition duration-200 hover:scale-106 active:cursor-grabbing ${
+              data-testid="unopened-pack-stack"
+              onPointerDown={handlePackPointerDown}
+              onClick={() => {
+                if (suppressPackClickRef.current) return;
+                triggerOpenPack();
+              }}
+              className={`hs-grabbable relative touch-none transition duration-200 hover:scale-106 ${
                 openedCards ? 'pointer-events-none opacity-40' : ''
-              }`}
+              } ${packPointerDrag && profile.packs === 1 ? 'opacity-30' : ''}`}
             >
               {/* Stacked Pack Depth Illusion */}
               {profile.packs > 2 && (
@@ -536,6 +650,8 @@ export const PackOpeningScreen: React.FC<{
 
         {/* Right: Glowing Sky Altar + 5-Card Floating 3D Flip Stage */}
         <section
+          ref={altarRef}
+          data-testid="pack-sky-altar"
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();

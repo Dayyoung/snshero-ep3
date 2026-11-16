@@ -447,6 +447,45 @@
   }
 }
 
+/* The Box: 3D Hinged Left & Right Chest Doors Opening */
+@keyframes hsBoxDoorLeftSwing {
+  0% {
+    transform: perspective(1500px) rotateY(0deg);
+    opacity: 1;
+  }
+  68% {
+    transform: perspective(1500px) rotateY(-116deg);
+    opacity: 0.92;
+  }
+  100% {
+    transform: perspective(1500px) rotateY(-128deg);
+    opacity: 0;
+  }
+}
+
+@keyframes hsBoxDoorRightSwing {
+  0% {
+    transform: perspective(1500px) rotateY(0deg);
+    opacity: 1;
+  }
+  68% {
+    transform: perspective(1500px) rotateY(116deg);
+    opacity: 0.92;
+  }
+  100% {
+    transform: perspective(1500px) rotateY(128deg);
+    opacity: 0;
+  }
+}
+
+.hs-grabbable {
+  cursor: grab;
+}
+
+.hs-grabbable:active {
+  cursor: grabbing;
+}
+
 .hs-dragging-active,
 .hs-dragging-active * {
   cursor: grabbing !important;
