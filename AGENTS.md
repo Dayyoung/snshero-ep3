@@ -111,6 +111,9 @@
 - **`/cutscene-anime-short`**: `/cutscene-anime-short 1화`와 같이 호출하면 동일하게 배경장소 시트·7등신 `cutouts` 캐릭터 시트·소품 시트를 첨부하여 **나노바나나 2.1 세로(9:16 숏폼)** 이미지 기준으로 해당 회차의 모든 컷신을 생성하는 스킬
 - **`/video-anime`**: `/video-anime 1화`와 같이 호출하면 해당 회차의 `/script-anime` 스크립트 및 `/cutscene-anime` 컷신을 확인(없으면 자동 생성)한 뒤, Google Flow 프로젝트(`72ee6e60-2819-43a6-bb8c-700a7d599bdf`)에서 배경장소 시트·7등신 `cutouts` 캐릭터 시트·소품 시트를 첨부하여 **Veo 3.1 Lite 가로(16:9) 6초 동영상**을 전수 생성하고 1개의 통합 동영상으로 병합해 유튜브 업로드 준비를 완료하는 스킬
 - **`/video-anime-short`**: `/video-anime-short 1화`와 같이 호출하면 동일하게 배경장소 시트·7등신 `cutouts` 캐릭터 시트·소품 시트를 첨부하여 **Veo 3.1 Lite 세로(9:16 숏폼) 6초 동영상**을 전수 생성하고 1개의 통합 세로 동영상으로 병합해 유튜브 업로드 준비를 완료하는 스킬
+- **`/checkIssue`**: SNSHero 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`, `'게임 이슈 관리 로그'`)를 `gsheets` CLI로 조회해 미해결 이슈를 소스코드에 구현·수정하고, 실제 빌드 및 E2E 테스트 통과 후 원격 배포(`git push origin main`) 및 시트 최신화까지 일괄 수행하는 스킬
+- **`/checkMarket`**: SNSHero 마케팅문서(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`, `'마케팅 분석 로그'`)를 `gsheets` CLI로 조회해 미완료 항목 중 코드·저장소에서 적용 가능한 항목을 수정하고, 실제 빌드 및 테스트 통과 후 원격 배포(`git push origin main`) 및 시트 최신화까지 일괄 수행하는 스킬
+- **`/checkBug`**: SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`, `'개발개선점 분석 로그'`)를 `gsheets` CLI로 조회해 미해결 결함·개발 개선 항목을 소스코드에 패치하고, 실제 빌드 및 E2E 테스트 통과 후 원격 배포(`git push origin main`) 및 시트 최신화까지 일괄 수행하는 스킬
 
 ## 110개 미션 게임 AI 카드 배틀 전면 통일 & 주사위/랜덤플레이 연동 완료
 - **AI 카드 대결 통일**: 110개 미션 게임을 각 카드 전담 AI 카드게임 플레이로 100% 통일, 상대 AI 덱은 해당 카드 5장 동일 덱으로 자동 편성.

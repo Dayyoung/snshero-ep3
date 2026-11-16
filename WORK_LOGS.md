@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 06:53 KST] [구글 시트 연동 3종 자동화 스킬(`/checkIssue`, `/checkMarket`, `/checkBug`) 생성 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`.agents/skills/checkIssue/SKILL.md`](file:///Users/dayyoung/project/snshero/.agents/skills/checkIssue/SKILL.md): SNSHero 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`, `'게임 이슈 관리 로그'`) 조회 → 코드 수정 → 빌드·E2E 테스트 → 통과 시 `git push origin main` 배포 → 시트 상태(`완료`/`진행중`) 최신화 워크플로우 구축.
+  - [`.agents/skills/checkMarket/SKILL.md`](file:///Users/dayyoung/project/snshero/.agents/skills/checkMarket/SKILL.md): SNSHero 마케팅문서(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`, `'마케팅 분석 로그'`) 조회 → 코드 수정 → 빌드·테스트 → 통과 시 배포 → 시트 상태 최신화 워크플로우 구축.
+  - [`.agents/skills/checkBug/SKILL.md`](file:///Users/dayyoung/project/snshero/.agents/skills/checkBug/SKILL.md): SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`, `'개발개선점 분석 로그'`) 조회 → 결함 패치 → 빌드·E2E 테스트 → 통과 시 배포 → 시트 상태(`J`열) 및 조치내역(`K`열) 최신화 워크플로우 구축.
+  - [`AGENTS.md`](file:///Users/dayyoung/project/snshero/AGENTS.md) 등록된 커스텀 스킬 목록 갱신.
+- **검증 및 보고**:
+  - 각 스프레드시트 탭명·대시보드 수식·컬럼(`A:K`)·진행 상태 문자열(`점검완료·실행대기`, `진행중`, `완료`, `보류`) 실측 검증 완료, 로컬 커밋 및 구글 폼 보고 완료.
+
 ## [2026-11-16 17:24 KST] [네이버 도전만화 링크(`titleId=857363`) 단일 통일 및 `sitemap.xml` `lastmod` 최신화 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
