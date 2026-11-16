@@ -247,49 +247,55 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         </button>
       </div>
 
-      {/* Left Character Upper-Body Cutout (Protagonist / Ally — True Waist-Up `상반신` Anchored at Bottom!) */}
+      {/* Left Character Upper-Body Cutout (Protagonist / Ally — True Waist-Up `상반신` Capped Under 50% Height) */}
       <div
+        data-testid="story-dialogue-left-portrait"
         style={{
           filter: isLeftSpeaking ? STICKER_OUTLINE_FILTER : DIMMED_OUTLINE_FILTER,
           transform: isLeftSpeaking
-            ? `translate3d(-50%, ${talkBob ? '-11px' : '-6px'}, 0) scale(1.03)`
-            : 'translate3d(-50%, 6px, 0) scale(0.96)',
+            ? `translate3d(-50%, ${talkBob ? '-9px' : '-4px'}, 0) scale(1.02)`
+            : 'translate3d(-50%, 4px, 0) scale(0.95)',
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
         }}
-        className={`pointer-events-none absolute left-[27%] flex justify-center sm:left-[28%] ${
+        className={`pointer-events-none absolute bottom-0 left-[27%] flex max-h-[48%] justify-center overflow-hidden sm:left-[28%] ${
           encounter.leftSpriteUrl.includes('/characters/cutouts/')
-            ? 'top-[28%] h-[108%] items-start sm:top-[14%] sm:h-[124%]'
-            : 'bottom-0 h-[54%] items-end sm:h-[74%]'
+            ? 'h-[40%] items-start sm:h-[47%]'
+            : 'h-[38%] items-end sm:h-[47%]'
         } ${isLeftSpeaking ? 'z-20' : 'z-10'}`}
       >
         <img
           src={encounter.leftSpriteUrl}
           alt={isKo ? encounter.leftNameKo : encounter.leftNameEn}
           draggable={false}
-          className="h-full w-auto max-w-none select-none"
+          className={`w-auto max-w-none select-none ${
+            encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'h-[155%]' : 'h-full'
+          }`}
         />
       </div>
 
-      {/* Right Character Upper-Body Cutout (Opponent / Boss — True Waist-Up `상반신` Anchored at Bottom!) */}
+      {/* Right Character Upper-Body Cutout (Opponent / Boss — True Waist-Up `상반신` Capped Under 50% Height) */}
       <div
+        data-testid="story-dialogue-right-portrait"
         style={{
           filter: !isLeftSpeaking ? STICKER_OUTLINE_FILTER : DIMMED_OUTLINE_FILTER,
           transform: !isLeftSpeaking
-            ? `translate3d(-50%, ${talkBob ? '-11px' : '-6px'}, 0) scale(1.03)`
-            : 'translate3d(-50%, 6px, 0) scale(0.96)',
+            ? `translate3d(-50%, ${talkBob ? '-9px' : '-4px'}, 0) scale(1.02)`
+            : 'translate3d(-50%, 4px, 0) scale(0.95)',
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
         }}
-        className={`pointer-events-none absolute left-[73%] flex justify-center sm:left-[72%] ${
+        className={`pointer-events-none absolute bottom-0 left-[73%] flex max-h-[48%] justify-center overflow-hidden sm:left-[72%] ${
           encounter.rightSpriteUrl.includes('/characters/cutouts/')
-            ? 'top-[28%] h-[108%] items-start sm:top-[14%] sm:h-[124%]'
-            : 'bottom-0 h-[54%] items-end sm:h-[74%]'
+            ? 'h-[40%] items-start sm:h-[47%]'
+            : 'h-[38%] items-end sm:h-[47%]'
         } ${!isLeftSpeaking ? 'z-20' : 'z-10'}`}
       >
         <img
           src={encounter.rightSpriteUrl}
           alt={isKo ? encounter.rightNameKo : encounter.rightNameEn}
           draggable={false}
-          className="h-full w-auto max-w-none select-none"
+          className={`w-auto max-w-none select-none ${
+            encounter.rightSpriteUrl.includes('/characters/cutouts/') ? 'h-[155%]' : 'h-full'
+          }`}
         />
       </div>
 
@@ -502,8 +508,9 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
         </div>
       )}
 
-      {/* Protagonist Upper-Body Cutout (True Waist-Up `상반신` in CHARACTER_LINE, Softly Dimmed Backdrop in ITEM_CARD!) */}
+      {/* Protagonist Upper-Body Cutout (True Waist-Up `상반신` Capped Under 50% Height) */}
       <div
+        data-testid="story-victory-portrait"
         style={{
           filter:
             step === 'ITEM_CARD'
@@ -515,10 +522,10 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
               : 'translate3d(-50%, 0, 0)',
           transition: 'filter 320ms ease, opacity 320ms ease, transform 140ms ease',
         }}
-        className={`pointer-events-none absolute left-1/2 flex justify-center ${
+        className={`pointer-events-none absolute bottom-0 left-1/2 flex max-h-[48%] justify-center overflow-hidden ${
           encounter.leftSpriteUrl.includes('/characters/cutouts/')
-            ? 'top-[24%] h-[112%] items-start sm:top-[13%] sm:h-[126%]'
-            : 'bottom-0 h-[58%] items-end sm:h-[76%]'
+            ? 'h-[40%] items-start sm:h-[48%]'
+            : 'h-[38%] items-end sm:h-[48%]'
         } ${
           step === 'ITEM_CARD' ? 'z-10 scale-98 opacity-45' : 'z-20 scale-100 opacity-100'
         }`}
@@ -527,7 +534,9 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
           src={encounter.leftSpriteUrl}
           alt={speakerName}
           draggable={false}
-          className="h-full w-auto max-w-none select-none"
+          className={`w-auto max-w-none select-none ${
+            encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'h-[155%]' : 'h-full'
+          }`}
         />
       </div>
 

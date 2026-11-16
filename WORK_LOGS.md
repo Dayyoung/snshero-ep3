@@ -2,6 +2,14 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 16:47 KST] [스토리 모드 캐릭터 대화·승리 오버레이 상반신 비율 축소(기존 ~70% 수준 · 전체 화면 50% 이하 엄격 제한) 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`StoryEncounterOverlays.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/StoryEncounterOverlays.tsx) 내 `StoryDialogueOverlay`(좌·우 캐릭터) 및 `StoryVictoryItemOverlay`(승리 캐릭터)의 상반신 포트레이트 컨테이너 높이를 기존 `54%~126%`에서 **`h-[38%~40%] sm:h-[47%~48%] max-h-[48%]` (`overflow-hidden`)** 로 축소·재배치하여, 어떠한 해상도에서도 전체 화면의 절반(50%)을 초과하지 않고 기존 대비 약 70% 수준의 균형 잡힌 상반신 구도로 노출되도록 개선.
+  - 전신 컷아웃(`/characters/cutouts/`) 에셋은 하단 고정(`bottom-0`) + `items-start` + `h-[155%]` 조합으로 하반신 노출 없이 깔끔한 상반신 크롭 유지.
+- **검증 및 보고**:
+  - `npm run build` 성공 및 Playwright 데스크톱(`1280x800`: 좌 47.9%, 우 44.6%)·모바일(`390x844`: 좌 37.1%, 우 37.9%) 실측 비율(전수 50% 이하) 및 스크린샷 시각 검수 완료. 구글 폼 보고 완료.
+
 ## [2026-11-16 16:39 KST] [`https://snshero.com/stone.html?lang=ko` 한글판 유튜브 본편(16:9) · 쇼츠(9:16) · 한글 썸네일 · 후킹 제목/설명 제작 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
