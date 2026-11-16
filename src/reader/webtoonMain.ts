@@ -72,15 +72,31 @@ document.addEventListener('change', (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
-  if (!isWebtoonLightboxOpen()) return;
-  if (event.key === 'Escape') {
-    closeWebtoonLightbox();
-    renderApp();
-  } else if (event.key === 'ArrowLeft') {
-    handleWebtoonAction('webtoon-lightbox-prev');
+  if (isWebtoonLightboxOpen()) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeWebtoonLightbox();
+      renderApp();
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      handleWebtoonAction('webtoon-lightbox-prev');
+      renderApp();
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      handleWebtoonAction('webtoon-lightbox-next');
+      renderApp();
+    }
+    return;
+  }
+  const tag = (event.target as HTMLElement | null)?.tagName;
+  if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    handleWebtoonAction('webtoon-prev-episode');
     renderApp();
   } else if (event.key === 'ArrowRight') {
-    handleWebtoonAction('webtoon-lightbox-next');
+    event.preventDefault();
+    handleWebtoonAction('webtoon-next-episode');
     renderApp();
   }
 });

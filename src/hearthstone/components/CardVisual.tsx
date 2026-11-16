@@ -658,7 +658,16 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
       : `<span style="color:#fcd34d;font-weight:900">[${tr('영웅 장착 무기', 'Hero Weapon')}]</span><br/><span style="color:#e2e8f0;font-size:12.5px">${tr(`내 영웅이 장착하여 직접 공격<br/>(공격력 ${shownWeaponAttack} · 내구도 ${shownWeaponDurability})`, `Equips directly to your hero<br/>(Attack ${shownWeaponAttack} · Durability ${shownWeaponDurability})`)}</span>`
     : rawFormattedHtml;
   const plainTextLen = (cardDisplayText || '').replace(/<[^>]+>/g, '').length + (isWeapon ? 12 : 0);
-  const bodyFontSize = plainTextLen > 88 ? 11.2 : plainTextLen > 62 ? 12.4 : plainTextLen > 42 ? 13.6 : 15;
+  const bodyFontSize =
+    plainTextLen > 88
+      ? 10.6
+      : plainTextLen > 62
+        ? 11.4
+        : plainTextLen > 46
+          ? 12.2
+          : plainTextLen > 30
+            ? 13.4
+            : 15;
 
   return (
     <div
@@ -1196,7 +1205,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
           {formattedHtml && (
             <div
               style={{ fontSize: bodyFontSize }}
-              className={`relative z-10 line-clamp-4 font-extrabold leading-[1.24] tracking-tight ${
+              className={`relative z-10 line-clamp-5 font-extrabold leading-[1.18] tracking-tight ${
                 isWeapon ? 'text-slate-100' : 'text-[#211307]'
               }`}
               dangerouslySetInnerHTML={{ __html: formattedHtml }}
@@ -1690,13 +1699,13 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
   const weaponOpen = isActiveTurn && Boolean(player.weapon);
 
   return (
-    <div className="relative flex select-none items-center justify-center gap-2 sm:gap-3.5">
+    <div className="relative flex select-none items-center justify-center gap-2 overflow-visible sm:gap-3.5">
       {/* Left: Equipped Weapon Medallion with Twin Steel Shutters (Symmetric 56px/80px width with Right Hero Power!) */}
-      <div className="relative flex h-[56px] w-[56px] items-center justify-center sm:h-[80px] sm:w-[80px]">
+      <div className="relative flex h-[56px] w-[56px] items-center justify-center overflow-visible sm:h-[80px] sm:w-[80px]">
         {player.weapon ? (
           <div
             title={`${weaponDisplayName} (${player.weapon.attack}/${player.weapon.durability})`}
-            className={`relative flex h-[50px] w-[50px] items-center justify-center rounded-full border-[2.5px] shadow-[0_8px_20px_rgba(0,0,0,0.92)] transition-all duration-300 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
+            className={`relative flex h-[50px] w-[50px] items-center justify-center overflow-visible rounded-full border-[2.5px] shadow-[0_8px_20px_rgba(0,0,0,0.92)] transition-all duration-300 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
               weaponOpen
                 ? 'border-[#ebd08c] bg-slate-900 ring-2 ring-emerald-400/75'
                 : 'border-slate-500 bg-slate-950'
@@ -1732,10 +1741,10 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
                 </div>
               )}
             </div>
-            <div className="pointer-events-none absolute -bottom-1.5 -left-1.5 z-20 origin-bottom-left scale-[0.72] sm:-bottom-2 sm:-left-2 sm:scale-100">
+            <div className="pointer-events-none absolute -bottom-2 -left-2 z-30 origin-bottom-left scale-[0.76] sm:-bottom-2 sm:-left-2 sm:scale-100">
               <HsAttackBadge value={player.weapon.attack} isWeapon size={30} />
             </div>
-            <div className="hs-num pointer-events-none absolute -bottom-1 -right-1 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-gradient-to-b from-slate-500 to-slate-900 text-[11px] text-white shadow-lg sm:-bottom-1.5 sm:-right-1.5 sm:h-7 sm:w-7 sm:border-2 sm:text-sm">
+            <div className="hs-num pointer-events-none absolute -bottom-1.5 -right-1.5 z-30 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-gradient-to-b from-slate-500 to-slate-900 text-[11px] text-white shadow-lg sm:-bottom-2 sm:-right-2 sm:h-7 sm:w-7 sm:border-2 sm:text-sm">
               {player.weapon.durability}
             </div>
           </div>

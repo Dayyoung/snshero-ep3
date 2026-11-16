@@ -2507,16 +2507,50 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     };
   };
 
-  // Click a card in Player's Hand -> Select & Enlarge Card (when not dragged!)
+  // Click a card in Player's Hand -> Playable cards lift/select on 1st tap & quick-play on 2nd tap (double-tap) or board tap; non-playable cards zoom!
   const handleHandCardClick = (handUid: string) => {
     if (suppressNextClickRef.current) return;
     if (matchState.phase !== 'PLAYING' || attackAnim) return;
     const hc = matchState.player.hand.find((h) => h.uid === handUid);
     if (!hc) return;
 
-    hsAudio.playSfx('card_hover', 0.7);
-    setSelection(null);
-    setZoomState({ kind: 'HAND_CARD', handUid });
+    const isMyTurn = matchState.activeSide === 'PLAYER';
+    const check = isMyTurn ? engine.inspectPlayability('PLAYER', hc) : null;
+    if (!isMyTurn || !check?.canPlay) {
+      hsAudio.playSfx('card_hover', 0.7);
+      setSelection(null);
+      setZoomState({ kind: 'HAND_CARD', handUid });
+      return;
+    }
+
+    if (selection?.kind === 'HAND_CARD' && selection.handUid === handUid) {
+      if (!check.needsTarget && !check.hasChooseOne) {
+        executePlayPlayerCard(handUid, {
+          insertIndex: matchState.player.board.length,
+        });
+      } else {
+        setSelection(null);
+      }
+      return;
+    }
+
+    if (check.hasChooseOne) {
+      executePlayPlayerCard(handUid, {
+        insertIndex: matchState.player.board.length,
+      });
+      return;
+    }
+
+    const def = cardDb.mustGetCard(hc.cardId);
+    hsAudio.playSfx('card_hover', 0.8);
+    setSelection({
+      kind: 'HAND_CARD',
+      handUid,
+      cardId: hc.cardId,
+      needsTarget: check.needsTarget,
+      validTargets: check.validTargets,
+      isMinion: def.type === 'MINION',
+    });
   };
 
   // Resolve clicking a target entity (`PLAYER_HERO`, `OPPONENT_HERO`, or minion `uid`)
@@ -2563,6 +2597,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           const eng = createEngine(matchState);
           setSelection(null);
           setMatchState(eng.useHeroPower('PLAYER', entityId));
+        } else if (entityId === 'PLAYER_HERO') {
+          // BLD-2702: Damage Hero Powers (e.g. Poseidon Hydro Blast) disallow self-hit — clicking own hero cleanly cancels targeting
+          hsAudio.playSfx('ui_click', 0.45);
+          setSelection(null);
         } else {
           setMatchState((s) => ({
             ...s,
@@ -4731,7 +4769,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       ? 'translateY(-18px) scale(1.08)'
                       : `translateY(${liftY}px) rotate(${angle}deg)`,
                   }}
-                  className={`touch-none transition-all duration-150 ${
+                  className={`relative touch-none transition-all duration-150 ${
                     isBeingDragged && (!handDrag?.needsTarget || handDrag?.hasChooseOne)
                       ? 'pointer-events-none opacity-20'
                       : ''
@@ -4745,6 +4783,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       : 'hover:z-50 sm:hover:-translate-y-7 sm:hover:rotate-0 sm:hover:scale-110'
                   }`}
                 >
+                  {selection?.kind === 'HAND_CARD' && selection.handUid === hc.uid && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        hsAudio.playSfx('card_hover', 0.7);
+                        setSelection(null);
+                        setZoomState({ kind: 'HAND_CARD', handUid: hc.uid });
+                      }}
+                      title={tr('카드 상세 보기', 'Inspect Card')}
+                      className="hs-brass-btn absolute -top-3 right-0 z-50 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black text-amber-100 shadow-lg"
+                    >
+                      🔍
+                    </button>
+                  )}
                   <HearthstoneCard
                     card={def}
                     effectiveCost={check.cost}
@@ -5576,9 +5629,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   onExitBattle();
                 }}
                 aria-label={tr('닫기 (로비로 이동)', 'Close (Return to Hub)')}
-                className="hs-brass-btn absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+                className="hs-brass-btn absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-amber-100"
               >
-                ✕
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
               </button>
               {autoPlay && !postGameAutoPaused && (
                 <div className="absolute left-0 right-0 top-0 h-1.5 bg-stone-900">
@@ -5828,9 +5883,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 onExitBattle();
               }}
               aria-label={tr('닫기 (로비로 이동)', 'Close (Return to Hub)')}
-              className="hs-brass-btn absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+              className="hs-brass-btn absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-amber-100"
             >
-              ✕
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
             </button>
             {autoPlay && !postGameAutoPaused && (
               <div className="absolute left-0 right-0 top-0 h-1.5 bg-stone-900">

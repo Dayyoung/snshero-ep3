@@ -1588,6 +1588,8 @@ export const GameOptionsModal: React.FC<{
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [dataNotice, setDataNotice] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
+  const [pasteModalOpen, setPasteModalOpen] = useState<boolean>(false);
+  const [pasteCodeInput, setPasteCodeInput] = useState<string>('');
   const [mobileQrUrl, setMobileQrUrl] = useState<string | null>(null);
   const [mobileQrSvg, setMobileQrSvg] = useState<string | null>(null);
   const vibSupport = useMemo(() => hsAudio.getVibrationSupportInfo(), []);
@@ -1630,15 +1632,22 @@ export const GameOptionsModal: React.FC<{
 
   const handlePasteRestore = () => {
     hsAudio.playSfx('ui_click', 0.8);
-    const raw = window.prompt(
-      tr(
-        '복원할 눈히어로 카드배틀(/game.html) 백업 JSON 코드를 붙여넣어 주세요:',
-        'Paste SNSHero Card Battle (/game.html) backup JSON code to restore:',
-      ),
-    );
-    if (!raw || !raw.trim()) return;
-    const res = hsStorage.restoreGameBackupJson(raw.trim());
+    setPasteCodeInput('');
+    setPasteModalOpen((prev) => !prev);
+  };
+
+  const applyPastedBackup = () => {
+    const raw = pasteCodeInput.trim();
+    if (!raw) {
+      setDataNotice(tr('백업 JSON 코드를 먼저 입력해 주세요.', 'Please paste your backup JSON code first.'));
+      return;
+    }
+    const res = hsStorage.restoreGameBackupJson(raw);
     setDataNotice(res.message);
+    if (res.success) {
+      setPasteModalOpen(false);
+      setPasteCodeInput('');
+    }
   };
 
   return (
@@ -2010,6 +2019,45 @@ export const GameOptionsModal: React.FC<{
               </button>
             </div>
 
+            {pasteModalOpen && (
+              <div
+                data-testid="hs-restore-paste-modal"
+                className="mt-1.5 space-y-2 rounded-xl border border-amber-400/50 bg-stone-950/90 p-2.5 text-left"
+              >
+                <div className="text-[11px] font-extrabold text-amber-200">
+                  {tr(
+                    '복원할 눈히어로 카드배틀(/game) 백업 JSON 코드를 붙여넣어 주세요:',
+                    'Paste SNSHero Card Battle (/game) backup JSON code to restore:',
+                  )}
+                </div>
+                <textarea
+                  data-testid="hs-restore-paste-textarea"
+                  value={pasteCodeInput}
+                  onChange={(e) => setPasteCodeInput(e.target.value)}
+                  rows={3}
+                  placeholder={tr('{"version":1,"keys":{...}}', '{"version":1,"keys":{...}}')}
+                  className="w-full rounded-lg border border-amber-500/40 bg-black/70 p-2 font-mono text-[11px] text-amber-100 placeholder:text-amber-200/35 focus:border-amber-300 focus:outline-none"
+                />
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="hs-restore-paste-apply-btn"
+                    onClick={applyPastedBackup}
+                    className="hs-arcane-btn flex-1 rounded-lg py-1.5 text-[11px] font-extrabold text-white"
+                  >
+                    {tr('복원 적용', 'Apply Restore')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPasteModalOpen(false)}
+                    className="hs-brass-btn rounded-lg px-3 py-1.5 text-[11px] font-extrabold text-amber-100"
+                  >
+                    {tr('취소', 'Cancel')}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* MKT-018: PC <-> Mobile 3-Second QR & 1-Click Restore URL Generator */}
             <button
               type="button"
@@ -2080,7 +2128,7 @@ export const GameOptionsModal: React.FC<{
                 }}
                 className="mt-1 w-full rounded-lg border border-red-400/50 bg-red-950/60 py-1.5 text-[11px] font-extrabold text-red-200 hover:bg-red-900/70"
               >
-                🗑 {tr('카드배틀 데이터 초기화 (/game.html 전용)', 'Reset Game Data (/game.html only)')}
+                🗑 {tr('카드배틀 데이터 초기화 (/game 전용)', 'Reset Game Data (/game only)')}
               </button>
             ) : (
               <div className="mt-1 flex items-center gap-1.5 rounded-lg border border-red-400/70 bg-red-950/90 p-2">

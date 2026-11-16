@@ -17,8 +17,10 @@
 import { EXTERNAL_LINKS } from './types';
 import { getEpisodeBridgeInfo } from './episodeBridge';
 import WEBTOON_MANIFEST_DATA from '../content/webtoonEpisodeManifest.json';
-import { chapterTitles } from '../content/kadanRpgStory';
+import episodesSchema from '../content/episodes.json';
 import { isKoreanLanguage, tr } from './i18n';
+
+const EPISODES_SSOT: { ep: number; titleKo: string; titleEn: string }[] = episodesSchema;
 
 export interface WebtoonDialogueItem {
   speakerKo?: string;
@@ -182,8 +184,8 @@ export function renderWebtoonSection(): string {
   const bridge = getEpisodeBridgeInfo(ep);
   const epData = MANIFEST[String(ep)];
   const rawTitle = isKo
-    ? epData?.episodeTitleKo || chapterTitles[ep - 1]?.titleKo || epData?.episodeTitle || `제 ${ep}화`
-    : epData?.episodeTitle || chapterTitles[ep - 1]?.titleEn || epData?.episodeTitleKo || `Episode ${ep}`;
+    ? EPISODES_SSOT[ep - 1]?.titleKo || epData?.episodeTitleKo || `제 ${ep}화`
+    : EPISODES_SSOT[ep - 1]?.titleEn || epData?.episodeTitle || `Episode ${ep}`;
   const images: WebtoonImageItem[] = epData?.images || [];
   const totalPanels = images.length;
 
@@ -193,8 +195,8 @@ export function renderWebtoonSection(): string {
     const curEp = zoomedEpisode;
     const curEpData = MANIFEST[String(curEp)];
     const curTitle = isKo
-      ? curEpData?.episodeTitleKo || chapterTitles[curEp - 1]?.titleKo || curEpData?.episodeTitle || `제 ${curEp}화`
-      : curEpData?.episodeTitle || chapterTitles[curEp - 1]?.titleEn || curEpData?.episodeTitleKo || `Episode ${curEp}`;
+      ? EPISODES_SSOT[curEp - 1]?.titleKo || curEpData?.episodeTitleKo || `제 ${curEp}화`
+      : EPISODES_SSOT[curEp - 1]?.titleEn || curEpData?.episodeTitle || `Episode ${curEp}`;
     const curImages = curEpData?.images || [];
     const maxIdx = Math.max(0, curImages.length - 1);
     const validIdx = Math.max(0, Math.min(maxIdx, zoomedSceneIndex));
@@ -359,6 +361,26 @@ export function renderWebtoonSection(): string {
               `
             }
           </div>
+          ${
+            isAtEpisodeEnd
+              ? `
+          <div class="pt-2 border-t border-amber-700/30 flex flex-wrap items-center justify-end gap-2">
+            <a
+              href="/book.html?ep=${curEp}"
+              class="px-3.5 py-1.5 rounded-full bg-[#2a180c] hover:bg-[#3a2211] border border-amber-500/50 text-amber-200 text-[11px] font-extrabold no-underline transition"
+            >
+              📖 ${tr(`제${curEp}화 원작 소설 읽기`, `Read EP.${curEp} Novel`)}
+            </a>
+            <a
+              href="/game?mode=story&ep=${curEp}&utm_source=webtoon_lightbox"
+              class="hs-promo-cta-purple px-3.5 py-1.5 rounded-full text-[11px] font-extrabold no-underline"
+            >
+              ⚔ ${tr(`제${curEp}화 보스전 플레이 →`, `Play EP.${curEp} Boss →`)}
+            </a>
+          </div>
+          `
+              : ''
+          }
         </footer>
       </div>
     `;
@@ -427,10 +449,9 @@ export function renderWebtoonSection(): string {
               >
                 ${Array.from({ length: 40 }, (_, idx) => {
                   const num = idx + 1;
-                  const item = MANIFEST[String(num)];
                   const title = isKo
-                    ? item?.episodeTitleKo || chapterTitles[idx]?.titleKo || item?.episodeTitle || `제 ${num}화`
-                    : item?.episodeTitle || chapterTitles[idx]?.titleEn || item?.episodeTitleKo || `Episode ${num}`;
+                    ? EPISODES_SSOT[idx]?.titleKo || `제 ${num}화`
+                    : EPISODES_SSOT[idx]?.titleEn || `Episode ${num}`;
                   const epPrefix = isKo ? `제${num}화` : `EP.${String(num).padStart(2, '0')}`;
                   return `
                     <option value="${num}" ${num === ep ? 'selected' : ''}>
@@ -478,10 +499,9 @@ export function renderWebtoonSection(): string {
             <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[320px] overflow-y-auto pr-1">
               ${Array.from({ length: 40 }, (_, idx) => {
                 const num = idx + 1;
-                const item = MANIFEST[String(num)];
                 const title = isKo
-                  ? item?.episodeTitleKo || chapterTitles[idx]?.titleKo || item?.episodeTitle || `제 ${num}화`
-                  : item?.episodeTitle || chapterTitles[idx]?.titleEn || item?.episodeTitleKo || `Episode ${num}`;
+                  ? EPISODES_SSOT[idx]?.titleKo || `제 ${num}화`
+                  : EPISODES_SSOT[idx]?.titleEn || `Episode ${num}`;
                 const isCurrent = num === ep;
                 const epBadge = isKo ? `[${num}화]` : `[EP.${String(num).padStart(2, '0')}]`;
                 return `
@@ -552,7 +572,7 @@ export function renderWebtoonSection(): string {
                     const isTitleCard = sceneIndex === 0 || img.type === 'title_card';
                     const isEndingPromo = img.type === 'ending_promo';
                     const panelBadge = isTitleCard ? 'TITLE CARD' : `SCENE ${String(sceneIndex).padStart(2, '0')}`;
-                    const koChapterTitle = chapterTitles[ep - 1]?.titleKo || '';
+                    const koChapterTitle = EPISODES_SSOT[ep - 1]?.titleKo || '';
                     const mainNarration = isTitleCard
                       ? isKo && koChapterTitle
                         ? `제 ${ep} 화 · ${koChapterTitle}`
@@ -708,18 +728,34 @@ export function renderWebtoonSection(): string {
           <div class="pt-8 pb-4 text-center border-t border-amber-700/40 space-y-4">
             <div class="space-y-1">
               <span class="text-xs font-extrabold text-amber-300 tracking-widest uppercase">
-                ${tr(
-                  `— 《카단의 여정》 웹툰 제 ${ep}화 완독 —`,
-                  `— End of Kadan's Journey Webtoon Episode ${ep} —`,
-                  `— 《カダンの旅》 ウェブトゥーン 第${ep}話 読了 —`
-                )}
+                ${
+                  ep === 40
+                    ? tr(
+                        '— 《카단의 여정》 웹툰 제40화 대단원 완결 —',
+                        "— End of Kadan's Journey Webtoon Finale (EP.40) —",
+                        '— 《カダンの旅》 ウェブトゥーン 第40話 大団円 完結 —',
+                      )
+                    : tr(
+                        `— 《카단의 여정》 웹툰 제 ${ep}화 완독 —`,
+                        `— End of Kadan's Journey Webtoon Episode ${ep} —`,
+                        `— 《カダンの旅》 ウェブトゥーン 第${ep}話 読了 —`,
+                      )
+                }
               </span>
               <p class="text-xs text-amber-200/70 m-0">
-                ${tr(
-                  '다음 에피소드에서 전설의 배틀과 스토리가 계속됩니다.',
-                  'The legendary battles and story continue in the next episode.',
-                  '次のエピソードでも伝説のバトルと物語が続きます。'
-                )}
+                ${
+                  ep === 40
+                    ? tr(
+                        '카단의 여정 웹툰 40부작 대단원이 완결되었습니다. 제1화부터 다시 감상하거나 원작 소설·보스전에 도전하세요!',
+                        'The 40-episode webtoon saga is complete! Re-read from Episode 1 or challenge the boss battle.',
+                        'ウェブトゥーン全40話が完結しました！第1話から読み直すかボス戦に挑戦しましょう。',
+                      )
+                    : tr(
+                        '다음 에피소드에서 전설의 배틀과 스토리가 계속됩니다.',
+                        'The legendary battles and story continue in the next episode.',
+                        '次のエピソードでも伝説のバトルと物語が続きます。',
+                      )
+                }
               </p>
             </div>
 
@@ -736,12 +772,20 @@ export function renderWebtoonSection(): string {
                     </div>
                   </div>
                 </div>
-                <a
-                  href="/game?mode=story&ep=${ep}&utm_source=webtoon_ep"
-                  class="hs-promo-cta-purple px-5 py-2.5 rounded-full text-xs font-extrabold no-underline shrink-0"
-                >
-                  ⚔ ${tr(`제${ep}화 보스전 바로 도전하기 →`, `Challenge EP.${ep} Boss →`)}
-                </a>
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                  <a
+                    href="/book.html?ep=${ep}"
+                    class="px-4 py-2.5 rounded-full bg-[#2a180c] hover:bg-[#3a2211] border border-amber-500/50 text-amber-200 text-xs font-extrabold no-underline transition"
+                  >
+                    📖 ${tr(`제${ep}화 원작 소설 읽기`, `Read EP.${ep} Novel`)}
+                  </a>
+                  <a
+                    href="/game?mode=story&ep=${ep}&utm_source=webtoon_ep"
+                    class="hs-promo-cta-purple px-5 py-2.5 rounded-full text-xs font-extrabold no-underline"
+                  >
+                    ⚔ ${tr(`제${ep}화 보스전 바로 도전하기 →`, `Challenge EP.${ep} Boss →`)}
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -765,14 +809,25 @@ export function renderWebtoonSection(): string {
                 <span>${tr('맨 위로 ↑', 'Top ↑', '上へ ↑')}</span>
               </button>
 
-              <button
+              ${
+                ep >= 40
+                  ? `<button
+                type="button"
+                data-testid="webtoon-ep40-restart-btn"
+                data-action="webtoon-jump-episode"
+                data-episode="1"
+                class="hs-promo-cta-purple flex-1 py-3.5 px-4 text-xs sm:text-sm font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <span>🔄 ${tr('대단원 완결 · 제1화부터 다시 감상', 'Finale · Read Again from EP.1', '完結 · 第1話から読み直す')}</span>
+              </button>`
+                  : `<button
                 type="button"
                 data-action="webtoon-next-episode"
-                ${ep >= 40 ? 'disabled' : ''}
-                class="hs-promo-cta-purple flex-1 py-3.5 px-4 disabled:opacity-30 text-xs sm:text-sm font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-1 cursor-pointer"
+                class="hs-promo-cta-purple flex-1 py-3.5 px-4 text-xs sm:text-sm font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-1 cursor-pointer"
               >
-                <span>${tr(`다음화 (제${Math.min(40, ep + 1)}화)`, `Next (EP.${Math.min(40, ep + 1)})`, `次話 (第${Math.min(40, ep + 1)}話)`)} ▶</span>
-              </button>
+                <span>${tr(`다음화 (제${ep + 1}화)`, `Next (EP.${ep + 1})`, `次話 (第${ep + 1}話)`)} ▶</span>
+              </button>`
+              }
             </div>
           </div>
 

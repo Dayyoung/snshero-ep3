@@ -1915,7 +1915,13 @@ export function createEngine(rawState: BattleMatchState) {
     }
 
     if (p.heroPowerNeedsTarget) {
-      const validTargets = getValidTargetsForKind(side, 'ANY_CHARACTER', true);
+      const allowFriendlyHeroTarget =
+        p.heroPowerId !== 'HERO_08bp' &&
+        p.heroPowerId !== 'EX1_625t' &&
+        p.heroPowerId !== 'EX1_625t2';
+      const validTargets = getValidTargetsForKind(side, 'ANY_CHARACTER', true).filter(
+        (id) => allowFriendlyHeroTarget || id !== `${side}_HERO`,
+      );
       return { canUse: validTargets.length > 0, needsTarget: true, validTargets };
     }
     return { canUse: true, needsTarget: false, validTargets: [] };

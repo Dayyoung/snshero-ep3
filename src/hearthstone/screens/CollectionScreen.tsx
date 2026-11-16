@@ -105,11 +105,19 @@ export const CollectionScreen: React.FC<{
   const [inspectCard, setInspectCard] = useState<ClassicCardDef | null>(null);
   const [disenchantModalPreview, setDisenchantModalPreview] =
     useState<MassDisenchantPreview | null>(null);
+  const [singleDisenchantConfirm, setSingleDisenchantConfirm] = useState<{
+    card: ClassicCardDef;
+    golden: boolean;
+    dust: number;
+  } | null>(null);
+  const [incompleteDeckPromptOpen, setIncompleteDeckPromptOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [dustShortageCard, setDustShortageCard] = useState<ClassicCardDef | null>(null);
 
   useModalDismiss(importModalOpen, () => setImportModalOpen(false));
   useModalDismiss(Boolean(disenchantModalPreview), () => setDisenchantModalPreview(null));
+  useModalDismiss(Boolean(singleDisenchantConfirm), () => setSingleDisenchantConfirm(null));
+  useModalDismiss(incompleteDeckPromptOpen, () => setIncompleteDeckPromptOpen(false));
   useModalDismiss(creatingClassPicker, () => setCreatingClassPicker(false));
 
   useEffect(() => {
@@ -193,11 +201,20 @@ export const CollectionScreen: React.FC<{
   );
 
   const filteredCards = useMemo(() => {
-    return cardDb
-      .getAllCollectible()
+    const hasSearch = searchQuery.trim().length > 0;
+    const all = cardDb.getAllCollectible();
+    if (hasSearch) {
+      const allowedTabs: CardClass[] = editingDeck
+        ? [editingDeck.heroClass, 'NEUTRAL']
+        : ALL_CLASS_TABS;
+      return all
+        .filter((c) => allowedTabs.includes(c.cardClass) && matchesBaseFilters(c))
+        .sort(compareCardsStoneOrder);
+    }
+    return all
       .filter((c) => c.cardClass === activeTab && matchesBaseFilters(c))
       .sort(compareCardsStoneOrder);
-  }, [activeTab, matchesBaseFilters]);
+  }, [activeTab, matchesBaseFilters, searchQuery, editingDeck]);
 
   // 전체 카드첩 순회 리스트: 9개 진영 + 중립 전수(기본 382장 전체, 덱 편집 시 해당 진영+중립 전체)를 탭·비용·이름 순으로 연결
   const allNavigableCards = useMemo(() => {
@@ -779,6 +796,14 @@ export const CollectionScreen: React.FC<{
                           {tr(`황금×${Math.min(owned, goldenCollection[card.id] || 0)}`, `Gold ×${Math.min(owned, goldenCollection[card.id] || 0)}`)}
                         </span>
                       )}
+                      {owned >= 3 && (card.type === 'MINION' || card.type === 'WEAPON') && (
+                        <span
+                          data-testid={`card-awakened-3x-${card.id}`}
+                          className="hs-outline-sm pointer-events-none absolute left-1.5 top-2 z-30 rounded-full border border-emerald-200 bg-gradient-to-b from-emerald-500 to-emerald-800 px-1.5 py-[1px] text-[8.5px] font-black text-white shadow sm:left-2 sm:top-3 sm:text-[9px]"
+                        >
+                          {tr('⚡3배 각성', '⚡3x Awake')}
+                        </span>
+                      )}
                       {editingDeck && inDeck > 0 && (
                         <span className="hs-num pointer-events-none absolute right-1.5 top-2 z-30 rounded-full border border-emerald-200 bg-emerald-700 px-1.5 py-0.5 text-[9.5px] text-white shadow sm:right-2 sm:top-3 sm:px-2 sm:text-[10px]">
                           {tr(`덱 ${inDeck}`, `Deck ${inDeck}`)}
@@ -1290,6 +1315,11 @@ export const CollectionScreen: React.FC<{
                 <button
                   type="button"
                   onClick={() => {
+                    if (editingDeck.cards.length < 30) {
+                      hsAudio.playSfx('ui_click');
+                      setIncompleteDeckPromptOpen(true);
+                      return;
+                    }
                     setHoveredTileCard(null);
                     hsAudio.playSfx('box_tray_in', 0.75);
                     setEditingDeckId(null);
@@ -1474,6 +1504,18 @@ export const CollectionScreen: React.FC<{
                     : tr(`황금 마력 추출 (+${nextExtractDust} 가루)`, `Disenchant Golden (+${nextExtractDust} Dust)`),
                 variant: 'brass',
                 onClick: () => {
+                  const breaksAwakening =
+                    owned === 3 &&
+                    (inspectCard.type === 'MINION' || inspectCard.type === 'WEAPON');
+                  if (breaksAwakening) {
+                    hsAudio.playSfx('ui_click');
+                    setSingleDisenchantConfirm({
+                      card: inspectCard,
+                      golden: normalOwned <= 0,
+                      dust: nextExtractDust,
+                    });
+                    return;
+                  }
                   const res = hsStorage.disenchantCard(inspectCard.id);
                   if (res.ok) {
                     hsAudio.playSfx('cm_remove_card');
@@ -1497,6 +1539,18 @@ export const CollectionScreen: React.FC<{
                   ),
                   variant: 'brass',
                   onClick: () => {
+                    const breaksAwakening =
+                      owned === 3 &&
+                      (inspectCard.type === 'MINION' || inspectCard.type === 'WEAPON');
+                    if (breaksAwakening) {
+                      hsAudio.playSfx('ui_click');
+                      setSingleDisenchantConfirm({
+                        card: inspectCard,
+                        golden: true,
+                        dust: GOLDEN_DISENCHANT_VALUE[inspectCard.rarity],
+                      });
+                      return;
+                    }
                     const res = hsStorage.disenchantCard(inspectCard.id, true);
                     if (res.ok) {
                       hsAudio.playSfx('cm_remove_card');
@@ -1751,6 +1805,132 @@ export const CollectionScreen: React.FC<{
                 )}
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* BLD-2703: Single Card Disenchant 3x Awakening Safeguard Modal */}
+      {singleDisenchantConfirm && (
+        <div
+          onClick={() => setSingleDisenchantConfirm(null)}
+          className="fixed inset-0 z-[140] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm"
+        >
+          <div
+            data-testid="single-disenchant-3x-modal"
+            onClick={(e) => e.stopPropagation()}
+            className="hs-wood-panel relative w-full max-w-md rounded-3xl p-5 text-center text-amber-100 shadow-2xl"
+          >
+            <h3 className="hs-title text-lg font-extrabold text-amber-200">
+              {tr('⚠️ 3배 각성 보너스 해제 경고', '⚠️ 3x Awakening Loss Warning')}
+            </h3>
+            <p className="mt-2.5 text-xs font-bold leading-relaxed text-amber-100/90">
+              {tr(
+                `[${getCardName(singleDisenchantConfirm.card, lang)}] 카드를 마력 추출하면 보유 수량이 3장 → 2장으로 감소하여 스토리모드 '3장=3배 각성' 보너스가 해제됩니다. 정말 추출하시겠습니까?`,
+                `Disenchanting [${getCardName(singleDisenchantConfirm.card, lang)}] reduces your copies from 3 to 2, removing its Story Mode '3 Copies = 3x Awakening' bonus. Continue?`,
+              )}
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click');
+                  setSingleDisenchantConfirm(null);
+                }}
+                className="hs-arcane-btn flex-1 rounded-xl py-2.5 text-xs font-extrabold text-white"
+              >
+                {tr('취소 · 3배 각성 유지', 'Cancel · Keep 3x Awakening')}
+              </button>
+              <button
+                type="button"
+                data-testid="confirm-single-disenchant-btn"
+                onClick={() => {
+                  const target = singleDisenchantConfirm;
+                  setSingleDisenchantConfirm(null);
+                  const res = hsStorage.disenchantCard(target.card.id, target.golden);
+                  if (res.ok) {
+                    hsAudio.playSfx('cm_remove_card');
+                    syncAll();
+                    showNotice(
+                      tr(
+                        `[${getCardName(target.card, lang)}] 마력 추출 완료! (+${res.dustGained ?? target.dust} 가루)`,
+                        `Disenchanted [${getCardName(target.card, lang)}]! (+${res.dustGained ?? target.dust} Dust)`,
+                      ),
+                    );
+                  } else {
+                    showNotice(res.reason || tr('분해 실패', 'Disenchant failed'));
+                  }
+                }}
+                className="hs-brass-btn flex-1 rounded-xl border-red-400/60 bg-gradient-to-b from-red-700 to-red-950 py-2.5 text-xs font-extrabold text-white"
+              >
+                {tr(`그래도 추출 (+${singleDisenchantConfirm.dust} 가루)`, `Disenchant (+${singleDisenchantConfirm.dust} Dust)`)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BLD-2703: Incomplete (<30 Cards) Deck Save Prompt */}
+      {incompleteDeckPromptOpen && editingDeck && (
+        <div
+          onClick={() => setIncompleteDeckPromptOpen(false)}
+          className="fixed inset-0 z-[140] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm"
+        >
+          <div
+            data-testid="incomplete-deck-prompt-modal"
+            onClick={(e) => e.stopPropagation()}
+            className="hs-wood-panel relative w-full max-w-md rounded-3xl p-5 text-center text-amber-100 shadow-2xl"
+          >
+            <h3 className="hs-title text-lg font-extrabold text-yellow-300">
+              {tr(`덱이 아직 ${editingDeck.cards.length}/30장입니다`, `Deck Incomplete (${editingDeck.cards.length}/30)`)}
+            </h3>
+            <p className="mt-2 text-xs font-bold leading-relaxed text-amber-100/90">
+              {tr(
+                '30장을 모두 채워야 랭킹대전 및 AI대전에서 사용할 수 있습니다. 지금 자동으로 나머지 카드를 채워 완성할까요?',
+                'A full 30-card deck is required for Ranked & AI battles. Would you like to auto-complete the remaining slots?',
+              )}
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              <button
+                type="button"
+                data-testid="incomplete-deck-autocomplete-btn"
+                onClick={() => {
+                  handleAutoCompleteDeck();
+                  setIncompleteDeckPromptOpen(false);
+                  setHoveredTileCard(null);
+                  setEditingDeckId(null);
+                }}
+                className="hs-arcane-btn w-full rounded-xl py-2.5 text-xs font-extrabold text-white"
+              >
+                ✨ {tr('자동 완성으로 30장 채우고 완료', 'Auto-Complete to 30 & Finish')}
+              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIncompleteDeckPromptOpen(false);
+                    setHoveredTileCard(null);
+                    hsAudio.playSfx('box_tray_in', 0.75);
+                    setEditingDeckId(null);
+                    showNotice(
+                      tr(
+                        `미완성 초안(${editingDeck.cards.length}/30장)으로 저장되었습니다. 대전 전 30장을 채워주세요.`,
+                        `Saved as draft (${editingDeck.cards.length}/30). Fill to 30 cards before queuing.`,
+                      ),
+                    );
+                  }}
+                  className="hs-brass-btn flex-1 rounded-xl py-2 text-xs font-extrabold text-amber-100"
+                >
+                  {tr('초안으로 저장', 'Save Draft')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIncompleteDeckPromptOpen(false)}
+                  className="hs-brass-btn flex-1 rounded-xl py-2 text-xs font-extrabold text-amber-100"
+                >
+                  {tr('계속 편집', 'Keep Editing')}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

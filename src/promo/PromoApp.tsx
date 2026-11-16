@@ -76,6 +76,7 @@ export const PromoApp: React.FC = () => {
   // Card Library Filters
   const [filterClass, setFilterClass] = useState<string>('ALL');
   const [filterRarity, setFilterRarity] = useState<string>('LEGENDARY');
+  const [filterMana, setFilterMana] = useState<number | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showGolden, setShowGolden] = useState(false);
   const [showAwakened3x, setShowAwakened3x] = useState(false);
@@ -273,21 +274,25 @@ export const PromoApp: React.FC = () => {
   const storyBossHighlights = useMemo(
     () => [
       {
+        ep: 38,
         name: tr('심연화신 루시안', 'Abyssal Avatar Lucian'),
         role: tr('붉은 유리 궁정 재상 · 최종 흑막', 'Chancellor of Crimson Glass · Mastermind'),
         img: '/hs-assets/bosses/boss_abyss_lucian.webp',
       },
       {
+        ep: 25,
         name: tr('대심판관 말라카이', 'Arch-Inquisitor Malakai'),
         role: tr('광휘 신전 이단심문관', 'Grand Inquisitor of the Radiant Temple'),
         img: '/hs-assets/bosses/boss_malakai.webp',
       },
       {
+        ep: 32,
         name: tr('환각마녀 모르가나', 'Mirage Witch Morgana'),
         role: tr('안개 늪의 환술 지배자', 'Sovereign of Illusion in Misty Fen'),
         img: '/hs-assets/bosses/boss_morgana.webp',
       },
       {
+        ep: 26,
         name: tr('수문장 발타자르', 'Gatekeeper Balthazar'),
         role: tr('심연 관문의 강철 수호자', 'Iron Warden of the Abyssal Gate'),
         img: '/hs-assets/bosses/boss_balthazar.webp',
@@ -357,6 +362,9 @@ export const PromoApp: React.FC = () => {
       .filter((c) => {
         if (filterClass !== 'ALL' && c.cardClass !== filterClass) return false;
         if (filterRarity !== 'ALL' && c.rarity !== filterRarity) return false;
+        if (filterMana !== 'ALL') {
+          if (filterMana === 7 ? c.cost < 7 : c.cost !== filterMana) return false;
+        }
         if (q) {
           const hay = [
             c.name,
@@ -376,7 +384,7 @@ export const PromoApp: React.FC = () => {
         return true;
       })
       .sort(compareCardsStoneOrder);
-  }, [cards, filterClass, filterRarity, searchQuery]);
+  }, [cards, filterClass, filterRarity, filterMana, searchQuery]);
 
   const displayedCards = useMemo(
     () => filteredCards.slice(0, visibleLimit),
@@ -854,6 +862,7 @@ export const PromoApp: React.FC = () => {
             <div className="grid grid-cols-1 items-center lg:grid-cols-12">
               <div className="relative h-64 overflow-hidden bg-black sm:h-80 lg:col-span-6 lg:h-full lg:min-h-[360px]">
                 <img
+                  key={activeFeature.imageUrl}
                   src={activeFeature.imageUrl}
                   alt={activeFeature.title}
                   className="h-full w-full object-cover object-center transition-transform duration-500 hover:scale-105"
@@ -919,7 +928,7 @@ export const PromoApp: React.FC = () => {
               {storyBossHighlights.map((boss) => (
                 <a
                   key={boss.img}
-                  href="/game?mode=story"
+                  href={`/game?mode=story&ep=${boss.ep}`}
                   className="hs-promo-gold-frame group overflow-hidden rounded-xl bg-[#1d1008] transition hover:-translate-y-1.5"
                 >
                   <div className="aspect-[4/3] overflow-hidden bg-black">
@@ -1199,7 +1208,7 @@ export const PromoApp: React.FC = () => {
                     </div>
                   </div>
                   <a
-                    href="/game?mode=ranked"
+                    href={`/game?mode=ranked&faction=${selectedHero.heroClass}`}
                     className="hs-promo-cta-purple inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold"
                   >
                     <span>{tr(`${selectedHeroUi.name} 덱 플레이`, `Play ${selectedHeroUi.name}`)}</span>
@@ -1311,8 +1320,22 @@ export const PromoApp: React.FC = () => {
                     '카드명, 캐릭터명, 능력 키워드 검색 (예: 카단, 도발, 용족)',
                     'Search card name, character, or keyword (e.g. Kadan, Taunt, Dragon)',
                   )}
-                  className="w-full rounded-xl border border-amber-500/40 bg-black/50 py-2.5 pl-9 pr-3 text-sm font-bold text-amber-50 placeholder-amber-200/45 focus:border-amber-300 focus:outline-none"
+                  className="w-full rounded-xl border border-amber-500/40 bg-black/50 py-2.5 pl-9 pr-9 text-sm font-bold text-amber-50 placeholder-amber-200/45 focus:border-amber-300 focus:outline-none"
                 />
+                {searchQuery.length > 0 && (
+                  <button
+                    type="button"
+                    data-testid="promo-card-search-clear"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setVisibleLimit(12);
+                    }}
+                    aria-label={tr('검색어 지우기', 'Clear search')}
+                    className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-amber-500/25 text-xs font-black text-amber-200 hover:bg-amber-500/50"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-1.5">
@@ -1394,6 +1417,46 @@ export const PromoApp: React.FC = () => {
                 <span>{tr('중립 (157)', 'Neutral (157)')}</span>
               </button>
             </div>
+
+            {/* Mana Cost Filter Bar (BLD-2707) */}
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-amber-500/20 pt-2.5">
+              <span className="mr-1 text-[11px] font-extrabold text-sky-300">
+                {tr('마나 코스트:', 'Mana Cost:')}
+              </span>
+              <button
+                type="button"
+                data-testid="promo-mana-filter-ALL"
+                onClick={() => {
+                  setFilterMana('ALL');
+                  setVisibleLimit(12);
+                }}
+                className={`rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
+                  filterMana === 'ALL'
+                    ? 'bg-sky-500 text-white'
+                    : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
+                }`}
+              >
+                {tr('전체', 'All')}
+              </button>
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  data-testid={`promo-mana-filter-${m}`}
+                  onClick={() => {
+                    setFilterMana(m);
+                    setVisibleLimit(12);
+                  }}
+                  className={`min-w-[30px] rounded-lg px-2 py-1 text-xs font-extrabold transition ${
+                    filterMana === m
+                      ? 'bg-sky-500 text-white'
+                      : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
+                  }`}
+                >
+                  {m === 7 ? '7+' : m}
+                </button>
+              ))}
+            </div>
           </div>
 
           {cardsLoading ? (
@@ -1410,6 +1473,7 @@ export const PromoApp: React.FC = () => {
                 onClick={() => {
                   setFilterClass('ALL');
                   setFilterRarity('ALL');
+                  setFilterMana('ALL');
                   setSearchQuery('');
                 }}
                 className="hs-promo-cta-teal mt-4 rounded-full px-5 py-2 text-xs font-extrabold"
@@ -1484,7 +1548,11 @@ export const PromoApp: React.FC = () => {
               <div className="lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src="/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116"
+                    src={
+                      isKo
+                        ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
+                        : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116'
+                    }
                     alt={tr('랭킹대전', 'Ranked Play')}
                     className="aspect-video w-full object-cover"
                   />
@@ -1719,17 +1787,17 @@ export const PromoApp: React.FC = () => {
               {
                 icon: <BookOpen className="h-5 w-5 text-amber-300" />,
                 title: tr('웹소설', 'Web Novel'),
-                sub: tr('40부작 공식 판타지 웹소설 · /book.html 바로 감상', '40-Episode Fantasy Novel · Read at /book.html'),
+                sub: tr('40부작 공식 판타지 웹소설 · 원작 전편 무료 감상', '40-Episode Fantasy Novel · Read All Chapters Free'),
                 img: '/webtoon-assets/episode_01/scene_04.webp',
-                href: '/book.html',
+                href: '/book',
                 external: false,
               },
               {
                 icon: <Layers className="h-5 w-5 text-sky-300" />,
                 title: tr('웹툰', 'Webtoon'),
-                sub: tr('카단과 이그니스의 서사를 /webtoon.html 에서 감상', 'Read the full illustrated series at /webtoon.html'),
+                sub: tr('카단과 이그니스의 서사를 풀컬러 웹툰으로 감상', 'Read the full illustrated webtoon series free'),
                 img: '/webtoon-assets/episode_01/scene_14.webp',
-                href: '/webtoon.html',
+                href: '/webtoon',
                 external: false,
               },
               {

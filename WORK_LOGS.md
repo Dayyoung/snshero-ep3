@@ -516,4 +516,20 @@
     - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
 
 
+## [2026-11-16 16:50 KST] [27차 라이브 점검 마스터 시트(BLD-2701~BLD-2712) 전수 확인·수정·빌드/Playwright 검증 및 시트 완료 처리]
+- **작업자**: `Antigravity Assistant`
+- **대상 시트**: `1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU` (`SNSHero.com 라이브 페이지 개발개선점 점검 마스터 시트`)
+- **작업 개요**:
+  - **1. 메인 게임 (`snshero.com/game`, BLD-2701~2704)**:
+    - [`classic-cards.json`](file:///Users/dayyoung/project/snshero/public/hs-assets/data/classic-cards.json), [`cardEffects.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/cardEffects.ts): 영문 원작 카드명·로어 전수 치환(382장+토큰), `CS2_101t` 대지 성채 수호병 메타 교정, `CS2_050` 실반 불꽃 정령석 설명란 추가.
+    - [`GameEngine.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/GameEngine.ts), [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx), [`CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/CardVisual.tsx), [`pwaFullscreen.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/pwaFullscreen.ts): 포세이돈 영웅 능력 자해 방지 가드(`allowFriendlyHeroTarget: false`), 무기 슬롯 배지 `overflow-visible`/`z-30` 클리핑 해소, 손패 1탭 선택·더블탭 즉시 사용·드래그 배치, 승리/패배 모달 SVG 닫기 아이콘 교체, Fullscreen API 옵션 폴백 적용.
+    - [`CollectionScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/CollectionScreen.tsx), [`Modals.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/Modals.tsx): 보유 ×3 카드 `⚡3배 각성` 배지 및 개별 `마력 추출` 3배 각성 해제 경고 모달 추가, 30장 미만 덱 완료 시 `[자동 완성]` 프롬프트 모달, 전 진영 통합 검색, 설정 내 커스텀 `코드 붙여넣기` 텍스트 모달 및 `/game 전용` 표기 정규화.
+  - **2. 프로모션 (`snshero.com/`, BLD-2705~2707)**:
+    - [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx), [`CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/CardVisual.tsx): 장문 카드 설명(`line-clamp-5` 및 폰트 스케일) 잘림 완화, 9종족 덱 플레이 `?faction=` 및 4대 보스 `?ep=` 딥링크 연동, `#universe` `/book.html`·`/webtoon.html` 문구/경로 정규화, `#cards` 마나 코스트(0~7+) 필터·검색 초기화(X) 추가, `#latest` 이미지 `key` 바인딩, `#modes` 한국어 랭킹대전 실측 스크린샷([`ingame_ranked_battle_ko.png`](file:///Users/dayyoung/project/snshero/public/hs-assets/screenshots/ingame_ranked_battle_ko.png)) 캡처 및 적용.
+  - **3. 공식 웹소설·웹툰 (`book.html`, `webtoon`, BLD-2708~2712)**:
+    - [`episodes.json`](file:///Users/dayyoung/project/snshero/src/content/episodes.json), [`kadanRpgStory.ts`](file:///Users/dayyoung/project/snshero/src/content/kadanRpgStory.ts), [`BookSection.tsx`](file:///Users/dayyoung/project/snshero/src/reader/BookSection.tsx), [`bookMain.ts`](file:///Users/dayyoung/project/snshero/src/reader/bookMain.ts), [`WebtoonSection.tsx`](file:///Users/dayyoung/project/snshero/src/reader/WebtoonSection.tsx), [`webtoonMain.ts`](file:///Users/dayyoung/project/snshero/src/reader/webtoonMain.ts): 1~40화 단일 제목 스키마 통합, `구름 돌아오는 장원` 띄어쓰기 교정, 웹소설 목차 모달 백드롭/ESC 닫기, 웹소설·웹툰 40화 완결편 재시작 분기 및 상호 브릿지(`/webtoon?ep=N`, `/book.html?ep=N`, `/game?mode=story&ep=N`) CTA 추가, 웹툰 키보드 좌우/ESC 제어 강화.
+  - **4. 검증 및 시트 완료 처리**:
+    - `npx tsc --noEmit`, `npm run build` 성공 및 헤드리스 Chromium Playwright 통합 검증 통과(페이지 오류 0건).
+    - 구글 시트 `개발개선점 상세`(`K4:L16`) 및 `4대페이지 기능별 실측판정`(`I10:I72`) 전수 완료 처리 및 로컬 커밋·구글 폼 보고 완료.
+
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*

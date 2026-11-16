@@ -20,8 +20,18 @@ import { EXTERNAL_LINKS } from './types';
 import { getEpisodeBridgeInfo, getActLabel } from './episodeBridge';
 import { getNovelRawEpisode } from '../content/novelRawEpisodes';
 import { getNovelRawEpisodeEn } from '../content/novelRawEpisodesEn';
-import { chapterTitles } from '../content/kadanRpgStory';
+import episodesSchema from '../content/episodes.json';
 import { isKoreanLanguage, tr } from './i18n';
+
+const EPISODES_SSOT: { ep: number; titleKo: string; titleEn: string }[] = episodesSchema;
+
+export function isBookIndexOpen(): boolean {
+  return isEpisodeListOpen;
+}
+
+export function closeBookIndex(): void {
+  isEpisodeListOpen = false;
+}
 
 let currentBookEpisode: number = 1;
 let isEpisodeListOpen: boolean = false;
@@ -129,6 +139,8 @@ export function handleBookAction(action: string, target?: HTMLElement): void {
     }
   } else if (action === 'book-toggle-index') {
     isEpisodeListOpen = !isEpisodeListOpen;
+  } else if (action === 'book-close-index') {
+    isEpisodeListOpen = false;
   } else if (action === 'book-select-toc-act') {
     const actAttr = Number(target?.getAttribute('data-act') || '0');
     if (actAttr >= 0 && actAttr <= 4) {
@@ -235,8 +247,11 @@ export function renderBookSection(): string {
   const rawContent = isKo ? getNovelRawEpisode(ep) : getNovelRawEpisodeEn(ep) || getNovelRawEpisode(ep);
   const parsed = parseRawNovel(rawContent, ep);
   const epTitle = isKo
-    ? chapterTitles[ep - 1]?.titleKo || `제 ${ep}화`
-    : chapterTitles[ep - 1]?.titleEn || `Episode ${ep}`;
+    ? EPISODES_SSOT[ep - 1]?.titleKo || `제 ${ep}화`
+    : EPISODES_SSOT[ep - 1]?.titleEn || `Episode ${ep}`;
+  const canonicalH1 = isKo
+    ? `눈히어로.com - 카단의 여정 ${ep}화 - ${epTitle}`
+    : `SNSHero.com - Kadan's Journey Episode ${ep}: ${epTitle}`;
 
   const fontClass =
     bookFontSize === 'xlarge'
@@ -342,8 +357,8 @@ export function renderBookSection(): string {
                 ${Array.from({ length: 40 }, (_, idx) => {
                   const num = idx + 1;
                   const title = isKo
-                    ? chapterTitles[idx]?.titleKo || `제 ${num}화`
-                    : chapterTitles[idx]?.titleEn || `Episode ${num}`;
+                    ? EPISODES_SSOT[idx]?.titleKo || `제 ${num}화`
+                    : EPISODES_SSOT[idx]?.titleEn || `Episode ${num}`;
                   const epPrefix = isKo ? `제${num}화` : `EP.${String(num).padStart(2, '0')}`;
                   return `
                     <option value="${num}" ${num === ep ? 'selected' : ''}>
@@ -367,98 +382,108 @@ export function renderBookSection(): string {
           </div>
         </div>
 
-        <!-- 40-Episode Accordion Drawer (If Toggled Open) -->
+        <!-- 40-Episode TOC Modal with Backdrop & ESC Dismiss (BLD-2709) -->
         ${
           isEpisodeListOpen
             ? `
-          <div class="w-full max-w-5xl mx-auto px-4 py-4 sm:px-6 bg-[#140c06] border-t border-amber-700/40">
-            <div class="flex items-center justify-between pb-2 mb-3 border-b border-amber-700/30">
-              <span class="text-xs font-extrabold text-amber-200">
-                ${tr(
-                  '카단의 여정 40화 전편 목차 (원하는 화를 클릭하면 즉시 이동합니다)',
-                  "Kadan's Journey — All 40 Episodes Index (Click any episode to jump)",
-                  'カダンの旅 全40話目次（クリックで該当エピソードへ移動）'
-                )}
-              </span>
-              <button
-                type="button"
-                data-action="book-toggle-index"
-                class="text-xs text-amber-300/80 hover:text-amber-100 font-extrabold p-1 cursor-pointer"
-              >
-                [${tr('닫기', 'Close', '閉じる')} ✕]
-              </button>
-            </div>
-            <div class="flex flex-wrap gap-1.5 mb-3">
-              ${([0, 1, 2, 3, 4] as const)
-                .map(
-                  (act) => `
-                  <button
-                    type="button"
-                    data-action="book-select-toc-act"
-                    data-act="${act}"
-                    class="px-3 py-1.5 rounded-full text-[11px] font-extrabold border cursor-pointer transition ${
-                      selectedTocAct === act
-                        ? 'bg-amber-500 text-[#1b0f05] border-amber-300'
-                        : 'bg-[#1f1209] text-amber-200/80 border-amber-700/40 hover:border-amber-400'
-                    }"
-                  >
-                    ${getActLabel(act)}
-                  </button>
-                `,
-                )
-                .join('')}
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[320px] overflow-y-auto pr-1">
-              ${Array.from({ length: 40 }, (_, idx) => idx + 1)
-                .filter((num) => {
-                  if (selectedTocAct === 0) return true;
-                  const actStart = (selectedTocAct - 1) * 10 + 1;
-                  const actEnd = selectedTocAct * 10;
-                  return num >= actStart && num <= actEnd;
-                })
-                .map((num) => {
-                  const idx = num - 1;
-                  const title = isKo
-                    ? chapterTitles[idx]?.titleKo || `제 ${num}화`
-                    : chapterTitles[idx]?.titleEn || `Episode ${num}`;
-                  const isCurrent = num === ep;
-                  const epBadge = isKo ? `[${num}화]` : `[EP.${String(num).padStart(2, '0')}]`;
-                  return `
-                  <button
-                    type="button"
-                    data-action="book-jump-episode"
-                    data-episode="${num}"
-                    class="px-2.5 py-2 text-left text-xs rounded-lg border transition truncate min-h-[40px] cursor-pointer ${
-                      isCurrent
-                        ? 'bg-amber-500/25 text-amber-200 border-amber-400 font-extrabold'
-                        : 'bg-[#1f1209] text-amber-100/80 border-amber-800/40 hover:border-amber-500/60 hover:bg-[#2a180c]'
-                    }"
-                    title="${epBadge} ${title}"
-                  >
-                    <span class="font-extrabold text-amber-300 mr-1">${epBadge}</span>
-                    <span class="truncate">${title}</span>
-                  </button>
-                `;
-                })
-                .join('')}
-            </div>
-            ${
-              selectedTocAct > 0
-                ? `
-              <div class="mt-3 pt-2.5 border-t border-amber-700/30 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span class="font-extrabold text-amber-200">
-                  ⚔ ${tr(`제${selectedTocAct}막 최종 보스 (${selectedTocAct * 10}화) 인게임 직접 도전`, `Battle Act ${selectedTocAct} Final Boss (EP.${selectedTocAct * 10})`)}
+          <div
+            data-testid="book-toc-backdrop"
+            data-action="book-close-index"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-6 backdrop-blur-sm"
+          >
+            <div
+              data-action="book-toc-panel"
+              class="w-full max-w-4xl rounded-2xl border-2 border-[#c8a158]/80 bg-[#140c06] p-4 sm:p-6 shadow-2xl max-h-[85dvh] flex flex-col"
+            >
+              <div class="flex items-center justify-between pb-2 mb-3 border-b border-amber-700/30">
+                <span class="text-xs sm:text-sm font-extrabold text-amber-200">
+                  ${tr(
+                    '카단의 여정 40화 전편 목차 (원하는 화를 클릭하면 즉시 이동합니다)',
+                    "Kadan's Journey — All 40 Episodes Index (Click any episode to jump)",
+                    'カダンの旅 全40話目次（クリックで該当エピソードへ移動）'
+                  )}
                 </span>
-                <a
-                  href="/game?mode=story&ep=${selectedTocAct * 10}&utm_source=book_toc_act"
-                  class="hs-promo-cta-purple px-4 py-1.5 rounded-full text-[11px] font-extrabold no-underline"
+                <button
+                  type="button"
+                  data-testid="book-toc-close-btn"
+                  data-action="book-close-index"
+                  class="text-xs text-amber-300/80 hover:text-amber-100 font-extrabold px-2.5 py-1.5 rounded-lg border border-amber-700/40 bg-black/40 cursor-pointer"
                 >
-                  ${tr(`제${selectedTocAct * 10}화 보스 레이드 →`, `Play EP.${selectedTocAct * 10} Boss →`)}
-                </a>
+                  [${tr('닫기', 'Close', '閉じる')} ✕]
+                </button>
               </div>
-            `
-                : ''
-            }
+              <div class="flex flex-wrap gap-1.5 mb-3">
+                ${([0, 1, 2, 3, 4] as const)
+                  .map(
+                    (act) => `
+                    <button
+                      type="button"
+                      data-action="book-select-toc-act"
+                      data-act="${act}"
+                      class="px-3 py-1.5 rounded-full text-[11px] font-extrabold border cursor-pointer transition ${
+                        selectedTocAct === act
+                          ? 'bg-amber-500 text-[#1b0f05] border-amber-300'
+                          : 'bg-[#1f1209] text-amber-200/80 border-amber-700/40 hover:border-amber-400'
+                      }"
+                    >
+                      ${getActLabel(act)}
+                    </button>
+                  `,
+                  )
+                  .join('')}
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 overflow-y-auto pr-1 flex-1">
+                ${Array.from({ length: 40 }, (_, idx) => idx + 1)
+                  .filter((num) => {
+                    if (selectedTocAct === 0) return true;
+                    const actStart = (selectedTocAct - 1) * 10 + 1;
+                    const actEnd = selectedTocAct * 10;
+                    return num >= actStart && num <= actEnd;
+                  })
+                  .map((num) => {
+                    const idx = num - 1;
+                    const title = isKo
+                      ? EPISODES_SSOT[idx]?.titleKo || `제 ${num}화`
+                      : EPISODES_SSOT[idx]?.titleEn || `Episode ${num}`;
+                    const isCurrent = num === ep;
+                    const epBadge = isKo ? `[${num}화]` : `[EP.${String(num).padStart(2, '0')}]`;
+                    return `
+                    <button
+                      type="button"
+                      data-action="book-jump-episode"
+                      data-episode="${num}"
+                      class="px-2.5 py-2 text-left text-xs rounded-lg border transition truncate min-h-[40px] cursor-pointer ${
+                        isCurrent
+                          ? 'bg-amber-500/25 text-amber-200 border-amber-400 font-extrabold'
+                          : 'bg-[#1f1209] text-amber-100/80 border-amber-800/40 hover:border-amber-500/60 hover:bg-[#2a180c]'
+                      }"
+                      title="${epBadge} ${title}"
+                    >
+                      <span class="font-extrabold text-amber-300 mr-1">${epBadge}</span>
+                      <span class="truncate">${title}</span>
+                    </button>
+                  `;
+                  })
+                  .join('')}
+              </div>
+              ${
+                selectedTocAct > 0
+                  ? `
+                <div class="mt-3 pt-2.5 border-t border-amber-700/30 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <span class="font-extrabold text-amber-200">
+                    ⚔ ${tr(`제${selectedTocAct}막 최종 보스 (${selectedTocAct * 10}화) 인게임 직접 도전`, `Battle Act ${selectedTocAct} Final Boss (EP.${selectedTocAct * 10})`)}
+                  </span>
+                  <a
+                    href="/game?mode=story&ep=${selectedTocAct * 10}&utm_source=book_toc_act"
+                    class="hs-promo-cta-purple px-4 py-1.5 rounded-full text-[11px] font-extrabold no-underline"
+                  >
+                    ${tr(`제${selectedTocAct * 10}화 보스 레이드 →`, `Play EP.${selectedTocAct * 10} Boss →`)}
+                  </a>
+                </div>
+              `
+                  : ''
+              }
+            </div>
           </div>
         `
             : ''
@@ -524,7 +549,7 @@ export function renderBookSection(): string {
             </div>
 
             <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#2f1b0c] tracking-tight m-0 leading-snug">
-              ${parsed.mainTitle}
+              ${escapeHtml(canonicalH1)}
             </h1>
 
             ${
@@ -570,18 +595,34 @@ export function renderBookSection(): string {
           <div class="pt-10 pb-4 text-center border-t-2 border-[#b88a44]/40 space-y-4">
             <div class="space-y-1">
               <span class="text-xs font-extrabold text-[#6e4621] tracking-widest uppercase">
-                ${tr(
-                  `— 《카단의 여정》 제 ${ep}화 끝 —`,
-                  `— End of Kadan's Journey Episode ${ep} —`,
-                  `— 《カダンの旅》 第${ep}話 完 —`
-                )}
+                ${
+                  ep === 40
+                    ? tr(
+                        '— 《카단의 여정》 제40화 대단원 완결 —',
+                        "— End of Kadan's Journey Finale (EP.40) —",
+                        '— 《カダンの旅》 第40話 大団円 完結 —',
+                      )
+                    : tr(
+                        `— 《카단의 여정》 제 ${ep}화 끝 —`,
+                        `— End of Kadan's Journey Episode ${ep} —`,
+                        `— 《カダンの旅》 第${ep}話 完 —`,
+                      )
+                }
               </span>
               <p class="text-xs text-[#5c3c1e] font-bold m-0">
-                ${tr(
-                  '다음 화에서 카단과 수호자들의 모험이 계속 이어집니다.',
-                  'The adventure of Kadan and the Guardians continues in the next episode.',
-                  '次話でもカダンと守護者たちの冒険が続きます。'
-                )}
+                ${
+                  ep === 40
+                    ? tr(
+                        '카단의 여정 40부작 대단원이 완결되었습니다. 제1화부터 다시 정독하거나 웹툰·보스전에 도전해 보세요!',
+                        'The 40-episode saga of Kadan is complete! Re-read from Episode 1 or challenge the final boss.',
+                        'カダンの旅 全40話が完結しました！第1話から読み直すかボス戦に挑戦しましょう。',
+                      )
+                    : tr(
+                        '다음 화에서 카단과 수호자들의 모험이 계속 이어집니다.',
+                        'The adventure of Kadan and the Guardians continues in the next episode.',
+                        '次話でもカダンと守護者たちの冒険が続きます。',
+                      )
+                }
               </p>
             </div>
 
@@ -620,17 +661,25 @@ export function renderBookSection(): string {
                   .join('')}
               </div>
 
-              <a
-                href="/game?mode=story&ep=${ep}&utm_source=book_card_widget"
-                class="hs-promo-cta-purple w-full py-3 px-5 rounded-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline"
-              >
-                <span>
-                  ⚔ ${tr(
-                    `제${ep}화 보스전 풀보이스로 직접 돌파하기 (무료 3팩 + 250G)`,
-                    `Play EP.${ep} Boss Battle with Full Voice (3 Free Packs + 250G)`,
-                  )}
-                </span>
-              </a>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <a
+                  href="/webtoon?ep=${ep}"
+                  class="px-5 py-3 rounded-full bg-[#2f1b0c] hover:bg-[#462913] border border-[#c8a158]/70 text-amber-200 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline transition"
+                >
+                  <span>🎨 ${tr(`제${ep}화 웹툰으로 감상하기`, `Read EP.${ep} Webtoon`)}</span>
+                </a>
+                <a
+                  href="/game?mode=story&ep=${ep}&utm_source=book_card_widget"
+                  class="hs-promo-cta-purple py-3 px-5 rounded-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline"
+                >
+                  <span>
+                    ⚔ ${tr(
+                      `제${ep}화 보스전 직접 돌파하기 (무료 3팩)`,
+                      `Play EP.${ep} Boss Battle (3 Free Packs)`,
+                    )}
+                  </span>
+                </a>
+              </div>
             </div>
           </div>
 
@@ -654,14 +703,25 @@ export function renderBookSection(): string {
               <span>${tr('맨 위로 ↑', 'Top ↑', '上へ ↑')}</span>
             </button>
 
-            <button
+            ${
+              ep >= 40
+                ? `<button
+              type="button"
+              data-testid="book-ep40-restart-btn"
+              data-action="book-jump-episode"
+              data-episode="1"
+              class="hs-promo-cta-purple flex-1 py-3.5 px-4 text-xs sm:text-sm font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>🔄 ${tr('대단원 완결 · 제1화부터 다시 읽기', 'Finale · Read Again from EP.1', '完結 · 第1話から読み直す')}</span>
+            </button>`
+                : `<button
               type="button"
               data-action="book-next-episode"
-              ${ep >= 40 ? 'disabled' : ''}
-              class="hs-promo-cta-purple flex-1 py-3.5 px-4 disabled:opacity-30 text-xs sm:text-sm font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-2 cursor-pointer"
+              class="hs-promo-cta-purple flex-1 py-3.5 px-4 text-xs sm:text-sm font-extrabold rounded-full min-h-[48px] flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>${tr(`다음화 (제${Math.min(40, ep + 1)}화)`, `Next (EP.${Math.min(40, ep + 1)})`, `次話 (第${Math.min(40, ep + 1)}話)`)} ▶</span>
-            </button>
+              <span>${tr(`다음화 (제${ep + 1}화)`, `Next (EP.${ep + 1})`, `次話 (第${ep + 1}話)`)} ▶</span>
+            </button>`
+            }
           </div>
 
           <!-- External Official Serialization Links -->

@@ -368,7 +368,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       {
         optionCardId: 'EX1_166a',
         title: '달빛섬광',
-        titleEn: 'Moonfire',
+        titleEn: 'Moonbeam',
         description: '피해를 2 줍니다.',
         descriptionEn: 'Deal 2 damage.',
         targetKind: 'ANY_CHARACTER',

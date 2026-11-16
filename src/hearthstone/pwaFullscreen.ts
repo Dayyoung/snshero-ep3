@@ -142,7 +142,11 @@ export async function toggleBrowserFullscreen(): Promise<boolean> {
     }
 
     if (typeof root.requestFullscreen === 'function') {
-      await root.requestFullscreen({ navigationUI: 'hide' });
+      try {
+        await root.requestFullscreen({ navigationUI: 'hide' });
+      } catch {
+        await root.requestFullscreen();
+      }
     } else if (typeof root.webkitRequestFullscreen === 'function') {
       await root.webkitRequestFullscreen();
     }
