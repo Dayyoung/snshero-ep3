@@ -410,5 +410,21 @@
     - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료 (`6.88s`).
     - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
 
+## [2026-11-16 15:43 KST] [스토리모드 캐릭터 대사 『동물의 숲』 스타일 한글자씩 타이핑 + 음성 효과음 합성 + 클릭 전체표시·자동진행 + 종료 후 자동플레이/게임 시작화면 분기 구현]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 『동물의 숲(Animalese)』 스타일 글자 단위 음성 효과음 신디사이저 추가 ([`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts))**:
+    - `hsAudio.playAnimaleseBlip()` 구현: 화자 성별·개성(실리아/엘윈 등 밝은 여성 톤 `445Hz`, 카단/로비냐드 등 주인공 톤 `358Hz`, 허수아비 로봇 기계 톤 `315Hz`, 벨페고르/아르투스 등 중저음 보스 톤 `232Hz`)과 한글 중성(모음 `ㅏ·ㅐ·ㅣ` vs `ㅗ·ㅜ·ㅡ·ㅓ`) 포먼트 필터 및 물음표(`?`) 억양 상승을 결합해 글자마다 귀엽고 따뜻한 음성 블립 효과음 재생.
+  - **2. 스토리모드 대사 한글자씩 표시 · 클릭 시 전체 표시 후 이동 · 자동 다음 대사 진행 ([`StoryEncounterOverlays.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/StoryEncounterOverlays.tsx))**:
+    - `useAnimaleseTypewriter` 훅을 전투 시작 전 교차 대사(`StoryDuelDialogueOverlay`)와 승리 대사(`StoryVictorySceneOverlay`)에 공통 적용.
+    - 대사 출력 중 캐릭터 상반신 컷아웃 미세 토킹 바운스 모션 및 말풍선 높이 흔들림 방지 레이아웃 적용.
+    - 타이핑 중 클릭 시 전체 문장을 한 번에 표시하고 잠시 후(`750ms`) 다음 대사로 자동 이동하며, 클릭하지 않아도 대사 완료 후(`1,150ms`) 다음 대사로 자연스럽게 자동 진행.
+  - **3. 대사 종료 시 자동플레이 상태별 분기 처리 ([`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx), [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx))**:
+    - **자동플레이가 켜져 있었다면(`autoPlay === true`)**: 대사 완료 즉시 초기 손패 멀리건을 자동 완료하고 바로 **계속 자동플레이**로 진입하며, 스토리모드 승리/다음 화 이동 시에도 자동플레이 상태를 연속 유지.
+    - **자동플레이가 꺼져 있었다면(`autoPlay === false`)**: 대사 완료 후 **`⚔ 게임 시작화면`**(시작 카드 선택 + `[게임 시작 (전투 개시)]` 화면)으로 이동하여 수동 시작 대기.
+  - **4. 빌드·타입 검증 및 구글 폼 보고**:
+    - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료 (`18.52s`).
+    - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
+
 
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*

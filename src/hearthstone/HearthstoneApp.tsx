@@ -289,7 +289,7 @@ export const HearthstoneApp: React.FC = () => {
       setScreen('BATTLE');
       return;
     }
-    launchJourneyBattle(undefined, true, true);
+    launchJourneyBattle(undefined, false, true);
   }, [screen, activeBattleParams, selectedMode, launchJourneyBattle]);
 
   if (loadError) {
@@ -528,9 +528,9 @@ export const HearthstoneApp: React.FC = () => {
               setActiveBattleParams(null);
               setScreen('COLLECTION');
             }}
-            onStartJourneyEpisode={(ep, skipStory) => {
+            onStartJourneyEpisode={(ep, skipStory, keepAutoPlay) => {
               hsStorage.setJourneyProgress(ep, hsStorage.getProfile().journeyReincarnation);
-              launchJourneyBattle(ep, Boolean(skipStory), false);
+              launchJourneyBattle(ep, Boolean(skipStory), Boolean(keepAutoPlay));
             }}
             onRematchSameMode={() => {
               setGlobalAutoPlay(false);

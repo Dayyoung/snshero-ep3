@@ -87,7 +87,11 @@ export interface BattleScreenProps {
   onOpenShopFromBattle?: () => void;
   onGoOpenPacksFromBattle?: () => void;
   onGoCollectionFromBattle?: () => void;
-  onStartJourneyEpisode?: (episode: number, skipStoryIntro?: boolean) => void;
+  onStartJourneyEpisode?: (
+    episode: number,
+    skipStoryIntro?: boolean,
+    keepAutoPlay?: boolean,
+  ) => void;
   onRematchSameMode?: () => void;
   externalAutoPlay?: boolean;
   onAutoPlayChange?: (active: boolean) => void;
@@ -455,11 +459,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             playerCardMultipliers: playerJourney.playerCardMultipliers,
           },
         });
-        // 스토리모드에서는 대사 종료 즉시 카드 대결(Turn 1)이 시작되도록 초기 손패 교체를 자동 완료합니다.
-        const autoSwapUids = rawMatch.player.hand
-          .filter((hc) => cardDb.mustGetCard(hc.cardId).cost >= 4)
-          .map((hc) => hc.uid);
-        return createEngine(rawMatch).confirmMulligan(autoSwapUids);
+        // 스토리모드도 초기 상태를 MULLIGAN(게임 시작화면 · 시작 카드 선택)으로 유지합니다.
+        // 대사 종료 시 자동플레이가 켜져 있었다면 즉시 멀리건을 자동 완료하고 계속 자동플레이하며,
+        // 아니라면 게임 시작화면(시작 카드 선택 + 게임 시작 버튼)을 표시합니다.
+        return rawMatch;
       }
 
       const opp = buildAiOpponentSetup(mode, preferredOpponentClass);
@@ -504,10 +507,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   useEffect(() => {
     setAutoPlayInternal(Boolean(externalAutoPlay));
-    if (externalAutoPlay) {
-      setStoryPhase('CLOSED');
-      setVsIntroActive(false);
-    }
   }, [externalAutoPlay]);
   const [quickRulesOpen, setQuickRulesOpen] = useState(false);
   const [coachCollapsed, setCoachCollapsed] = useState(false);
@@ -538,9 +537,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   useEffect(() => {
     if (prevMatchIdRef.current !== matchState.matchId) {
       prevMatchIdRef.current = matchState.matchId;
-      setAutoPlay(false);
+      if (!externalAutoPlay) {
+        setAutoPlay(false);
+      }
     }
-  }, [matchState.matchId, setAutoPlay]);
+  }, [matchState.matchId, externalAutoPlay, setAutoPlay]);
 
   const [vsIntroActive, setVsIntroActive] = useState(true);
   const [selection, setSelection] = useState<PendingSelection | null>(null);
@@ -893,31 +894,45 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const handleFinishStoryDialogue = useCallback(() => {
     setStoryPhase('CLOSED');
-    hsAudio.playBgm(Math.random() < 0.5 ? 'duel_1' : 'duel_2');
     const snap = matchStateRef.current;
-    if (snap.firstPlayer === 'OPPONENT' && snap.turnNumber <= 1) {
-      hsAudio.playInnkeeper('coin');
-      setCoinGiftShowcase(true);
-      window.setTimeout(() => setCoinGiftShowcase(false), 1650);
+
+    // 대사를 마치면: 자동플레이가 켜져 있었다면 -> 멀리건을 자동 완료하고 계속 자동플레이!
+    if (autoPlay) {
+      hsAudio.playBgm(Math.random() < 0.5 ? 'duel_1' : 'duel_2');
+      if (snap.phase === 'MULLIGAN') {
+        const autoSwapUids = snap.player.hand
+          .filter((hc) => cardDb.mustGetCard(hc.cardId).cost >= 4)
+          .map((hc) => hc.uid);
+        const confirmed = createEngine(snap).confirmMulligan(autoSwapUids);
+        if (confirmed.firstPlayer === 'OPPONENT' && confirmed.turnNumber <= 1) {
+          hsAudio.playInnkeeper('coin');
+          setCoinGiftShowcase(true);
+          window.setTimeout(() => setCoinGiftShowcase(false), 1650);
+        }
+        setMatchState({
+          ...confirmed,
+          bannerMessage:
+            confirmed.activeSide === 'PLAYER'
+              ? isKo
+                ? '내 턴!'
+                : 'YOUR TURN!'
+              : isKo
+                ? '상대 턴'
+                : 'ENEMY TURN',
+        });
+      }
+      return;
     }
-    setMatchState((s) => ({
-      ...s,
-      bannerMessage:
-        s.activeSide === 'PLAYER'
-          ? isKo
-            ? '내 턴!'
-            : 'YOUR TURN!'
-          : isKo
-            ? '상대 턴'
-            : 'ENEMY TURN',
-    }));
-  }, [isKo]);
+
+    // 자동플레이가 꺼져 있었다면 -> 게임 시작화면(MULLIGAN · 시작 카드 선택 및 [게임 시작] 화면)을 표시!
+    hsAudio.playBgm('mulligan');
+  }, [autoPlay, isKo]);
 
   const handleSelectStoryEpisode = useCallback(
     (selectedEpisode: number) => {
       setEpisodeSelectorOpen(false);
       if (onStartJourneyEpisode) {
-        onStartJourneyEpisode(selectedEpisode, false);
+        onStartJourneyEpisode(selectedEpisode, false, autoPlay);
         return;
       }
       const curP = hsStorage.getProfile();
@@ -927,7 +942,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       setStoryPhase('DIALOGUE');
       runVsIntroAndTransition(nextMatch, 1400);
     },
-    [onStartJourneyEpisode, buildBattleMatchState, runVsIntroAndTransition],
+    [onStartJourneyEpisode, autoPlay, buildBattleMatchState, runVsIntroAndTransition],
   );
 
   // 실시간 초보자 코치 배너 1줄 메시지 계산
@@ -1135,17 +1150,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   }, []);
 
   // Record match outcome & rewards once when GAME_OVER triggers
-  // (모든 모드에서 전투 종료 시 자동플레이를 즉시 비활성화하여 새 게임 시작 시 항상 정지 상태를 보장!)
+  // (랭킹/AI 대전 종료 시 자동플레이를 즉시 비활성화하되, 스토리모드에서 자동플레이가 켜져 있었다면 승리/패배 대사 후에도 계속 자동플레이로 이어질 수 있도록 유지!)
   useEffect(() => {
-    if (matchState.phase === 'GAME_OVER' && autoPlay) {
+    if (matchState.phase === 'GAME_OVER' && autoPlay && mode !== 'TUTORIAL') {
       setAutoPlay(false);
     }
-  }, [matchState.phase, autoPlay, setAutoPlay]);
+  }, [matchState.phase, autoPlay, mode, setAutoPlay]);
 
   useEffect(() => {
     if (matchState.phase === 'GAME_OVER' && !recordedResultRef.current) {
       recordedResultRef.current = true;
-      setAutoPlay(false);
+      if (mode !== 'TUTORIAL') {
+        setAutoPlay(false);
+      }
       setSelection(null);
       setZoomState(null);
       setHandDrag(null);
@@ -1252,7 +1269,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 outcomeSummary.nextEpisode
               ) {
                 hsAudio.playSfx('box_press');
-                onStartJourneyEpisode(outcomeSummary.nextEpisode, false);
+                onStartJourneyEpisode(outcomeSummary.nextEpisode, false, autoPlay);
               } else {
                 hsAudio.playSfx('menu_select');
                 hsAudio.playBgm('tavern_hub');
@@ -1305,7 +1322,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           drawRetryFiredRef.current = true;
           window.setTimeout(() => {
             hsAudio.playSfx('box_press');
-            onStartJourneyEpisode(retryEp, true);
+            onStartJourneyEpisode(retryEp, true, autoPlay);
           }, 0);
         }
         return next;
@@ -4318,7 +4335,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ep0Dialogue &&
           storyPhase === 'CLOSED' &&
           !vsIntroActive &&
-          matchState.phase !== 'GAME_OVER' && (
+          matchState.phase === 'PLAYING' && (
             <div
               data-testid="ep0-mobile-bubble"
               className={`mx-auto w-full max-w-md rounded-2xl border-2 bg-stone-950/96 px-3.5 py-2 text-left shadow-2xl sm:hidden ${
@@ -4960,7 +4977,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         ep0Dialogue &&
         storyPhase === 'CLOSED' &&
         !vsIntroActive &&
-        matchState.phase !== 'GAME_OVER' && (
+        matchState.phase === 'PLAYING' && (
           <div
             data-testid="ep0-explanation-banner"
             className="pointer-events-none absolute inset-x-0 top-12 z-[79] flex items-start justify-between px-2 sm:top-16 sm:px-4"
@@ -5225,13 +5242,30 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             episodeTitle={
               getJourneyEpisodeDef(matchState.journeyMeta.episode, isKo).titleKo
             }
+            autoPlayActive={autoPlay}
             onComplete={handleFinishStoryDialogue}
           />
         )}
 
-      {/* 2. Mulligan (시작 손패 교체) Overlay — 1-Click Replace Stamp (✕) + Optional Card Zoom! */}
+      {/* 2. Mulligan (게임 시작화면 · 시작 손패 교체) Overlay — 1-Click Replace Stamp (✕) + Optional Card Zoom! */}
       {storyPhase === 'CLOSED' && !vsIntroActive && matchState.phase === 'MULLIGAN' && (
-        <div className="absolute inset-0 z-[88] flex flex-col items-center justify-center overflow-y-auto bg-black/88 p-3 text-center sm:p-4">
+        <div
+          data-testid="battle-game-start-screen"
+          className="absolute inset-0 z-[88] flex flex-col items-center justify-center overflow-y-auto bg-black/88 p-3 text-center sm:p-4"
+        >
+          <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-stone-950/90 px-3.5 py-1 text-[11px] font-extrabold tracking-wider text-amber-300 shadow">
+            <span>⚔ {tr('게임 시작화면', 'GAME START')}</span>
+            {mode === 'TUTORIAL' && matchState.journeyMeta && (
+              <span className="text-amber-100/85">
+                ·{' '}
+                {matchState.journeyMeta.episode === 0
+                  ? tr('튜토리얼', 'Tutorial')
+                  : isKo
+                    ? `제${matchState.journeyMeta.episode}화`
+                    : `EP ${matchState.journeyMeta.episode}`}
+              </span>
+            )}
+          </div>
           <h2 className="hs-title hs-outline text-xl font-extrabold text-amber-200 sm:text-3xl">
             {tr('시작 카드 선택', 'Starting Hand')} (
             {matchState.firstPlayer === 'PLAYER'
@@ -5325,7 +5359,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             >
               {mulliganSwapping
                 ? tr('교체 중...', 'Replacing...')
-                : tr('확인 (전투 개시)', 'Confirm (Start Duel)')}
+                : tr('게임 시작 (전투 개시)', 'Start Game (Confirm)')}
             </button>
             <button
               type="button"
@@ -5507,6 +5541,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <StoryVictorySceneOverlay
             encounter={storyEncounter}
             outcomeSummary={outcomeSummary}
+            autoPlayActive={autoPlay}
             onFinishEpisode={(act) => {
               postGameFiredRef.current = true;
               if (
@@ -5514,7 +5549,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 onStartJourneyEpisode &&
                 outcomeSummary?.nextEpisode
               ) {
-                onStartJourneyEpisode(outcomeSummary.nextEpisode, false);
+                onStartJourneyEpisode(outcomeSummary.nextEpisode, false, autoPlay);
               } else {
                 onExitBattle();
               }

@@ -553,6 +553,133 @@ class SnsHeroCardAudioEngine {
     }
   }
 
+  /**
+   * Animal Crossing (`동물의 숲` Animalese)-style per-character voice blip synthesizer
+   * - Modulates pitch & formant filter by speaker personality + Hangul/Latin vowel contour
+   */
+  playAnimaleseBlip(
+    char: string,
+    speakerName = '',
+    speakerSide: 'LEFT' | 'RIGHT' = 'LEFT',
+    isQuestionTail = false,
+  ) {
+    if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
+    if (!char || /[\s.,…!?"'“”‘’—\-~:;()[\]{}·/\\<>]/.test(char)) return;
+
+    const ctx = this.getAudioCtx();
+    if (!ctx) return;
+
+    const lowerSpeaker = speakerName.toLowerCase();
+    let baseFreq = speakerSide === 'LEFT' ? 355 : 280;
+    let waveType: OscillatorType = 'triangle';
+
+    if (
+      /실리아|엘윈|엘리아나|에일라|이셀라|세이렌|아라크네|아리엘|루나|프레이야|요정|성녀|여왕|silia|elwin|eliana|ayla|ysera|siren|arachne|ariel|luna|freyja/i.test(
+        lowerSpeaker,
+      )
+    ) {
+      baseFreq = 445;
+      waveType = 'triangle';
+    } else if (/카단|로비냐드|이그니스|제피로스|테라|kadan|robinyard|ignis|zephyros|terra/i.test(lowerSpeaker)) {
+      baseFreq = 358;
+      waveType = 'triangle';
+    } else if (/허수아비|로봇|골렘|콜로서스|기계|태엽|scarecrow|bot|golem|colossus|mech/i.test(lowerSpeaker)) {
+      baseFreq = 315;
+      waveType = 'square';
+    } else if (
+      /벨페고르|아르투스|헤르쿨|그림리|펜릴|마왕|군주|리치|드래곤|괴수|belphegor|arthas|hercul|grimli|fenrir|lord|lich|dragon/i.test(
+        lowerSpeaker,
+      )
+    ) {
+      baseFreq = 232;
+      waveType = 'sawtooth';
+    } else if (speakerName) {
+      let hash = 0;
+      for (let i = 0; i < speakerName.length; i += 1) {
+        hash = (hash * 31 + speakerName.charCodeAt(i)) | 0;
+      }
+      baseFreq = 265 + (Math.abs(hash) % 145);
+    }
+
+    // Extract Hangul vowel (중성 0..20) or Latin character code for authentic vowel melody!
+    const code = char.charCodeAt(0);
+    let pitchRatio = 1.0;
+    let formantCutoff = 1750;
+
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      const jung = Math.floor((code - 0xac00) / 28) % 21;
+      // Bright front vowels (ㅏ,ㅐ,ㅑ,ㅒ,ㅔ,ㅖ,ㅣ) vs warm rounded vowels (ㅗ,ㅜ,ㅡ,ㅓ)
+      const vowelPitchTable = [
+        1.05, 1.1, 1.08, 1.12, 0.96, 1.06, 0.99, 1.09, 0.92, 0.98, 1.03, 1.06, 0.95, 0.89, 0.94,
+        0.99, 1.04, 0.92, 0.91, 1.02, 1.14,
+      ];
+      pitchRatio = vowelPitchTable[jung] ?? 1.0;
+      formantCutoff = pitchRatio >= 1.04 ? 2250 : 1450;
+    } else {
+      const lowerChar = char.toLowerCase();
+      if ('iey'.includes(lowerChar)) {
+        pitchRatio = 1.12;
+        formantCutoff = 2300;
+      } else if ('ae'.includes(lowerChar)) {
+        pitchRatio = 1.05;
+        formantCutoff = 2050;
+      } else if ('ou'.includes(lowerChar)) {
+        pitchRatio = 0.91;
+        formantCutoff = 1380;
+      } else {
+        pitchRatio = 0.95 + ((code % 7) * 0.025);
+        formantCutoff = 1700;
+      }
+    }
+
+    if (isQuestionTail) {
+      pitchRatio *= 1.14;
+    }
+
+    const targetFreq = Math.max(140, Math.min(820, baseFreq * pitchRatio));
+    const now = ctx.currentTime;
+    const dur = 0.054;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(formantCutoff, now);
+    filter.Q.setValueAtTime(2.2, now);
+
+    const master = ctx.createGain();
+    const vol = Math.min(0.26, this.settings.sfxVolume * (waveType === 'triangle' ? 0.28 : 0.16));
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.linearRampToValueAtTime(vol, now + 0.007);
+    master.gain.exponentialRampToValueAtTime(vol * 0.62, now + 0.026);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    const osc = ctx.createOscillator();
+    osc.type = waveType;
+    osc.frequency.setValueAtTime(targetFreq * 0.92, now);
+    osc.frequency.exponentialRampToValueAtTime(targetFreq * 1.08, now + 0.018);
+    osc.frequency.exponentialRampToValueAtTime(
+      isQuestionTail ? targetFreq * 1.16 : targetFreq * 0.96,
+      now + dur,
+    );
+
+    // Subtle 2nd formant harmonic for cute vocal warmth
+    const subOsc = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(targetFreq * 2.0, now);
+    subGain.gain.setValueAtTime(0.28, now);
+
+    osc.connect(filter);
+    subOsc.connect(subGain);
+    subGain.connect(filter);
+    filter.connect(master);
+    master.connect(ctx.destination);
+
+    osc.start(now);
+    subOsc.start(now);
+    osc.stop(now + dur + 0.01);
+    subOsc.stop(now + dur + 0.01);
+  }
+
   /** Procedural WebAudio elemental & mechanical accents layered with foley SFX */
   playProceduralVfxSound(
     kind:

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { KADAN_JOURNEY_EPISODES, getJourneyEpisodeDef } from '../kadanJourneyData';
@@ -17,21 +17,128 @@ const DIMMED_OUTLINE_FILTER =
 
 const PARCHMENT_STAR_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14 6 L15.6 12.4 L22 14 L15.6 15.6 L14 22 L12.4 15.6 L6 14 L12.4 12.4 Z' fill='%23b8ad96' fill-opacity='0.34'/%3E%3C/svg%3E")`;
 
+/**
+ * Animal Crossing (`동물의 숲`)-style per-character typewriter + sound + auto-advance hook
+ * - Reveals 1 character at a time while playing character-pitched Animalese voice blips
+ * - Click while typing -> reveals full line at once, pauses briefly (`750ms`), then advances
+ * - Natural completion -> pauses (`1,150ms`) so player can read, then auto-advances
+ */
+function useAnimaleseTypewriter(opts: {
+  fullText: string;
+  speakerLabel: string;
+  speakerSide: 'LEFT' | 'RIGHT';
+  resetKey: string;
+  isKo: boolean;
+  enabled?: boolean;
+  onAutoAdvance: () => void;
+}) {
+  const {
+    fullText,
+    speakerLabel,
+    speakerSide,
+    resetKey,
+    isKo,
+    enabled = true,
+    onAutoAdvance,
+  } = opts;
+
+  const [displayedCount, setDisplayedCount] = useState(0);
+  const [revealMode, setRevealMode] = useState<'TYPING' | 'CLICK_PAUSE' | 'NATURAL_PAUSE'>('TYPING');
+  const [talkBob, setTalkBob] = useState(false);
+
+  const onAutoAdvanceRef = useRef(onAutoAdvance);
+  onAutoAdvanceRef.current = onAutoAdvance;
+
+  useEffect(() => {
+    setDisplayedCount(0);
+    setRevealMode('TYPING');
+    setTalkBob(false);
+  }, [resetKey, fullText]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    if (revealMode === 'TYPING') {
+      if (displayedCount >= fullText.length) {
+        setTalkBob(false);
+        setRevealMode('NATURAL_PAUSE');
+        return;
+      }
+
+      const prevChar = displayedCount > 0 ? fullText[displayedCount - 1] : '';
+      let delayMs = isKo ? 44 : 28;
+      if (/[.,!?…]/.test(prevChar)) {
+        delayMs = 115;
+      } else if (prevChar === ' ') {
+        delayMs = 24;
+      }
+
+      const timer = window.setTimeout(() => {
+        const ch = fullText[displayedCount] ?? '';
+        const nextCount = displayedCount + 1;
+        const isQuestionTail =
+          fullText.trimEnd().endsWith('?') && nextCount >= Math.max(1, fullText.length - 3);
+        hsAudio.playAnimaleseBlip(ch, speakerLabel, speakerSide, isQuestionTail);
+        if (!/[\s.,…!?"'“”‘’—\-~:;()[\]{}]/.test(ch)) {
+          setTalkBob((prev) => !prev);
+        }
+        setDisplayedCount(nextCount);
+      }, delayMs);
+
+      return () => window.clearTimeout(timer);
+    }
+
+    const pauseMs = revealMode === 'CLICK_PAUSE' ? 750 : 1150;
+    const advanceTimer = window.setTimeout(() => {
+      onAutoAdvanceRef.current();
+    }, pauseMs);
+
+    return () => window.clearTimeout(advanceTimer);
+  }, [enabled, revealMode, displayedCount, fullText, isKo, speakerLabel, speakerSide]);
+
+  const handleInteract = useCallback(() => {
+    if (!enabled) return;
+    if (displayedCount < fullText.length) {
+      // 클릭하면 대사를 한번에 표시하고 잠시 후(750ms) 이동!
+      hsAudio.playSfx('card_hover', 0.5);
+      setTalkBob(false);
+      setDisplayedCount(fullText.length);
+      setRevealMode('CLICK_PAUSE');
+    } else {
+      // 이미 전체 표시된 상태에서 한번 더 클릭 시 즉시 이동
+      onAutoAdvanceRef.current();
+    }
+  }, [enabled, displayedCount, fullText.length]);
+
+  const isTyping = enabled && displayedCount < fullText.length;
+  const displayedText = enabled ? fullText.slice(0, displayedCount) : fullText;
+
+  return {
+    displayedText,
+    isTyping,
+    revealMode,
+    talkBob: isTyping && talkBob,
+    handleInteract,
+  };
+}
+
 /* ============================================================================
  * 1. Pre-Duel Alternating Upper-Body Character Dialogue Overlay
  *    (Matches `캐릭터 대사 장면.mp4`: 2 half-body cutouts over paused card board,
- *     <= 6 alternating lines, click anywhere -> next line -> immediate duel!)
+ *     Animal Crossing per-char typewriter + sound + click-to-reveal + auto-advance!)
  * ============================================================================ */
 
 export interface StoryDuelDialogueOverlayProps {
   encounter: StoryEpisodeEncounterSpec;
   episodeTitle: string;
+  autoPlayActive?: boolean;
   onComplete: () => void;
 }
 
 export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> = ({
   encounter,
   episodeTitle,
+  autoPlayActive = false,
   onComplete,
 }) => {
   const { lang } = useHeroLanguage();
@@ -57,12 +164,29 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
     }
   }, [safeIdx, totalLines, onComplete]);
 
+  const speakerLabel = currentTurn
+    ? isKo
+      ? currentTurn.speakerKo
+      : currentTurn.speakerEn
+    : '';
+  const speechText = currentTurn ? (isKo ? currentTurn.textKo : currentTurn.textEn) : '';
+
+  const { displayedText, isTyping, talkBob, handleInteract } = useAnimaleseTypewriter({
+    fullText: speechText,
+    speakerLabel,
+    speakerSide: isLeftSpeaking ? 'LEFT' : 'RIGHT',
+    resetKey: `duel:${encounter.episode}:${safeIdx}`,
+    isKo,
+    enabled: Boolean(currentTurn),
+    onAutoAdvance: advanceLine,
+  });
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
         e.preventDefault();
         e.stopPropagation();
-        advanceLine();
+        handleInteract();
       } else if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
@@ -72,12 +196,10 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [advanceLine, onComplete]);
+  }, [handleInteract, onComplete]);
 
   if (!currentTurn) return null;
 
-  const speakerLabel = isKo ? currentTurn.speakerKo : currentTurn.speakerEn;
-  const speechText = isKo ? currentTurn.textKo : currentTurn.textEn;
   const epHeaderLabel =
     encounter.episode === 0
       ? isKo
@@ -92,9 +214,10 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
       data-testid="story-duel-dialogue-overlay"
       data-dialogue-index={safeIdx + 1}
       data-dialogue-total={totalLines}
+      data-dialogue-typing={isTyping ? 'true' : 'false'}
       onClick={(e) => {
         e.stopPropagation();
-        advanceLine();
+        handleInteract();
       }}
       className="absolute inset-0 z-[91] cursor-pointer select-none overflow-hidden bg-black/48 backdrop-blur-[2.5px]"
     >
@@ -129,9 +252,9 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         style={{
           filter: isLeftSpeaking ? STICKER_OUTLINE_FILTER : DIMMED_OUTLINE_FILTER,
           transform: isLeftSpeaking
-            ? 'translate3d(-50%, -6px, 0) scale(1.03)'
+            ? `translate3d(-50%, ${talkBob ? '-11px' : '-6px'}, 0) scale(1.03)`
             : 'translate3d(-50%, 6px, 0) scale(0.96)',
-          transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
+          transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
         }}
         className={`pointer-events-none absolute left-[27%] flex justify-center sm:left-[28%] ${
           encounter.leftSpriteUrl.includes('/characters/cutouts/')
@@ -152,9 +275,9 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         style={{
           filter: !isLeftSpeaking ? STICKER_OUTLINE_FILTER : DIMMED_OUTLINE_FILTER,
           transform: !isLeftSpeaking
-            ? 'translate3d(-50%, -6px, 0) scale(1.03)'
+            ? `translate3d(-50%, ${talkBob ? '-11px' : '-6px'}, 0) scale(1.03)`
             : 'translate3d(-50%, 6px, 0) scale(0.96)',
-          transition: 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
+          transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
         }}
         className={`pointer-events-none absolute left-[73%] flex justify-center sm:left-[72%] ${
           encounter.rightSpriteUrl.includes('/characters/cutouts/')
@@ -179,7 +302,8 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         }`}
       >
         {/* Top Dark Trapezoid Speaker Nameplate */}
-        <div className="relative z-10 mx-auto -mb-3 flex w-fit min-w-[132px] max-w-[260px] items-center justify-center px-6 py-1.5 text-center shadow-md"
+        <div
+          className="relative z-10 mx-auto -mb-3 flex w-fit min-w-[132px] max-w-[260px] items-center justify-center px-6 py-1.5 text-center shadow-md"
           style={{
             backgroundColor: '#23262e',
             clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
@@ -194,25 +318,45 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         <div className="relative min-h-[86px] rounded-[12px] border border-stone-300 bg-[#f2f2f0] px-5 pb-5 pt-5 text-left shadow-[0_18px_42px_rgba(0,0,0,0.85)] sm:min-h-[96px] sm:px-6 sm:pt-6">
           <p
             data-testid="story-dialogue-text"
-            className="text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
+            data-full-text={speechText}
+            aria-label={speechText}
+            className="relative text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
           >
-            {speechText}
+            <span aria-hidden="true" className="invisible block">
+              {speechText}
+            </span>
+            <span className="absolute inset-0 block">{displayedText}</span>
           </p>
 
-          {/* Bottom-Left Step Indicator & Click Hint */}
+          {/* Bottom-Left Step Indicator & Click / Auto-Advance Hint */}
           <div className="mt-2 flex items-center justify-between text-[11px] font-bold text-stone-500">
             <span>
               {safeIdx + 1} / {totalLines} ·{' '}
-              {safeIdx + 1 < totalLines
-                ? tr('화면을 클릭해 다음 대사', 'Tap anywhere for next line')
-                : tr('화면을 클릭해 대결 시작!', 'Tap anywhere to start duel!')}
+              {isTyping
+                ? tr(
+                    '클릭 시 대사 한번에 표시 · 자동 진행',
+                    'Tap to reveal full line · Auto-advances',
+                  )
+                : safeIdx + 1 < totalLines
+                  ? tr('잠시 후 다음 대사로 이동합니다...', 'Moving to next line shortly...')
+                  : autoPlayActive
+                    ? tr(
+                        '잠시 후 계속 자동플레이가 진행됩니다...',
+                        'Continuing Auto-Play shortly...',
+                      )
+                    : tr(
+                        '잠시 후 게임 시작화면으로 이동합니다...',
+                        'Opening Game Start screen shortly...',
+                      )}
             </span>
           </div>
 
-          {/* Bottom-Right Bouncing Advance Triangle (`▼`) */}
+          {/* Bottom-Right Advance Triangle (`▼`) */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-2.5 right-3.5 animate-bounce text-xs font-black text-[#1b1d22]"
+            className={`pointer-events-none absolute bottom-2.5 right-3.5 text-xs font-black text-[#1b1d22] ${
+              isTyping ? 'opacity-45' : 'animate-bounce opacity-100'
+            }`}
           >
             ▼
           </span>
@@ -233,12 +377,14 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
 export interface StoryVictorySceneOverlayProps {
   encounter: StoryEpisodeEncounterSpec;
   outcomeSummary: MatchRewardBreakdown | null;
+  autoPlayActive?: boolean;
   onFinishEpisode: (action: 'NEXT_EPISODE' | 'EXIT_HUB') => void;
 }
 
 export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> = ({
   encounter,
   outcomeSummary,
+  autoPlayActive = false,
   onFinishEpisode,
 }) => {
   const { lang } = useHeroLanguage();
@@ -275,13 +421,38 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
     }
   }, [hasItem, hasNextEpisode, onFinishEpisode]);
 
+  const {
+    displayedText: displayedVictoryLine,
+    isTyping: isVictoryTyping,
+    talkBob: victoryTalkBob,
+    handleInteract: handleVictoryInteract,
+  } = useAnimaleseTypewriter({
+    fullText: characterLine,
+    speakerLabel: speakerName,
+    speakerSide: 'LEFT',
+    resetKey: `victory:${encounter.episode}:${step}`,
+    isKo,
+    enabled: step === 'CHARACTER_LINE',
+    onAutoAdvance: handleAdvanceFromCharacterLine,
+  });
+
+  // Auto-advance ITEM_CARD as well when Auto-Play is ON so Story Mode continues hands-free!
+  useEffect(() => {
+    if (step !== 'ITEM_CARD' || !autoPlayActive) return;
+    const t = window.setTimeout(() => {
+      hsAudio.playSfx('box_press', 0.85);
+      onFinishEpisode(hasNextEpisode ? 'NEXT_EPISODE' : 'EXIT_HUB');
+    }, 1900);
+    return () => window.clearTimeout(t);
+  }, [step, autoPlayActive, hasNextEpisode, onFinishEpisode]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         e.stopPropagation();
         if (step === 'CHARACTER_LINE') {
-          handleAdvanceFromCharacterLine();
+          handleVictoryInteract();
         } else {
           hsAudio.playSfx('box_press', 0.85);
           onFinishEpisode(hasNextEpisode ? 'NEXT_EPISODE' : 'EXIT_HUB');
@@ -290,7 +461,7 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [step, handleAdvanceFromCharacterLine, hasNextEpisode, onFinishEpisode]);
+  }, [step, handleVictoryInteract, hasNextEpisode, onFinishEpisode]);
 
   return (
     <div
@@ -300,7 +471,7 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
       onClick={(e) => {
         e.stopPropagation();
         if (step === 'CHARACTER_LINE') {
-          handleAdvanceFromCharacterLine();
+          handleVictoryInteract();
         }
       }}
       className={`absolute inset-0 z-[95] flex flex-col items-center justify-center overflow-hidden select-none transition-colors duration-300 ${
@@ -338,9 +509,13 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
             step === 'ITEM_CARD'
               ? 'brightness(0.28) blur(2px)'
               : STICKER_OUTLINE_FILTER,
-          transition: 'filter 320ms ease, opacity 320ms ease, transform 320ms ease',
+          transform:
+            step === 'CHARACTER_LINE'
+              ? `translate3d(-50%, ${victoryTalkBob ? '-6px' : '0px'}, 0)`
+              : 'translate3d(-50%, 0, 0)',
+          transition: 'filter 320ms ease, opacity 320ms ease, transform 140ms ease',
         }}
-        className={`pointer-events-none absolute left-1/2 flex -translate-x-1/2 justify-center ${
+        className={`pointer-events-none absolute left-1/2 flex justify-center ${
           encounter.leftSpriteUrl.includes('/characters/cutouts/')
             ? 'top-[24%] h-[112%] items-start sm:top-[13%] sm:h-[126%]'
             : 'bottom-0 h-[58%] items-end sm:h-[76%]'
@@ -374,48 +549,77 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
           <div className="relative rounded-[12px] border border-stone-300 bg-[#f2f2f0] px-5 pb-4 pt-5 text-left shadow-[0_18px_42px_rgba(0,0,0,0.9)] sm:px-6 sm:pt-6">
             <p
               data-testid="story-victory-ment-text"
-              className="text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
+              data-full-text={characterLine}
+              aria-label={characterLine}
+              className="relative text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
             >
-              {characterLine}
+              <span aria-hidden="true" className="invisible block">
+                {characterLine}
+              </span>
+              <span className="absolute inset-0 block">{displayedVictoryLine}</span>
             </p>
 
             {hasItem ? (
               <div className="mt-2.5 flex items-center justify-between text-[11px] font-extrabold text-amber-800">
                 <span>
-                  ✦ {tr('화면을 클릭해 전리품 성물 확인', 'Tap anywhere to inspect obtained relic')}
+                  ✦{' '}
+                  {isVictoryTyping
+                    ? tr(
+                        '클릭 시 대사 한번에 표시 · 전리품 성물 자동 확인',
+                        'Tap to reveal all · Auto-opens relic',
+                      )
+                    : tr(
+                        '잠시 후 전리품 성물을 확인합니다...',
+                        'Opening obtained relic shortly...',
+                      )}
                 </span>
-                <span className="animate-bounce text-xs text-[#1b1d22]">▼</span>
+                <span
+                  className={`text-xs text-[#1b1d22] ${
+                    isVictoryTyping ? 'opacity-45' : 'animate-bounce opacity-100'
+                  }`}
+                >
+                  ▼
+                </span>
               </div>
             ) : (
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="mt-3.5 flex flex-wrap items-center justify-end gap-2 border-t border-stone-300/80 pt-3"
+                className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-stone-300/80 pt-3"
               >
-                <button
-                  type="button"
-                  data-testid="story-victory-hub-btn"
-                  onClick={() => {
-                    hsAudio.playSfx('menu_select');
-                    hsAudio.playBgm('tavern_hub');
-                    onFinishEpisode('EXIT_HUB');
-                  }}
-                  className="min-h-[44px] rounded-lg border border-stone-400 bg-stone-200 px-3.5 py-2 text-xs font-extrabold text-stone-800 transition hover:bg-stone-300"
-                >
-                  {tr('회차 종료 (로비)', 'End & Hub')}
-                </button>
-                {hasNextEpisode && (
+                <span className="text-[11px] font-bold text-stone-500">
+                  {isVictoryTyping
+                    ? tr('클릭 시 전체 표시 · 자동 진행', 'Tap to reveal · Auto-advances')
+                    : autoPlayActive
+                      ? tr('잠시 후 다음 화 계속 자동플레이...', 'Continuing Auto-Play shortly...')
+                      : tr('잠시 후 다음 화 시작화면으로 이동...', 'Moving to next episode start...')}
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    data-testid="story-victory-next-btn"
+                    data-testid="story-victory-hub-btn"
                     onClick={() => {
-                      hsAudio.playSfx('box_press');
-                      onFinishEpisode('NEXT_EPISODE');
+                      hsAudio.playSfx('menu_select');
+                      hsAudio.playBgm('tavern_hub');
+                      onFinishEpisode('EXIT_HUB');
                     }}
-                    className="min-h-[44px] rounded-lg bg-[#201d1d] px-4 py-2 text-xs font-extrabold text-amber-200 shadow transition hover:bg-stone-800"
+                    className="min-h-[44px] rounded-lg border border-stone-400 bg-stone-200 px-3.5 py-2 text-xs font-extrabold text-stone-800 transition hover:bg-stone-300"
                   >
-                    {isKo ? `제${nextEpNum}화 계속하기 ▶` : `Next EP ${nextEpNum} ▶`}
+                    {tr('회차 종료 (로비)', 'End & Hub')}
                   </button>
-                )}
+                  {hasNextEpisode && (
+                    <button
+                      type="button"
+                      data-testid="story-victory-next-btn"
+                      onClick={() => {
+                        hsAudio.playSfx('box_press');
+                        onFinishEpisode('NEXT_EPISODE');
+                      }}
+                      className="min-h-[44px] rounded-lg bg-[#201d1d] px-4 py-2 text-xs font-extrabold text-amber-200 shadow transition hover:bg-stone-800"
+                    >
+                      {isKo ? `제${nextEpNum}화 계속하기 ▶` : `Next EP ${nextEpNum} ▶`}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
