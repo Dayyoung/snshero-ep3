@@ -262,8 +262,9 @@ export const SnsQuestScrollIcon: React.FC<{
 
 export const SnsLegendaryCardDragonSvg: React.FC<{
   isGolden?: boolean;
+  preserveAspectRatio?: string;
   className?: string;
-}> = ({ isGolden = false, className = '' }) => {
+}> = ({ isGolden = false, preserveAspectRatio = 'xMidYMid meet', className = '' }) => {
   const uid = React.useId().replace(/:/g, '');
   // Cast Pewter/Silver relief (Standard Legendary) with Radiant Gold Borders,
   // or Full Antique 24K Bronze-Gold relief (Golden Legendary)
@@ -279,6 +280,7 @@ export const SnsLegendaryCardDragonSvg: React.FC<{
   return (
     <svg
       viewBox="0 -26 300 266"
+      preserveAspectRatio={preserveAspectRatio}
       className={`pointer-events-none select-none overflow-visible ${className}`}
     >
       <defs>
@@ -607,78 +609,15 @@ export const SnsLegendaryCardDragonSvg: React.FC<{
   );
 };
 
-export const SnsLegendaryCrestSvg: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <svg viewBox="0 0 260 120" className={`pointer-events-none select-none overflow-visible ${className}`}>
-    <defs>
-      <linearGradient id="snsLegWingGold" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#fffbeb" />
-        <stop offset="32%" stopColor="#fde047" />
-        <stop offset="68%" stopColor="#d97706" />
-        <stop offset="100%" stopColor="#78350f" />
-      </linearGradient>
-      <linearGradient id="snsLegSilverBody" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#f8fafc" />
-        <stop offset="45%" stopColor="#cbd5e1" />
-        <stop offset="100%" stopColor="#334155" />
-      </linearGradient>
-      <radialGradient id="snsLegGemAmber" cx="40%" cy="35%" r="65%">
-        <stop offset="0%" stopColor="#ffffff" />
-        <stop offset="40%" stopColor="#fde047" />
-        <stop offset="80%" stopColor="#f97316" />
-        <stop offset="100%" stopColor="#7c2d12" />
-      </radialGradient>
-    </defs>
-    {/* Asymmetric Coiled Hearthstone-Style Dragon Crest for Board Minion Tokens */}
-    <path
-      d="M 130 22
-         C 100 6, 62 8, 30 30
-         C 48 34, 58 42, 54 54
-         C 38 56, 26 68, 22 86
-         C 40 76, 56 80, 62 96
-         C 60 72, 78 44, 126 34 Z"
-      fill="url(#snsLegSilverBody)"
-      stroke="#1a0d04"
-      strokeWidth="3"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M 126 22
-         C 148 -2, 186 -10, 222 0
-         C 208 14, 206 24, 212 32
-         C 228 24, 242 22, 248 28
-         C 234 44, 228 58, 228 74
-         C 236 74, 242 80, 238 92
-         C 222 96, 212 104, 206 116
-         C 198 84, 182 52, 142 36 Z"
-      fill="url(#snsLegSilverBody)"
-      stroke="#1a0d04"
-      strokeWidth="3.2"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M 134 22 C 156 4, 186 -4, 212 2 M 214 34 C 226 28, 236 28, 244 30 M 120 22 C 92 12, 62 14, 38 30"
-      fill="none"
-      stroke="url(#snsLegWingGold)"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-    />
-    {/* Dragon Head & Horns */}
-    <path
-      d="M 178 24 L 214 -2 L 194 28 Z M 186 34 L 222 14 L 198 40 Z"
-      fill="url(#snsLegWingGold)"
-      stroke="#1a0d04"
-      strokeWidth="2.4"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M 146 38 L 158 26 L 176 24 L 192 20 L 202 36 L 188 48 L 166 44 Z"
-      fill="url(#snsLegWingGold)"
-      stroke="#1a0d04"
-      strokeWidth="2.8"
-      strokeLinejoin="round"
-    />
-    <circle cx="174" cy="34" r="3.4" fill="url(#snsLegGemAmber)" stroke="#1a0d04" strokeWidth="1.2" />
-  </svg>
+export const SnsLegendaryCrestSvg: React.FC<{
+  isGolden?: boolean;
+  className?: string;
+}> = ({ isGolden = false, className = '' }) => (
+  <SnsLegendaryCardDragonSvg
+    isGolden={isGolden}
+    preserveAspectRatio="none"
+    className={className}
+  />
 );
 
 export const SnsTauntShieldSvg: React.FC<{ className?: string }> = ({ className = '' }) => (

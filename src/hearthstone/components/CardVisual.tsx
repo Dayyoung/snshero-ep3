@@ -1467,11 +1467,6 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
         />
       )}
 
-      {/* Sculpted Legendary Crown Crest */}
-      {minion.rarity === 'LEGENDARY' && (
-        <SnsLegendaryCrestSvg className="absolute -top-2.5 left-1/2 z-30 w-[108%] -translate-x-1/2 sm:-top-4" />
-      )}
-
       {/* Oval Portrait + Atmospheric Faction Sky + Character Portrait */}
       <div
         style={{
@@ -1480,9 +1475,11 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
         className={`relative z-10 h-[58px] w-[43px] overflow-hidden rounded-[50%] border-[2.5px] shadow-[0_6px_12px_rgba(0,0,0,0.85)] sm:h-[106px] sm:w-[84px] sm:border-[4px] ${
           minion.frozen
             ? 'border-cyan-200 ring-2 ring-sky-400/75 sm:ring-4'
-            : isTaunt
-              ? 'border-[#f2d694]'
-              : 'border-[#d4ab63]'
+            : minion.rarity === 'LEGENDARY'
+              ? 'border-[#eab308] ring-[1.5px] ring-[#241305]'
+              : isTaunt
+                ? 'border-[#f2d694]'
+                : 'border-[#d4ab63]'
         }`}
       >
         {!imgErr ? (
@@ -1535,6 +1532,11 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
           </div>
         )}
       </div>
+
+      {/* Sculpted Legendary Dragon Crest (Unified with Hand Card Frame, Hugging the Oval Bezel) */}
+      {minion.rarity === 'LEGENDARY' && (
+        <SnsLegendaryCrestSvg className="pointer-events-none absolute -top-[10px] left-1/2 z-[22] h-[73px] w-[67px] max-w-none -translate-x-1/2 sm:-top-[19px] sm:h-[134px] sm:w-[131px]" />
+      )}
 
       {/* Divine Shield Golden Barrier Dome */}
       {minion.divineShield && (

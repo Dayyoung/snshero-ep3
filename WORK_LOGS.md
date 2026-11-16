@@ -2,6 +2,18 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 14:46 KST] [전장 전설 하수인(`BoardMinionToken`) 드래곤 프레임 깨짐 수정 및 손패 카드와 디자인 통일 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 전장 전설 크레스트 SVG(`SnsLegendaryCrestSvg`) 깨짐 원인 해소 및 통합 (`SnsHeroArtKit.tsx`)**:
+    - 기존 [`SnsHeroArtKit.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SnsHeroArtKit.tsx)의 전장 전용 `SnsLegendaryCrestSvg`가 손패 카드의 입체 조각 용 프레임(`SnsLegendaryCardDragonSvg`)과 달리 거친 다각형 + 고정 `<defs>` ID(`snsLegWingGold` 등) + 빗나간 좌표(`260×120`)로 렌더링되어 전장 타원 위에서 깨진 회색 조각처럼 보이던 문제를 해소.
+    - `SnsLegendaryCardDragonSvg`에 `preserveAspectRatio` 옵션을 추가하고 `SnsLegendaryCrestSvg`가 이를 래핑(`preserveAspectRatio="none"`, `React.useId()` 고유 그라데이션 ID 보장)하도록 전면 교체해 손패·멀리건·도감과 100% 동일한 조각 용 아트를 사용하도록 통일.
+  - **2. 전장 하수인 타원 베젤 및 드래곤 정렬 최적화 (`CardVisual.tsx`)**:
+    - [`src/hearthstone/components/CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/CardVisual.tsx)의 `BoardMinionToken`에서 전설 하수인의 타원 테두리를 황금 메탈 베젤(`border-[#eab308] ring-[1.5px] ring-[#241305]`)로 보강하고, 드래곤 크레스트를 전장 타원 비율에 맞춰 모바일(`67×73`, `-top-[10px]`) 및 데스크톱(`131×134`, `-top-[19px]`) `z-[22]` 위치에 정밀 정렬(공격력·생명력·Zzz 배지 `z-30` 비간섭).
+  - **3. 타입체크 · 빌드 · 데스크톱/모바일 Playwright 실화면 검증 완료**:
+    - `npx tsc --noEmit` 및 `npm run build` 에러 0건 통과.
+    - Playwright 데스크톱(`1440×900`, `EX1_012 진홍해골 리치 켈투스`) 및 모바일(`390×844`, `NEW1_029 허세꾼 마도공작 이바르`) 실전 소환 화면 캡처에서 손패와 동일한 입체 전설 용 프레임 정상 렌더링 확인.
+
 ## [2026-11-16 14:32 KST] [`/hs-assets/screenshots/ingame_ranked_battle.png` 서비스 워커 캐시 고착 및 이미지 미표시 방지 개선 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
