@@ -362,7 +362,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({
         }
 
         case 'WHIRLWIND':
-          hsAudio.playSfx('whoosh', 0.9);
+          hsAudio.playSfx('attack', 0.72);
           hsAudio.vibrateByDamage(Math.max(2, ev.value || 3));
           emitImpact(Math.max(2, ev.value || 3));
           spawnRing(stageW * 0.5, stageH * 0.45, '#cbd5e1', 280);

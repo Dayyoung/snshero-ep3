@@ -358,8 +358,7 @@ class HearthstoneAudioEngine {
       | 'pack_legendary'
       | 'player_turn'
       | 'purchase'
-      | 'victory'
-      | 'whoosh',
+      | 'victory',
     volumeScale = 1,
   ) {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;

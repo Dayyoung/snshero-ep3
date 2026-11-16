@@ -784,7 +784,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       attackSeqRef.current += 1;
       const animId = attackSeqRef.current;
 
-      hsAudio.playSfx('whoosh', 0.85);
       setAiHighlightText(
         tr(
           `${side === 'PLAYER' ? '⚔ 아군 공격' : '💥 상대 공격'}: [${nameKo}](${attackVal}) ➔ [${defNameKo}]!`,
@@ -1429,7 +1428,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
     if (selectedToSwap.length > 0) {
       setMulliganSwapping(true);
-      hsAudio.playSfx('whoosh', 0.85);
+      hsAudio.playSfx('card_flip', 0.85);
       window.setTimeout(finalizeMulligan, 420);
     } else {
       finalizeMulligan();

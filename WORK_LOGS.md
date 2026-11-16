@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 15:57 KST] [`/stone-assets/audio/sfx/whoosh.mp3` 효과음 완전 제거 및 `stone.html` 전투 사운드 정제]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`public/stone-assets/audio/sfx/whoosh.mp3`](file:///Users/dayyoung/project/snshero/public/stone-assets/audio/sfx/whoosh.mp3) 에셋 파일 영구 삭제 및 `dist/` 빌드 산출물에서도 제외 확인.
+  - [`audio.ts`](file:///Users/dayyoung/project/snshero/src/stone/audio.ts) `playSfx` 목록에서 `'whoosh'` 타입 제거.
+  - [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/BattleScreen.tsx)(공격 개시 시 `whoosh` 호출 제거 및 멀리건 교체 시 `card_flip` 적용) 및 [`BoardVfxCanvas.tsx`](file:///Users/dayyoung/project/snshero/src/stone/vfx/BoardVfxCanvas.tsx)(`WHIRLWIND` 시 `attack` 타격음으로 교체) 전수 정리.
+- **검증 및 보고**:
+  - `npx tsc --noEmit && npm run build` 0에러 통과 및 `stone.html` 전투 E2E 검증 완료.
+  - 구글 폼 보고 및 `/git-push` (`git push origin main`) 완료.
+
 ## [2026-11-16 15:56 KST] [`/game` (`game.html`) 입장 시 0.5초 후 홈 화면(`BOX_HUB`) 자동 입장 구현 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
