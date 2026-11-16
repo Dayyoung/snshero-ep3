@@ -35,8 +35,8 @@ export function renderReaderHeader(mode: ReaderMode): string {
   return `
     <header class="hs-promo-nav sticky top-0 z-50 w-full">
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-[70px] sm:px-6">
-        <!-- Brand Logo (matches promo.html, no /icon.png) -->
-        <a href="/promotion" class="flex items-center gap-2.5 group no-underline">
+        <!-- Brand Logo (matches /, no /icon.png) -->
+        <a href="/" class="flex items-center gap-2.5 group no-underline">
           <img
             src="${getLogoUrl(lang)}"
             alt="${tr('눈히어로 엘윈마을 카드 배틀', 'SNSHero Elwin Village Card Battle')}"
@@ -44,17 +44,17 @@ export function renderReaderHeader(mode: ReaderMode): string {
           />
         </a>
 
-        <!-- Desktop Nav Links (exact same Korean/English labels as promo.html) -->
+        <!-- Desktop Nav Links (exact same Korean/English labels as /) -->
         <nav class="hidden items-center gap-6 text-sm font-extrabold tracking-wide text-amber-100/90 lg:flex" aria-label="Primary Navigation">
-          <a href="/promotion#intro" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('게임 정보', 'Overview')}</a>
-          <a href="/promotion#latest" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('신규 콘텐츠', 'Features')}</a>
-          <a href="/promotion#heroes" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('9대 영웅', '9 Heroes')}</a>
-          <a href="/promotion#cards" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('카드 라이브러리', 'Card Library')}</a>
-          <a href="/promotion#modes" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('게임 모드', 'Game Modes')}</a>
-          <a href="/promotion#universe" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('미디어 믹스', 'Universe')}</a>
+          <a href="/#intro" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('게임 정보', 'Overview')}</a>
+          <a href="/#latest" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('신규 콘텐츠', 'Features')}</a>
+          <a href="/#heroes" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('9대 영웅', '9 Heroes')}</a>
+          <a href="/#cards" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('카드 라이브러리', 'Card Library')}</a>
+          <a href="/#modes" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('게임 모드', 'Game Modes')}</a>
+          <a href="/#universe" class="transition hover:text-amber-300 no-underline text-amber-100/90">${tr('미디어 믹스', 'Universe')}</a>
         </nav>
 
-        <!-- Right CTA & Mobile Menu Toggle (matches promo.html) -->
+        <!-- Right CTA & Mobile Menu Toggle (matches /) -->
         <div class="flex items-center gap-2 sm:gap-2.5">
           <div class="hidden sm:inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
             ${langBtn('ko', 'KO')}
@@ -84,7 +84,7 @@ export function renderReaderHeader(mode: ReaderMode): string {
             <span>${tr('공식 웹툰', 'Webtoon')}</span>
           </a>
           <a
-            href="/"
+            href="/game"
             class="hs-promo-cta-purple inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold tracking-wide no-underline sm:px-6 sm:py-2.5 sm:text-sm"
           >
             <span>${tr('지금 플레이', 'Play Now')}</span>
@@ -106,16 +106,16 @@ export function renderReaderHeader(mode: ReaderMode): string {
           ? `
         <div class="border-t border-amber-500/30 bg-[#1a0f08]/98 px-4 py-4 lg:hidden">
           <div class="grid grid-cols-2 gap-2 text-sm font-extrabold text-amber-100">
-            <a href="/promotion#intro" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('게임 정보', 'Overview')}</a>
-            <a href="/promotion#latest" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('신규 콘텐츠', 'Features')}</a>
-            <a href="/promotion#heroes" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('9대 영웅', '9 Heroes')}</a>
-            <a href="/promotion#cards" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('카드 라이브러리', 'Card Library')}</a>
-            <a href="/promotion#modes" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('게임 모드', 'Game Modes')}</a>
-            <a href="/promotion#universe" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('미디어 믹스', 'Universe')}</a>
+            <a href="/#intro" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('게임 정보', 'Overview')}</a>
+            <a href="/#latest" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('신규 콘텐츠', 'Features')}</a>
+            <a href="/#heroes" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('9대 영웅', '9 Heroes')}</a>
+            <a href="/#cards" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('카드 라이브러리', 'Card Library')}</a>
+            <a href="/#modes" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('게임 모드', 'Game Modes')}</a>
+            <a href="/#universe" data-action="reader-close-menu" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('미디어 믹스', 'Universe')}</a>
             <a href="/book" class="rounded-lg border ${mode === 'book' ? 'border-amber-400 bg-amber-900/50 text-amber-100' : 'border-amber-500/20 bg-black/30 text-amber-100'} px-3 py-2.5 text-center transition hover:border-amber-400 no-underline">${tr('웹소설 40부작', 'Novel 40 EP')}</a>
             <a href="/webtoon" class="rounded-lg border ${mode === 'webtoon' ? 'border-sky-400 bg-sky-900/50 text-sky-100' : 'border-amber-500/20 bg-black/30 text-amber-100'} px-3 py-2.5 text-center transition hover:border-amber-400 no-underline">${tr('공식 웹툰', 'Webtoon')}</a>
             <a href="/stone.html" class="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400 no-underline text-amber-100">${tr('오리지널 스톤', 'Classic Stone')}</a>
-            <a href="/" class="rounded-lg border border-purple-400/50 bg-purple-950/60 px-3 py-2.5 text-center transition hover:border-purple-300 no-underline text-purple-100">${tr('게임 바로 시작', 'Play Now')}</a>
+            <a href="/game" class="rounded-lg border border-purple-400/50 bg-purple-950/60 px-3 py-2.5 text-center transition hover:border-purple-300 no-underline text-purple-100">${tr('게임 바로 시작', 'Play Now')}</a>
           </div>
           <div class="mt-3 flex items-center justify-center gap-2 sm:hidden">
             ${langBtn('ko', '한국어 (KO)')}
@@ -149,11 +149,11 @@ export function renderReaderFooter(): string {
           class="mx-auto h-10 w-auto opacity-90"
         />
         <div class="mt-5 flex flex-wrap justify-center gap-5 font-bold text-stone-300">
-          <a href="/" class="hover:text-amber-300 no-underline text-stone-300">${tr('게임 바로 시작 (/)', 'Play Now (/)')}</a>
-          <a href="/promotion" class="hover:text-amber-300 no-underline text-stone-300">${tr('게임 소개 (/promotion)', 'Overview (/promotion)')}</a>
-          <a href="/game.html?mode=story" class="hover:text-amber-300 no-underline text-stone-300">${tr('스토리모드', 'Story Mode')}</a>
-          <a href="/game.html?mode=ranked" class="hover:text-amber-300 no-underline text-stone-300">${tr('랭킹대전', 'Ranked Play')}</a>
-          <a href="/game.html?mode=ai" class="hover:text-amber-300 no-underline text-stone-300">${tr('AI대전', 'Practice vs AI')}</a>
+          <a href="/game" class="hover:text-amber-300 no-underline text-stone-300">${tr('게임 바로 시작 (/game)', 'Play Now (/game)')}</a>
+          <a href="/" class="hover:text-amber-300 no-underline text-stone-300">${tr('게임 소개 (/)', 'Overview (/)')}</a>
+          <a href="/game?mode=story" class="hover:text-amber-300 no-underline text-stone-300">${tr('스토리모드', 'Story Mode')}</a>
+          <a href="/game?mode=ranked" class="hover:text-amber-300 no-underline text-stone-300">${tr('랭킹대전', 'Ranked Play')}</a>
+          <a href="/game?mode=ai" class="hover:text-amber-300 no-underline text-stone-300">${tr('AI대전', 'Practice vs AI')}</a>
           <a href="/stone.html" class="hover:text-amber-300 no-underline text-stone-300">${tr('오리지널 스톤', 'Classic Stone')}</a>
           <a href="/book" class="hover:text-amber-300 no-underline text-stone-300">${tr('공식 소설', 'Novel')}</a>
           <a href="/webtoon" class="hover:text-amber-300 no-underline text-stone-300">${tr('공식 웹툰', 'Webtoon')}</a>

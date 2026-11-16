@@ -1,17 +1,17 @@
 # ==========================================
 # SNSHero.com Robots.txt
-# Canonical Search Exposure: /, /promotion, /book, /webtoon
+# Canonical Search Exposure: /, /game, /book, /webtoon, /sns
 # Optimized for SEO + AEO + GEO (AI Search Engines)
 # ==========================================
 
 User-agent: *
 Allow: /
-Allow: /promotion
+Allow: /game
 Allow: /book
 Allow: /webtoon
+Allow: /sns
 Allow: /llms.txt
 Allow: /llms-full.txt
-Disallow: /game
 Disallow: /game.html
 Disallow: /stone
 Disallow: /stone.html
@@ -19,16 +19,18 @@ Disallow: /novel
 Disallow: /novel.html
 Disallow: /promo
 Disallow: /promo.html
+Disallow: /promotion
+Disallow: /promotion.html
 Disallow: /setting
 Disallow: /*?lang=*
 Disallow: /test/
 
 User-agent: Googlebot
 Allow: /
-Allow: /promotion
+Allow: /game
 Allow: /book
 Allow: /webtoon
-Disallow: /game
+Allow: /sns
 Disallow: /game.html
 Disallow: /stone
 Disallow: /stone.html
@@ -36,6 +38,8 @@ Disallow: /novel
 Disallow: /novel.html
 Disallow: /promo
 Disallow: /promo.html
+Disallow: /promotion
+Disallow: /promotion.html
 
 User-agent: Mediapartners-Google
 Allow: /

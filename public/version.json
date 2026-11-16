@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0-1794696994437",
-  "buildTime": "2026-11-14T22:56:34.437Z",
-  "buildTimestamp": 1794696994437,
+  "version": "2.1.0-1794800470206",
+  "buildTime": "2026-11-16T03:41:10.206Z",
+  "buildTimestamp": 1794800470206,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
-  "entryScript": "/assets/main-BI1dYE7Q-v2.js"
+  "entryScript": "/assets/game-Dna-dOZM-v2.js"
 }

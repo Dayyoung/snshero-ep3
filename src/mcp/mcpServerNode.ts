@@ -145,8 +145,8 @@ function buildGameDossier() {
   return {
     gameTitle: '눈히어로 — 엘윈마을 전략 카드 배틀 (SNSHero: Kadan’s Journey)',
     canonicalUrls: {
-      playGame: 'https://snshero.com/',
-      showcase: 'https://snshero.com/promotion',
+      playGame: 'https://snshero.com/game',
+      showcase: 'https://snshero.com/',
       novel40Ep: 'https://snshero.com/book',
       webtoon40Ep: 'https://snshero.com/webtoon',
       aiBenchmarkHub: 'https://snshero.com/sns',

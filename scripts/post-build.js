@@ -11,9 +11,9 @@ if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
 }
 
-// 1. Detect primary game entry script from dist/index.html or dist/game.html
+// 1. Detect primary game entry script from dist/game.html or dist/index.html
 let entryScript = '';
-for (const name of ['index.html', 'game.html']) {
+for (const name of ['game.html', 'index.html']) {
   const htmlPath = path.join(distDir, name);
   if (fs.existsSync(htmlPath)) {
     const htmlContent = fs.readFileSync(htmlPath, 'utf8');
@@ -125,8 +125,10 @@ fs.writeFileSync(
         '/arena': '/sns',
         '/mcp/guide': '/mcp-guide.md',
         '/mcp/guide.md': '/mcp-guide.md',
-        '/promo': '/promotion',
-        '/promotion': '/promotion',
+        '/promo': '/',
+        '/promo.html': '/',
+        '/promotion': '/',
+        '/promotion.html': '/',
         '/book': '/book',
         '/novel': '/book',
         '/webtoon': '/webtoon',
@@ -146,9 +148,9 @@ fs.writeFileSync(
 <body style="background:#090d16;color:#fdfcfc;font-family:ui-monospace,monospace;padding:32px;">
   <p>요청하신 경로를 찾을 수 없습니다. 주요 페이지로 이동하세요:</p>
   <ul>
-    <li><a href="/" style="color:#fcd34d;">/ — 눈히어로 메인 게임</a></li>
+    <li><a href="/" style="color:#fcd34d;">/ — 눈히어로 공식 게임 소개</a></li>
+    <li><a href="/game" style="color:#38bdf8;">/game — 눈히어로 메인 카드 배틀 게임</a></li>
     <li><a href="/sns" style="color:#34d399;">/sns — AI 1,000판 벤치마크 &amp; 100점 평가 허브</a></li>
-    <li><a href="/promotion" style="color:#38bdf8;">/promotion — 공식 게임 소개</a></li>
     <li><a href="/book" style="color:#a78bfa;">/book — 카단의 여정 웹소설</a></li>
     <li><a href="/webtoon" style="color:#fb7185;">/webtoon — 공식 웹툰</a></li>
   </ul>
@@ -157,4 +159,4 @@ fs.writeFileSync(
   'utf8',
 );
 
-console.log('[post-build] Streamlined post-build completed (/, /sns, /promotion, /book, /webtoon, /mcp + 404 router).');
+console.log('[post-build] Streamlined post-build completed (/, /game, /sns, /book, /webtoon, /mcp + 404 router).');

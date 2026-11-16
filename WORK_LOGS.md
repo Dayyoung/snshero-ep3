@@ -2,6 +2,20 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 12:42 KST] [`/` 공식 게임 소개(구 `/promo`) 승격 및 `/game` 게임 엔트리포인트 전환 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 루트(`/`) 및 `/game`, `/promo` 라우팅·엔트리포인트 전환 (`index.html`, `game.html`, `promo.html`, `vite.config.ts`, `scripts/post-build.js`)**:
+    - [`index.html`](file:///Users/dayyoung/project/snshero/index.html)을 공식 소개 페이지(`#promo-root`, `/src/promo/main.tsx`)로 전환하고 `https://snshero.com/` canonical 및 SEO/OG/JSON-LD(`WebSite`, `WebPage`, `VideoGame`, `FAQPage`) 메타데이터 적용.
+    - [`game.html`](file:///Users/dayyoung/project/snshero/game.html)을 `/game` (및 `/game.html`) 카드 배틀 게임 정식 진입점으로 유지·갱신(`canonical: https://snshero.com/game`, `robots: index, follow`, `#sns` 해시 리다이렉트 보강).
+    - [`vite.config.ts`](file:///Users/dayyoung/project/snshero/vite.config.ts)의 `mpaRewriteMiddleware` 및 [`promo.html`](file:///Users/dayyoung/project/snshero/promo.html), [`scripts/post-build.js`](file:///Users/dayyoung/project/snshero/scripts/post-build.js)(`404.html` 포함)에서 `/promo`, `/promo.html`, `/promotion`, `/promotion.html` 접근 시 `302`/`replace`로 `/`로 자동 리다이렉트되도록 구성.
+  - **2. 전 페이지 내부 링크·PWA 매니페스트·SEO/GEO 파일 동기화**:
+    - [`src/promo/PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx), [`src/reader/ReaderChrome.ts`](file:///Users/dayyoung/project/snshero/src/reader/ReaderChrome.ts), [`src/reader/WebtoonSection.tsx`](file:///Users/dayyoung/project/snshero/src/reader/WebtoonSection.tsx), [`src/hearthstone/screens/BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx), [`src/sns/SnsBenchmarkApp.tsx`](file:///Users/dayyoung/project/snshero/src/sns/SnsBenchmarkApp.tsx), [`src/mcp/mcpServerNode.ts`](file:///Users/dayyoung/project/snshero/src/mcp/mcpServerNode.ts) 내 게임 실행 링크를 `/game`으로, 공식 소개 링크를 `/`로 일괄 갱신.
+    - [`public/game-manifest.json`](file:///Users/dayyoung/project/snshero/public/game-manifest.json), [`public/robots.txt`](file:///Users/dayyoung/project/snshero/public/robots.txt), [`public/sitemap.xml`](file:///Users/dayyoung/project/snshero/public/sitemap.xml), [`public/llms.txt`](file:///Users/dayyoung/project/snshero/public/llms.txt), [`public/llms-full.txt`](file:///Users/dayyoung/project/snshero/public/llms-full.txt) 경로 최신화.
+  - **3. 빌드 · 실브라우저 검증 · 서버 재기동 완료**:
+    - `npx tsc --noEmit` 및 `npm run build` 에러 `0`건 통과 후 `scripts/start-server.sh`로 포트 3000 프리뷰 서버 재기동.
+    - Playwright 실브라우저 및 `curl` 검증에서 `http://localhost:3000/`(`#promo-root` 정상 렌더), `http://localhost:3000/game`(`#hs-root` 정상 렌더), `http://localhost:3000/promo` → `http://localhost:3000/`(`302` 리다이렉트) 동작 및 앱 콘솔 에러 `0`건 확인 완료.
+
 ## [2026-11-16 11:13 KST] [`/stone.html` (및 `/game.html` 동기화) 상대 턴 진행 멈춤 데드락 및 `자동 ON` 자동플레이 미진행 버그 전수 해결 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

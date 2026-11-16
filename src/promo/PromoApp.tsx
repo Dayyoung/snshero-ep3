@@ -135,7 +135,7 @@ export const PromoApp: React.FC = () => {
         ],
         imageUrl: '/hs-assets/screenshots/ingame_story_theater.png',
         ctaText: tr('스토리모드 바로 출정', 'Enter Story Mode'),
-        ctaHref: '/game.html?mode=story',
+        ctaHref: '/game?mode=story',
       },
       {
         id: 'awake',
@@ -165,7 +165,7 @@ export const PromoApp: React.FC = () => {
         ],
         imageUrl: '/hs-assets/screenshots/ingame_collection_awake.png',
         ctaText: tr('내 덱 강화하러 가기', 'Upgrade Your Deck'),
-        ctaHref: '/game.html',
+        ctaHref: '/game',
       },
       {
         id: 'pack',
@@ -192,7 +192,7 @@ export const PromoApp: React.FC = () => {
         ],
         imageUrl: '/hs-assets/screenshots/ingame_pack_altar.png',
         ctaText: tr('무료 3팩 개봉하기', 'Open 3 Free Packs'),
-        ctaHref: '/game.html',
+        ctaHref: '/game',
       },
     ],
     [lang],
@@ -389,7 +389,7 @@ export const PromoApp: React.FC = () => {
               <span>{tr('공식 웹툰', 'Webtoon')}</span>
             </a>
             <a
-              href="/game.html"
+              href="/game"
               className="hs-promo-cta-purple inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold tracking-wide sm:px-6 sm:py-2.5 sm:text-sm"
             >
               <span>{tr('지금 플레이', 'Play Now')}</span>
@@ -420,7 +420,7 @@ export const PromoApp: React.FC = () => {
                 { href: '/book.html', label: tr('웹소설 40부작', 'Novel 40 EP') },
                 { href: '/webtoon.html', label: tr('공식 웹툰', 'Webtoon') },
                 { href: '/stone.html', label: tr('오리지널 스톤', 'Classic Stone') },
-                { href: '/', label: tr('게임 바로 시작', 'Play Now') },
+                { href: '/game', label: tr('게임 바로 시작', 'Play Now') },
               ].map((item) => (
                 <a
                   key={item.href}
@@ -544,14 +544,14 @@ export const PromoApp: React.FC = () => {
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <a
-              href="/game.html"
+              href="/game"
               className="hs-promo-cta-purple inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-9 py-3.5 text-base font-extrabold tracking-wide sm:text-lg"
             >
               <Gamepad2 className="h-5 w-5" />
               <span>{tr('지금 플레이', 'Play Now')}</span>
             </a>
             <a
-              href="/game.html?mode=story"
+              href="/game?mode=story"
               className="hs-promo-cta-teal-dark inline-flex min-h-[52px] items-center gap-2 rounded-full px-7 py-3.5 text-sm font-extrabold sm:text-base"
             >
               <Swords className="h-4 w-4" />
@@ -625,7 +625,7 @@ export const PromoApp: React.FC = () => {
             </div>
             <div className="mt-7 flex flex-wrap gap-3">
               <a
-                href="/game.html"
+                href="/game"
                 className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-extrabold"
               >
                 <span>{tr('성소 입장하기', 'Enter Sanctuary')}</span>
@@ -700,7 +700,7 @@ export const PromoApp: React.FC = () => {
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-[#5c3a1a] sm:text-base">
               {tr(
-                '오직 눈히어로(game.html)에서만 만날 수 있는 40부작 서사 보스전, 3장=3배 각성, 382종 고유 카드 시스템을 확인하세요.',
+                '오직 눈히어로(/game)에서만 만날 수 있는 40부작 서사 보스전, 3장=3배 각성, 382종 고유 카드 시스템을 확인하세요.',
                 'Discover 40 boss encounters, the 3-Copies = 3x Awakening rule, and 382 original cards exclusive to SNSHero.',
               )}
             </p>
@@ -788,7 +788,7 @@ export const PromoApp: React.FC = () => {
                 {tr('카단의 여정 주요 적장 & 레이드 보스', 'Major Story Rivals & Raid Bosses')}
               </h3>
               <a
-                href="/game.html?mode=story"
+                href="/game?mode=story"
                 className="hs-promo-cta-teal rounded-full px-4 py-1.5 text-xs font-extrabold"
               >
                 {tr('전체 도전하기', 'Challenge All')}
@@ -798,7 +798,7 @@ export const PromoApp: React.FC = () => {
               {storyBossHighlights.map((boss) => (
                 <a
                   key={boss.img}
-                  href="/game.html?mode=story"
+                  href="/game?mode=story"
                   className="hs-promo-gold-frame group overflow-hidden rounded-xl bg-[#1d1008] transition hover:-translate-y-1.5"
                 >
                   <div className="aspect-[4/3] overflow-hidden bg-black">
@@ -993,7 +993,7 @@ export const PromoApp: React.FC = () => {
                     </div>
                   </div>
                   <a
-                    href="/game.html?mode=ranked"
+                    href="/game?mode=ranked"
                     className="hs-promo-cta-purple inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold"
                   >
                     <span>{tr(`${selectedHeroUi.name} 덱 플레이`, `Play ${selectedHeroUi.name}`)}</span>
@@ -1037,7 +1037,7 @@ export const PromoApp: React.FC = () => {
               </h2>
               <p className="mt-1.5 text-sm font-bold text-[#5c3a1a]">
                 {tr(
-                  'game.html에 수록된 실제 382장 카드(9종족 × 25장 + 중립 157장)를 미리 살펴보고 황금 포일까지 확인하세요.',
+                  '/game에 수록된 실제 382장 카드(9종족 × 25장 + 중립 157장)를 미리 살펴보고 황금 포일까지 확인하세요.',
                   'Preview all 382 playable cards (9 factions × 25 + 157 Neutral) including 24K Golden foils.',
                 )}
               </p>
@@ -1267,7 +1267,7 @@ export const PromoApp: React.FC = () => {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="/game.html?mode=ranked"
+                    href="/game?mode=ranked"
                     className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
                     <span>{tr('랭킹대전 도전', 'Enter Ranked Play')}</span>
@@ -1294,7 +1294,7 @@ export const PromoApp: React.FC = () => {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="/game.html?mode=ai"
+                    href="/game?mode=ai"
                     className="hs-promo-cta-teal-dark inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
                     <span>{tr('AI대전 수련하기', 'Train vs AI')}</span>
@@ -1339,7 +1339,7 @@ export const PromoApp: React.FC = () => {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="/game.html?mode=story"
+                    href="/game?mode=story"
                     className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
                     <span>{tr('1화부터 여정 시작', 'Start Story Mode')}</span>
@@ -1398,7 +1398,7 @@ export const PromoApp: React.FC = () => {
             {tr('를 즉시 개봉할 수 있습니다.', ' immediately on arrival.')}
           </p>
           <a
-            href="/game.html"
+            href="/game"
             className="hs-promo-cta-purple mt-8 inline-flex min-h-[56px] items-center gap-2.5 rounded-full px-10 py-4 text-base font-extrabold tracking-wide sm:text-lg"
           >
             <Gamepad2 className="h-5 w-5" />
@@ -1544,11 +1544,10 @@ export const PromoApp: React.FC = () => {
             className="mx-auto h-10 w-auto opacity-90"
           />
           <div className="mt-5 flex flex-wrap justify-center gap-5 font-bold text-stone-300">
-            <a href="/" className="hover:text-amber-300">{tr('게임 바로 시작 (/)', 'Play (/)')}</a>
-            <a href="/game.html" className="hover:text-amber-300">{tr('게임 실행 (/game.html)', 'Launch Game')}</a>
-            <a href="/game.html?mode=story" className="hover:text-amber-300">{tr('스토리모드', 'Story Mode')}</a>
-            <a href="/game.html?mode=ranked" className="hover:text-amber-300">{tr('랭킹대전', 'Ranked Play')}</a>
-            <a href="/game.html?mode=ai" className="hover:text-amber-300">{tr('AI대전', 'AI Battle')}</a>
+            <a href="/game" className="hover:text-amber-300">{tr('게임 바로 시작 (/game)', 'Play (/game)')}</a>
+            <a href="/game?mode=story" className="hover:text-amber-300">{tr('스토리모드', 'Story Mode')}</a>
+            <a href="/game?mode=ranked" className="hover:text-amber-300">{tr('랭킹대전', 'Ranked Play')}</a>
+            <a href="/game?mode=ai" className="hover:text-amber-300">{tr('AI대전', 'AI Battle')}</a>
             <a href="/stone.html" className="hover:text-amber-300">{tr('오리지널 스톤', 'Classic Stone')}</a>
             <a href="/book.html" className="hover:text-amber-300">{tr('공식 웹소설', 'Official Novel')}</a>
             <a href="/webtoon.html" className="hover:text-amber-300">{tr('공식 웹툰', 'Official Webtoon')}</a>
@@ -1589,7 +1588,7 @@ export const PromoApp: React.FC = () => {
           <p className="mt-6 leading-relaxed text-stone-500">
             {tr('본 페이지는 웹 카드 배틀 게임 ', 'Official showcase for web card battle game ')}
             <strong className="text-stone-300">
-              {tr('눈히어로 — 엘윈마을의 영웅들 (/game.html)', 'SNSHero — Heroes of Elwin Village (/game.html)')}
+              {tr('눈히어로 — 엘윈마을의 영웅들 (/game)', 'SNSHero — Heroes of Elwin Village (/game)')}
             </strong>
             {tr(' 공식 소개 페이지입니다.', '.')}
           </p>
@@ -1696,10 +1695,10 @@ export const PromoApp: React.FC = () => {
 
               <div className="mt-6 flex flex-wrap gap-2.5">
                 <a
-                  href="/game.html"
+                  href="/game"
                   className="hs-promo-cta-purple inline-flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-extrabold"
                 >
-                  <span>{tr('game.html에서 카드 얻기', 'Collect Card in Game')}</span>
+                  <span>{tr('게임에서 카드 얻기 (/game)', 'Collect Card in Game (/game)')}</span>
                   <ChevronRight className="h-4 w-4" />
                 </a>
               </div>

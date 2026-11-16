@@ -103,9 +103,9 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
       <header className="relative z-20 flex w-full max-w-6xl flex-wrap items-center justify-between gap-1.5 sm:gap-2">
         <div className="flex items-center gap-1.5 sm:gap-2.5">
           <a
-            href="/promotion"
+            href="/"
             onClick={() => hsAudio.playSfx('ui_click', 0.6)}
-            title={tr('눈히어로 공식 소개 (/promotion)', 'SNSHero Official Showcase (/promotion)')}
+            title={tr('눈히어로 공식 소개 (/)', 'SNSHero Official Showcase (/)')}
             className="flex items-center rounded-xl px-1.5 py-1 transition hover:scale-105"
           >
             <img

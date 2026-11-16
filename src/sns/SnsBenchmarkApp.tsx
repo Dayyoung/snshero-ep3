@@ -518,14 +518,14 @@ export const SnsBenchmarkApp: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-2">
             <a
-              href="/"
+              href="/game"
               className="sns-btn-ghost inline-flex items-center gap-1.5 text-xs no-underline"
             >
               <Gamepad2 className="w-4 h-4" />
               <span>{tr('게임 실행', 'Play Game')}</span>
             </a>
             <a
-              href="/promotion"
+              href="/"
               className="sns-btn-ghost inline-flex items-center gap-1.5 text-xs no-underline"
             >
               <ExternalLink className="w-4 h-4" />
@@ -1790,11 +1790,11 @@ export const SnsBenchmarkApp: React.FC = () => {
             {tr('최종 갱신:', 'Last Updated:')} {store.lastUpdated.slice(0, 19).replace('T', ' ')}
           </div>
           <div className="flex gap-4">
-            <a href="/" className="hover:text-white">
-              / (Game)
+            <a href="/game" className="hover:text-white">
+              /game (Game)
             </a>
-            <a href="/promotion" className="hover:text-white">
-              /promotion
+            <a href="/" className="hover:text-white">
+              / (Showcase)
             </a>
             <a href="/book" className="hover:text-white">
               /book

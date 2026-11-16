@@ -619,7 +619,7 @@ export function renderWebtoonSection(): string {
                             ? `
                         <div class="bg-[#160d06] px-4 py-4 border-t border-amber-700/35 flex items-center justify-center">
                           <a
-                            href="/game.html?mode=story"
+                            href="/game?mode=story"
                             class="hs-promo-cta-purple w-full sm:w-auto min-h-[44px] px-6 py-2.5 text-xs sm:text-sm font-extrabold rounded-full flex items-center justify-center gap-2 no-underline"
                           >
                             <span>▶ ${tr('웹툰 카드게임 바로 플레이 (SNSHero.com)', 'Play the Webtoon Card Game Now (SNSHero.com)', 'ウェブトゥーンカードゲームを今すぐプレイ (SNSHero.com)')}</span>

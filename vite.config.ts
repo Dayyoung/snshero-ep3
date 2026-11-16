@@ -41,14 +41,37 @@ const MIME_TYPES: Record<string, string> = {
 const MPA_REWRITES: Record<string, string> = {
   '/': '/index.html',
   '/game': '/game.html',
-  '/promo': '/promo.html',
-  '/promotion': '/promo.html',
   '/stone': '/stone.html',
   '/book': '/book.html',
   '/novel': '/novel.html',
   '/webtoon': '/webtoon.html',
   '/sns': '/sns.html',
 };
+
+const PROMO_REDIRECT_PATHS = new Set([
+  '/promo',
+  '/promo.html',
+  '/promotion',
+  '/promotion.html',
+]);
+
+function mpaRewriteMiddleware(req: any, res: any, next: any) {
+  if (!req.url) return next();
+  const [pathname, search] = req.url.split('?');
+  const query = search ? `?${search}` : '';
+  const normalized = (pathname || '').replace(/\/+/g, '/');
+  const cleanNormalized = (normalized.replace(/\/+$/, '') || '/').toLowerCase();
+  if (PROMO_REDIRECT_PATHS.has(cleanNormalized)) {
+    res.statusCode = 302;
+    res.setHeader('Location', `/${query}`);
+    res.end();
+    return;
+  }
+  if (MPA_REWRITES[cleanNormalized]) {
+    req.url = `${MPA_REWRITES[cleanNormalized]}${query}`;
+  }
+  next();
+}
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
@@ -71,30 +94,10 @@ export default defineConfig(({mode}) => {
       {
         name: 'mpa-dev-rewrite-plugin',
         configureServer(server: any) {
-          server.middlewares.use((req: any, _res: any, next: any) => {
-            if (!req.url) return next();
-            const [pathname, search] = req.url.split('?');
-            const query = search ? `?${search}` : '';
-            const normalized = (pathname || '').replace(/\/+/g, '/');
-            const cleanNormalized = (normalized.replace(/\/+$/, '') || '/').toLowerCase();
-            if (MPA_REWRITES[cleanNormalized]) {
-              req.url = `${MPA_REWRITES[cleanNormalized]}${query}`;
-            }
-            next();
-          });
+          server.middlewares.use(mpaRewriteMiddleware);
         },
         configurePreviewServer(server: any) {
-          server.middlewares.use((req: any, _res: any, next: any) => {
-            if (!req.url) return next();
-            const [pathname, search] = req.url.split('?');
-            const query = search ? `?${search}` : '';
-            const normalized = (pathname || '').replace(/\/+/g, '/');
-            const cleanNormalized = (normalized.replace(/\/+$/, '') || '/').toLowerCase();
-            if (MPA_REWRITES[cleanNormalized]) {
-              req.url = `${MPA_REWRITES[cleanNormalized]}${query}`;
-            }
-            next();
-          });
+          server.middlewares.use(mpaRewriteMiddleware);
         },
       },
       {
