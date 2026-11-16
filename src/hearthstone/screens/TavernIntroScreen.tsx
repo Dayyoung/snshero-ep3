@@ -1,11 +1,50 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { SNS_LOCATIONS, getSnsLogoUrl, SnsSnowCompassSeal } from '../components/SnsHeroArtKit';
 
+const AUTO_ENTER_DOOR_START_MS = 90;
+const AUTO_ENTER_HOME_DELAY_MS = 500;
+const MANUAL_ENTER_DOOR_MS = 420;
+
 export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnterHub }) => {
   const { lang } = useHeroLanguage();
   const [opening, setOpening] = useState(false);
+  const completedRef = useRef(false);
+  const manualTriggeredRef = useRef(false);
+  const timersRef = useRef<number[]>([]);
+  const onEnterHubRef = useRef(onEnterHub);
+  onEnterHubRef.current = onEnterHub;
+
+  const clearScheduledTimers = useCallback(() => {
+    for (const id of timersRef.current) {
+      window.clearTimeout(id);
+    }
+    timersRef.current = [];
+  }, []);
+
+  const completeEnter = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    clearScheduledTimers();
+    onEnterHubRef.current();
+  }, [clearScheduledTimers]);
+
+  useEffect(() => {
+    const tDoor = window.setTimeout(() => {
+      if (!completedRef.current) {
+        setOpening(true);
+      }
+    }, AUTO_ENTER_DOOR_START_MS);
+    const tEnter = window.setTimeout(() => {
+      completeEnter();
+    }, AUTO_ENTER_HOME_DELAY_MS);
+    timersRef.current = [tDoor, tEnter];
+
+    return () => {
+      clearScheduledTimers();
+    };
+  }, [clearScheduledTimers, completeEnter]);
 
   const embers = useMemo(
     () =>
@@ -21,14 +60,17 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
   );
 
   const handleEnter = () => {
-    if (opening) return;
+    if (completedRef.current || manualTriggeredRef.current) return;
+    manualTriggeredRef.current = true;
+    clearScheduledTimers();
     setOpening(true);
     hsAudio.playSfx('box_open');
     hsAudio.playBgm('tavern_hub');
     hsAudio.playInnkeeper('welcome');
-    window.setTimeout(() => {
-      onEnterHub();
-    }, 980);
+    const tManual = window.setTimeout(() => {
+      completeEnter();
+    }, MANUAL_ENTER_DOOR_MS);
+    timersRef.current.push(tManual);
   };
 
   return (
@@ -41,20 +83,20 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
         style={{
           backgroundImage: `url(${SNS_LOCATIONS.BOX_TABLE})`,
           transform: opening ? 'scale(1.06)' : 'scale(0.96)',
-          transition: 'transform 1s cubic-bezier(0.22, 1, 0.36, 1)',
+          transition: 'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
         }}
         className="absolute inset-0 bg-cover bg-center"
       />
       <div
         style={{ backgroundImage: `url(${SNS_LOCATIONS.TAVERN_EXTERIOR})` }}
-        className={`absolute inset-0 bg-cover bg-center mix-blend-lighten transition-opacity duration-700 ${
+        className={`absolute inset-0 bg-cover bg-center mix-blend-lighten transition-opacity duration-400 ${
           opening ? 'opacity-30' : 'opacity-65'
         }`}
       />
 
       {/* Warm Hearth & Aurora Glow Burst When Sanctuary Doors Open */}
       <div
-        className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${
+        className={`pointer-events-none absolute inset-0 transition-opacity duration-400 ${
           opening
             ? 'bg-radial from-amber-300/65 via-sky-500/20 to-black/65 opacity-100'
             : 'bg-radial from-amber-500/30 via-[#150c06]/68 to-[#060403]/95 opacity-100'
@@ -66,7 +108,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
         style={{
           transform: opening ? 'scale(1.22)' : 'scale(1)',
           opacity: opening ? 0 : 1,
-          transition: 'transform 0.96s cubic-bezier(0.32, 0.04, 0.24, 1), opacity 0.45s ease 0.52s',
+          transition: 'transform 0.42s cubic-bezier(0.32, 0.04, 0.24, 1), opacity 0.24s ease 0.18s',
         }}
         className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
       >
@@ -94,7 +136,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
               transform: opening
                 ? 'perspective(1600px) rotateY(-96deg)'
                 : 'perspective(1600px) rotateY(0deg)',
-              transition: 'transform 0.92s cubic-bezier(0.32, 0.04, 0.24, 1)',
+              transition: 'transform 0.42s cubic-bezier(0.32, 0.04, 0.24, 1)',
               background:
                 'repeating-linear-gradient(90deg, rgba(255,210,145,0.035) 0px, rgba(255,210,145,0.035) 5px, rgba(0,0,0,0.16) 5px, rgba(0,0,0,0.16) 11px), linear-gradient(180deg, #4b2d16 0%, #2f1a0c 52%, #1b0e06 100%)',
             }}
@@ -122,7 +164,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
               transform: opening
                 ? 'perspective(1600px) rotateY(96deg)'
                 : 'perspective(1600px) rotateY(0deg)',
-              transition: 'transform 0.92s cubic-bezier(0.32, 0.04, 0.24, 1)',
+              transition: 'transform 0.42s cubic-bezier(0.32, 0.04, 0.24, 1)',
               background:
                 'repeating-linear-gradient(90deg, rgba(255,210,145,0.035) 0px, rgba(255,210,145,0.035) 5px, rgba(0,0,0,0.16) 5px, rgba(0,0,0,0.16) 11px), linear-gradient(180deg, #4b2d16 0%, #2f1a0c 52%, #1b0e06 100%)',
             }}
@@ -174,7 +216,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
 
       {/* Top Subtle Sanctuary Header */}
       <header
-        className={`relative z-30 px-3 pt-3 text-center transition-all duration-500 sm:pt-4 ${
+        className={`relative z-30 px-3 pt-3 text-center transition-all duration-300 sm:pt-4 ${
           opening ? '-translate-y-6 opacity-0' : 'opacity-100'
         }`}
       >
@@ -187,7 +229,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
 
       {/* Layer 3: Official SNSHero Brand Crest + Compass Swirl Latch + Novel/Webtoon Buttons */}
       <main
-        className={`relative z-30 my-auto flex w-full max-w-md flex-col items-center px-4 text-center transition-all duration-700 sm:max-w-lg ${
+        className={`relative z-30 my-auto flex w-full max-w-md flex-col items-center px-4 text-center transition-all duration-300 sm:max-w-lg ${
           opening ? 'scale-125 opacity-0' : 'scale-100 opacity-100'
         }`}
       >

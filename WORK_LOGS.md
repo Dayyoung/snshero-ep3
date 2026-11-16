@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 15:56 KST] [`/game` (`game.html`) 입장 시 0.5초 후 홈 화면(`BOX_HUB`) 자동 입장 구현 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`TavernIntroScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/TavernIntroScreen.tsx)에 자동 입장 타이머(`AUTO_ENTER_DOOR_START_MS = 90ms`, `AUTO_ENTER_HOME_DELAY_MS = 500ms`)를 적용하여, `/game` 접속 시 수동 클릭 없이 0.5초(500ms) 후 자동으로 성소 문이 열리며 홈 화면(`BOX_HUB`)으로 전환되도록 구현.
+  - 성소 양문 3D 스윙 및 페이드 트랜지션 시간을 0.42s~0.45s로 동기화하고, `completedRef` 및 타이머 정리(`clearScheduledTimers`)로 언마운트·조기 수동 클릭(`handleEnter`) 시 중복 전환이나 메모리 누수가 발생하지 않도록 보호.
+- **검증 및 보고**:
+  - `npx tsc --noEmit && npm run build` 0에러 통과.
+  - Playwright E2E(`http://localhost:3000/game` 데스크톱 `1280x800` 및 모바일 `390x844`): 클릭 없이 자동 홈 화면(`BoxHubScreen`) 진입 확인(데스크톱 1,355ms, 모바일 1,155ms, 콘솔/페이지 에러 0건, 스크린샷 검수 완료).
+  - 구글 폼 보고 완료.
+
 ## [2026-11-16 15:48 KST] [`stone.html` 좌상단 하스스톤 로고/타이틀 홈(`/`) 이동 링크 교체 및 영/한 글로벌 언어팩(기본 영어 · 한국어 브라우저 자동 감지 · 메뉴 실시간 전환) 개발·적용 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
