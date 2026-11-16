@@ -569,4 +569,15 @@
     - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료 (`5.27s`), 포트 `3000` 프리뷰 서버 즉시 반영 완료.
     - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
 
+## [2026-11-16 20:54 KST] [스토리모드 대사 화면에서 첫 번째 화자만 활성화되고 상대 화자가 비활성화로 고정되던 WebKit CSS 필터 전환 버그 수정 및 원격 푸시]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 대사 교차 시 화자 활성/비활성 전환 고착 버그 근본 해결 ([`StoryEncounterOverlays.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/StoryEncounterOverlays.tsx))**:
+    - **원인**: 외곽 컨테이너에서 서로 다른 타입의 CSS `filter`(`drop-shadow(...)` ↔ `brightness(...) saturate(...)`, 불연속 50% 시점 `110ms` 플립)와 `44ms` 주기의 `talkBob` `transform` 인라인 스타일 변경이 같은 엘리먼트에서 충돌하여, WebKit CoreAnimation 레이어가 `110ms` 전환점에 도달하기 전에 매 `44ms`마다 리셋되어 초기 첫 번째 화자만 밝게 고정되고 두 번째 화자는 끝까지 어두운 상태(`비활성화`)로 남던 현상 확인.
+    - **해결**: `talkBob`·스케일 `transform`은 외곽 `<div>`에만 두고, 밝기/채도 활성 상태는 내부 `<img>`에만 동일한 함수 시그니처(`brightness(1) saturate(1)` ↔ `brightness(0.36) saturate(0.45)` + `opacity: 1` ↔ `0.72`)로 완전 분리 적용하여 대사 턴이 바뀔 때마다 좌·우 캐릭터 활성화가 즉시 정확히 교차되도록 수정.
+    - `useAnimaleseTypewriter`의 `resetKey` 변경 감지를 렌더 단계 동기 리셋으로 보강해 대사 전환 시 잔여 프레임 지연 제거.
+  - **2. 빌드·원격 푸시(`/git-push`) 및 구글 폼 보고**:
+    - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료.
+    - 로컬 커밋 및 `git push origin main` 원격 배포, 연동 구글 폼 작업 완료 보고 제출 완료.
+
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*

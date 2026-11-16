@@ -9,10 +9,10 @@ import {
 } from '../storyEncounterData';
 import { MatchRewardBreakdown } from '../types';
 
-// Single-pass GPU-safe portrait filters (prevents iOS Safari WebKit Metal texture OOM crash from 5x chained drop-shadows!)
-const STICKER_OUTLINE_FILTER = 'drop-shadow(0 8px 16px rgba(0,0,0,0.85))';
-
-const DIMMED_OUTLINE_FILTER = 'brightness(0.45) saturate(0.55)';
+// Matched-primitive GPU-safe portrait filters applied directly to <img> (isolated from outer 44ms `talkBob` transform!)
+// Using identical `brightness(...) saturate(...)` primitive order guarantees instant, never-stuck WebKit CoreAnimation transitions!
+const ACTIVE_PORTRAIT_FILTER = 'brightness(1) saturate(1)';
+const DIMMED_PORTRAIT_FILTER = 'brightness(0.36) saturate(0.45)';
 
 const PARCHMENT_STAR_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14 6 L15.6 12.4 L22 14 L15.6 15.6 L14 22 L12.4 15.6 L6 14 L12.4 12.4 Z' fill='%23b8ad96' fill-opacity='0.34'/%3E%3C/svg%3E")`;
 
@@ -41,18 +41,21 @@ function useAnimaleseTypewriter(opts: {
     onAutoAdvance,
   } = opts;
 
+  const compositeKey = `${resetKey}::${fullText}`;
+  const [activeKey, setActiveKey] = useState(compositeKey);
   const [displayedCount, setDisplayedCount] = useState(0);
   const [revealMode, setRevealMode] = useState<'TYPING' | 'CLICK_PAUSE' | 'NATURAL_PAUSE'>('TYPING');
   const [talkBob, setTalkBob] = useState(false);
 
-  const onAutoAdvanceRef = useRef(onAutoAdvance);
-  onAutoAdvanceRef.current = onAutoAdvance;
-
-  useEffect(() => {
+  if (activeKey !== compositeKey) {
+    setActiveKey(compositeKey);
     setDisplayedCount(0);
     setRevealMode('TYPING');
     setTalkBob(false);
-  }, [resetKey, fullText]);
+  }
+
+  const onAutoAdvanceRef = useRef(onAutoAdvance);
+  onAutoAdvanceRef.current = onAutoAdvance;
 
   useEffect(() => {
     if (!enabled) return;
@@ -246,16 +249,16 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         </button>
       </div>
 
-      {/* Left Character Upper-Body Cutout (Protagonist / Ally — Large Waist-Up `상반신` 66%~78% Viewport Height!) */}
+      {/* Left Character Upper-Body Cutout (Protagonist / Ally — Large Waist-Up `상반신` 68%~78% Viewport Height!) */}
       <div
         data-testid="story-dialogue-left-portrait"
+        data-speaking={isLeftSpeaking ? 'true' : 'false'}
         style={{
-          filter: isLeftSpeaking ? STICKER_OUTLINE_FILTER : DIMMED_OUTLINE_FILTER,
           transformOrigin: 'bottom center',
           transform: isLeftSpeaking
-            ? `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.03)`
-            : 'translate3d(-50%, 6px, 0) scale(0.96)',
-          transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
+            ? `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.04)`
+            : 'translate3d(-50%, 6px, 0) scale(0.94)',
+          transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
         className={`pointer-events-none absolute -bottom-2.5 left-[25%] flex h-[68%] justify-center sm:left-[27%] sm:h-[78%] ${
           encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
@@ -264,7 +267,13 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         <img
           src={encounter.leftSpriteUrl}
           alt={isKo ? encounter.leftNameKo : encounter.leftNameEn}
+          decoding="async"
           draggable={false}
+          style={{
+            filter: isLeftSpeaking ? ACTIVE_PORTRAIT_FILTER : DIMMED_PORTRAIT_FILTER,
+            opacity: isLeftSpeaking ? 1 : 0.72,
+            transition: 'filter 160ms ease, opacity 160ms ease',
+          }}
           className={`w-auto max-w-none select-none ${
             encounter.leftSpriteUrl.includes('/characters/cutouts/')
               ? 'h-[168%]'
@@ -275,16 +284,16 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         />
       </div>
 
-      {/* Right Character Upper-Body Cutout (Opponent / Boss — Large Waist-Up `상반신` 66%~78% Viewport Height!) */}
+      {/* Right Character Upper-Body Cutout (Opponent / Boss — Large Waist-Up `상반신` 68%~78% Viewport Height!) */}
       <div
         data-testid="story-dialogue-right-portrait"
+        data-speaking={!isLeftSpeaking ? 'true' : 'false'}
         style={{
-          filter: !isLeftSpeaking ? STICKER_OUTLINE_FILTER : DIMMED_OUTLINE_FILTER,
           transformOrigin: 'bottom center',
           transform: !isLeftSpeaking
-            ? `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.03)`
-            : 'translate3d(-50%, 6px, 0) scale(0.96)',
-          transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
+            ? `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.04)`
+            : 'translate3d(-50%, 6px, 0) scale(0.94)',
+          transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
         className={`pointer-events-none absolute -bottom-2.5 left-[75%] flex h-[68%] justify-center sm:left-[73%] sm:h-[78%] ${
           encounter.rightSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
@@ -293,7 +302,13 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         <img
           src={encounter.rightSpriteUrl}
           alt={isKo ? encounter.rightNameKo : encounter.rightNameEn}
+          decoding="async"
           draggable={false}
+          style={{
+            filter: !isLeftSpeaking ? ACTIVE_PORTRAIT_FILTER : DIMMED_PORTRAIT_FILTER,
+            opacity: !isLeftSpeaking ? 1 : 0.72,
+            transition: 'filter 160ms ease, opacity 160ms ease',
+          }}
           className={`w-auto max-w-none select-none ${
             encounter.rightSpriteUrl.includes('/characters/cutouts/')
               ? 'h-[168%]'
@@ -517,27 +532,29 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
       <div
         data-testid="story-victory-portrait"
         style={{
-          filter:
-            step === 'ITEM_CARD'
-              ? 'brightness(0.28) blur(2px)'
-              : STICKER_OUTLINE_FILTER,
           transformOrigin: 'bottom center',
           transform:
             step === 'CHARACTER_LINE'
               ? `translate3d(-50%, ${victoryTalkBob ? '-7px' : '0px'}, 0)`
               : 'translate3d(-50%, 0, 0)',
-          transition: 'filter 320ms ease, opacity 320ms ease, transform 140ms ease',
+          transition: 'transform 140ms ease',
         }}
         className={`pointer-events-none absolute -bottom-2.5 left-1/2 flex h-[70%] justify-center sm:h-[80%] ${
           encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
         } ${
-          step === 'ITEM_CARD' ? 'z-10 scale-98 opacity-45' : 'z-20 scale-100 opacity-100'
+          step === 'ITEM_CARD' ? 'z-10 scale-98' : 'z-20 scale-100'
         }`}
       >
         <img
           src={encounter.leftSpriteUrl}
           alt={speakerName}
+          decoding="async"
           draggable={false}
+          style={{
+            filter: step === 'ITEM_CARD' ? 'brightness(0.28) saturate(0.5)' : ACTIVE_PORTRAIT_FILTER,
+            opacity: step === 'ITEM_CARD' ? 0.45 : 1,
+            transition: 'filter 240ms ease, opacity 240ms ease',
+          }}
           className={`w-auto max-w-none select-none ${
             encounter.leftSpriteUrl.includes('/characters/cutouts/')
               ? 'h-[168%]'
