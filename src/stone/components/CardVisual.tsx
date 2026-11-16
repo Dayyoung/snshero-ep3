@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useHeroLanguage } from '../../i18n/heroLang';
 import {
   CLASS_CREST_URL,
   formatCardHtmlText,
@@ -8,6 +9,7 @@ import {
   getOfficialCardRenderFallbackUrl,
   getOfficialCardRenderUrl,
 } from '../cardDb';
+import { getCardName, getCardText, getLocalizedHeroInfo } from '../i18nData';
 import {
   getHeroAttack,
   getMinionAttack,
@@ -339,24 +341,28 @@ export const HearthstoneCard: React.FC<HearthstoneCardProps> = React.memo(({
   onClick,
   className = '',
 }) => {
+  const { lang, tr } = useHeroLanguage();
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
-  // 0 = primary VAN_* koKR render, 1 = fallback clean ID koKR render, 2 = offline sculpted SVG card
+  // 0 = primary VAN_* localized render, 1 = fallback clean ID localized render, 2 = offline sculpted SVG card
   const [renderStage, setRenderStage] = useState<0 | 1 | 2>(0);
   const [artErr, setArtErr] = useState(false);
 
   useEffect(() => {
     setRenderStage(0);
     setArtErr(false);
-  }, [card.id, card.vanId]);
+  }, [card.id, card.vanId, lang]);
+
+  const cardName = getCardName(card, lang);
+  const cardText = getCardText(card, lang);
 
   const cachedPreviewSrc =
     renderStage === 0
-      ? getOfficialCardRenderUrl(card, '256x')
-      : getOfficialCardRenderFallbackUrl(card, '256x');
+      ? getOfficialCardRenderUrl(card, '256x', lang)
+      : getOfficialCardRenderFallbackUrl(card, '256x', lang);
   const hdSrc =
     renderStage === 0
-      ? getOfficialCardRenderUrl(card, '512x')
-      : getOfficialCardRenderFallbackUrl(card, '512x');
+      ? getOfficialCardRenderUrl(card, '512x', lang)
+      : getOfficialCardRenderFallbackUrl(card, '512x', lang);
   const renderSrc = size === 'LG' ? hdSrc : cachedPreviewSrc;
 
   const shownCost = effectiveCost !== undefined ? effectiveCost : card.cost;
@@ -367,7 +373,7 @@ export const HearthstoneCard: React.FC<HearthstoneCardProps> = React.memo(({
   const hasDynamicSpellAmplify =
     card.type === 'SPELL' &&
     (spellPowerBonus > 0 || velenMultiplier > 1) &&
-    /[$#]\d+/.test(card.text || '');
+    /[$#]\d+/.test(cardText || '');
 
   // Official Blizzard render canvas aspect ratio is 256 x 388
   const dims =
@@ -429,7 +435,7 @@ export const HearthstoneCard: React.FC<HearthstoneCardProps> = React.memo(({
           )}
           <img
             src={renderSrc}
-            alt={card.name}
+            alt={cardName}
             draggable={false}
             onError={() => {
               setRenderStage((prev) => (prev === 0 ? 1 : 2));
@@ -479,7 +485,7 @@ export const HearthstoneCard: React.FC<HearthstoneCardProps> = React.memo(({
           {/* Live Dynamic Spell Damage Amplification Tag */}
           {hasDynamicSpellAmplify && (
             <div className="pointer-events-none absolute bottom-[6%] left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-full border border-sky-300 bg-sky-950/95 px-2 py-[1px] text-[9px] font-extrabold text-sky-200 shadow-lg">
-              ✦ 주문 증폭 {velenMultiplier > 1 ? `×${velenMultiplier}` : `+${spellPowerBonus}`}
+              {tr('✦ 주문 증폭', '✦ Spell Boost')} {velenMultiplier > 1 ? `×${velenMultiplier}` : `+${spellPowerBonus}`}
             </div>
           )}
         </>
@@ -506,20 +512,20 @@ export const HearthstoneCard: React.FC<HearthstoneCardProps> = React.memo(({
             {!artErr ? (
               <img
                 src={getCardArtUrl(card.artId)}
-                alt={card.name}
+                alt={cardName}
                 onError={() => setArtErr(true)}
                 className="h-full w-full scale-110 object-cover"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-xs font-extrabold text-amber-200">
-                {card.name}
+                {cardName}
               </div>
             )}
           </div>
 
           <div className="relative z-20 -mt-2 rounded-[10px] border-[1.5px] border-[#593818] bg-gradient-to-b from-[#faf0d7] via-[#e7d1a7] to-[#c7a56e] px-1.5 py-0.5 text-center shadow">
             <span className={`hs-outline-sm block truncate font-extrabold text-white ${dims.titleCls}`}>
-              {card.name}
+              {cardName}
             </span>
           </div>
 
@@ -536,7 +542,7 @@ export const HearthstoneCard: React.FC<HearthstoneCardProps> = React.memo(({
             <div
               className={`leading-[1.2] font-bold ${dims.bodyCls}`}
               dangerouslySetInnerHTML={{
-                __html: formatCardHtmlText(card.text, spellPowerBonus, velenMultiplier),
+                __html: formatCardHtmlText(cardText, spellPowerBonus, velenMultiplier),
               }}
             />
           </div>
@@ -596,6 +602,7 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
   onContextMenu,
   onHoverChange,
 }) => {
+  const { tr } = useHeroLanguage();
   const [imgErr, setImgErr] = useState(false);
   const atk = getMinionAttack(minion);
   const hp = getMinionHealth(minion);
@@ -665,7 +672,7 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
       {isTaunt && (
         <img
           src="/stone-assets/ui/taunt_shield.webp"
-          alt="도발"
+          alt={tr('도발', 'Taunt')}
           draggable={false}
           className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[76px] w-[62px] max-w-none -translate-x-1/2 -translate-y-[47%] object-fill drop-shadow-[0_6px_12px_rgba(0,0,0,0.94)] sm:h-[136px] sm:w-[110px]"
         />
@@ -688,7 +695,7 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
       {minion.rarity === 'LEGENDARY' && (
         <img
           src="/stone-assets/ui/legendary_dragon.webp"
-          alt="전설"
+          alt={tr('전설', 'Legendary')}
           draggable={false}
           className="pointer-events-none absolute -right-2 -top-2.5 z-30 h-8 w-12 max-w-none object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.92)] sm:-right-3.5 sm:-top-3.5 sm:h-14 sm:w-[84px]"
         />
@@ -723,7 +730,7 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
         {minion.stealth && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gradient-to-b from-slate-950/65 via-slate-900/40 to-slate-950/80">
             <span className="hs-outline-sm rounded border border-slate-400/50 bg-slate-950/85 px-1 py-0.5 text-[7.5px] font-extrabold tracking-wider text-slate-200 sm:px-1.5 sm:text-[9px]">
-              은신
+              {tr('은신', 'Stealth')}
             </span>
           </div>
         )}
@@ -737,7 +744,7 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
         {minion.windfury && !minion.silenced && (
           <div className="pointer-events-none absolute inset-x-0 top-1 flex justify-center sm:top-1.5">
             <span className="hs-outline-sm rounded-full border border-cyan-300/65 bg-sky-950/85 px-1 text-[7px] font-extrabold text-cyan-200 sm:px-1.5 sm:text-[8.5px]">
-              질풍
+              {tr('질풍', 'Windfury')}
             </span>
           </div>
         )}
@@ -768,7 +775,7 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
       {minion.divineShield && (
         <img
           src="/stone-assets/ui/divine_shield.webp"
-          alt="천상의 보호막"
+          alt={tr('천상의 보호막', 'Divine Shield')}
           draggable={false}
           className="pointer-events-none absolute left-1/2 top-1/2 z-25 h-[64px] w-[51px] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-[50%] object-cover opacity-88 mix-blend-screen drop-shadow-[0_0_14px_rgba(250,204,21,0.92)] sm:h-[115px] sm:w-[93px]"
         />
@@ -785,17 +792,17 @@ export const BoardMinionToken: React.FC<BoardMinionTokenProps> = React.memo(({
       {(hasDeathrattle || hasTrigger || (!minion.silenced && (minion.poisonous || minion.spellDamage > 0))) && (
         <div className="pointer-events-none absolute -bottom-2 left-1/2 z-30 flex -translate-x-1/2 origin-bottom scale-[0.74] items-center gap-0.5 whitespace-nowrap rounded-full border border-[#d8b267] bg-stone-950/95 px-1.5 py-[1px] text-[9px] font-extrabold text-amber-200 shadow-lg sm:-bottom-2.5 sm:scale-100 sm:gap-1 sm:px-2 sm:py-[1.5px] sm:text-[9.5px]">
           {hasDeathrattle && (
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-stone-200" aria-label="죽음의 메아리">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-stone-200" aria-label={tr('죽음의 메아리', 'Deathrattle')}>
               <path d="M12 2C7.5 2 4 5.4 4 9.7c0 2.8 1.5 5.2 3.8 6.5V19c0 .6.4 1 1 1h6.4c.6 0 1-.4 1-1v-2.8c2.3-1.3 3.8-3.7 3.8-6.5C20 5.4 16.5 2 12 2zm-3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
             </svg>
           )}
           {hasTrigger && (
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-amber-300" aria-label="지속/발동 효과">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-amber-300" aria-label={tr('지속/발동 효과', 'Triggered Effect')}>
               <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" />
             </svg>
           )}
           {!minion.silenced && minion.poisonous && (
-            <span className="text-emerald-400">독성</span>
+            <span className="text-emerald-400">{tr('독성', 'Poisonous')}</span>
           )}
           {!minion.silenced && minion.spellDamage > 0 && (
             <span className="text-sky-300">+{minion.spellDamage}</span>
@@ -863,10 +870,28 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
   onHeroPowerPointerDown,
   onHeroContextMenu,
 }) => {
+  const { lang, tr } = useHeroLanguage();
   const entityId = isFriendly ? 'PLAYER_HERO' : 'OPPONENT_HERO';
   const heroPowerEntityId = isFriendly ? 'PLAYER_HERO_POWER' : 'OPPONENT_HERO_POWER';
   const heroAtk = getHeroAttack(player, isActiveTurn);
   const heroMeta = CLASSIC_HEROES[player.heroClass];
+  const localizedHero = getLocalizedHeroInfo(player.heroClass, lang);
+  const heroPowerTitle =
+    player.heroPowerId === 'EX1_tk33'
+      ? tr('지옥불!', 'INFERNO!')
+      : player.heroPowerId === 'EX1_625t'
+        ? tr('정신의 쐐기', 'Mind Spike')
+        : player.heroPowerId === 'EX1_625t2'
+          ? tr('정신 붕괴', 'Mind Shatter')
+          : localizedHero.heroPowerName;
+  const heroPowerDesc =
+    player.heroPowerId === 'EX1_tk33'
+      ? tr('6/6 지옥불악마를 소환합니다.', 'Summon a 6/6 Infernal.')
+      : player.heroPowerId === 'EX1_625t'
+        ? tr('피해를 2 줍니다.', 'Deal 2 damage.')
+        : player.heroPowerId === 'EX1_625t2'
+          ? tr('피해를 3 줍니다.', 'Deal 3 damage.')
+          : localizedHero.heroPowerText;
   const weaponOpen = isActiveTurn && Boolean(player.weapon);
 
   return (
@@ -951,18 +976,22 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
           <div className="absolute -top-3 left-1/2 z-40 flex -translate-x-1/2 gap-0.5 sm:-top-4 sm:gap-1">
             {player.secrets.map((sec) => {
               const secImg = SECRET_MEDALLION_URL[sec.heroClass];
+              const secClassLabel = getLocalizedHeroInfo(sec.heroClass, lang).className;
               return (
                 <div
                   key={sec.uid}
                   title={
                     isFriendly
-                      ? `내 비밀: ${sec.name}`
-                      : `${CLASSIC_HEROES[sec.heroClass].classNameKo} 비밀: 조건이 충족되면 발동합니다!`
+                      ? tr(`내 비밀: ${sec.name}`, `Your Secret: ${sec.name}`)
+                      : tr(
+                          `${secClassLabel} 비밀: 조건이 충족되면 발동합니다!`,
+                          `${secClassLabel} Secret: Reveals when triggered!`,
+                        )
                   }
                   className="relative flex h-5 w-5 items-center justify-center rounded-full border border-amber-100 bg-stone-950 shadow-[0_3px_8px_rgba(0,0,0,0.9)] sm:h-7 sm:w-7 sm:border-2"
                 >
                   {secImg ? (
-                    <img src={secImg} alt="비밀" draggable={false} className="h-full w-full rounded-full object-cover" />
+                    <img src={secImg} alt={tr('비밀', 'Secret')} draggable={false} className="h-full w-full rounded-full object-cover" />
                   ) : (
                     <span className="hs-num text-[10px] text-amber-200 sm:text-xs">?</span>
                   )}
@@ -1017,12 +1046,12 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
           )}
           {player.immuneThisTurn && (
             <div className="hs-outline-sm pointer-events-none absolute inset-x-0 top-1.5 text-center text-[8.5px] font-black text-yellow-200 sm:top-2 sm:text-[10px]">
-              면역
+              {tr('면역', 'Immune')}
             </div>
           )}
           {isSquelched && !isFriendly && (
             <div className="pointer-events-none absolute left-1/2 top-1 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-stone-400/75 bg-stone-950/92 px-1.5 py-0.5 text-[8px] font-extrabold text-stone-200 shadow">
-              차단됨
+              {tr('차단됨', 'Squelched')}
             </div>
           )}
           {/* Defeated Fiery Fracture Cracks Overlay */}
@@ -1042,7 +1071,11 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
           )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/92 via-black/55 to-transparent px-1 pb-0.5 pt-3 text-center sm:px-1.5 sm:pb-1 sm:pt-4">
             <div className="hs-outline-sm truncate text-[8.5px] font-extrabold text-amber-100 sm:text-[10.5px]">
-              {player.name}
+              {player.isJaraxxus
+                ? tr('군주 자락서스', 'LORD JARAXXUS')
+                : isFriendly
+                  ? localizedHero.name
+                  : player.name}
             </div>
           </div>
         </div>
@@ -1059,7 +1092,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
           <div className="pointer-events-none absolute -right-2.5 bottom-6 z-30 flex h-7 w-6.5 items-center justify-center sm:-right-3 sm:bottom-8 sm:h-10 sm:w-9">
             <img
               src="/stone-assets/ui/armor_shield.webp"
-              alt="방어도"
+              alt={tr('방어도', 'Armor')}
               draggable={false}
               className="h-full w-full object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]"
             />
@@ -1103,7 +1136,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
             e.stopPropagation();
             onClickHeroPower();
           }}
-          title={`${player.heroPowerNameKo} (비용 2): ${player.heroPowerTextKo}`}
+          title={`${heroPowerTitle} (${tr('비용 2', 'Cost 2')}): ${heroPowerDesc}`}
           style={{
             transformStyle: 'preserve-3d',
             transform: player.heroPowerUsedThisTurn ? 'rotateY(180deg)' : 'rotateY(0deg)',
@@ -1126,7 +1159,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
             >
               <img
                 src="/stone-assets/ui/play_swirl_medallion.webp"
-                alt="사용됨"
+                alt={tr('사용됨', 'Used')}
                 draggable={false}
                 className="h-full w-full object-cover brightness-80"
               />
@@ -1135,7 +1168,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
             <>
               <img
                 src={getCardTileUrl(player.heroPowerId)}
-                alt={player.heroPowerNameKo}
+                alt={heroPowerTitle}
                 draggable={false}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = getHeroArtUrl(heroMeta.heroId);
@@ -1146,7 +1179,7 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
                 <HsManaGem value={2} size={26} />
               </div>
               <div className="hs-outline-sm absolute inset-x-0 bottom-0 rounded-b-full bg-gradient-to-t from-black/92 via-black/65 to-transparent py-0.5 text-center text-[7px] font-extrabold text-amber-100 sm:py-1 sm:text-[8.5px]">
-                {player.heroPowerNameKo}
+                {heroPowerTitle}
               </div>
             </>
           )}

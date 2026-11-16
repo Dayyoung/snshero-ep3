@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { tr } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { VfxEvent } from '../types';
 
@@ -413,7 +414,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({
               x: stageW * 0.5,
               y: stageH * 0.3,
               vy: -0.6,
-              text: `비밀 발동! [${ev.label}]`,
+              text: tr(`비밀 발동! [${ev.label}]`, `Secret Triggered! [${ev.label}]`),
               subKind: 'BANNER',
               life: 0,
               maxLife: 75,
@@ -445,7 +446,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({
               x: stageW * 0.5,
               y: stageH * 0.24,
               vy: -0.45,
-              text: `★ 전설 강림 · ${ev.label}`,
+              text: tr(`★ 전설 강림 · ${ev.label}`, `★ Legendary · ${ev.label}`),
               subKind: 'BANNER',
               life: 0,
               maxLife: 88,
@@ -516,7 +517,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({
             x: targetPos.x + 22,
             y: targetPos.y - 12,
             vy: -0.9,
-            text: `+${ev.value || 1} 방어도`,
+            text: tr(`+${ev.value || 1} 방어도`, `+${ev.value || 1} Armor`),
             subKind: 'ARMOR',
             life: 0,
             maxLife: 44,
@@ -574,7 +575,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({
             x: targetPos.x,
             y: targetPos.y - 28,
             vy: -0.95,
-            text: ev.label || `☠ 탈진 -${fatVal}`,
+            text: ev.label || tr(`☠ 탈진 -${fatVal}`, `☠ Fatigue -${fatVal}`),
             subKind: 'SKULL',
             life: 0,
             maxLife: 62,
@@ -592,7 +593,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({
             x: millPos.x,
             y: millPos.y - 20,
             vy: -0.9,
-            text: ev.label ? `🔥 ${ev.label}` : '🔥 카드 소각!',
+            text: ev.label ? `🔥 ${ev.label}` : tr('🔥 카드 소각!', '🔥 Card Burned!'),
             subKind: 'BANNER',
             life: 0,
             maxLife: 58,
@@ -615,7 +616,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({
             x: targetPos.x,
             y: targetPos.y - 22,
             vy: -1.0,
-            text: ev.label || '☠ 독성!',
+            text: ev.label || tr('☠ 독성!', '☠ Poisonous!'),
             subKind: 'BUFF',
             life: 0,
             maxLife: 48,
@@ -782,7 +783,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = ({
               x: pr.x1,
               y: pr.y1 - 14,
               vy: -0.9,
-              text: '💥 투석 명중!',
+              text: tr('💥 투석 명중!', '💥 Direct Hit!'),
               subKind: 'BANNER',
               life: 0,
               maxLife: 42,

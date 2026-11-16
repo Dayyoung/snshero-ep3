@@ -19,8 +19,11 @@ export interface ClassicCardDef {
   vanId: string;
   dbfId?: number;
   name: string;
+  nameEn?: string;
   text: string;
+  textEn?: string;
   flavor?: string;
+  flavorEn?: string;
   cardClass: CardClass;
   type: CardType;
   rarity: CardRarity;

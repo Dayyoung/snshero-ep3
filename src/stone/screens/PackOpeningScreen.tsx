@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { HearthstoneCard, HsGoldCoinIcon } from '../components/CardVisual';
 import { CardZoomModal } from '../components/CardZoomModal';
@@ -77,6 +78,7 @@ export const PackOpeningScreen: React.FC<{
   onBack: () => void;
   onProfileChanged: () => void;
 }> = ({ onBack, onProfileChanged }) => {
+  const { isKo, tr } = useHeroLanguage();
   const [profile, setProfile] = useState(() => hsStorage.getProfile());
   const [packBursting, setPackBursting] = useState(false);
   const [burstFlash, setBurstFlash] = useState(false);
@@ -348,13 +350,13 @@ export const PackOpeningScreen: React.FC<{
           }}
           className="hs-brass-btn min-h-[40px] rounded-xl px-3 py-1.5 text-xs font-extrabold text-amber-100 sm:px-4 sm:py-2 sm:text-sm"
         >
-          ← <span className="hidden sm:inline">여관 </span>상자로
+          ← {isKo ? (<><span className="hidden sm:inline">여관 </span>상자로</>) : 'Back'}
         </button>
 
         <div className="flex items-center gap-1.5 sm:gap-2.5">
           <div className="flex min-h-[40px] items-center gap-1.5 rounded-xl border-2 border-[#c8a158] bg-stone-950/90 px-2.5 py-1 text-xs font-extrabold shadow-lg sm:gap-2 sm:px-3.5 sm:py-1.5">
             <HsGoldCoinIcon size={18} />
-            <span className="hidden sm:inline">보유 골드</span>
+            <span className="hidden sm:inline">{tr('보유 골드', 'Gold')}</span>
             <span className="hs-num text-xs text-yellow-300 sm:text-sm">{profile.gold}</span>
           </div>
           <button
@@ -368,7 +370,7 @@ export const PackOpeningScreen: React.FC<{
             className="hs-arcane-btn flex min-h-[40px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold text-white sm:gap-1.5 sm:px-3.5 sm:text-xs"
           >
             <HsGoldCoinIcon size={15} />
-            <span>+ 1팩 구매 (100)</span>
+            <span>{tr('+ 1팩 구매 (100)', '+ 1 Pack (100)')}</span>
           </button>
         </div>
       </header>
@@ -382,10 +384,10 @@ export const PackOpeningScreen: React.FC<{
             className="h-8 w-6 object-contain drop-shadow"
           />
           <span className="text-xs font-extrabold text-amber-100">
-            미개봉 오리지널 팩
+            {tr('미개봉 오리지널 팩', 'Unopened Classic Packs')}
           </span>
           <span className="hs-num rounded-full border border-[#e0bc72] bg-black/70 px-2.5 py-0.5 text-xs text-yellow-300">
-            {profile.packs}개
+            {profile.packs}{tr('개', '')}
           </span>
         </div>
         {!openedCards && profile.packs > 0 && (
@@ -394,12 +396,12 @@ export const PackOpeningScreen: React.FC<{
             onClick={triggerOpenPack}
             className="hs-brass-btn rounded-lg px-2.5 py-1 text-[11px] font-extrabold text-sky-200"
           >
-            즉시 개봉
+            {tr('즉시 개봉', 'Open Now')}
           </button>
         )}
         {openedCards && (
           <span className="text-[11px] font-bold text-sky-300">
-            뒤집힌 카드 터치 시 확대
+            {tr('뒤집힌 카드 터치 시 확대', 'Tap revealed card to inspect')}
           </span>
         )}
       </div>
@@ -409,10 +411,10 @@ export const PackOpeningScreen: React.FC<{
         {/* Left: Unopened Pack Stack Tray (Desktop >= md) */}
         <aside className="hs-wood-panel hidden flex-col items-center justify-center rounded-3xl p-4 sm:p-5 md:col-span-3 md:flex">
           <div className="hs-title mb-2 text-sm font-extrabold text-amber-100">
-            미개봉 오리지널 팩
+            {tr('미개봉 오리지널 팩', 'Classic Packs')}
           </div>
           <div className="hs-num mb-3 rounded-full border-2 border-[#e0bc72] bg-stone-950/85 px-4 py-1 text-xl text-yellow-300 shadow-inner">
-            {profile.packs}개
+            {profile.packs}{tr('개', '')}
           </div>
 
           {profile.packs > 0 ? (
@@ -447,23 +449,24 @@ export const PackOpeningScreen: React.FC<{
               )}
               <img
                 src="/stone-assets/ui/classic_pack.webp"
-                alt="오리지널 카드 팩"
+                alt={tr('오리지널 카드 팩', 'Classic Card Pack')}
                 draggable={false}
                 className="relative z-10 h-44 w-32 object-contain drop-shadow-[0_16px_26px_rgba(0,0,0,0.92)]"
               />
             </div>
           ) : (
             <div className="py-10 text-center text-xs font-semibold text-amber-200/70">
-              보유한 카드 팩이 없습니다.
+              {tr('보유한 카드 팩이 없습니다.', 'You have no unopened packs.')}
               <br />
-              상단 버튼으로 100골드에 구매하세요.
+              {tr('상단 버튼으로 100골드에 구매하세요.', 'Buy packs at the top for 100 Gold.')}
             </div>
           )}
 
           <p className="mt-3 text-center text-[11px] font-semibold text-amber-200/80">
-            팩을 제단으로 드래그하거나
+            {tr('팩을 제단으로 드래그하거나', 'Drag a pack onto the altar or')}
             <br />
-            <b className="text-amber-100">클릭 / 스페이스바</b>로 개봉
+            <b className="text-amber-100">{tr('클릭 / 스페이스바', 'Click / Spacebar')}</b>
+            {tr('로 개봉', ' to open')}
           </p>
         </aside>
 
@@ -542,7 +545,7 @@ export const PackOpeningScreen: React.FC<{
               >
                 <img
                   src="/stone-assets/ui/classic_pack.webp"
-                  alt="제단 카드 팩"
+                  alt={tr('제단 카드 팩', 'Altar Card Pack')}
                   className={`h-36 w-26 object-contain transition sm:h-44 sm:w-32 ${
                     profile.packs > 0
                       ? 'opacity-98 drop-shadow-[0_18px_28px_rgba(0,0,0,0.92)]'
@@ -552,10 +555,10 @@ export const PackOpeningScreen: React.FC<{
               </div>
               <span className="hs-title hs-outline-sm mt-3 text-center text-base font-extrabold text-sky-200 sm:text-lg">
                 {packBursting
-                  ? '비전 봉인 폭발 중!!'
+                  ? tr('비전 봉인 폭발 중!!', 'Opening Arcane Seal!!')
                   : profile.packs > 0
-                    ? '터치하여 오리지널 팩 개봉'
-                    : '개봉할 카드 팩이 없습니다'}
+                    ? tr('터치하여 오리지널 팩 개봉', 'Tap to Open Classic Pack')
+                    : tr('개봉할 카드 팩이 없습니다', 'No Unopened Packs')}
               </span>
             </div>
           ) : (
@@ -569,7 +572,7 @@ export const PackOpeningScreen: React.FC<{
                     onClick={revealAll}
                     className="hs-arcane-btn min-h-[42px] rounded-xl px-4 py-2 text-xs font-extrabold tracking-wide text-white shadow-[0_8px_24px_rgba(2,132,199,0.75)] sm:px-5 sm:text-sm"
                   >
-                    5장 한 번에 뒤집기
+                    {tr('5장 한 번에 뒤집기', 'Reveal All 5 Cards')}
                   </button>
                 ) : (
                   <button
@@ -577,7 +580,7 @@ export const PackOpeningScreen: React.FC<{
                     onClick={finishPackSession}
                     className="hs-brass-btn min-h-[44px] rounded-2xl border-yellow-200 bg-gradient-to-b from-amber-300 via-amber-500 to-amber-800 px-7 py-2 text-sm font-extrabold text-stone-950 shadow-[0_0_28px_rgba(250,204,21,0.9)] sm:px-9 sm:text-base"
                   >
-                    확인 완료
+                    {tr('확인 완료', 'Done')}
                   </button>
                 )}
               </div>
@@ -708,7 +711,7 @@ export const PackOpeningScreen: React.FC<{
                               >
                                 <img
                                   src={backImg}
-                                  alt="카드 뒷면"
+                                  alt={tr('카드 뒷면', 'Card Back')}
                                   draggable={false}
                                   className="h-full w-full object-cover"
                                 />
@@ -744,12 +747,12 @@ export const PackOpeningScreen: React.FC<{
 
                                 {item.isNew && (
                                   <span className="hs-outline-sm pointer-events-none absolute right-0 top-0.5 z-40 rounded border border-yellow-200 bg-gradient-to-b from-amber-400 to-amber-700 px-1.5 py-0.5 text-[8.5px] font-extrabold text-white shadow-lg md:top-1 md:rounded-md md:px-2 md:text-[10px]">
-                                    신규!
+                                    {tr('신규!', 'NEW!')}
                                   </span>
                                 )}
                                 {item.isGolden && (
                                   <span className="hs-outline-sm pointer-events-none absolute -bottom-1 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded border border-yellow-200 bg-gradient-to-b from-yellow-400 to-amber-700 px-1.5 py-0.5 text-[8px] font-extrabold text-white shadow md:rounded-md md:px-2 md:text-[9.5px]">
-                                    황금 카드
+                                    {tr('황금 카드', 'GOLDEN')}
                                   </span>
                                 )}
                               </div>
@@ -786,7 +789,10 @@ export const PackOpeningScreen: React.FC<{
       )}
 
       <footer className="relative z-30 shrink-0 text-center text-[10.5px] font-bold text-amber-200/80 sm:text-[11px]">
-        카드를 터치하면 입체 회전 개봉되며, 뒤집힌 카드를 다시 터치하면 크게 확대해 읽을 수 있습니다
+        {tr(
+          '카드를 터치하면 입체 회전 개봉되며, 뒤집힌 카드를 다시 터치하면 크게 확대해 읽을 수 있습니다',
+          'Tap each card to reveal it in 3D, and tap any revealed card again to inspect it',
+        )}
       </footer>
 
       {/* Card Zoom Modal for Inspecting Any Flipped Pack Card */}
@@ -801,7 +807,10 @@ export const PackOpeningScreen: React.FC<{
               ? {
                   currentIndex: curIdx,
                   totalCount: revealedPackCards.length,
-                  positionLabel: `개봉 카드 ${curIdx + 1} / ${revealedPackCards.length}`,
+                  positionLabel: tr(
+                    `개봉 카드 ${curIdx + 1} / ${revealedPackCards.length}`,
+                    `Revealed ${curIdx + 1} / ${revealedPackCards.length}`,
+                  ),
                   onPrev: () =>
                     setZoomedPackCard(
                       revealedPackCards[
@@ -822,15 +831,15 @@ export const PackOpeningScreen: React.FC<{
               rarityAura={zoomedPackCard.card.rarity}
               subtitleBadge={
                 zoomedPackCard.isNew
-                  ? '신규 획득 카드!'
+                  ? tr('신규 획득 카드!', 'New Card!')
                   : zoomedPackCard.isGolden
-                    ? '황금 카드 획득!'
-                    : '카드 팩 개봉 획득'
+                    ? tr('황금 카드 획득!', 'Golden Card!')
+                    : tr('카드 팩 개봉 획득', 'Pack Pull')
               }
               showFlavor
               navigation={packNav}
               primaryAction={{
-                label: '확인 (닫기)',
+                label: tr('확인 (닫기)', 'Done'),
                 variant: 'arcane',
                 onClick: () => {
                   hsAudio.playSfx('ui_click', 0.65);

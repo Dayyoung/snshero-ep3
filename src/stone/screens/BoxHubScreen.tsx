@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
-import { CLASSIC_RANK_NAMES } from '../cardDb';
 import { HsArcaneDustVialIcon, HsGoldCoinIcon } from '../components/CardVisual';
 import { GameMode, PlayerProfile } from '../types';
 
@@ -25,8 +25,9 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   onOpenQuestLog,
   onOpenShop,
   onOpenOptions,
-  onOpenReaModal,
+  onOpenReaModal: _onOpenReaModal,
 }) => {
+  const { tr } = useHeroLanguage();
   const [diskSpinning, setDiskSpinning] = useState(false);
   const [doorsOpening, setDoorsOpening] = useState(() => !hasPlayedInitialChestUnlatch);
   const [trayReady, setTrayReady] = useState(() => hasPlayedInitialChestUnlatch);
@@ -74,10 +75,6 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
     }, 340);
   };
 
-  const rankTitle = CLASSIC_RANK_NAMES[profile.rank] || '화난 닭';
-  const rankMedalImg =
-    profile.rank === 0 ? '/stone-assets/ui/medal_legend.webp' : '/stone-assets/ui/medal_bronze.webp';
-
   return (
     <div
       style={{ backgroundImage: 'url(/stone-assets/ui/box_table_bg.webp)' }}
@@ -94,55 +91,29 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
       {/* Top Brass HUD Bar */}
       <header className="relative z-30 flex w-full max-w-6xl flex-wrap items-center justify-between gap-1.5 sm:gap-2">
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          <button
-            type="button"
-            onClick={() => {
-              hsAudio.playSfx('box_open');
-              onOpenQuestLog();
-            }}
-            onMouseEnter={() => hsAudio.playSfx('box_hover', 0.5)}
-            className="hs-brass-btn flex min-h-[42px] items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-amber-100 sm:gap-2.5 sm:px-3.5 sm:py-2"
-          >
-            <img
-              src="/stone-assets/ui/hs_questlog.webp"
-              alt="일지"
-              draggable={false}
-              className="h-7 w-7 rounded-lg border border-amber-300/60 object-cover shadow sm:h-8 sm:w-8"
-            />
-            <div className="text-left">
-              <div className="hs-title text-[11px] font-extrabold tracking-wide text-amber-100 sm:text-xs">
-                일지
-              </div>
-              <div className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-amber-300/90 sm:gap-1.5 sm:text-[10.5px]">
-                <img src={rankMedalImg} alt="" draggable={false} className="h-3.5 w-3.5 object-contain sm:h-4 sm:w-4" />
-                <span>
-                  {profile.rank === 0 ? '전설' : `${profile.rank}등급`}
-                  <span className="hidden sm:inline">{profile.rank > 0 ? ` · ${rankTitle}` : ''}</span>
-                </span>
-              </div>
+        <a
+          href="/"
+          data-testid="stone-hub-home-logo"
+          onClick={() => hsAudio.playSfx('ui_click')}
+          onMouseEnter={() => hsAudio.playSfx('box_hover', 0.45)}
+          title={tr('SNSHero 홈(/)으로 이동', 'Go to SNSHero Home (/)')}
+          className="hs-brass-btn flex min-h-[44px] items-center gap-2 rounded-xl px-2.5 py-1 text-amber-100 transition hover:brightness-110 sm:gap-2.5 sm:px-3.5 sm:py-1.5"
+        >
+          <img
+            src="/stone-assets/ui/hs_titlelogo.webp"
+            alt={tr('하스스톤', 'Hearthstone')}
+            draggable={false}
+            className="h-8 w-auto max-w-[116px] object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:h-9 sm:max-w-[138px]"
+          />
+          <div className="text-left leading-tight">
+            <div className="hs-title text-xs font-extrabold tracking-wide text-amber-100 sm:text-sm">
+              {tr('하스스톤', 'Hearthstone')}
             </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              hsAudio.playSfx('ui_click');
-              onOpenReaModal();
-            }}
-            onMouseEnter={() => hsAudio.playSfx('box_hover', 0.45)}
-            title="원본 클라이언트 역설계 검증 리포트"
-            className="hs-brass-btn flex min-h-[42px] items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold text-sky-200 sm:gap-2 sm:px-3 sm:py-2 sm:text-xs"
-          >
-            <img
-              src="/stone-assets/ui/box_compass_medallion.webp"
-              alt=""
-              draggable={false}
-              className="h-5 w-5 object-contain sm:h-6 sm:w-6"
-            />
-            <span className="hidden sm:inline">원본 검증</span>
-          </button>
-        </div>
+            <div className="text-[10px] font-bold tracking-wider text-amber-300/85">
+              {tr('워크래프트의 영웅들', 'Heroes of Warcraft')}
+            </div>
+          </div>
+        </a>
 
         <div className="flex items-center gap-1.5 sm:gap-2.5">
           <button
@@ -186,7 +157,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 strokeWidth="1.9"
               />
             </svg>
-            <span>메뉴</span>
+            <span>{tr('메뉴', 'Options')}</span>
           </button>
         </div>
       </header>
@@ -222,7 +193,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
           <button
             type="button"
             onClick={replayBoxUnlatch}
-            title="클릭하여 여관 상자 개폐 연출 다시 보기"
+            title={tr('클릭하여 여관 상자 개폐 연출 다시 보기', 'Click to replay the Hearthstone box unlatch animation')}
             className="relative z-30 -mt-7 transition-transform hover:scale-[1.02] sm:-mt-12"
           >
             <img
@@ -285,7 +256,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                   className="hs-ivory-plate group flex min-h-[42px] items-center justify-center rounded-xl px-4 py-1.5 sm:min-h-[48px] sm:py-2"
                 >
                   <span className="hs-title text-lg font-extrabold tracking-widest text-[#2a1708] group-hover:text-[#0c4a6e] sm:text-2xl">
-                    대전
+                    {tr('대전', 'Play')}
                   </span>
                 </button>
 
@@ -296,7 +267,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                   className="hs-ivory-plate group flex min-h-[40px] items-center justify-center rounded-xl px-4 py-1.5 sm:min-h-[46px] sm:py-2"
                 >
                   <span className="hs-title text-base font-extrabold tracking-widest text-[#2a1708] group-hover:text-[#7c2d12] sm:text-xl">
-                    연습
+                    {tr('연습', 'Practice')}
                   </span>
                 </button>
 
@@ -307,7 +278,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                   className="hs-ivory-plate group flex min-h-[38px] items-center justify-center rounded-xl px-4 py-1 sm:min-h-[44px] sm:py-1.5"
                 >
                   <span className="hs-title text-sm font-extrabold tracking-wider text-[#2a1708] group-hover:text-[#14532d] sm:text-lg">
-                    튜토리얼
+                    {tr('튜토리얼', 'Tutorial')}
                   </span>
                 </button>
               </div>
@@ -344,7 +315,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 className="h-9 w-7 shrink-0 object-contain drop-shadow sm:h-10 sm:w-8"
               />
               <span className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
-                팩 개봉
+                {tr('팩 개봉', 'Open Packs')}
               </span>
             </button>
 
@@ -364,7 +335,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 className="h-8 w-8 shrink-0 object-contain drop-shadow sm:h-9 sm:w-9"
               />
               <span className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
-                내 수집품
+                {tr('내 수집품', 'My Collection')}
               </span>
             </button>
 
@@ -384,7 +355,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 className="h-8 w-8 shrink-0 rounded-lg border border-amber-300/50 object-cover shadow sm:h-9 sm:w-9"
               />
               <span className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
-                퀘스트
+                {tr('퀘스트', 'Quests')}
               </span>
             </button>
 
@@ -401,7 +372,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 <HsGoldCoinIcon size={22} />
               </div>
               <span className="hs-title text-sm font-extrabold text-amber-100 sm:text-base">
-                상점
+                {tr('상점', 'Shop')}
               </span>
             </button>
           </div>
@@ -436,7 +407,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
       {/* Subtle Footer Plaque */}
       <footer className="relative z-20 pt-1 text-center text-[10.5px] font-bold tracking-wide text-amber-200/75 sm:text-[11px]">
-        하스스톤: 워크래프트의 영웅들 — 클래식 9직업 · 382장 수집 가능 카드 완비
+        {tr(
+          '하스스톤: 워크래프트의 영웅들 — 클래식 9직업 · 382장 수집 가능 카드 완비',
+          'Hearthstone: Heroes of Warcraft — 9 Classic Classes · 382 Collectible Cards',
+        )}
       </footer>
     </div>
   );

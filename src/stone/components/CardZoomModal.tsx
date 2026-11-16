@@ -1,42 +1,40 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { CLASS_CREST_URL, formatCardHtmlText } from '../cardDb';
+import {
+  getCardFlavor,
+  getCardName,
+  getCardText,
+  getClassLabel,
+  getRaceLabel,
+  getRarityLabel,
+  getTypeLabel,
+} from '../i18nData';
 import { useModalDismiss } from '../useModalDismiss';
 import {
-  CLASSIC_HEROES,
   CardClass,
   CardRarity,
   ClassicCardDef,
-  HeroClass,
 } from '../types';
 import {
   HearthstoneCard,
   HsAttackBadge,
   HsHealthBadge,
   HsManaGem,
-  RACE_KO,
 } from './CardVisual';
 
-const RARITY_LABEL_KO: Record<CardRarity, string> = {
-  FREE: '기본',
-  COMMON: '일반',
-  RARE: '희귀',
-  EPIC: '특급',
-  LEGENDARY: '전설',
+const RARITY_COLOR: Record<CardRarity, string> = {
+  FREE: 'text-stone-200',
+  COMMON: 'text-white',
+  RARE: 'text-sky-300',
+  EPIC: 'text-purple-300',
+  LEGENDARY: 'text-amber-300',
 };
 
-const TYPE_LABEL_KO: Record<ClassicCardDef['type'], string> = {
-  MINION: '하수인',
-  SPELL: '주문',
-  WEAPON: '무기',
-  HERO_POWER: '영웅 능력',
-  HERO: '영웅',
-};
-
-function getClassLabelKo(cardClass: CardClass): string {
-  if (cardClass === 'NEUTRAL') return '중립';
-  if (cardClass === 'DREAM') return '꿈';
-  return CLASSIC_HEROES[cardClass as HeroClass]?.classNameKo || cardClass;
+function getClassLabelLocalized(cardClass: CardClass, lang: 'en' | 'ko'): string {
+  if (cardClass === 'DREAM') return lang === 'ko' ? '꿈' : 'Dream';
+  return getClassLabel(cardClass, lang);
 }
 
 export interface CardZoomAction {
@@ -94,6 +92,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
   navigation,
   onCancel,
 }) => {
+  const { lang, tr } = useHeroLanguage();
   useModalDismiss(true, onCancel);
 
   const hasNav = Boolean(navigation && navigation.totalCount > 1);
@@ -222,7 +221,10 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
         ? card.durability
         : card.health;
 
-  const cleanHtml = formatCardHtmlText(card.text || '', spellPowerBonus, velenMultiplier).trim();
+  const cardName = getCardName(card, lang);
+  const cardText = getCardText(card, lang);
+  const cardFlavor = getCardFlavor(card, lang);
+  const cleanHtml = formatCardHtmlText(cardText || '', spellPowerBonus, velenMultiplier).trim();
 
   const renderBtnClass = (variant: CardZoomAction['variant'] = 'arcane', disabled?: boolean) => {
     if (disabled) {
@@ -246,7 +248,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`${card.name} 카드 확대`}
+      aria-label={tr(`${cardName} 카드 확대`, `Inspect ${cardName}`)}
       onClick={() => {
         if (swipedRecentlyRef.current) return;
         hsAudio.playSfx('ui_click', 0.45);
@@ -270,7 +272,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
             hsAudio.playSfx('ui_click', 0.45);
             onCancel();
           }}
-          aria-label="카드 선택 취소"
+          aria-label={tr('카드 선택 취소', 'Close inspection')}
           className="hs-brass-btn absolute right-2.5 top-2.5 z-40 flex h-8 w-8 items-center justify-center rounded-full text-xs font-extrabold text-amber-100"
         >
           ✕
@@ -294,14 +296,14 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
           )}
         </div>
 
-        {/* Enlarged 512x Official koKR Sculpted Card + Left/Right Prev/Next Buttons */}
+        {/* Enlarged 512x Official Localized Sculpted Card + Left/Right Prev/Next Buttons */}
         <div className="relative flex w-full items-center justify-center">
           {hasNav && (
             <button
               type="button"
               data-testid="card-zoom-prev"
               disabled={!canPrev}
-              aria-label="이전 카드 보기"
+              aria-label={tr('이전 카드 보기', 'Previous card')}
               onClick={(e) => {
                 e.stopPropagation();
                 triggerPrev();
@@ -342,7 +344,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
               type="button"
               data-testid="card-zoom-next"
               disabled={!canNext}
-              aria-label="다음 카드 보기"
+              aria-label={tr('다음 카드 보기', 'Next card')}
               onClick={(e) => {
                 e.stopPropagation();
                 triggerNext();
@@ -358,7 +360,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
           )}
         </div>
 
-        {/* Crisp Nanum Gothic High-Contrast Card Text Readout Plaque */}
+        {/* Crisp High-Contrast Card Text Readout Plaque */}
         <div className="mt-1 w-full rounded-2xl border-2 border-[#a88246] bg-gradient-to-b from-[#fdf6e4] to-[#ecdab5] px-3.5 py-2.5 text-[#221409] shadow-[inset_0_2px_8px_rgba(68,40,14,0.22)]">
           <div className="flex items-center justify-between gap-2 border-b border-[#9a743a]/35 pb-1.5">
             <div className="flex min-w-0 items-center gap-1.5">
@@ -368,7 +370,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
                 className="h-5 w-5 shrink-0 rounded-full border border-[#6e4c23] object-cover"
               />
               <h3 className="truncate text-base font-extrabold tracking-tight text-[#1c1007] sm:text-lg">
-                {card.name}
+                {cardName}
               </h3>
             </div>
 
@@ -404,32 +406,37 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
           {/* Card Classification Tags */}
           <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px] font-bold text-[#5a3b1c]">
             <span className="rounded bg-[#422813] px-1.5 py-0.5 text-[10.5px] font-extrabold text-amber-100">
-              {getClassLabelKo(card.cardClass)}
+              {getClassLabelLocalized(card.cardClass, lang)}
             </span>
             <span>·</span>
-            <span>{TYPE_LABEL_KO[card.type]}</span>
+            <span>{getTypeLabel(card.type, lang)}</span>
             <span>·</span>
-            <span>{RARITY_LABEL_KO[card.rarity]} 등급</span>
-            {card.race && RACE_KO[card.race] && (
+            <span>
+              {tr(`${getRarityLabel(card.rarity, lang)} 등급`, `${getRarityLabel(card.rarity, lang)}`)}
+            </span>
+            {card.race && getRaceLabel(card.race, lang) && (
               <>
                 <span>·</span>
-                <span className="font-extrabold text-[#7c2d12]">{RACE_KO[card.race]}</span>
+                <span className="font-extrabold text-[#7c2d12]">{getRaceLabel(card.race, lang)}</span>
               </>
             )}
             {isGolden && (
               <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-extrabold text-stone-950">
-                황금
+                {tr('황금', 'Golden')}
               </span>
             )}
           </div>
 
-          {/* Large Readable Nanum Gothic Card Ability Text */}
+          {/* Large Readable Card Ability Text */}
           <div className="mt-2 rounded-xl border border-[#b9965b]/55 bg-[#fffbf0] px-3 py-2 text-center text-[14px] font-bold leading-relaxed text-[#1a0f06] sm:text-[15px]">
             {cleanHtml ? (
               <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
             ) : (
               <span className="text-xs font-bold text-[#6e5032]">
-                특수 능력 없음 (기본 공격력·생명력 전투 하수인)
+                {tr(
+                  '특수 능력 없음 (기본 공격력·생명력 전투 하수인)',
+                  'No special card text (vanilla stats minion)',
+                )}
               </span>
             )}
           </div>
@@ -449,9 +456,9 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
           )}
 
           {/* Optional Collection Flavor Text */}
-          {showFlavor && card.flavor && (
+          {showFlavor && cardFlavor && (
             <p className="mt-1.5 text-center text-[11px] font-bold leading-snug text-[#5c3d1e]">
-              “{card.flavor.replace(/<[^>]+>/g, '')}”
+              “{cardFlavor.replace(/<[^>]+>/g, '')}”
             </p>
           )}
         </div>
@@ -493,8 +500,14 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
 
         <div className="mt-2 text-center text-[11px] font-bold text-amber-200/80">
           {hasNav
-            ? '좌우 스와이프 · ‹ › 버튼 · 방향키로 옆 카드 이동 · 바깥 터치 시 닫기'
-            : '바깥 영역을 터치하면 카드 선택이 취소됩니다'}
+            ? tr(
+                '좌우 스와이프 · ‹ › 버튼 · 방향키로 옆 카드 이동 · 바깥 터치 시 닫기',
+                'Swipe · ‹ › buttons · Arrow keys to browse · Tap outside to close',
+              )
+            : tr(
+                '바깥 영역을 터치하면 카드 선택이 취소됩니다',
+                'Tap outside to cancel selection',
+              )}
         </div>
       </div>
     </div>

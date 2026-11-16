@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { tr as translateStatic, useHeroLanguage } from '../i18n/heroLang';
 import { cardDb } from './cardDb';
 import {
   GameOptionsModal,
@@ -46,6 +47,17 @@ export const HearthstoneApp: React.FC = () => {
     inBattle: boolean;
     concedeFn?: () => void;
   }>({ open: false, inBattle: false });
+  const { lang, tr } = useHeroLanguage();
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+      document.title =
+        lang === 'ko'
+          ? '하스스톤: 워크래프트의 영웅들 — 클래식 웹 에디션'
+          : 'Hearthstone: Heroes of Warcraft — Classic Web Edition';
+    }
+  }, [lang]);
 
   useEffect(() => {
     let mounted = true;
@@ -59,7 +71,11 @@ export const HearthstoneApp: React.FC = () => {
       })
       .catch((err: unknown) => {
         if (!mounted) return;
-        setLoadError(err instanceof Error ? err.message : '데이터 로드 오류');
+        setLoadError(
+          err instanceof Error
+            ? err.message
+            : translateStatic('데이터 로드 오류', 'Data load error'),
+        );
       });
     return () => {
       mounted = false;
@@ -73,7 +89,9 @@ export const HearthstoneApp: React.FC = () => {
   if (loadError) {
     return (
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 p-6 text-center text-amber-100">
-        <h1 className="text-2xl font-extrabold text-red-400">여관 데이터를 불러오지 못했습니다</h1>
+        <h1 className="text-2xl font-extrabold text-red-400">
+          {tr('여관 데이터를 불러오지 못했습니다', 'Failed to load Tavern data')}
+        </h1>
         <p className="mt-2 text-sm text-amber-200/80">{loadError}</p>
       </div>
     );
@@ -84,11 +102,11 @@ export const HearthstoneApp: React.FC = () => {
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 text-amber-100">
         <img
           src="/stone-assets/ui/hs_titlelogo.webp"
-          alt="Hearthstone"
+          alt={tr('하스스톤', 'Hearthstone')}
           className="w-72 animate-pulse drop-shadow-2xl"
         />
         <div className="mt-4 text-sm font-extrabold tracking-wider text-amber-200">
-          스톤브루의 여관 테이블을 준비하고 있습니다...
+          {tr('스톤브루의 여관 테이블을 준비하고 있습니다...', "Preparing Stonebrew's Tavern table...")}
         </div>
       </div>
     );

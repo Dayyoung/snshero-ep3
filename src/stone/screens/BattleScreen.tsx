@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import {
-  CLASSIC_RANK_NAMES,
   CLASS_CREST_URL,
   cardDb,
   getCardArtUrl,
@@ -28,6 +28,11 @@ import {
   getMinionMaxHealth,
   hasMinionTaunt,
 } from '../engine/GameEngine';
+import {
+  getCardName,
+  getLocalizedHeroInfo,
+  getRankTitle,
+} from '../i18nData';
 import { hsStorage } from '../storage';
 import {
   ActionHistoryItem,
@@ -239,6 +244,36 @@ const BOARD_CORNER_TOYS: Record<
   ],
 };
 
+const BOARD_CORNER_TOYS_EN: Record<
+  BoardThemeId,
+  {
+    pos: 'TL' | 'TR' | 'BL' | 'BR';
+    name: string;
+    badge: string;
+    vfxKind: VfxKind;
+    reaction: string;
+  }[]
+> = {
+  STORMWIND: [
+    { pos: 'TL', name: 'Cathedral Bell', badge: '🔔', vfxKind: 'TOY_BELL', reaction: 'Ding~ Dong~! The Stormwind Cathedral bell rings clearly!' },
+    { pos: 'TR', name: 'Gryphon Roost', badge: '🦅', vfxKind: 'TOY_SPARKS', reaction: 'Screech! The Stormwind Gryphon pecks curiously at your cursor!' },
+    { pos: 'BL', name: 'Dwarven Forge', badge: '⚒', vfxKind: 'TOY_SPARKS', reaction: 'Clang! Sparks fly from the glowing Dwarven anvil!' },
+    { pos: 'BR', name: 'Town Well', badge: '🪣', vfxKind: 'TOY_SPLASH', reaction: 'Splash! Cool water and golden coins shimmer inside the well!' },
+  ],
+  ORGRIMMAR: [
+    { pos: 'TL', name: 'Siege Catapult', badge: '☄', vfxKind: 'TOY_CATAPULT', reaction: 'Whoosh— BOOM!! A boulder streaks across the Orgrimmar battlefield!' },
+    { pos: 'TR', name: 'Goblin Zeppelin', badge: '⚙', vfxKind: 'TOY_BELL', reaction: 'Toot-toot! The Goblin Zeppelin blasts its brass horn!' },
+    { pos: 'BL', name: 'War Forge', badge: '🔥', vfxKind: 'TOY_SPARKS', reaction: 'Roar! Flames surge inside the Orgrimmar War Forge!' },
+    { pos: 'BR', name: 'War Drum', badge: '🥁', vfxKind: 'TOY_DRUM', reaction: "Boom! Boom! Lok'tar Ogar! The war drums shake the earth!" },
+  ],
+  PANDARIA: [
+    { pos: 'TL', name: 'Temple Gong', badge: '🔔', vfxKind: 'TOY_BELL', reaction: 'Gooong~~~! A resonant chime echoes across the Pandaria valley!' },
+    { pos: 'TR', name: 'Jade Waterwheel', badge: '💧', vfxKind: 'TOY_SPLASH', reaction: 'Swoosh~ Crystal waterfall splashes over the jade waterwheel!' },
+    { pos: 'BL', name: 'Garden Turnips', badge: '🌱', vfxKind: 'TOY_RADISH', reaction: 'Pluck! You pulled a fresh turnip straight from the Pandaria garden!' },
+    { pos: 'BR', name: 'Wind Kite', badge: '🪁', vfxKind: 'TOY_SPARKS', reaction: 'Flutter~ A colorful kite soars high above the Pandaria clouds!' },
+  ],
+};
+
 const CARD_BACK_MAP: Record<string, string> = {
   classic: '/stone-assets/ui/cardback_classic.webp',
   legend: '/stone-assets/ui/cardback_legend.webp',
@@ -266,11 +301,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   onOpenOptions,
   onExitBattle,
 }) => {
+  const { lang, isKo, tr } = useHeroLanguage();
   const [matchState, setMatchState] = useState<BattleMatchState>(() => {
     const opp = buildAiOpponentSetup(mode, preferredOpponentClass);
     return createBattleMatch({
       mode,
-      playerName: '여관 도전자',
+      playerName: tr('여관 도전자', 'Challenger'),
       playerClass: playerDeck.heroClass,
       playerDeck: playerDeck.cards,
       opponentName: opp.opponentName,
@@ -519,7 +555,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   // Clear banner / error messages smoothly
   useEffect(() => {
     if (!matchState.bannerMessage) return;
-    if (matchState.bannerMessage === '내 턴!' || matchState.bannerMessage === '나의 턴') {
+    if (
+      matchState.bannerMessage === '내 턴!' ||
+      matchState.bannerMessage === '나의 턴' ||
+      matchState.bannerMessage === 'YOUR TURN!'
+    ) {
       hsAudio.playSfx('player_turn', 0.85);
       hsAudio.playProceduralVfxSound('MANA_GAIN');
     }
@@ -532,11 +572,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   useEffect(() => {
     if (!matchState.errorBanner) return;
     const msg = matchState.errorBanner;
-    if (msg.includes('마나')) {
+    if (msg.includes('마나') || msg.toLowerCase().includes('mana')) {
       hsAudio.playHeroVo(matchState.player.heroClass, 'error_mana');
-    } else if (msg.includes('도발')) {
+    } else if (msg.includes('도발') || msg.toLowerCase().includes('taunt')) {
       hsAudio.playHeroVo(matchState.player.heroClass, 'error_taunt');
-    } else if (msg.includes('공격')) {
+    } else if (msg.includes('공격') || msg.toLowerCase().includes('attack')) {
       hsAudio.playHeroVo(matchState.player.heroClass, 'error_attacked');
     }
     const t = window.setTimeout(() => {
@@ -728,8 +768,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const artUrl = isHeroAttacker
         ? getHeroArtUrl(atkPlayer.isJaraxxus ? 'EX1_323h' : atkPlayer.heroId)
         : getCardArtUrl(minionDef!.artId);
-      const nameKo = isHeroAttacker ? atkPlayer.heroNameKo : atkMinion!.name;
-      const defNameKo = isHeroDefender ? defPlayer.heroNameKo : defMinion!.name;
+      const nameKo = isHeroAttacker
+        ? atkPlayer.isJaraxxus
+          ? tr('군주 자락서스', 'LORD JARAXXUS')
+          : getLocalizedHeroInfo(atkPlayer.heroClass, lang).name
+        : getCardName(cardDb.mustGetCard(atkMinion!.cardId), lang);
+      const defNameKo = isHeroDefender
+        ? defPlayer.isJaraxxus
+          ? tr('군주 자락서스', 'LORD JARAXXUS')
+          : getLocalizedHeroInfo(defPlayer.heroClass, lang).name
+        : getCardName(cardDb.mustGetCard(defMinion!.cardId), lang);
       const frameGradient = CLASSIC_HEROES[atkPlayer.heroClass].frameGradient;
 
       attackLockRef.current = true;
@@ -738,7 +786,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       hsAudio.playSfx('whoosh', 0.85);
       setAiHighlightText(
-        `${side === 'PLAYER' ? '⚔ 아군 공격' : '💥 상대 공격'}: [${nameKo}](${attackVal}) ➔ [${defNameKo}]!`,
+        tr(
+          `${side === 'PLAYER' ? '⚔ 아군 공격' : '💥 상대 공격'}: [${nameKo}](${attackVal}) ➔ [${defNameKo}]!`,
+          `${side === 'PLAYER' ? '⚔ Attack' : '💥 Enemy Attack'}: [${nameKo}](${attackVal}) ➔ [${defNameKo}]!`,
+        ),
       );
 
       setAttackAnim({
@@ -898,11 +949,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       if (action.kind === 'PLAY_CARD') {
         const def = cardDb.mustGetCard(action.cardId);
+        const defName = getCardName(def, lang);
+        const oppHeroName = snap.opponent.isJaraxxus
+          ? tr('군주 자락서스', 'LORD JARAXXUS')
+          : getLocalizedHeroInfo(snap.opponent.heroClass, lang).name;
         hsAudio.playSfx('card_place', 0.85);
         setAiHighlightText(
           def.mechanics.includes('SECRET')
-            ? `${snap.opponent.heroNameKo}: [? 비밀] 시전!`
-            : `${snap.opponent.heroNameKo}: [${def.name}] 사용!`,
+            ? tr(`${oppHeroName}: [? 비밀] 시전!`, `${oppHeroName}: Played a Secret!`)
+            : tr(`${oppHeroName}: [${defName}] 사용!`, `${oppHeroName}: Played [${defName}]!`),
         );
         const next = sim.playCardFromHand('OPPONENT', action.handUid, {
           targetId: action.targetId,
@@ -916,9 +971,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         }
         setMatchState(next);
       } else if (action.kind === 'HERO_POWER') {
+        const oppHeroInfo = getLocalizedHeroInfo(snap.opponent.heroClass, lang);
+        const oppHeroName = snap.opponent.isJaraxxus
+          ? tr('군주 자락서스', 'LORD JARAXXUS')
+          : oppHeroInfo.name;
+        const oppHpName =
+          snap.opponent.heroPowerId === 'EX1_tk33'
+            ? tr('지옥불!', 'INFERNO!')
+            : oppHeroInfo.heroPowerName;
         hsAudio.playSfx('hero_power', 0.85);
         setAiHighlightText(
-          `${snap.opponent.heroNameKo}: 영웅 능력 [${snap.opponent.heroPowerNameKo}]!`,
+          tr(`${oppHeroName}: 영웅 능력 [${oppHpName}]!`, `${oppHeroName}: Hero Power [${oppHpName}]!`),
         );
         const next = sim.useHeroPower('OPPONENT', action.targetId);
         if (next.errorBanner || next.history.length <= snap.history.length) {
@@ -1015,7 +1078,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (action.kind === 'PLAY_CARD') {
         const def = cardDb.mustGetCard(action.cardId);
         hsAudio.playSfx('card_place', 0.85);
-        setAiHighlightText(`⚡ 자동플레이: [${def.name}] 사용!`);
+        setAiHighlightText(
+          tr(`⚡ 자동플레이: [${getCardName(def, lang)}] 사용!`, `⚡ Auto-Play: Played [${getCardName(def, lang)}]!`),
+        );
         const next = sim.playCardFromHand('PLAYER', action.handUid, {
           targetId: action.targetId,
           insertIndex: action.insertIndex,
@@ -1038,7 +1103,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         setMatchState(next);
       } else if (action.kind === 'HERO_POWER') {
         hsAudio.playSfx('hero_power', 0.85);
-        setAiHighlightText(`⚡ 자동플레이: 영웅 능력 [${snap.player.heroPowerNameKo}]!`);
+        const pHpName =
+          snap.player.heroPowerId === 'EX1_tk33'
+            ? tr('지옥불!', 'INFERNO!')
+            : getLocalizedHeroInfo(snap.player.heroClass, lang).heroPowerName;
+        setAiHighlightText(
+          tr(`⚡ 자동플레이: 영웅 능력 [${pHpName}]!`, `⚡ Auto-Play: Hero Power [${pHpName}]!`),
+        );
         const next = sim.useHeroPower('PLAYER', action.targetId);
         if (next.errorBanner || next.history.length <= snap.history.length) {
           setAiHighlightText(null);
@@ -1111,12 +1182,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           const check = eng.inspectPlayability('PLAYER', hc);
           if (!check.canPlay) {
             if (e.clientY < hd.startY - 18) {
-              if (check.reason?.includes('마나')) {
+              if (check.reason?.includes('마나') || check.reason?.toLowerCase().includes('mana')) {
                 hsAudio.playHeroVo(cur.player.heroClass, 'error_mana');
               }
               setMatchState((s) => ({
                 ...s,
-                errorBanner: check.reason || '마나가 부족합니다!',
+                errorBanner: check.reason || tr('마나가 부족합니다!', 'Not enough Mana!'),
               }));
             }
             suppressNextClickRef.current = true;
@@ -1449,7 +1520,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             insertIndex: matchState.player.board.length,
           });
         } else {
-          setMatchState((s) => ({ ...s, errorBanner: '올바른 대상이 아닙니다!' }));
+          setMatchState((s) => ({ ...s, errorBanner: tr('올바른 대상이 아닙니다!', 'Not a valid target!') }));
         }
         return;
       }
@@ -1462,7 +1533,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             targetId: entityId,
           });
         } else {
-          setMatchState((s) => ({ ...s, errorBanner: '올바른 대상이 아닙니다!' }));
+          setMatchState((s) => ({ ...s, errorBanner: tr('올바른 대상이 아닙니다!', 'Not a valid target!') }));
         }
         return;
       }
@@ -1474,7 +1545,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           setSelection(null);
           setMatchState(eng.useHeroPower('PLAYER', entityId));
         } else {
-          setMatchState((s) => ({ ...s, errorBanner: '올바른 대상이 아닙니다!' }));
+          setMatchState((s) => ({ ...s, errorBanner: tr('올바른 대상이 아닙니다!', 'Not a valid target!') }));
         }
         return;
       }
@@ -1499,10 +1570,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             hsAudio.playHeroVo(matchState.player.heroClass, 'error_taunt');
             setMatchState((s) => ({
               ...s,
-              errorBanner: '도발 능력이 있는 하수인이 가로막고 있습니다!',
+              errorBanner: tr('도발 능력이 있는 하수인이 가로막고 있습니다!', 'A minion with Taunt is in the way!'),
             }));
           } else {
-            setMatchState((s) => ({ ...s, errorBanner: '공격할 수 없는 대상입니다!' }));
+            setMatchState((s) => ({ ...s, errorBanner: tr('공격할 수 없는 대상입니다!', 'Cannot attack that target!') }));
           }
         }
         return;
@@ -1547,7 +1618,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           return;
         }
       } else if (getHeroAttack(matchState.player, true) > 0) {
-        setMatchState((s) => ({ ...s, errorBanner: swing.reason || '공격할 수 없습니다.' }));
+        setMatchState((s) => ({ ...s, errorBanner: swing.reason || tr('공격할 수 없습니다.', 'Cannot attack.') }));
         if (swing.errorCode === 'exhausted' || swing.errorCode === 'attacked') {
           hsAudio.playHeroVo(matchState.player.heroClass, 'error_attacked');
         }
@@ -1576,8 +1647,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
     const hpCheck = engine.inspectHeroPower('PLAYER');
     if (!hpCheck.canUse) {
-      setMatchState((s) => ({ ...s, errorBanner: hpCheck.reason || '사용할 수 없습니다.' }));
-      if (hpCheck.reason?.includes('마나')) {
+      setMatchState((s) => ({ ...s, errorBanner: hpCheck.reason || tr('사용할 수 없습니다.', 'Cannot use Hero Power.') }));
+      if (hpCheck.reason?.includes('마나') || hpCheck.reason?.toLowerCase().includes('mana')) {
         hsAudio.playHeroVo(matchState.player.heroClass, 'error_mana');
       }
       return;
@@ -1601,8 +1672,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     emoteKey: 'greetings' | 'well_played' | 'thanks' | 'wow' | 'oops' | 'threaten',
   ) => {
     setEmoteMenuOpen(false);
-    const pHero = CLASSIC_HEROES[matchState.player.heroClass];
-    setPlayerEmoteText(pHero.emotesKo[emoteKey]);
+    const pHero = getLocalizedHeroInfo(matchState.player.heroClass, lang);
+    setPlayerEmoteText(pHero.emotes[emoteKey]);
     hsAudio.playHeroVo(matchState.player.heroClass, emoteKey);
     window.setTimeout(() => setPlayerEmoteText(null), 2800);
 
@@ -1618,8 +1689,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             : emoteKey === 'well_played'
               ? 'thanks'
               : 'wow';
-      const oHero = CLASSIC_HEROES[matchState.opponent.heroClass];
-      setOpponentEmoteText(oHero.emotesKo[replyKey]);
+      const oHero = getLocalizedHeroInfo(matchState.opponent.heroClass, lang);
+      setOpponentEmoteText(oHero.emotes[replyKey]);
       hsAudio.playHeroVo(matchState.opponent.heroClass, replyKey);
       window.setTimeout(() => setOpponentEmoteText(null), 2800);
     }, 1500);
@@ -1642,18 +1713,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (toy.vfxKind === 'TOY_CATAPULT') {
         targetEntity = 'TOY_BR';
       } else if (toy.vfxKind === 'TOY_BELL') {
-        vfxLabel = '♪ 땡~!';
+        vfxLabel = tr('♪ 땡~!', '♪ Ding~!');
       } else if (toy.vfxKind === 'TOY_RADISH') {
         const roll = Math.random();
         if (roll < 0.18) {
           vfxValue = 777;
-          vfxLabel = '★ 황금 순무!!';
-          toastMsg = '✦ 대박!! 판다리아 텃밭에서 전설의 [황금 순무]가 뽑혔습니다!!';
+          vfxLabel = tr('★ 황금 순무!!', '★ GOLDEN TURNIP!!');
+          toastMsg = tr(
+            '✦ 대박!! 판다리아 텃밭에서 전설의 [황금 순무]가 뽑혔습니다!!',
+            '✦ JACKPOT!! You harvested a legendary [Golden Turnip]!',
+          );
         } else if (roll < 0.3) {
-          vfxLabel = '🥾 낡은 장화?!';
-          toastMsg = '엇?! 순무 대신 흙 묻은 낡은 가죽 장화가 뽑혔습니다!';
+          vfxLabel = tr('🥾 낡은 장화?!', '🥾 Old Boot?!');
+          toastMsg = tr(
+            '엇?! 순무 대신 흙 묻은 낡은 가죽 장화가 뽑혔습니다!',
+            'Oops! You pulled up a muddy leather boot instead!',
+          );
         } else {
-          vfxLabel = '🌱 순무 수확!';
+          vfxLabel = tr('🌱 순무 수확!', '🌱 Turnip!');
         }
       }
 
@@ -1728,7 +1805,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const isPlayerTurn = matchState.phase === 'PLAYING' && matchState.activeSide === 'PLAYER';
   const noMovesLeft = isPlayerTurn && !engine.hasAnyAvailableMove('PLAYER');
-  const cornerToys = BOARD_CORNER_TOYS[matchState.boardTheme];
+  const cornerToys = (isKo ? BOARD_CORNER_TOYS : BOARD_CORNER_TOYS_EN)[matchState.boardTheme];
 
   const isDraggingUntargetedMinionOverBoard =
     Boolean(
@@ -1741,21 +1818,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const buildMinionStatusPills = (m: MinionInstance): string[] => {
     const pills: string[] = [];
-    if (m.silenced) pills.push('침묵 상태');
-    if (hasMinionTaunt(m)) pills.push('도발');
-    if (m.divineShield) pills.push('천상의 보호막');
-    if (m.stealth || m.concealedUntilNextTurn) pills.push('은신');
-    if (m.windfury) pills.push('질풍');
-    if (m.frozen) pills.push('빙결');
-    if (m.charge || m.auraCharge) pills.push('돌진');
-    if (m.poisonous && !m.silenced) pills.push('독성');
-    if (m.elusive && !m.silenced) pills.push('주문·영웅 능력 대상 불가');
-    if (m.cantAttack) pills.push('공격 불가');
-    if (m.spellDamage > 0 && !m.silenced) pills.push(`주문 공격력 +${m.spellDamage}`);
+    if (m.silenced) pills.push(tr('침묵 상태', 'Silenced'));
+    if (hasMinionTaunt(m)) pills.push(tr('도발', 'Taunt'));
+    if (m.divineShield) pills.push(tr('천상의 보호막', 'Divine Shield'));
+    if (m.stealth || m.concealedUntilNextTurn) pills.push(tr('은신', 'Stealth'));
+    if (m.windfury) pills.push(tr('질풍', 'Windfury'));
+    if (m.frozen) pills.push(tr('빙결', 'Frozen'));
+    if (m.charge || m.auraCharge) pills.push(tr('돌진', 'Charge'));
+    if (m.poisonous && !m.silenced) pills.push(tr('독성', 'Poisonous'));
+    if (m.elusive && !m.silenced) pills.push(tr('주문·영웅 능력 대상 불가', "Can't be targeted by Spells/Hero Powers"));
+    if (m.cantAttack) pills.push(tr('공격 불가', "Can't Attack"));
+    if (m.spellDamage > 0 && !m.silenced) pills.push(tr(`주문 공격력 +${m.spellDamage}`, `Spell Damage +${m.spellDamage}`));
     if (m.exhausted && !m.charge && !m.auraCharge && !m.cantAttack) {
-      pills.push('소환 후유증 (다음 턴 공격 가능)');
+      pills.push(tr('소환 후유증 (다음 턴 공격 가능)', 'Summoning Sickness (Ready next turn)'));
     } else if (m.attacksMadeThisTurn > 0 && (!m.windfury || m.attacksMadeThisTurn >= 2)) {
-      pills.push('이번 턴 공격 완료');
+      pills.push(tr('이번 턴 공격 완료', 'Attacked this turn'));
     }
     return pills;
   };
@@ -1777,8 +1854,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         }}
         title={
           count > 0
-            ? `${isFriendly ? '내' : '상대'} 남은 덱: ${count}장 · 손패: ${p.hand.length}/10장`
-            : `카드가 없습니다! 다음 탈진 피해: ${p.fatigueCounter + 1}`
+            ? tr(
+                `${isFriendly ? '내' : '상대'} 남은 덱: ${count}장 · 손패: ${p.hand.length}/10장`,
+                `${isFriendly ? 'Your' : 'Enemy'} Deck: ${count} · Hand: ${p.hand.length}/10`,
+              )
+            : tr(
+                `카드가 없습니다! 다음 탈진 피해: ${p.fatigueCounter + 1}`,
+                `Out of cards! Next Fatigue: ${p.fatigueCounter + 1}`,
+              )
         }
         className="relative flex h-[64px] w-[46px] cursor-pointer items-center justify-center select-none"
       >
@@ -1801,7 +1884,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           </>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center rounded-[7px] border-2 border-dashed border-red-500/60 bg-stone-950/90 text-center shadow-inner">
-            <span className="text-[9px] font-extrabold text-red-300">탈진</span>
+            <span className="text-[9px] font-extrabold text-red-300">{tr('탈진', 'Fatigue')}</span>
             <span className="hs-num text-xs text-red-400">-{p.fatigueCounter + 1}</span>
           </div>
         )}
@@ -1809,17 +1892,22 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         {isTooltipOpen && (
           <div className="pointer-events-none absolute right-14 top-1/2 z-50 w-44 -translate-y-1/2 rounded-xl border-2 border-[#d4af63] bg-stone-950/95 px-3 py-2 text-left text-[11px] text-amber-100 shadow-2xl">
             <div className="font-extrabold text-amber-300">
-              {isFriendly ? '내 덱 상태' : '상대 덱 상태'}
+              {isFriendly ? tr('내 덱 상태', 'Your Deck') : tr('상대 덱 상태', 'Enemy Deck')}
             </div>
             {count > 0 ? (
-              <div className="mt-0.5 font-bold text-white">덱에 카드 {count}장 남음</div>
+              <div className="mt-0.5 font-bold text-white">
+                {tr(`덱에 카드 ${count}장 남음`, `${count} cards remaining`)}
+              </div>
             ) : (
               <div className="mt-0.5 font-extrabold text-rose-400">
-                카드가 없습니다! (다음 탈진 -{p.fatigueCounter + 1})
+                {tr(
+                  `카드가 없습니다! (다음 탈진 -${p.fatigueCounter + 1})`,
+                  `Out of cards! (Next Fatigue -${p.fatigueCounter + 1})`,
+                )}
               </div>
             )}
             <div className="mt-0.5 text-[10px] font-bold text-sky-300">
-              현재 손패: {p.hand.length} / 10장
+              {tr(`현재 손패: ${p.hand.length} / 10장`, `Hand: ${p.hand.length} / 10`)}
             </div>
           </div>
         )}
@@ -1833,7 +1921,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       : noMovesLeft
         ? '/stone-assets/ui/endturn_green.webp'
         : '/stone-assets/ui/endturn_yellow.webp';
-    const label = !isPlayerTurn ? '상대 턴' : noMovesLeft ? '할 일 없음' : '턴 종료';
+    const label = !isPlayerTurn
+      ? tr('상대 턴', 'ENEMY TURN')
+      : noMovesLeft
+        ? tr('할 일 없음', "JOB'S DONE")
+        : tr('턴 종료', 'END TURN');
 
     if (sizeMode === 'MOBILE_BAR') {
       return (
@@ -1940,7 +2032,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             return (
               <div
                 key={idx}
-                title={isOverloadedNow ? '과부하로 잠긴 마나 수정' : undefined}
+                title={isOverloadedNow ? tr('과부하로 잠긴 마나 수정', 'Overloaded Mana Crystal') : undefined}
                 style={{
                   clipPath:
                     'polygon(50% 4%, 94% 26%, 94% 74%, 50% 96%, 6% 74%, 6% 26%)',
@@ -1962,7 +2054,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         </div>
         {matchState.player.pendingOverload > 0 && (
           <span className="ml-0.5 rounded-md border border-red-400/50 bg-red-950 px-1.5 py-0.5 text-[9.5px] font-extrabold text-red-200 sm:text-[10px]">
-            과부하 {matchState.player.pendingOverload}
+            {tr('과부하', 'Overload')} {matchState.player.pendingOverload}
           </span>
         )}
       </div>
@@ -1981,22 +2073,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       const primaryAction: CardZoomAction = !isPlayerTurn
         ? {
-            label: '상대 턴에는 카드를 사용할 수 없습니다',
+            label: tr('상대 턴에는 카드를 사용할 수 없습니다', 'Wait for your turn to play cards'),
             disabled: true,
             onClick: () => {},
           }
         : !check.canPlay
           ? {
-              label: check.reason ? `사용 불가 · ${check.reason}` : '마나가 부족합니다',
+              label: check.reason
+                ? tr(`사용 불가 · ${check.reason}`, `Cannot Play · ${check.reason}`)
+                : tr('마나가 부족합니다', 'Not enough Mana'),
               disabled: true,
               onClick: () => {},
             }
           : {
               label: check.hasChooseOne
-                ? `카드 사용 · 효과 선택 (마나 ${check.cost})`
+                ? tr(`카드 사용 · 효과 선택 (마나 ${check.cost})`, `Play · Choose One (${check.cost} Mana)`)
                 : check.needsTarget
-                  ? `카드 사용 · 대상 지정 (마나 ${check.cost})`
-                  : `카드 사용 (마나 ${check.cost})`,
+                  ? tr(`카드 사용 · 대상 지정 (마나 ${check.cost})`, `Play · Choose Target (${check.cost} Mana)`)
+                  : tr(`카드 사용 (마나 ${check.cost})`, `Play Card (${check.cost} Mana)`),
               variant: 'emerald',
               onClick: () => {
                 setZoomState(null);
@@ -2026,7 +2120,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         matchState.player.board.length > 0
           ? [
               {
-                label: '전장 위치 직접 지정하여 놓기',
+                label: tr('전장 위치 직접 지정하여 놓기', 'Choose Board Position'),
                 variant: 'brass',
                 onClick: () => {
                   setZoomState(null);
@@ -2051,7 +2145,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ? {
               currentIndex: handIdx,
               totalCount: hand.length,
-              positionLabel: `내 손패 ${handIdx + 1} / ${hand.length}`,
+              positionLabel: tr(`내 손패 ${handIdx + 1} / ${hand.length}`, `Hand ${handIdx + 1} / ${hand.length}`),
               onPrev: () =>
                 setZoomState({
                   kind: 'HAND_CARD',
@@ -2072,7 +2166,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           spellPowerBonus={playerSpellPower}
           velenMultiplier={playerVelenMult}
           playableGlow={!canPlayNow ? 'NONE' : check.isComboReady ? 'COMBO' : 'GREEN'}
-          subtitleBadge={`내 손패 · 보유 마나 ${matchState.player.mana}/${matchState.player.maxMana} (드래그로도 즉시 사용 가능)`}
+          subtitleBadge={tr(
+            `내 손패 · 보유 마나 ${matchState.player.mana}/${matchState.player.maxMana} (드래그로도 즉시 사용 가능)`,
+            `Your Hand · Mana ${matchState.player.mana}/${matchState.player.maxMana} (Drag to play)`,
+          )}
           navigation={handNav}
           primaryAction={primaryAction}
           secondaryActions={secondaryActions}
@@ -2093,7 +2190,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ? {
               currentIndex: handIdx,
               totalCount: hand.length,
-              positionLabel: `시작 카드 ${handIdx + 1} / ${hand.length}`,
+              positionLabel: tr(`시작 카드 ${handIdx + 1} / ${hand.length}`, `Starting Hand ${handIdx + 1} / ${hand.length}`),
               onPrev: () =>
                 setZoomState({
                   kind: 'MULLIGAN_CARD',
@@ -2109,10 +2206,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={def}
-          subtitleBadge={marked ? '시작 카드 · 현재 [교체 ✕]' : '시작 카드 · 현재 [유지]'}
+          subtitleBadge={
+            marked
+              ? tr('시작 카드 · 현재 [교체 ✕]', 'Starting Hand · Marked [Replace ✕]')
+              : tr('시작 카드 · 현재 [유지]', 'Starting Hand · Marked [Keep]')
+          }
           navigation={mulliganNav}
           primaryAction={{
-            label: marked ? '교체 취소 (손패에 유지)' : '교체 선택 (덱에서 새 카드 뽑기)',
+            label: marked
+              ? tr('교체 취소 (손패에 유지)', 'Keep Card (Cancel Replace)')
+              : tr('교체 선택 (덱에서 새 카드 뽑기)', 'Replace Card'),
             variant: marked ? 'arcane' : 'crimson',
             onClick: () => {
               toggleMulliganCard(hc.uid);
@@ -2120,7 +2223,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           }}
           secondaryActions={[
             {
-              label: '확인 (닫기)',
+              label: tr('확인 (닫기)', 'Done'),
               variant: 'brass',
               onClick: () => setZoomState(null),
             },
@@ -2143,7 +2246,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ? {
               currentIndex: optIdx,
               totalCount: opts.length,
-              positionLabel: `선택 효과 ${optIdx + 1} / ${opts.length}`,
+              positionLabel: tr(`선택 효과 ${optIdx + 1} / ${opts.length}`, `Choice ${optIdx + 1} / ${opts.length}`),
               onPrev: () =>
                 setZoomState({
                   kind: 'CHOOSE_ONE_CARD',
@@ -2159,10 +2262,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={optCard}
-          subtitleBadge={`선택 · ${opt.title}`}
+          subtitleBadge={tr(`선택 · ${getCardName(optCard, lang)}`, `Choose One · ${getCardName(optCard, lang)}`)}
           navigation={chooseNav}
           primaryAction={{
-            label: opt.needsTarget ? '이 효과 선택 · 대상 지정' : '이 효과 사용',
+            label: opt.needsTarget
+              ? tr('이 효과 선택 · 대상 지정', 'Choose · Select Target')
+              : tr('이 효과 사용', 'Choose This Option'),
             variant: 'emerald',
             onClick: () => {
               setZoomState(null);
@@ -2203,7 +2308,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ? {
               currentIndex: tIdx,
               totalCount: tCards.length,
-              positionLabel: `추적 카드 ${tIdx + 1} / ${tCards.length}`,
+              positionLabel: tr(`추적 카드 ${tIdx + 1} / ${tCards.length}`, `Tracking ${tIdx + 1} / ${tCards.length}`),
               onPrev: () => {
                 const prevIdx = (tIdx - 1 + tCards.length) % tCards.length;
                 setZoomState({
@@ -2225,10 +2330,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={def}
-          subtitleBadge="추적 — 가져올 카드 1장 선택 (나머지 2장 버림)"
+          subtitleBadge={tr(
+            '추적 — 가져올 카드 1장 선택 (나머지 2장 버림)',
+            'Tracking — Draw 1 card and discard the others',
+          )}
           navigation={trackingNav}
           primaryAction={{
-            label: '이 카드 손으로 가져오기',
+            label: tr('이 카드 손으로 가져오기', 'Draw This Card'),
             variant: 'emerald',
             onClick: () => {
               setZoomState(null);
@@ -2266,7 +2374,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ? {
               currentIndex: mIdx,
               totalCount: allBoardMinions.length,
-              positionLabel: `전장 하수인 ${mIdx + 1} / ${allBoardMinions.length}`,
+              positionLabel: tr(`전장 하수인 ${mIdx + 1} / ${allBoardMinions.length}`, `Board ${mIdx + 1} / ${allBoardMinions.length}`),
               onPrev: () => {
                 const prev =
                   allBoardMinions[
@@ -2292,7 +2400,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={def}
-          subtitleBadge={zoomState.isFriendly ? '아군 전장 하수인 정보' : '상대 전장 하수인 정보'}
+          subtitleBadge={
+            zoomState.isFriendly
+              ? tr('아군 전장 하수인 정보', 'Friendly Board Minion')
+              : tr('상대 전장 하수인 정보', 'Enemy Board Minion')
+          }
           liveStats={{
             attack: getMinionAttack(liveMinion),
             health: getMinionHealth(liveMinion),
@@ -2303,7 +2415,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           primaryAction={
             canSwing && validTargets.length > 0
               ? {
-                  label: '이 하수인으로 공격 대상 선택',
+                  label: tr('이 하수인으로 공격 대상 선택', 'Attack with This Minion'),
                   variant: 'emerald',
                   onClick: () => {
                     setZoomState(null);
@@ -2315,7 +2427,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   },
                 }
               : {
-                  label: '확인 (닫기)',
+                  label: tr('확인 (닫기)', 'Done'),
                   variant: 'brass',
                   onClick: () => setZoomState(null),
                 }
@@ -2338,7 +2450,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ? {
               currentIndex: hIdx,
               totalCount: cardHistory.length,
-              positionLabel: `전투 기록 ${hIdx + 1} / ${cardHistory.length}`,
+              positionLabel: tr(`전투 기록 ${hIdx + 1} / ${cardHistory.length}`, `History ${hIdx + 1} / ${cardHistory.length}`),
               onPrev: () =>
                 setZoomState({
                   kind: 'HISTORY_ITEM',
@@ -2354,10 +2466,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return (
         <CardZoomModal
           card={def}
-          subtitleBadge={`${item.turn}턴 기록 · ${item.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'} — ${item.detail}`}
+          subtitleBadge={tr(
+            `${item.turn}턴 기록 · ${item.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'} — ${item.detail}`,
+            `Turn ${item.turn} · ${item.actorSide === 'PLAYER' ? 'Your Action' : 'Enemy Action'} — ${item.detail}`,
+          )}
           navigation={historyNav}
           primaryAction={{
-            label: '확인 (닫기)',
+            label: tr('확인 (닫기)', 'Done'),
             variant: 'brass',
             onClick: () => setZoomState(null)}
           }
@@ -2442,7 +2557,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         <React.Fragment key={m.uid}>
           {isDraggingUntargetedMinionOverBoard && insertPreviewIdx === idx && (
             <div className="flex h-[64px] w-12 shrink-0 items-center justify-center rounded-[50%] border-2 border-dashed border-emerald-300 bg-emerald-400/25 text-center text-[9px] font-extrabold text-emerald-100 transition-all duration-150 sm:h-[104px] sm:w-16 sm:text-[10px]">
-              소환
+              {tr('소환', 'Summon')}
             </div>
           )}
           <div className="animate-[hsMinionSummonDrop_0.34s_cubic-bezier(0.22,1,0.36,1)]">
@@ -2471,7 +2586,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {isDraggingUntargetedMinionOverBoard &&
         insertPreviewIdx >= matchState.player.board.length && (
           <div className="flex h-[64px] w-12 shrink-0 items-center justify-center rounded-[50%] border-2 border-dashed border-emerald-300 bg-emerald-400/25 text-center text-[9px] font-extrabold text-emerald-100 transition-all duration-150 sm:h-[104px] sm:w-16 sm:text-[10px]">
-            소환
+            {tr('소환', 'Summon')}
           </div>
         )}
 
@@ -2486,7 +2601,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             }}
             className="rounded-2xl border-2 border-emerald-200 bg-emerald-600 px-4 py-1.5 text-xs font-extrabold text-white shadow-xl sm:px-5 sm:py-2 sm:text-sm"
           >
-            ✨ 클릭하여 시전!
+            {tr('✨ 클릭하여 시전!', '✨ Click to Cast!')}
           </button>
         )}
     </div>
@@ -2534,14 +2649,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             setSquelchMenuOpen(false);
             setToyToast(
               next
-                ? '상대 영웅의 감정표현을 차단했습니다.'
-                : '상대 영웅의 감정표현 차단을 해제했습니다.',
+                ? tr('상대 영웅의 감정표현을 차단했습니다.', 'Opponent Squelched.')
+                : tr('상대 영웅의 감정표현 차단을 해제했습니다.', 'Opponent Unsquelched.'),
             );
             window.setTimeout(() => setToyToast(null), 1900);
           }}
           className="hs-ivory-plate absolute -right-24 top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-2xl px-3.5 py-1.5 text-xs font-extrabold text-[#2b180a] shadow-2xl sm:-right-28"
         >
-          {opponentSquelched ? '🔊 차단 해제' : '🔇 차단'}
+          {opponentSquelched ? tr('🔊 차단 해제', '🔊 Unsquelch') : tr('🔇 차단', '🔇 Squelch')}
         </button>
       )}
     </div>
@@ -2559,7 +2674,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         }}
         className="hs-brass-btn absolute -left-14 top-1/2 z-30 -translate-y-1/2 rounded-xl px-2 py-1 text-[10px] font-extrabold text-amber-100 sm:-left-20 sm:px-2.5 sm:text-[11px]"
       >
-        감정표현
+        {tr('감정표현', 'Emotes')}
       </button>
 
       <HeroPortraitZone
@@ -2594,9 +2709,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <div className="pointer-events-auto absolute -left-24 -top-16 flex flex-col gap-1.5 sm:-left-36 sm:-top-14">
             {(
               [
-                { key: 'thanks', label: '감사', shift: 'translate-x-2' },
-                { key: 'well_played', label: '칭찬', shift: 'translate-x-0' },
-                { key: 'greetings', label: '인사', shift: 'translate-x-2' },
+                { key: 'thanks', label: tr('감사', 'Thanks'), shift: 'translate-x-2' },
+                { key: 'well_played', label: tr('칭찬', 'Well Played'), shift: 'translate-x-0' },
+                { key: 'greetings', label: tr('인사', 'Greetings'), shift: 'translate-x-2' },
               ] as const
             ).map((em) => (
               <button
@@ -2613,9 +2728,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <div className="pointer-events-auto absolute -right-24 -top-16 flex flex-col gap-1.5 sm:-right-36 sm:-top-14">
             {(
               [
-                { key: 'wow', label: '감탄', shift: '-translate-x-2' },
-                { key: 'oops', label: '실수', shift: 'translate-x-0' },
-                { key: 'threaten', label: '위협', shift: '-translate-x-2' },
+                { key: 'wow', label: tr('감탄', 'Wow'), shift: '-translate-x-2' },
+                { key: 'oops', label: tr('실수', 'Oops'), shift: 'translate-x-0' },
+                { key: 'threaten', label: tr('위협', 'Threaten'), shift: '-translate-x-2' },
               ] as const
             ).map((em) => (
               <button
@@ -2733,13 +2848,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         </span>
         <span className="text-stone-500">·</span>
         <span className="shrink-0 font-extrabold text-sky-300">
-          마나 {matchState.opponent.mana}/{matchState.opponent.maxMana}
+          {tr('마나', 'Mana')} {matchState.opponent.mana}/{matchState.opponent.maxMana}
         </span>
       </div>
 
       {/* Opponent Face-Down Curved Hand Fan Hanging from Top Edge */}
       <div
-        title={`상대 손패: ${matchState.opponent.hand.length}장`}
+        title={tr(`상대 손패: ${matchState.opponent.hand.length}장`, `Enemy Hand: ${matchState.opponent.hand.length}`)}
         className="pointer-events-auto flex shrink-0 items-start justify-center -space-x-3.5 sm:-mt-3 sm:-space-x-4"
       >
         {matchState.opponent.hand.map((hc, idx) => {
@@ -2756,7 +2871,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         })}
         {matchState.opponent.hand.length === 0 && (
           <span className="mt-1 rounded border border-stone-700 bg-stone-950/80 px-1.5 py-0.5 text-[9.5px] font-bold text-stone-400">
-            손패 0장
+            {tr('손패 0장', '0 Cards')}
           </span>
         )}
       </div>
@@ -2788,7 +2903,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               : 'hs-brass-btn text-amber-100'
           }`}
         >
-          {autoPlay ? '⚙ 자동 ON' : '⚙ 자동 OFF'}
+          {autoPlay ? tr('⚙ 자동 ON', '⚙ Auto ON') : tr('⚙ 자동 OFF', '⚙ Auto OFF')}
         </button>
 
         {!isDesktopStage && (
@@ -2801,7 +2916,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             }}
             className="hs-brass-btn rounded-xl px-2 py-1 text-[10.5px] font-extrabold text-amber-100"
           >
-            기물
+            {tr('기물', 'Toys')}
           </button>
         )}
 
@@ -2814,7 +2929,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           }}
           className="hs-brass-btn rounded-xl px-2.5 py-1 text-[10.5px] font-extrabold text-amber-100 sm:px-3 sm:text-xs"
         >
-          메뉴 · 항복
+          {tr('메뉴 · 항복', 'Menu · Concede')}
         </button>
       </div>
     </div>
@@ -2891,7 +3006,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   key={toy.pos}
                   type="button"
                   data-hs-entity={`TOY_${toy.pos}`}
-                  title={`${toy.name} (클릭해 전장 기물 작동)`}
+                  title={tr(`${toy.name} (클릭해 전장 기물 작동)`, `${toy.name} (Click to interact)`)}
                   style={posStyle}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -2920,7 +3035,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     e.stopPropagation();
                     hsAudio.playSfx('card_hover', 0.65);
                     if (item.isHiddenSecret) {
-                      setToyToast('상대편의 비밀입니다! 조건이 충족되어 발동될 때까지 정체가 숨겨집니다.');
+                      setToyToast(
+                        tr(
+                          '상대편의 비밀입니다! 조건이 충족되어 발동될 때까지 정체가 숨겨집니다.',
+                          'Opponent Secret! It stays hidden until triggered.',
+                        ),
+                      );
                       window.setTimeout(() => setToyToast(null), 2200);
                       return;
                     }
@@ -2966,7 +3086,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 </div>
               ))}
               {matchState.history.length === 0 && (
-                <div className="px-1 py-2 text-[9px] font-bold text-stone-400">기록</div>
+                <div className="px-1 py-2 text-[9px] font-bold text-stone-400">{tr('기록', 'History')}</div>
               )}
             </aside>
 
@@ -3001,7 +3121,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 style={{ left: '50%', top: '25.8%' }}
                 className="pointer-events-none absolute z-40 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-2xl border-2 border-emerald-300 bg-emerald-950/92 px-4 py-1 text-xs font-extrabold text-emerald-100 shadow-xl"
               >
-                💡 초록색 테두리 카드를 전장으로 드래그하거나 클릭해 내고, 깨어난 하수인을 적에게 드래그해 공격하세요!
+                💡 {tr(
+                  '초록색 테두리 카드를 전장으로 드래그하거나 클릭해 내고, 깨어난 하수인을 적에게 드래그해 공격하세요!',
+                  'Drag or tap green-glowing cards to play, and drag ready minions to attack!',
+                )}
               </div>
             )}
 
@@ -3023,7 +3146,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   </div>
                 </div>
                 <span className="hs-num ml-2 whitespace-nowrap rounded-full border border-amber-300 bg-red-950/95 px-2 py-0.5 text-xs text-yellow-200 shadow">
-                  {matchState.turnSecondsLeft}초
+                  {matchState.turnSecondsLeft}{tr('초', 's')}
                 </span>
               </div>
             )}
@@ -3065,7 +3188,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <main className="relative z-20 mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center gap-1 px-1.5">
             {mode === 'TUTORIAL' && isPlayerTurn && matchState.turnNumber <= 6 && (
               <div className="mx-auto rounded-2xl border-2 border-emerald-300 bg-emerald-950/90 px-3 py-1 text-center text-[11px] font-extrabold text-emerald-100 shadow-lg">
-                💡 초록색 카드를 전장으로 드래그하거나 터치해 사용하고, 깨어난 하수인으로 적을 공격하세요!
+                💡 {tr(
+                  '초록색 카드를 전장으로 드래그하거나 터치해 사용하고, 깨어난 하수인으로 적을 공격하세요!',
+                  'Drag or tap green cards to play them, then attack enemies with ready minions!',
+                )}
               </div>
             )}
 
@@ -3084,19 +3210,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 }}
                 className="hs-brass-btn rounded-xl px-2.5 py-1 text-[10.5px] font-extrabold text-amber-100"
               >
-                기록 ({matchState.history.length})
+                {tr('기록', 'History')} ({matchState.history.length})
               </button>
 
               <div className="flex items-center gap-1.5 text-[10.5px] font-extrabold">
                 <span className="rounded-lg border border-red-400/45 bg-stone-900/95 px-2 py-0.5 text-red-200">
-                  상대덱 {matchState.opponent.deck.length}
+                  {tr('상대덱', 'Opp Deck')} {matchState.opponent.deck.length}
                 </span>
                 <span className="rounded-lg border border-sky-400/45 bg-stone-900/95 px-2 py-0.5 text-sky-200">
-                  내덱 {matchState.player.deck.length}
+                  {tr('내덱', 'Deck')} {matchState.player.deck.length}
                 </span>
                 {isPlayerTurn && matchState.turnSecondsLeft <= 15 && (
                   <span className="rounded-lg bg-red-900 px-1.5 py-0.5 text-[10px] text-yellow-200">
-                    🔥{matchState.turnSecondsLeft}초
+                    🔥{matchState.turnSecondsLeft}{tr('초', 's')}
                   </span>
                 )}
               </div>
@@ -3152,40 +3278,56 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             }`}
           >
             {playedCardShowcase.showcaseType === 'SECRET_TRIGGER'
-              ? '✦ 비밀 발동!'
+              ? tr('✦ 비밀 발동!', '✦ Secret Revealed!')
               : playedCardShowcase.showcaseType === 'SECRET_HIDDEN'
-                ? `✦ ${playedCardShowcase.actorName} 비밀 시전!`
+                ? tr(`✦ ${playedCardShowcase.actorName} 비밀 시전!`, `✦ ${playedCardShowcase.actorName} Played a Secret!`)
                 : playedCardShowcase.showcaseType === 'FATIGUE'
-                  ? `☠ ${playedCardShowcase.actorName} 탈진!`
+                  ? tr(`☠ ${playedCardShowcase.actorName} 탈진!`, `☠ ${playedCardShowcase.actorName} Fatigue!`)
                   : playedCardShowcase.showcaseType === 'MILL_BURN'
-                    ? `🔥 손패 초과! 카드 소각`
-                    : `${playedCardShowcase.actorName} 사용`}
+                    ? tr('🔥 손패 초과! 카드 소각', '🔥 Hand Full! Card Burned')
+                    : tr(`${playedCardShowcase.actorName} 사용`, `${playedCardShowcase.actorName} Played`)}
           </div>
 
           {playedCardShowcase.showcaseType === 'SECRET_HIDDEN' ? (
             <div className="flex h-[156px] w-[112px] flex-col items-center justify-between rounded-2xl border-[3px] border-fuchsia-300 bg-gradient-to-b from-fuchsia-900 via-purple-950 to-stone-950 p-3 text-center shadow-[0_18px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(217,70,239,0.75)] sm:h-[246px] sm:w-[178px] sm:p-4">
               <span className="rounded-full border border-fuchsia-300/60 bg-black/45 px-2.5 py-0.5 text-[10px] font-extrabold text-fuchsia-200 sm:text-xs">
-                {CLASSIC_HEROES[playedCardShowcase.actorClass].classNameKo} 비밀
+                {tr(
+                  `${getLocalizedHeroInfo(playedCardShowcase.actorClass, lang).className} 비밀`,
+                  `${getLocalizedHeroInfo(playedCardShowcase.actorClass, lang).className} Secret`,
+                )}
               </span>
               <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-amber-200 bg-fuchsia-950 shadow-inner sm:h-24 sm:w-24">
                 <span className="hs-num text-4xl font-black text-amber-200 sm:text-6xl">?</span>
               </div>
               <p className="text-[9.5px] font-bold leading-tight text-fuchsia-100 sm:text-xs">
-                숨겨진 비밀입니다. 조건이 충족되면 발동합니다!
+                {tr(
+                  '숨겨진 비밀입니다. 조건이 충족되면 발동합니다!',
+                  'Hidden Secret. Reveals when its trigger occurs!',
+                )}
               </p>
             </div>
           ) : playedCardShowcase.showcaseType === 'FATIGUE' ? (
             <div className="flex h-[156px] w-[112px] flex-col items-center justify-between rounded-2xl border-[3px] border-rose-400 bg-gradient-to-b from-[#3b0764] via-[#450a0a] to-stone-950 p-3 text-center shadow-[0_18px_36px_rgba(0,0,0,0.95),0_0_28px_rgba(244,63,94,0.85)] sm:h-[246px] sm:w-[178px] sm:p-4">
               <span className="hs-title hs-outline-sm text-sm font-extrabold text-rose-200 sm:text-lg">
-                탈진
+                {tr('탈진', 'Fatigue')}
               </span>
               <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-rose-300 bg-black/60 shadow-inner sm:h-24 sm:w-24">
                 <span className="text-3xl sm:text-5xl">☠</span>
               </div>
               <p className="rounded-lg border border-rose-400/40 bg-black/55 px-2 py-1 text-[9.5px] font-extrabold leading-tight text-amber-100 sm:text-xs">
-                카드가 없습니다!{' '}
-                <span className="text-rose-300">{playedCardShowcase.fatigueDamage || 1}</span>의
-                피해를 받습니다.
+                {isKo ? (
+                  <>
+                    카드가 없습니다!{' '}
+                    <span className="text-rose-300">{playedCardShowcase.fatigueDamage || 1}</span>의
+                    피해를 받습니다.
+                  </>
+                ) : (
+                  <>
+                    Out of cards! Take{' '}
+                    <span className="text-rose-300">{playedCardShowcase.fatigueDamage || 1}</span>{' '}
+                    damage.
+                  </>
+                )}
               </p>
             </div>
           ) : (
@@ -3203,7 +3345,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               {playedCardShowcase.showcaseType === 'MILL_BURN' && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-gradient-to-t from-red-950/75 via-orange-600/25 to-transparent">
                   <span className="hs-title hs-outline rounded-xl border-2 border-orange-300 bg-red-950/90 px-3 py-1 text-xs font-extrabold text-orange-200 sm:text-base">
-                    🔥 파괴됨!
+                    {tr('🔥 파괴됨!', '🔥 Burned!')}
                   </span>
                 </div>
               )}
@@ -3220,7 +3362,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {coinGiftShowcase && (
         <div className="pointer-events-none fixed left-1/2 top-1/2 z-[86] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center animate-[hsCardPop_0.35s_ease-out]">
           <div className="hs-title hs-outline mb-1.5 text-lg font-extrabold text-yellow-200 sm:text-2xl">
-            추가 카드 획득 — 동전 한 닢!
+            {tr('추가 카드 획득 — 동전 한 닢!', 'You Go Second — The Coin!')}
           </div>
           <HearthstoneCard card={cardDb.mustGetCard('GAME_005')} playableGlow="GREEN" size="MD" />
         </div>
@@ -3234,14 +3376,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         >
           <span className="truncate">
             {selection.kind === 'ATTACKER'
-              ? '⚔ 공격할 적 영웅 또는 하수인을 클릭하세요'
+              ? tr('⚔ 공격할 적 영웅 또는 하수인을 클릭하세요', '⚔ Choose an enemy hero or minion to attack')
               : selection.kind === 'HERO_POWER'
-                ? '✦ 영웅 능력 대상을 선택하세요'
+                ? tr('✦ 영웅 능력 대상을 선택하세요', '✦ Choose a Hero Power target')
                 : selection.kind === 'CHOOSE_OPTION_TARGET'
-                  ? '✦ 선택한 효과의 대상을 지정하세요'
+                  ? tr('✦ 선택한 효과의 대상을 지정하세요', '✦ Choose a target for the selected option')
                   : selection.needsTarget
-                    ? `✦ [${cardDb.mustGetCard(selection.cardId).name}] 대상을 지정하세요`
-                    : `✦ [${cardDb.mustGetCard(selection.cardId).name}] 소환할 전장 위치를 클릭하세요`}
+                    ? tr(
+                        `✦ [${getCardName(cardDb.mustGetCard(selection.cardId), lang)}] 대상을 지정하세요`,
+                        `✦ Choose target for [${getCardName(cardDb.mustGetCard(selection.cardId), lang)}]`,
+                      )
+                    : tr(
+                        `✦ [${getCardName(cardDb.mustGetCard(selection.cardId), lang)}] 소환할 전장 위치를 클릭하세요`,
+                        `✦ Choose board slot for [${getCardName(cardDb.mustGetCard(selection.cardId), lang)}]`,
+                      )}
           </span>
           <div className="flex shrink-0 items-center gap-1.5">
             {selection.kind === 'ATTACKER' && selection.attackerId !== 'PLAYER_HERO' && (
@@ -3256,7 +3404,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 }}
                 className="hs-brass-btn rounded-lg px-2 py-1 text-[10.5px] font-extrabold text-amber-100"
               >
-                카드 확대
+                {tr('카드 확대', 'Inspect')}
               </button>
             )}
             <button
@@ -3264,7 +3412,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               onClick={() => setSelection(null)}
               className="rounded-lg border border-red-300/75 bg-red-900 px-2 py-1 text-[10.5px] font-extrabold text-white"
             >
-              취소 ✕
+              {tr('취소 ✕', 'Cancel ✕')}
             </button>
           </div>
         </div>
@@ -3324,27 +3472,32 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           {hoveredHistoryItem.isHiddenSecret ? (
             <div className="flex h-32 w-24 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-fuchsia-300 bg-gradient-to-b from-fuchsia-900 to-stone-950 text-center">
               <span className="hs-num text-3xl font-black text-amber-200">?</span>
-              <span className="mt-1 text-[10px] font-extrabold text-fuchsia-200">비공개 비밀</span>
+              <span className="mt-1 text-[10px] font-extrabold text-fuchsia-200">{tr('비공개 비밀', 'Hidden Secret')}</span>
             </div>
           ) : hoveredHistoryItem.kind === 'FATIGUE' || !cardDb.getCard(hoveredHistoryItem.cardId) ? (
             <div className="flex h-32 w-24 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-rose-400 bg-gradient-to-b from-purple-950 to-rose-950 text-center">
               <span className="text-3xl">☠</span>
-              <span className="mt-1 text-[11px] font-extrabold text-rose-200">탈진 피해</span>
+              <span className="mt-1 text-[11px] font-extrabold text-rose-200">{tr('탈진 피해', 'Fatigue')}</span>
             </div>
           ) : (
             <HearthstoneCard card={cardDb.mustGetCard(hoveredHistoryItem.cardId)} size="SM" />
           )}
           <div className="max-w-[200px]">
             <div className="text-xs font-extrabold text-yellow-300">
-              {hoveredHistoryItem.turn}턴 ·{' '}
-              {hoveredHistoryItem.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'}
+              {tr(
+                `${hoveredHistoryItem.turn}턴 · ${hoveredHistoryItem.actorSide === 'PLAYER' ? '아군 행동' : '상대 행동'}`,
+                `Turn ${hoveredHistoryItem.turn} · ${hoveredHistoryItem.actorSide === 'PLAYER' ? 'Your Action' : 'Enemy Action'}`,
+              )}
             </div>
             <div className="mt-1 text-sm font-extrabold text-white">
-              {hoveredHistoryItem.isHiddenSecret ? '비밀 시전 (정체 숨김)' : hoveredHistoryItem.title}
+              {hoveredHistoryItem.isHiddenSecret ? tr('비밀 시전 (정체 숨김)', 'Secret Played') : hoveredHistoryItem.title}
             </div>
             <p className="mt-1 text-xs text-amber-200/85">
               {hoveredHistoryItem.isHiddenSecret
-                ? '발동 조건이 충족될 때까지 어떤 비밀인지 공개되지 않습니다.'
+                ? tr(
+                    '발동 조건이 충족될 때까지 어떤 비밀인지 공개되지 않습니다.',
+                    'Stays hidden until its condition triggers.',
+                  )
                 : hoveredHistoryItem.detail}
             </p>
           </div>
@@ -3373,20 +3526,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           >
             <div className="mb-2.5 flex items-center justify-between border-b border-amber-500/30 pb-2">
               <h3 className="hs-title text-base font-extrabold text-amber-200">
-                전투 행동 기록 (카드를 터치해 확대)
+                {tr('전투 행동 기록 (카드를 터치해 확대)', 'Action History (Tap to Inspect)')}
               </h3>
               <button
                 type="button"
                 onClick={() => setMobileHistoryOpen(false)}
                 className="hs-brass-btn rounded-xl px-2.5 py-1 text-xs font-extrabold text-amber-100"
               >
-                닫기 ✕
+                {tr('닫기 ✕', 'Close ✕')}
               </button>
             </div>
             <div className="flex-1 space-y-2 overflow-y-auto pr-1">
               {matchState.history.length === 0 ? (
                 <div className="py-8 text-center text-xs font-bold text-amber-200/65">
-                  아직 기록된 행동이 없습니다.
+                  {tr('아직 기록된 행동이 없습니다.', 'No actions recorded yet.')}
                 </div>
               ) : (
                 matchState.history.map((item) => {
@@ -3421,16 +3574,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="text-[11px] font-extrabold text-yellow-300">
-                          {item.turn}턴 · {item.actorSide === 'PLAYER' ? '아군' : '상대'} ·{' '}
-                          {item.isHiddenSecret ? '비밀 시전' : item.title}
+                          {tr(
+                            `${item.turn}턴 · ${item.actorSide === 'PLAYER' ? '아군' : '상대'} · ${item.isHiddenSecret ? '비밀 시전' : item.title}`,
+                            `T${item.turn} · ${item.actorSide === 'PLAYER' ? 'You' : 'Enemy'} · ${item.isHiddenSecret ? 'Secret Played' : item.title}`,
+                          )}
                         </div>
                         <div className="truncate text-xs font-bold text-amber-100/90">
-                          {item.isHiddenSecret ? '발동될 때까지 비공개' : item.detail}
+                          {item.isHiddenSecret ? tr('발동될 때까지 비공개', 'Hidden until triggered') : item.detail}
                         </div>
                       </div>
                       {canZoomItem && (
                         <span className="shrink-0 text-[10.5px] font-extrabold text-amber-300">
-                          확대 ›
+                          {tr('확대 ›', 'View ›')}
                         </span>
                       )}
                     </button>
@@ -3444,7 +3599,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* ==================== FLOATING BANNERS & MODALS ==================== */}
 
-      {/* Official koKR Winged Heraldic Turn Change Splash ("나의 턴" / "상대 턴") */}
+      {/* Official Winged Heraldic Turn Change Splash ("나의 턴" / "YOUR TURN") */}
       {matchState.bannerMessage && !vsIntroActive && (
         <div className="pointer-events-none fixed left-1/2 top-1/2 z-[82] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center animate-[hsVictoryBannerPop_0.32s_cubic-bezier(0.2,0.9,0.25,1)]">
           <div className="relative flex min-w-[250px] items-center justify-center px-12 py-5 sm:min-w-[360px] sm:px-16 sm:py-7">
@@ -3452,11 +3607,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               src="/stone-assets/ui/banner_royal_blue.webp"
               alt=""
               className={`pointer-events-none absolute inset-0 h-full w-full object-fill drop-shadow-[0_18px_36px_rgba(0,0,0,0.92)] ${
-                matchState.bannerMessage.includes('상대') ? 'hue-rotate-[140deg] saturate-125' : ''
+                matchState.bannerMessage.includes('상대') || matchState.bannerMessage.includes('ENEMY')
+                  ? 'hue-rotate-[140deg] saturate-125'
+                  : ''
               }`}
             />
             <div className="hs-title hs-outline relative z-10 text-2xl font-extrabold tracking-widest text-amber-100 sm:text-4xl">
-              {matchState.bannerMessage === '내 턴!' ? '나의 턴' : matchState.bannerMessage}
+              {matchState.bannerMessage === '내 턴!' || matchState.bannerMessage === 'YOUR TURN!'
+                ? tr('나의 턴', 'YOUR TURN')
+                : matchState.bannerMessage}
             </div>
           </div>
         </div>
@@ -3501,10 +3660,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 />
               </div>
               <div className="hs-title hs-outline text-lg font-extrabold text-sky-300 sm:text-3xl">
-                {matchState.player.heroNameKo}
+                {getLocalizedHeroInfo(matchState.player.heroClass, lang).name}
               </div>
               <div className="mt-0.5 text-xs font-bold text-amber-200">
-                {CLASSIC_HEROES[matchState.player.heroClass].classNameKo}
+                {getLocalizedHeroInfo(matchState.player.heroClass, lang).className}
               </div>
             </div>
 
@@ -3528,7 +3687,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 />
               </div>
               <div className="hs-title hs-outline text-lg font-extrabold text-red-300 sm:text-3xl">
-                {matchState.opponent.heroNameKo}
+                {getLocalizedHeroInfo(matchState.opponent.heroClass, lang).name}
               </div>
               <div className="mt-0.5 text-xs font-bold text-amber-200">
                 {matchState.opponent.name}
@@ -3538,15 +3697,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         </div>
       )}
 
-      {/* 2. Authentic 1-Click Mulligan (`시작 카드` / `교환할 카드 선택`) Overlay */}
+      {/* 2. Authentic 1-Click Mulligan Overlay */}
       {!vsIntroActive && matchState.phase === 'MULLIGAN' && (
         <div className="fixed inset-0 z-[88] flex flex-col items-center justify-center overflow-y-auto bg-black/80 p-3 text-center backdrop-blur-sm sm:p-4">
           <div className="hs-wood-panel rounded-2xl px-6 py-2 shadow-2xl sm:px-10">
             <h2 className="hs-title hs-outline text-2xl font-extrabold text-amber-200 sm:text-4xl">
-              시작 카드
+              {tr('시작 카드', 'Starting Hand')}
             </h2>
             <p className="mt-0.5 text-xs font-bold text-amber-100/90 sm:text-sm">
-              교환할 카드 선택 ({matchState.firstPlayer === 'PLAYER' ? '선공 · 3장' : '후공 · 4장 + 동전 한 닢'})
+              {tr(
+                `교환할 카드 선택 (${matchState.firstPlayer === 'PLAYER' ? '선공 · 3장' : '후공 · 4장 + 동전 한 닢'})`,
+                `Choose cards to replace (${matchState.firstPlayer === 'PLAYER' ? 'Going First · 3 Cards' : 'Going Second · 4 Cards + The Coin'})`,
+              )}
             </p>
           </div>
 
@@ -3591,7 +3753,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                           ✕
                         </span>
                         <span className="hs-title hs-outline-sm -mt-1 rounded-lg border-2 border-red-300 bg-gradient-to-b from-red-700 to-red-950 px-3 py-0.5 text-xs font-extrabold tracking-widest text-white shadow-xl sm:text-sm">
-                          교체
+                          {tr('교체', 'Replace')}
                         </span>
                       </div>
                     )}
@@ -3606,7 +3768,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     }}
                     className="rounded-full border border-amber-400/50 bg-stone-950/85 px-2.5 py-0.5 text-[10px] font-bold text-amber-200/90 hover:border-amber-200 hover:text-white disabled:opacity-50"
                   >
-                    카드 확대
+                    {tr('카드 확대', 'Inspect')}
                   </button>
                 </div>
               );
@@ -3620,7 +3782,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               onClick={confirmMulliganNow}
               className="hs-arcane-btn hs-title hs-outline-sm rounded-2xl px-12 py-2.5 text-xl font-extrabold tracking-widest text-white shadow-[0_12px_28px_rgba(0,0,0,0.9)] disabled:opacity-75 sm:px-16 sm:py-3 sm:text-2xl"
             >
-              {mulliganSwapping ? '교체 중...' : '확인'}
+              {mulliganSwapping ? tr('교체 중...', 'Replacing...') : tr('확인', 'Confirm')}
             </button>
             <button
               type="button"
@@ -3640,7 +3802,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   : 'border-[#c8a158]/80 bg-gradient-to-b from-stone-800 to-stone-950 text-amber-200 hover:border-amber-300'
               }`}
             >
-              <span>{autoPlay ? '⚙ 자동플레이 ON' : '⚙ 자동플레이 OFF'}</span>
+              <span>{autoPlay ? tr('⚙ 자동플레이 ON', '⚙ Auto-Play ON') : tr('⚙ 자동플레이 OFF', '⚙ Auto-Play OFF')}</span>
             </button>
           </div>
         </div>
@@ -3650,7 +3812,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {matchState.chooseOnePrompt && (
         <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/82 p-3 text-center backdrop-blur-sm sm:p-4">
           <h3 className="hs-title hs-outline mb-3 text-xl font-extrabold text-amber-200 sm:mb-4 sm:text-2xl">
-            선택 — 사용할 효과를 고르세요
+            {tr('선택 — 사용할 효과를 고르세요', 'Choose One')}
           </h3>
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
             {matchState.chooseOnePrompt.options.map((opt) => {
@@ -3705,10 +3867,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {matchState.trackingPrompt && (
         <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center overflow-y-auto bg-black/82 p-3 text-center backdrop-blur-sm sm:p-4">
           <h3 className="hs-title hs-outline mb-1.5 text-xl font-extrabold text-emerald-300 sm:mb-2 sm:text-2xl">
-            추적 — 손으로 가져올 카드 1장 선택
+            {tr('추적 — 손으로 가져올 카드 1장 선택', 'Tracking — Choose a card to draw')}
           </h3>
           <p className="mb-4 text-xs font-bold text-amber-200/85 sm:mb-5">
-            선택하지 않은 나머지 카드는 버려집니다 (우클릭으로 확대 확인 가능).
+            {tr(
+              '선택하지 않은 나머지 카드는 버려집니다 (우클릭으로 확대 확인 가능).',
+              'The other two cards are discarded (right-click to inspect).',
+            )}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-5">
             {matchState.trackingPrompt.cards.map((cid, idx) => (
@@ -3782,12 +3947,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 matchState.winner === 'PLAYER' ? 'text-yellow-300' : 'text-slate-300'
               }`}
             >
-              {matchState.winner === 'PLAYER' ? '승리!' : '패배'}
+              {matchState.winner === 'PLAYER' ? tr('승리!', 'Victory!') : tr('패배', 'Defeat')}
             </h2>
             <p className="relative z-10 mt-1 text-xs font-bold text-amber-200/90">
               {matchState.winner === 'PLAYER'
-                ? `${matchState.opponent.name}의 초상화가 산산조각 나며 승리를 거두었습니다!`
-                : '아군 영웅이 쓰러졌습니다. 덱을 가다듬고 다시 도전해 보세요!'}
+                ? tr(
+                    `${matchState.opponent.name}의 초상화가 산산조각 나며 승리를 거두었습니다!`,
+                    `${matchState.opponent.name} was defeated!`,
+                  )
+                : tr(
+                    '아군 영웅이 쓰러졌습니다. 덱을 가다듬고 다시 도전해 보세요!',
+                    'Your hero has fallen. Refine your deck and try again!',
+                  )}
             </p>
 
             {outcomeSummary && (
@@ -3795,20 +3966,28 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 {outcomeSummary.goldEarned > 0 && (
                   <div className="flex items-center justify-center gap-1.5 font-extrabold text-yellow-300">
                     <HsGoldCoinIcon size={20} />
-                    <span>승리 · 퀘스트 보상: +{outcomeSummary.goldEarned} 골드 획득!</span>
+                    <span>
+                      {tr(
+                        `승리 · 퀘스트 보상: +${outcomeSummary.goldEarned} 골드 획득!`,
+                        `Victory · Quest Reward: +${outcomeSummary.goldEarned} Gold!`,
+                      )}
+                    </span>
                   </div>
                 )}
                 {mode === 'RANKED' && (
                   <div className="text-xs font-bold text-amber-100">
-                    등급 현황:{' '}
+                    {tr('등급 현황:', 'Ranked Progress:')}{' '}
                     <span className="text-sky-300">
                       {outcomeSummary.newRank === 0
-                        ? '전설 등급!'
-                        : `${outcomeSummary.newRank}등급 (${CLASSIC_RANK_NAMES[outcomeSummary.newRank]}) · ★${outcomeSummary.newStars}`}
+                        ? tr('전설 등급!', 'Legend Rank!')
+                        : tr(
+                            `${outcomeSummary.newRank}등급 (${getRankTitle(outcomeSummary.newRank, lang)}) · ★${outcomeSummary.newStars}`,
+                            `Rank ${outcomeSummary.newRank} (${getRankTitle(outcomeSummary.newRank, lang)}) · ★${outcomeSummary.newStars}`,
+                          )}
                     </span>
                     {outcomeSummary.streakBonus && (
                       <span className="ml-1.5 rounded bg-amber-600 px-1.5 py-0.5 text-[10px] text-white">
-                        연승 별 ×2!
+                        {tr('연승 별 ×2!', 'Win Streak ×2!')}
                       </span>
                     )}
                   </div>
@@ -3825,7 +4004,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               }}
               className="hs-arcane-btn hs-title hs-outline-sm relative z-10 w-full rounded-2xl py-3 text-lg font-extrabold text-white"
             >
-              계속
+              {tr('계속', 'Continue')}
             </button>
           </div>
         </div>

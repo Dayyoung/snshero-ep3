@@ -2,6 +2,22 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 15:48 KST] [`stone.html` 좌상단 하스스톤 로고/타이틀 홈(`/`) 이동 링크 교체 및 영/한 글로벌 언어팩(기본 영어 · 한국어 브라우저 자동 감지 · 메뉴 실시간 전환) 개발·적용 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 허브 좌상단 버튼 → 하스스톤 로고 & 타이틀 홈 링크 교체 ([`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/BoxHubScreen.tsx))**:
+    - 기존 상단 좌측 `일지` 및 `원본 검증` 2개 버튼을 제거하고, 공식 타이틀 로고(`/stone-assets/ui/hs_titlelogo.webp`)와 타이틀(`Hearthstone · Heroes of Warcraft` / `하스스톤 · 워크래프트의 영웅들`)이 결합된 `<a href="/">` 버튼(`[data-testid="stone-hub-home-logo"]`)으로 교체해 클릭 시 `/`로 즉시 이동하도록 적용(하단 트레이 `퀘스트`/`Quests` 및 메뉴 내 `REA` 검증 진입 경로는 유지).
+  - **2. 메뉴 언어 설정(Language) 추가 및 브라우저 로케일 기반 기본 언어 자동 감지 ([`Modals.tsx`](file:///Users/dayyoung/project/snshero/src/stone/components/Modals.tsx), [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/stone/HearthstoneApp.tsx), [`stone.html`](file:///Users/dayyoung/project/snshero/stone.html))**:
+    - `GameOptionsModal` 최상단에 `Language / 언어 설정` 세그먼트 토글(`English` | `한국어`, `[data-testid="stone-options-language-selector"]`) 추가 및 [`heroLang.ts`](file:///Users/dayyoung/project/snshero/src/i18n/heroLang.ts) 연동.
+    - 한국어 브라우저(`ko*`) 접속 시 자동으로 한국어(`ko`), 비한국어 브라우저 접속 시 기본 영어(`en`)가 적용되며, `html[lang]`과 `document.title`까지 동적 동기화되도록 구현(`useHeroLanguage` 구독 및 `HearthstoneApp` `useEffect` 루프 방지 처리 완료).
+  - **3. 공식 `enUS` 382+123 카드 메타데이터 및 전 화면 영/한 언어팩 구축 ([`classic-cards.json`](file:///Users/dayyoung/project/snshero/public/stone-assets/data/classic-cards.json), [`i18nData.ts`](file:///Users/dayyoung/project/snshero/src/stone/i18nData.ts), [`cardDb.ts`](file:///Users/dayyoung/project/snshero/src/stone/cardDb.ts))**:
+    - 수집 가능 카드 **382종 + 토큰 123종 전수**(382장 동결 원칙 엄수)에 공식 Blizzard `enUS` 영문 이름(`nameEn`), 효과(`textEn`), 플레이버 텍스트(`flavorEn`) 주입 및 카드 이미지 렌더 URL(`koKR` / `enUS`) 언어별 실시간 전환 연동.
+    - [`src/stone/i18nData.ts`](file:///Users/dayyoung/project/snshero/src/stone/i18nData.ts)에 9대 클래식 영웅/영웅능력/감정표현, 등급 25~0(`CLASSIC_RANK_NAMES_EN`), 프리셋 덱명, 카드 뒷면명, 종족·희귀도·유형 라벨, 매칭 룰렛(`SPINNER_TITLES_EN`), 엔진 에러 번역 매핑 구축.
+    - [`TavernIntroScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/TavernIntroScreen.tsx), [`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/HeroDeckSelectScreen.tsx), [`CollectionScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/CollectionScreen.tsx), [`PackOpeningScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/PackOpeningScreen.tsx), [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/BattleScreen.tsx), [`CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/stone/components/CardVisual.tsx), [`CardZoomModal.tsx`](file:///Users/dayyoung/project/snshero/src/stone/components/CardZoomModal.tsx), [`BoardVfxCanvas.tsx`](file:///Users/dayyoung/project/snshero/src/stone/vfx/BoardVfxCanvas.tsx), [`storage.ts`](file:///Users/dayyoung/project/snshero/src/stone/storage.ts), [`GameEngine.ts`](file:///Users/dayyoung/project/snshero/src/stone/engine/GameEngine.ts), [`cardEffects.ts`](file:///Users/dayyoung/project/snshero/src/stone/engine/cardEffects.ts), [`aiController.ts`](file:///Users/dayyoung/project/snshero/src/stone/engine/aiController.ts) 전수 영/한 동적 현지화(전장 영웅 능력 버튼 라벨 포함).
+  - **4. 타입체크 · 프로덕션 빌드 · Playwright 이중 로케일 E2E 검증 완료**:
+    - `npx tsc --noEmit` 및 `npm run build` 에러 `0`건 통과, `classic-cards.json` 382장 + 123토큰 무결성 유지.
+    - Playwright E2E 검증(`en-US` 기본 영어 인트로·허브·옵션 실시간 한/영 전환·수집품 `/enUS/` 카드 확대·연습전 멀리건 및 전장 `Fireblast`/`Armor Up!` 확인·좌상단 로고 `/` 이동 + `ko-KR` 자동 한국어 적용) 전체 통과, 콘솔·페이지 에러 각 `0`건.
+
 ## [2026-11-16 14:59 KST] [스토리모드(`카단의 여정`) 박진감 전면 개편 — 5컷 웹툰 인트로 제거, `제N화 - 제목` VS 직행, 전장 상반신 교차 대사(최대 6대사) 및 승리 시 성물 획득/승리 멘트 분기 구현 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import {
   CLASS_CREST_URL,
@@ -14,9 +15,17 @@ import {
   HearthstoneCard,
   HsArcaneDustVialIcon,
   HsManaGem,
-  RACE_KO,
 } from '../components/CardVisual';
 import { CardZoomAction, CardZoomModal } from '../components/CardZoomModal';
+import {
+  getCardName,
+  getCardText,
+  getClassLabel,
+  getDeckDisplayName,
+  getLocalizedHeroInfo,
+  getRaceLabel,
+  getRarityLabel,
+} from '../i18nData';
 import { hsStorage } from '../storage';
 import {
   CLASSIC_HEROES,
@@ -28,31 +37,28 @@ import {
   HeroClass,
 } from '../types';
 
-const RARITY_KO: Record<CardRarity, string> = {
-  FREE: '기본',
-  COMMON: '일반',
-  RARE: '희귀',
-  EPIC: '특급',
-  LEGENDARY: '전설',
-};
-
-const RARITY_FILTER_OPTIONS: { id: 'ALL' | CardRarity; label: string; dotColor: string }[] = [
-  { id: 'ALL', label: '전체 등급', dotColor: '#e2e8f0' },
-  { id: 'FREE', label: '기본', dotColor: '#94a3b8' },
-  { id: 'COMMON', label: '일반', dotColor: '#f8fafc' },
-  { id: 'RARE', label: '희귀', dotColor: '#3b82f6' },
-  { id: 'EPIC', label: '특급', dotColor: '#a855f7' },
-  { id: 'LEGENDARY', label: '전설', dotColor: '#f59e0b' },
+const RARITY_FILTER_DOTS: { id: 'ALL' | CardRarity; dotColor: string }[] = [
+  { id: 'ALL', dotColor: '#e2e8f0' },
+  { id: 'FREE', dotColor: '#94a3b8' },
+  { id: 'COMMON', dotColor: '#f8fafc' },
+  { id: 'RARE', dotColor: '#3b82f6' },
+  { id: 'EPIC', dotColor: '#a855f7' },
+  { id: 'LEGENDARY', dotColor: '#f59e0b' },
 ];
 
 const ALL_CLASS_TABS: CardClass[] = [...HERO_CLASS_ORDER, 'NEUTRAL'];
-const sortBinderCards = (a: ClassicCardDef, b: ClassicCardDef) =>
-  a.cost - b.cost || a.name.localeCompare(b.name, 'ko');
 
 export const CollectionScreen: React.FC<{
   onBack: () => void;
   onProfileChanged: () => void;
 }> = ({ onBack, onProfileChanged }) => {
+  const { lang, isKo, tr } = useHeroLanguage();
+  const sortBinderCards = useCallback(
+    (a: ClassicCardDef, b: ClassicCardDef) =>
+      a.cost - b.cost ||
+      getCardName(a, lang).localeCompare(getCardName(b, lang), lang === 'ko' ? 'ko' : 'en'),
+    [lang],
+  );
   const [collection, setCollection] = useState(() => hsStorage.getCollection());
   const [decks, setDecks] = useState<CustomDeck[]>(() => hsStorage.getDecks());
   const [profile, setProfile] = useState(() => hsStorage.getProfile());
@@ -120,9 +126,10 @@ export const CollectionScreen: React.FC<{
       if (rarityFilter !== 'ALL' && c.rarity !== rarityFilter) return false;
       const q = searchQuery.trim().toLowerCase();
       if (q) {
-        const raceKo = c.race ? RACE_KO[c.race] || '' : '';
-        const rarityKo = RARITY_KO[c.rarity] || '';
-        const hay = `${c.name} ${c.text} ${raceKo} ${rarityKo} ${c.rarity}`.toLowerCase();
+        const raceKo = c.race ? getRaceLabel(c.race, 'ko') : '';
+        const raceEn = c.race ? getRaceLabel(c.race, 'en') : '';
+        const rarityKo = getRarityLabel(c.rarity, 'ko');
+        const hay = `${c.name} ${c.nameEn || ''} ${c.text} ${c.textEn || ''} ${raceKo} ${raceEn} ${rarityKo} ${c.rarity}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -135,7 +142,7 @@ export const CollectionScreen: React.FC<{
       .getAllCollectible()
       .filter((c) => c.cardClass === activeTab && matchesBaseFilters(c))
       .sort(sortBinderCards);
-  }, [activeTab, matchesBaseFilters]);
+  }, [activeTab, matchesBaseFilters, sortBinderCards]);
 
   // 전체 카드첩 순회 리스트: 9개 직업 + 중립 전수(기본 382장 전체, 덱 편집 시 해당 직업+중립 전체)를 탭·비용·이름 순으로 연결
   const allNavigableCards = useMemo(() => {
@@ -151,7 +158,7 @@ export const CollectionScreen: React.FC<{
       ordered.push(...group);
     }
     return ordered;
-  }, [editingDeck, matchesBaseFilters]);
+  }, [editingDeck, matchesBaseFilters, sortBinderCards]);
 
   const allFallbackCards = useMemo(() => {
     const allCollectible = cardDb.getAllCollectible();
@@ -162,7 +169,7 @@ export const CollectionScreen: React.FC<{
       );
     }
     return ordered;
-  }, []);
+  }, [sortBinderCards]);
 
   const PAGE_SIZE = 8;
   const totalPages = Math.max(1, Math.ceil(filteredCards.length / PAGE_SIZE));
@@ -225,11 +232,16 @@ export const CollectionScreen: React.FC<{
     const owned = collection[card.id] || 0;
     if (owned <= 0) {
       setInspectCard(card);
-      showNotice('미보유 카드입니다. 상세 창에서 신비한 가루로 즉시 제작할 수 있습니다.');
+      showNotice(
+        tr(
+          '미보유 카드입니다. 상세 창에서 신비한 가루로 즉시 제작할 수 있습니다.',
+          'You do not own this card. Tap Inspect to craft it with Arcane Dust.',
+        ),
+      );
       return;
     }
     if (editingDeck.cards.length >= 30) {
-      showNotice('덱이 이미 30장으로 가득 찼습니다.');
+      showNotice(tr('덱이 이미 30장으로 가득 찼습니다.', 'Deck already has 30 cards.'));
       return;
     }
     const inDeckCount = editingDeck.cards.filter((cid) => cid === card.id).length;
@@ -237,13 +249,18 @@ export const CollectionScreen: React.FC<{
     if (inDeckCount >= maxCopy) {
       showNotice(
         card.rarity === 'LEGENDARY'
-          ? '전설 카드는 덱에 1장만 편성할 수 있습니다.'
-          : '동일 카드는 덱에 최대 2장까지 편성할 수 있습니다.',
+          ? tr('전설 카드는 덱에 1장만 편성할 수 있습니다.', 'Only 1 Legendary copy allowed per deck.')
+          : tr('동일 카드는 덱에 최대 2장까지 편성할 수 있습니다.', 'Max 2 copies of a card allowed per deck.'),
       );
       return;
     }
     if (inDeckCount >= owned) {
-      showNotice(`현재 이 카드를 ${owned}장 보유 중입니다.`);
+      showNotice(
+        tr(
+          `현재 이 카드를 ${owned}장 보유 중입니다.`,
+          `You only own ${owned} cop${owned === 1 ? 'y' : 'ies'} of this card.`,
+        ),
+      );
       return;
     }
 
@@ -301,7 +318,12 @@ export const CollectionScreen: React.FC<{
     hsStorage.saveDecks(updated);
     setDecks(updated);
     hsAudio.playSfx('menu_select');
-    showNotice(`덱이 ${current.length}/30장으로 자동 완성되었습니다.`);
+    showNotice(
+      tr(
+        `덱이 ${current.length}/30장으로 자동 완성되었습니다.`,
+        `Deck auto-completed (${current.length}/30 cards).`,
+      ),
+    );
   };
 
   const handleCopyDeckCode = async (deck: CustomDeck) => {
@@ -309,16 +331,26 @@ export const CollectionScreen: React.FC<{
     try {
       await navigator.clipboard.writeText(code);
       hsAudio.playSfx('menu_select', 0.8);
-      showNotice('클립보드에 하스스톤 덱 공유 코드가 복사되었습니다!');
+      showNotice(
+        tr(
+          '클립보드에 하스스톤 덱 공유 코드가 복사되었습니다!',
+          'Deck share code copied to clipboard!',
+        ),
+      );
     } catch {
-      window.prompt('아래 덱 공유 코드를 복사하세요:', code);
+      window.prompt(tr('아래 덱 공유 코드를 복사하세요:', 'Copy your Deck Share Code:'), code);
     }
   };
 
   const handleImportDeckCode = () => {
     const parsed = decodeDeckShareCode(importCodeText);
     if (!parsed) {
-      showNotice('유효하지 않은 덱 코드입니다. HSCLASSIC1:... 형식을 확인하세요.');
+      showNotice(
+        tr(
+          '유효하지 않은 덱 코드입니다. HSCLASSIC1:... 형식을 확인하세요.',
+          'Invalid deck code. Check HSCLASSIC1:... format.',
+        ),
+      );
       return;
     }
     const validCards: string[] = [];
@@ -336,9 +368,10 @@ export const CollectionScreen: React.FC<{
         }
       }
     }
+    const importedClassName = getLocalizedHeroInfo(parsed.heroClass, lang).className;
     const newDeck: CustomDeck = {
       id: `deck_${Date.now()}`,
-      name: parsed.name || `불러온 ${CLASSIC_HEROES[parsed.heroClass].classNameKo} 덱`,
+      name: parsed.name || tr(`불러온 ${importedClassName} 덱`, `Imported ${importedClassName}`),
       heroClass: parsed.heroClass,
       cards: validCards,
     };
@@ -350,15 +383,20 @@ export const CollectionScreen: React.FC<{
     setEditingDeckId(newDeck.id);
     setActiveTab(newDeck.heroClass);
     hsAudio.playSfx('cm_select_hero');
-    showNotice(`[${newDeck.name}] (${validCards.length}/30장) 덱을 불러왔습니다!`);
+    showNotice(
+      tr(
+        `[${newDeck.name}] (${validCards.length}/30장) 덱을 불러왔습니다!`,
+        `Imported [${newDeck.name}] (${validCards.length}/30 cards)!`,
+      ),
+    );
   };
 
   const handleCreateDeck = (heroClass: HeroClass) => {
-    const className = CLASSIC_HEROES[heroClass].classNameKo;
+    const className = getLocalizedHeroInfo(heroClass, lang).className;
     const customNum = decks.filter((d) => d.heroClass === heroClass).length + 1;
     const newDeck: CustomDeck = {
       id: `deck_${Date.now()}`,
-      name: `나만의 ${className} #${customNum}`,
+      name: tr(`나만의 ${className} #${customNum}`, `Custom ${className} #${customNum}`),
       heroClass,
       cards: [],
     };
@@ -373,7 +411,7 @@ export const CollectionScreen: React.FC<{
 
   const handleDeleteDeck = (deckId: string) => {
     if (decks.length <= 1) {
-      showNotice('최소 1개의 덱은 남겨두어야 합니다.');
+      showNotice(tr('최소 1개의 덱은 남겨두어야 합니다.', 'You must keep at least 1 deck.'));
       return;
     }
     const updated = decks.filter((d) => d.id !== deckId);
@@ -430,7 +468,7 @@ export const CollectionScreen: React.FC<{
             }}
             className="hs-brass-btn min-h-[38px] rounded-xl px-2.5 py-1 text-xs font-extrabold text-amber-100 sm:px-3.5 sm:py-1.5 sm:text-sm"
           >
-            ← <span className="hidden sm:inline">여관 </span>상자로
+            ← {isKo ? (<><span className="hidden sm:inline">여관 </span>상자로</>) : 'Back'}
           </button>
 
           <div className="flex items-center gap-2">
@@ -441,10 +479,10 @@ export const CollectionScreen: React.FC<{
             />
             <div>
               <h1 className="hs-title text-sm font-extrabold tracking-wide text-amber-100 sm:text-xl">
-                내 카드첩 · 덱 빌더
+                {tr('내 카드첩 · 덱 빌더', 'My Collection · Deck Builder')}
               </h1>
               <div className="text-[10px] font-bold text-amber-300/85 sm:text-[10.5px]">
-                수집 현황: {ownedUniqueCount} / 382종
+                {tr(`수집 현황: ${ownedUniqueCount} / 382종`, `Collected: ${ownedUniqueCount} / 382 Cards`)}
               </div>
             </div>
           </div>
@@ -453,7 +491,7 @@ export const CollectionScreen: React.FC<{
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <div className="flex items-center gap-1 rounded-xl border border-sky-400/50 bg-slate-950/85 px-2.5 py-1 text-[11px] font-extrabold text-sky-200 shadow-inner sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-xs">
             <HsArcaneDustVialIcon size={16} />
-            <span className="hidden sm:inline">신비한 가루</span>
+            <span className="hidden sm:inline">{tr('신비한 가루', 'Arcane Dust')}</span>
             <span className="hs-num ml-0.5 text-xs text-white sm:text-sm">{profile.arcaneDust}</span>
           </div>
 
@@ -465,15 +503,23 @@ export const CollectionScreen: React.FC<{
                 hsAudio.playSfx('purchase');
                 syncAll();
                 showNotice(
-                  `여분 카드 ${res.count}장을 추출하여 +${res.dustGained} 신비한 가루를 획득했습니다!`,
+                  tr(
+                    `여분 카드 ${res.count}장을 추출하여 +${res.dustGained} 신비한 가루를 획득했습니다!`,
+                    `Disenchanted ${res.count} extra cards for +${res.dustGained} Arcane Dust!`,
+                  ),
                 );
               } else {
-                showNotice('추출할 여분(3장 이상 중복) 카드가 없습니다.');
+                showNotice(
+                  tr(
+                    '추출할 여분(3장 이상 중복) 카드가 없습니다.',
+                    'No extra duplicate cards to disenchant.',
+                  ),
+                );
               }
             }}
             className="hs-brass-btn min-h-[36px] rounded-xl px-2.5 py-1 text-[11px] font-extrabold text-sky-200 sm:px-3 sm:py-1.5 sm:text-xs"
           >
-            여분 추출
+            {tr('여분 추출', 'Disenchant Extra')}
           </button>
 
           <button
@@ -482,11 +528,16 @@ export const CollectionScreen: React.FC<{
               hsStorage.unlockMasterCollection();
               hsAudio.playSfx('pack_legendary');
               syncAll();
-              showNotice('오리지널 수집 카드 382종 전체 해금이 완료되었습니다!');
+              showNotice(
+                tr(
+                  '오리지널 수집 카드 382종 전체 해금이 완료되었습니다!',
+                  'Unlocked all 382 Classic collectible cards!',
+                ),
+              );
             }}
             className="hs-arcane-btn min-h-[36px] rounded-xl px-2.5 py-1 text-[11px] font-extrabold text-white sm:px-3 sm:py-1.5 sm:text-xs"
           >
-            전체해금
+            {tr('전체해금', 'Unlock All')}
           </button>
         </div>
       </header>
@@ -505,7 +556,7 @@ export const CollectionScreen: React.FC<{
               : 'border-amber-500/35 bg-stone-900 text-amber-200/80'
           }`}
         >
-          <span>카드첩 보기 ({ownedUniqueCount}/382)</span>
+          <span>{tr(`카드첩 보기 (${ownedUniqueCount}/382)`, `Collection (${ownedUniqueCount}/382)`)}</span>
         </button>
         <button
           type="button"
@@ -521,8 +572,11 @@ export const CollectionScreen: React.FC<{
         >
           <span>
             {editingDeck
-              ? `편집 중: ${editingDeck.name} (${editingDeck.cards.length}/30)`
-              : `내 덱 목록 (${decks.length}개)`}
+              ? tr(
+                  `편집 중: ${getDeckDisplayName(editingDeck.id, editingDeck.name, editingDeck.heroClass, lang)} (${editingDeck.cards.length}/30)`,
+                  `Editing: ${getDeckDisplayName(editingDeck.id, editingDeck.name, editingDeck.heroClass, lang)} (${editingDeck.cards.length}/30)`,
+                )
+              : tr(`내 덱 목록 (${decks.length}개)`, `My Decks (${decks.length})`)}
           </span>
         </button>
       </div>
@@ -553,8 +607,7 @@ export const CollectionScreen: React.FC<{
             {([...HERO_CLASS_ORDER, 'NEUTRAL'] as CardClass[]).map((cls) => {
               const disabled =
                 Boolean(editingDeck) && cls !== editingDeck!.heroClass && cls !== 'NEUTRAL';
-              const label =
-                cls === 'NEUTRAL' ? '중립' : CLASSIC_HEROES[cls as HeroClass].classNameKo;
+              const label = getClassLabel(cls, lang);
               const active = activeTab === cls;
               return (
                 <button
@@ -601,7 +654,7 @@ export const CollectionScreen: React.FC<{
                   hsAudio.playSfx('card_flip', 0.8);
                   setPage((p) => Math.max(0, p - 1));
                 }}
-                title="이전 페이지"
+                title={tr('이전 페이지', 'Previous Page')}
                 className="hs-brass-btn absolute left-1 top-1/2 z-30 flex h-12 w-8 -translate-y-1/2 items-center justify-center rounded-full text-base font-extrabold text-amber-100 sm:left-1.5 sm:h-14 sm:w-9 sm:text-lg"
               >
                 ◀
@@ -614,7 +667,7 @@ export const CollectionScreen: React.FC<{
                   hsAudio.playSfx('card_flip', 0.8);
                   setPage((p) => Math.min(totalPages - 1, p + 1));
                 }}
-                title="다음 페이지"
+                title={tr('다음 페이지', 'Next Page')}
                 className="hs-brass-btn absolute right-1 top-1/2 z-30 flex h-12 w-8 -translate-y-1/2 items-center justify-center rounded-full text-base font-extrabold text-amber-100 sm:right-1.5 sm:h-14 sm:w-9 sm:text-lg"
               >
                 ▶
@@ -628,6 +681,7 @@ export const CollectionScreen: React.FC<{
                 const inDeck = editingDeck
                   ? editingDeck.cards.filter((cid) => cid === card.id).length
                   : 0;
+                const cardTitle = getCardName(card, lang);
                 return (
                   <div
                     key={card.id}
@@ -659,7 +713,10 @@ export const CollectionScreen: React.FC<{
                             if (canQuickAdd) {
                               handleAddCardToDeck(card);
                               showNotice(
-                                `[${card.name}] 덱에 추가 (${editingDeck.cards.length + 1}/30)`,
+                                tr(
+                                  `[${cardTitle}] 덱에 추가 (${editingDeck.cards.length + 1}/30)`,
+                                  `Added [${cardTitle}] (${editingDeck.cards.length + 1}/30)`,
+                                ),
                               );
                               return;
                             }
@@ -671,7 +728,7 @@ export const CollectionScreen: React.FC<{
                       />
                       {editingDeck && inDeck > 0 && (
                         <span className="hs-num pointer-events-none absolute right-1.5 top-2 z-30 rounded-full border border-emerald-200 bg-emerald-700 px-1.5 py-0.5 text-[9.5px] text-white shadow sm:right-2 sm:top-3 sm:px-2 sm:text-[10px]">
-                          덱 {inDeck}
+                          {tr('덱', 'In Deck')} {inDeck}
                         </span>
                       )}
                     </div>
@@ -685,7 +742,7 @@ export const CollectionScreen: React.FC<{
                             : 'border-sky-800/60 bg-sky-950/85 text-sky-200'
                         }`}
                       >
-                        {owned > 0 ? `보유 ×${owned}` : '미보유'}
+                        {owned > 0 ? tr(`보유 ×${owned}`, `Owned ×${owned}`) : tr('미보유', 'Missing')}
                       </span>
                       <button
                         type="button"
@@ -695,7 +752,7 @@ export const CollectionScreen: React.FC<{
                         }}
                         className="rounded-md border border-[#96703c] bg-[#fbf3df] px-1.5 py-0.5 text-[9.5px] font-extrabold text-[#3d2511] shadow-sm hover:bg-[#f2dfb7] sm:px-2 sm:text-[10px]"
                       >
-                        확대
+                        {tr('확대', 'Inspect')}
                       </button>
                     </div>
                   </div>
@@ -704,7 +761,10 @@ export const CollectionScreen: React.FC<{
 
               {pageCards.length === 0 && (
                 <div className="col-span-full py-12 text-center text-sm font-extrabold text-[#5c3d1e]">
-                  검색 및 마나/등급 필터와 일치하는 카드가 없습니다.
+                  {tr(
+                    '검색 및 마나/등급 필터와 일치하는 카드가 없습니다.',
+                    'No cards match the current search and Mana/Rarity filters.',
+                  )}
                 </div>
               )}
             </div>
@@ -726,7 +786,7 @@ export const CollectionScreen: React.FC<{
                         : 'border-[#8f6a38]/50 bg-[#efe0be] text-[#3a2310] hover:bg-[#e5d0a3]'
                     }`}
                   >
-                    전체
+                    {tr('전체', 'All')}
                   </button>
                   {[0, 1, 2, 3, 4, 5, 6, 7].map((m) => {
                     const active = manaFilter === m;
@@ -753,27 +813,31 @@ export const CollectionScreen: React.FC<{
 
                 {/* Rarity Gem Filter (Now Visible on Mobile Portrait AND Desktop!) */}
                 <div className="hs-no-scrollbar flex items-center gap-1 overflow-x-auto rounded-xl border border-[#8f6a38]/45 bg-[#efe1c0] px-1.5 py-0.5">
-                  {RARITY_FILTER_OPTIONS.map((rf) => (
-                    <button
-                      key={rf.id}
-                      type="button"
-                      onClick={() => {
-                        setRarityFilter(rf.id);
-                        setPage(0);
-                      }}
-                      className={`flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[10px] font-extrabold transition sm:px-2 sm:text-[10.5px] ${
-                        rarityFilter === rf.id
-                          ? 'bg-[#3e2612] text-amber-100 shadow'
-                          : 'text-[#4a2e16] hover:bg-[#e2cfa4]'
-                      }`}
-                    >
-                      <span
-                        style={{ backgroundColor: rf.dotColor }}
-                        className="h-2 w-2 rounded-full border border-black/40"
-                      />
-                      <span>{rf.label}</span>
-                    </button>
-                  ))}
+                  {RARITY_FILTER_DOTS.map((rf) => {
+                    const rfLabel =
+                      rf.id === 'ALL' ? tr('전체 등급', 'All Rarities') : getRarityLabel(rf.id, lang);
+                    return (
+                      <button
+                        key={rf.id}
+                        type="button"
+                        onClick={() => {
+                          setRarityFilter(rf.id);
+                          setPage(0);
+                        }}
+                        className={`flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[10px] font-extrabold transition sm:px-2 sm:text-[10.5px] ${
+                          rarityFilter === rf.id
+                            ? 'bg-[#3e2612] text-amber-100 shadow'
+                            : 'text-[#4a2e16] hover:bg-[#e2cfa4]'
+                        }`}
+                      >
+                        <span
+                          style={{ backgroundColor: rf.dotColor }}
+                          className="h-2 w-2 rounded-full border border-black/40"
+                        />
+                        <span>{rfLabel}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -786,7 +850,7 @@ export const CollectionScreen: React.FC<{
                     setSearchQuery(e.target.value);
                     setPage(0);
                   }}
-                  placeholder="카드명 · 효과 · 종족 검색..."
+                  placeholder={tr('카드명 · 효과 · 종족 검색...', 'Search name, text, tribe...')}
                   className="min-w-0 flex-1 rounded-xl border border-[#8a6534] bg-[#fdf8ed] px-2.5 py-1 text-xs font-bold text-stone-900 shadow-inner placeholder:text-stone-400 focus:border-sky-600 focus:outline-none sm:max-w-xs sm:px-3"
                 />
 
@@ -803,7 +867,7 @@ export const CollectionScreen: React.FC<{
                         : 'border-[#8a6534] bg-[#efe1c0] text-[#3a2310]'
                     }`}
                   >
-                    {craftingMode ? '전체 382종' : '보유만'}
+                    {craftingMode ? tr('전체 382종', 'Crafting (382)') : tr('보유만', 'Owned Only')}
                   </button>
 
                   <span className="hs-num rounded-lg bg-[#422813] px-2 py-1 text-[11px] text-amber-100 sm:px-2.5 sm:text-xs">
@@ -825,7 +889,7 @@ export const CollectionScreen: React.FC<{
             <>
               <div className="mb-2.5 flex items-center justify-between gap-1">
                 <h2 className="hs-title text-base font-extrabold text-amber-100">
-                  보유 덱 ({decks.length})
+                  {tr(`보유 덱 (${decks.length})`, `Decks (${decks.length})`)}
                 </h2>
                 <div className="flex items-center gap-1">
                   <button
@@ -833,14 +897,14 @@ export const CollectionScreen: React.FC<{
                     onClick={() => setImportModalOpen((v) => !v)}
                     className="hs-brass-btn rounded-lg px-2 py-1 text-[11px] font-extrabold text-sky-200"
                   >
-                    코드 입력
+                    {tr('코드 입력', 'Import')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCreatingClassPicker((v) => !v)}
                     className="hs-arcane-btn rounded-lg px-2.5 py-1 text-[11px] font-extrabold text-white"
                   >
-                    + 새 덱
+                    {tr('+ 새 덱', '+ New Deck')}
                   </button>
                 </div>
               </div>
@@ -848,13 +912,13 @@ export const CollectionScreen: React.FC<{
               {importModalOpen && (
                 <div className="mb-2.5 rounded-xl border border-sky-400/50 bg-slate-950/90 p-2.5">
                   <div className="mb-1 text-[11px] font-extrabold text-sky-200">
-                    하스스톤 클래식 덱 코드 불러오기
+                    {tr('하스스톤 클래식 덱 코드 불러오기', 'Import Hearthstone Classic Deck Code')}
                   </div>
                   <input
                     type="text"
                     value={importCodeText}
                     onChange={(e) => setImportCodeText(e.target.value)}
-                    placeholder="HSCLASSIC1:... 붙여넣기"
+                    placeholder={tr('HSCLASSIC1:... 붙여넣기', 'Paste HSCLASSIC1:...')}
                     className="w-full rounded-lg border border-sky-500/40 bg-black/70 px-2.5 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none"
                   />
                   <div className="mt-1.5 flex gap-1.5">
@@ -863,14 +927,14 @@ export const CollectionScreen: React.FC<{
                       onClick={handleImportDeckCode}
                       className="hs-arcane-btn flex-1 rounded-lg py-1 text-[11px] font-extrabold text-white"
                     >
-                      덱 생성
+                      {tr('덱 생성', 'Import Deck')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setImportModalOpen(false)}
                       className="hs-brass-btn rounded-lg px-2.5 py-1 text-[11px] font-bold text-amber-200"
                     >
-                      닫기
+                      {tr('닫기', 'Close')}
                     </button>
                   </div>
                 </div>
@@ -890,7 +954,7 @@ export const CollectionScreen: React.FC<{
                         alt=""
                         className="h-4 w-4 rounded-full object-cover"
                       />
-                      <span className="truncate">{CLASSIC_HEROES[hc].classNameKo}</span>
+                      <span className="truncate">{getLocalizedHeroInfo(hc, lang).className}</span>
                     </button>
                   ))}
                 </div>
@@ -899,6 +963,8 @@ export const CollectionScreen: React.FC<{
               <div className="flex-1 space-y-2 overflow-y-auto pr-1">
                 {decks.map((d) => {
                   const dh = CLASSIC_HEROES[d.heroClass];
+                  const dClassLabel = getLocalizedHeroInfo(d.heroClass, lang).className;
+                  const dName = getDeckDisplayName(d.id, d.name, d.heroClass, lang);
                   const complete = d.cards.length === 30;
                   return (
                     <div
@@ -928,18 +994,18 @@ export const CollectionScreen: React.FC<{
                       >
                         <img
                           src={CLASS_CREST_URL[d.heroClass]}
-                          alt={dh.classNameKo}
+                          alt={dClassLabel}
                           className="h-9 w-9 shrink-0 rounded-full border border-amber-200/80 object-cover shadow"
                         />
                         <div className="min-w-0">
                           <div className="hs-outline-sm truncate text-xs font-extrabold text-white">
-                            {d.name}
+                            {dName}
                           </div>
                           <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] font-bold">
-                            <span style={{ color: dh.accentColor }}>{dh.classNameKo}</span>
+                            <span style={{ color: dh.accentColor }}>{dClassLabel}</span>
                             <span className="text-stone-500">·</span>
                             <span className={complete ? 'text-emerald-300' : 'text-amber-300'}>
-                              {d.cards.length}/30장
+                              {tr(`${d.cards.length}/30장`, `${d.cards.length}/30`)}
                             </span>
                           </div>
                         </div>
@@ -949,15 +1015,15 @@ export const CollectionScreen: React.FC<{
                         <button
                           type="button"
                           onClick={() => handleCopyDeckCode(d)}
-                          title="덱 코드 복사"
+                          title={tr('덱 코드 복사', 'Copy Deck Code')}
                           className="rounded-lg border border-sky-400/40 bg-slate-900/90 px-1.5 py-1 text-[10px] font-bold text-sky-200 hover:bg-sky-900"
                         >
-                          복사
+                          {tr('복사', 'Copy')}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteDeck(d.id)}
-                          title="덱 삭제"
+                          title={tr('덱 삭제', 'Delete Deck')}
                           className="rounded-lg border border-red-400/40 bg-red-950/85 px-1.5 py-1 text-[10px] font-bold text-red-200 hover:bg-red-800"
                         >
                           ✕
@@ -995,7 +1061,7 @@ export const CollectionScreen: React.FC<{
                   <div className="min-w-0 flex-1">
                     <input
                       type="text"
-                      value={editingDeck.name}
+                      value={getDeckDisplayName(editingDeck.id, editingDeck.name, editingDeck.heroClass, lang)}
                       onChange={(e) => {
                         const val = e.target.value;
                         const updated = decks.map((d) =>
@@ -1008,7 +1074,10 @@ export const CollectionScreen: React.FC<{
                     />
                     <div className="flex items-center justify-between text-[11px] font-bold">
                       <span style={{ color: CLASSIC_HEROES[editingDeck.heroClass].accentColor }}>
-                        {CLASSIC_HEROES[editingDeck.heroClass].classNameKo} 덱
+                        {tr(
+                          `${CLASSIC_HEROES[editingDeck.heroClass].classNameKo} 덱`,
+                          `${getLocalizedHeroInfo(editingDeck.heroClass, lang).className} Deck`,
+                        )}
                       </span>
                       <span
                         className={`hs-num text-xs ${
@@ -1045,9 +1114,9 @@ export const CollectionScreen: React.FC<{
                   })}
                 </div>
                 <div className="relative z-10 mt-1.5 flex items-center justify-between text-[10px] font-extrabold text-amber-200/90">
-                  <span>하수인 {deckGrouped.minions}</span>
-                  <span>주문 {deckGrouped.spells}</span>
-                  <span>무기 {deckGrouped.weapons}</span>
+                  <span>{tr(`하수인 ${deckGrouped.minions}`, `Minions ${deckGrouped.minions}`)}</span>
+                  <span>{tr(`주문 ${deckGrouped.spells}`, `Spells ${deckGrouped.spells}`)}</span>
+                  <span>{tr(`무기 ${deckGrouped.weapons}`, `Weapons ${deckGrouped.weapons}`)}</span>
                 </div>
               </div>
 
@@ -1057,61 +1126,75 @@ export const CollectionScreen: React.FC<{
                 onClick={() => setMobilePanel('TOME')}
                 className="hs-arcane-btn mb-2 w-full rounded-xl py-1.5 text-xs font-extrabold text-white lg:hidden"
               >
-                + 카드첩에서 카드 선택·추가하기
+                {tr('+ 카드첩에서 카드 선택·추가하기', '+ Add Cards from Collection')}
               </button>
 
               <div className="flex-1 space-y-1 overflow-y-auto pr-1">
-                {deckGrouped.entries.map(({ card, count }) => (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onMouseEnter={() => setHoveredTileCard(card)}
-                    onMouseLeave={() => setHoveredTileCard(null)}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      setHoveredTileCard(null);
-                      setInspectCard(card);
-                    }}
-                    onClick={() => {
-                      handleRemoveCardFromDeck(card.id);
-                      showNotice(`[${card.name}] 카드를 덱에서 1장 뺐습니다.`);
-                    }}
-                    title="클릭하여 덱에서 1장 빼기 · 우클릭하여 카드 확대"
-                    className="group relative flex h-8 w-full items-center justify-between overflow-hidden rounded-md border border-[#b58e4c]/70 bg-[#18110b] pl-1 pr-1.5 text-left shadow transition hover:border-amber-300"
-                  >
-                    {/* Right-Side Cropped Card Art Tile */}
-                    <img
-                      src={getCardTileUrl(card.artId)}
-                      alt=""
-                      className="pointer-events-none absolute right-0 top-0 h-full w-32 object-cover opacity-75 transition group-hover:scale-105"
-                    />
-                    {/* Smooth Dark Fade Mask from Left */}
-                    <div
-                      style={{
-                        background:
-                          'linear-gradient(90deg, #16100a 0%, #16100a 48%, rgba(22,16,10,0.45) 78%, rgba(22,16,10,0.12) 100%)',
+                {deckGrouped.entries.map(({ card, count }) => {
+                  const tileName = getCardName(card, lang);
+                  return (
+                    <button
+                      key={card.id}
+                      type="button"
+                      onMouseEnter={() => setHoveredTileCard(card)}
+                      onMouseLeave={() => setHoveredTileCard(null)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setHoveredTileCard(null);
+                        setInspectCard(card);
                       }}
-                      className="pointer-events-none absolute inset-0"
-                    />
+                      onClick={() => {
+                        handleRemoveCardFromDeck(card.id);
+                        showNotice(
+                          tr(
+                            `[${tileName}] 카드를 덱에서 1장 뺐습니다.`,
+                            `Removed 1× [${tileName}] from deck.`,
+                          ),
+                        );
+                      }}
+                      title={tr(
+                        '클릭하여 덱에서 1장 빼기 · 우클릭하여 카드 확대',
+                        'Click to remove 1 copy · Right-click to inspect',
+                      )}
+                      className="group relative flex h-8 w-full items-center justify-between overflow-hidden rounded-md border border-[#b58e4c]/70 bg-[#18110b] pl-1 pr-1.5 text-left shadow transition hover:border-amber-300"
+                    >
+                      {/* Right-Side Cropped Card Art Tile */}
+                      <img
+                        src={getCardTileUrl(card.artId)}
+                        alt=""
+                        className="pointer-events-none absolute right-0 top-0 h-full w-32 object-cover opacity-75 transition group-hover:scale-105"
+                      />
+                      {/* Smooth Dark Fade Mask from Left */}
+                      <div
+                        style={{
+                          background:
+                            'linear-gradient(90deg, #16100a 0%, #16100a 48%, rgba(22,16,10,0.45) 78%, rgba(22,16,10,0.12) 100%)',
+                        }}
+                        className="pointer-events-none absolute inset-0"
+                      />
 
-                    <div className="relative z-10 flex min-w-0 items-center gap-1.5">
-                      <HsManaGem value={card.cost} size={23} />
-                      <span className="hs-outline-sm truncate text-xs font-extrabold text-white">
-                        {card.name}
-                      </span>
-                    </div>
+                      <div className="relative z-10 flex min-w-0 items-center gap-1.5">
+                        <HsManaGem value={card.cost} size={23} />
+                        <span className="hs-outline-sm truncate text-xs font-extrabold text-white">
+                          {tileName}
+                        </span>
+                      </div>
 
-                    {(card.rarity === 'LEGENDARY' || count > 1) && (
-                      <span className="hs-num relative z-10 ml-1 flex h-5 min-w-5 items-center justify-center rounded border border-amber-300/70 bg-[#2a1a0c]/95 px-1 text-[11px] text-amber-300 shadow">
-                        {card.rarity === 'LEGENDARY' ? '★' : count}
-                      </span>
-                    )}
-                  </button>
-                ))}
+                      {(card.rarity === 'LEGENDARY' || count > 1) && (
+                        <span className="hs-num relative z-10 ml-1 flex h-5 min-w-5 items-center justify-center rounded border border-amber-300/70 bg-[#2a1a0c]/95 px-1 text-[11px] text-amber-300 shadow">
+                          {card.rarity === 'LEGENDARY' ? '★' : count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
 
                 {deckGrouped.entries.length === 0 && (
                   <div className="rounded-xl border border-amber-500/20 bg-black/35 px-3 py-8 text-center text-xs font-semibold text-amber-200/70">
-                    카드첩에서 카드를 클릭해 확대한 뒤 [덱에 넣기]를 누르거나 아래 [자동 완성]을 누르세요.
+                    {tr(
+                      '카드첩에서 카드를 클릭해 확대한 뒤 [덱에 넣기]를 누르거나 아래 [자동 완성]을 누르세요.',
+                      'Tap a card in your Collection to inspect & add it, or tap Auto-Complete below.',
+                    )}
                   </div>
                 )}
               </div>
@@ -1125,7 +1208,7 @@ export const CollectionScreen: React.FC<{
                       onClick={handleAutoCompleteDeck}
                       className="hs-arcane-btn flex-1 rounded-xl py-1.5 text-xs font-extrabold text-white"
                     >
-                      자동 완성
+                      {tr('자동 완성', 'Auto-Complete')}
                     </button>
                   )}
                   <button
@@ -1133,7 +1216,7 @@ export const CollectionScreen: React.FC<{
                     onClick={() => handleCopyDeckCode(editingDeck)}
                     className="hs-brass-btn flex-1 rounded-xl py-1.5 text-xs font-extrabold text-sky-200"
                   >
-                    덱 코드 복사
+                    {tr('덱 코드 복사', 'Copy Code')}
                   </button>
                 </div>
 
@@ -1146,7 +1229,7 @@ export const CollectionScreen: React.FC<{
                   }}
                   className="hs-brass-btn w-full rounded-xl border-emerald-300/80 bg-gradient-to-b from-emerald-600 to-emerald-900 py-2 text-xs font-extrabold text-white"
                 >
-                  덱 편성 완료
+                  {tr('덱 편성 완료', 'Done')}
                 </button>
               </div>
             </>
@@ -1157,6 +1240,7 @@ export const CollectionScreen: React.FC<{
       {/* Unified Card Zoom + Deck Add/Remove + Crafting Modal (Outer Tap Cancels!) */}
       {inspectCard &&
         (() => {
+          const inspectName = getCardName(inspectCard, lang);
           const owned = collection[inspectCard.id] || 0;
           const maxCopy = inspectCard.rarity === 'LEGENDARY' ? 1 : 2;
           const inDeck = editingDeck
@@ -1177,13 +1261,19 @@ export const CollectionScreen: React.FC<{
           if (editingDeck) {
             if (canAddNow) {
               primaryAction = {
-                label: `덱에 카드 넣기 (${editingDeck.cards.length + 1}/30)`,
+                label: tr(
+                  `덱에 카드 넣기 (${editingDeck.cards.length + 1}/30)`,
+                  `Add to Deck (${editingDeck.cards.length + 1}/30)`,
+                ),
                 variant: 'emerald',
                 onClick: () => {
                   const willFillDeck = editingDeck.cards.length + 1 >= 30;
                   handleAddCardToDeck(inspectCard);
                   showNotice(
-                    `[${inspectCard.name}] 카드를 덱에 넣었습니다 (${editingDeck.cards.length + 1}/30)`,
+                    tr(
+                      `[${inspectName}] 카드를 덱에 넣었습니다 (${editingDeck.cards.length + 1}/30)`,
+                      `Added [${inspectName}] to deck (${editingDeck.cards.length + 1}/30)`,
+                    ),
                   );
                   if (willFillDeck) {
                     setInspectCard(null);
@@ -1192,36 +1282,47 @@ export const CollectionScreen: React.FC<{
               };
             } else if (owned === 0 && inspectCard.rarity !== 'FREE') {
               primaryAction = {
-                label: `카드 제작 후 보유 (-${CRAFTING_COST[inspectCard.rarity]} 가루)`,
+                label: tr(
+                  `카드 제작 후 보유 (-${CRAFTING_COST[inspectCard.rarity]} 가루)`,
+                  `Craft Card (-${CRAFTING_COST[inspectCard.rarity]} Dust)`,
+                ),
                 variant: 'arcane',
                 onClick: () => {
                   const res = hsStorage.craftCard(inspectCard.id);
                   if (res.ok) {
                     hsAudio.playSfx('purchase');
                     syncAll();
-                    showNotice(`[${inspectCard.name}] 카드를 제작했습니다!`);
+                    showNotice(tr(`[${inspectName}] 카드를 제작했습니다!`, `Crafted [${inspectName}]!`));
                   } else {
-                    showNotice(res.reason || '신비한 가루가 부족합니다.');
+                    showNotice(res.reason || tr('신비한 가루가 부족합니다.', 'Not enough Arcane Dust.'));
                   }
                 },
               };
             } else if (inDeck > 0) {
               primaryAction = {
-                label: `덱에서 1장 빼기 (현재 ${inDeck}장 편성)`,
+                label: tr(
+                  `덱에서 1장 빼기 (현재 ${inDeck}장 편성)`,
+                  `Remove 1 from Deck (${inDeck} in deck)`,
+                ),
                 variant: 'crimson',
                 onClick: () => {
                   handleRemoveCardFromDeck(inspectCard.id);
-                  showNotice(`[${inspectCard.name}] 카드를 덱에서 1장 뺐습니다.`);
+                  showNotice(
+                    tr(
+                      `[${inspectName}] 카드를 덱에서 1장 뺐습니다.`,
+                      `Removed 1× [${inspectName}] from deck.`,
+                    ),
+                  );
                 },
               };
             } else {
               primaryAction = {
                 label:
                   editingDeck.cards.length >= 30
-                    ? '덱이 30장으로 가득 찼습니다'
+                    ? tr('덱이 30장으로 가득 찼습니다', 'Deck is Full (30/30)')
                     : inDeck >= maxCopy
-                      ? `편성 한도 도달 (${inDeck}/${maxCopy}장)`
-                      : `보유 수량 모두 편성됨 (${owned}장)`,
+                      ? tr(`편성 한도 도달 (${inDeck}/${maxCopy}장)`, `Copy Limit Reached (${inDeck}/${maxCopy})`)
+                      : tr(`보유 수량 모두 편성됨 (${owned}장)`, `All Owned Copies in Deck (${owned})`),
                 disabled: true,
                 onClick: () => {},
               };
@@ -1229,32 +1330,40 @@ export const CollectionScreen: React.FC<{
 
             if (canAddNow && inDeck > 0) {
               secondaryActions.push({
-                label: `덱에서 1장 빼기 (${inDeck}/${maxCopy})`,
+                label: tr(`덱에서 1장 빼기 (${inDeck}/${maxCopy})`, `Remove 1 (${inDeck}/${maxCopy})`),
                 variant: 'crimson',
                 onClick: () => {
                   handleRemoveCardFromDeck(inspectCard.id);
-                  showNotice(`[${inspectCard.name}] 카드를 덱에서 1장 뺐습니다.`);
+                  showNotice(
+                    tr(
+                      `[${inspectName}] 카드를 덱에서 1장 뺐습니다.`,
+                      `Removed 1× [${inspectName}] from deck.`,
+                    ),
+                  );
                 },
               });
             }
           } else if (inspectCard.rarity !== 'FREE') {
             primaryAction = {
-              label: `카드 제작 (-${CRAFTING_COST[inspectCard.rarity]} 가루)`,
+              label: tr(
+                `카드 제작 (-${CRAFTING_COST[inspectCard.rarity]} 가루)`,
+                `Craft (-${CRAFTING_COST[inspectCard.rarity]} Dust)`,
+              ),
               variant: 'arcane',
               onClick: () => {
                 const res = hsStorage.craftCard(inspectCard.id);
                 if (res.ok) {
                   hsAudio.playSfx('purchase');
                   syncAll();
-                  showNotice(`[${inspectCard.name}] 카드를 제작했습니다!`);
+                  showNotice(tr(`[${inspectName}] 카드를 제작했습니다!`, `Crafted [${inspectName}]!`));
                 } else {
-                  showNotice(res.reason || '제작할 수 없습니다.');
+                  showNotice(res.reason || tr('제작할 수 없습니다.', 'Cannot craft card.'));
                 }
               },
             };
           } else {
             primaryAction = {
-              label: '확인 (닫기)',
+              label: tr('확인 (닫기)', 'Done'),
               variant: 'brass',
               onClick: () => setInspectCard(null),
             };
@@ -1263,32 +1372,38 @@ export const CollectionScreen: React.FC<{
           if (inspectCard.rarity !== 'FREE') {
             if (editingDeck && owned > 0) {
               secondaryActions.push({
-                label: `추가 제작 (-${CRAFTING_COST[inspectCard.rarity]})`,
+                label: tr(
+                  `추가 제작 (-${CRAFTING_COST[inspectCard.rarity]})`,
+                  `Craft Copy (-${CRAFTING_COST[inspectCard.rarity]})`,
+                ),
                 variant: 'arcane',
                 onClick: () => {
                   const res = hsStorage.craftCard(inspectCard.id);
                   if (res.ok) {
                     hsAudio.playSfx('purchase');
                     syncAll();
-                    showNotice(`[${inspectCard.name}] 카드를 제작했습니다!`);
+                    showNotice(tr(`[${inspectName}] 카드를 제작했습니다!`, `Crafted [${inspectName}]!`));
                   } else {
-                    showNotice(res.reason || '제작 실패');
+                    showNotice(res.reason || tr('제작 실패', 'Crafting failed'));
                   }
                 },
               });
             }
             if (owned > 0) {
               secondaryActions.push({
-                label: `마력 추출 (+${DISENCHANT_VALUE[inspectCard.rarity]} 가루)`,
+                label: tr(
+                  `마력 추출 (+${DISENCHANT_VALUE[inspectCard.rarity]} 가루)`,
+                  `Disenchant (+${DISENCHANT_VALUE[inspectCard.rarity]} Dust)`,
+                ),
                 variant: 'brass',
                 onClick: () => {
                   const res = hsStorage.disenchantCard(inspectCard.id);
                   if (res.ok) {
                     hsAudio.playSfx('cm_remove_card');
                     syncAll();
-                    showNotice(`[${inspectCard.name}] 마력 추출 완료!`);
+                    showNotice(tr(`[${inspectName}] 마력 추출 완료!`, `Disenchanted [${inspectName}]!`));
                   } else {
-                    showNotice(res.reason || '추출 실패');
+                    showNotice(res.reason || tr('추출 실패', 'Disenchant failed'));
                   }
                 },
               });
@@ -1299,16 +1414,13 @@ export const CollectionScreen: React.FC<{
             ? allNavigableCards
             : allFallbackCards;
           const navIdx = navList.findIndex((c) => c.id === inspectCard.id);
-          const classLabelKo =
-            inspectCard.cardClass === 'NEUTRAL'
-              ? '중립'
-              : CLASSIC_HEROES[inspectCard.cardClass].classNameKo;
+          const classLabel = getClassLabel(inspectCard.cardClass, lang);
           const zoomNavigation =
             navIdx >= 0 && navList.length > 1
               ? {
                   currentIndex: navIdx,
                   totalCount: navList.length,
-                  positionLabel: `${classLabelKo} · ${navIdx + 1} / ${navList.length}`,
+                  positionLabel: `${classLabel} · ${navIdx + 1} / ${navList.length}`,
                   onPrev: () =>
                     navigateToInspectCard(
                       navList[(navIdx - 1 + navList.length) % navList.length],
@@ -1324,8 +1436,11 @@ export const CollectionScreen: React.FC<{
               rarityAura={inspectCard.rarity}
               subtitleBadge={
                 editingDeck
-                  ? `보유 ×${owned}장 · 덱 편성 ${inDeck}/${maxCopy}장`
-                  : `보유 수량: ${owned}장`
+                  ? tr(
+                      `보유 ×${owned}장 · 덱 편성 ${inDeck}/${maxCopy}장`,
+                      `Owned ×${owned} · In Deck ${inDeck}/${maxCopy}`,
+                    )
+                  : tr(`보유 수량: ${owned}장`, `Owned: ${owned}`)
               }
               showFlavor
               navigation={zoomNavigation}

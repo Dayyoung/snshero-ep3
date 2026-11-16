@@ -1,3 +1,4 @@
+import { isKoreanLanguage, type HeroLanguage } from '../i18n/heroLang';
 import { CardClass, ClassicCardDef, CustomDeck, HERO_CLASS_ORDER, HeroClass } from './types';
 
 export interface ReaManifestData {
@@ -128,24 +129,28 @@ export function getHeroArtUrl(heroId: string): string {
 }
 
 /**
- * Official Blizzard Korean (`koKR`) transparent-alpha card render URL.
+ * Official Blizzard localized (`koKR` / `enUS`) transparent-alpha card render URL.
  * Prefers 2014 Classic `VAN_*` IDs so un-nerfed stats, swirl watermarks,
  * Legendary dragon crests, sword/blood-drop gems, and S-curved scrolls match 1:1.
  */
 export function getOfficialCardRenderUrl(
   card: ClassicCardDef,
   res: '256x' | '512x' = '256x',
+  lang?: HeroLanguage,
 ): string {
+  const locale = (lang ? lang === 'ko' : isKoreanLanguage()) ? 'koKR' : 'enUS';
   const primaryId = card.vanId || card.id || card.artId;
-  return `https://art.hearthstonejson.com/v1/render/latest/koKR/${res}/${primaryId}.png`;
+  return `https://art.hearthstonejson.com/v1/render/latest/${locale}/${res}/${primaryId}.png`;
 }
 
 export function getOfficialCardRenderFallbackUrl(
   card: ClassicCardDef,
   res: '256x' | '512x' = '256x',
+  lang?: HeroLanguage,
 ): string {
+  const locale = (lang ? lang === 'ko' : isKoreanLanguage()) ? 'koKR' : 'enUS';
   const cleanId = card.id.startsWith('VAN_') ? card.id.slice(4) : card.id;
-  return `https://art.hearthstonejson.com/v1/render/latest/koKR/${res}/${cleanId}.png`;
+  return `https://art.hearthstonejson.com/v1/render/latest/${locale}/${res}/${cleanId}.png`;
 }
 
 export const CLASS_CREST_URL: Record<CardClass, string> = {

@@ -24,7 +24,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_008"
+      "artId": "CS2_008",
+      "nameEn": "Moonfire",
+      "textEn": "Deal $1 damage.",
+      "flavorEn": "\"Cast Moonfire, and never stop.\" - How to Be a Druid, Chapter 5, Section 3"
     },
     {
       "id": "EX1_169",
@@ -47,7 +50,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_169"
+      "artId": "EX1_169",
+      "nameEn": "Innervate",
+      "textEn": "Gain 2 Mana Crystals this turn only.",
+      "flavorEn": "Some druids still have flashbacks from strangers yelling \"Innervate me!!\" at them."
     },
     {
       "id": "EX1_578",
@@ -72,7 +78,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_578"
+      "artId": "EX1_578",
+      "nameEn": "Savagery",
+      "textEn": "Deal damage equal to your hero's Attack to a minion.",
+      "flavorEn": "It is true that some druids are savage, but others still enjoy a quiet moment and a spot of tea."
     },
     {
       "id": "EX1_161",
@@ -95,7 +104,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_161"
+      "artId": "EX1_161",
+      "nameEn": "Naturalize",
+      "textEn": "Destroy a minion.\nYour opponent draws 2 cards.",
+      "flavorEn": "Another one bites the dust."
     },
     {
       "id": "CS2_005",
@@ -118,7 +130,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_005"
+      "artId": "CS2_005",
+      "nameEn": "Claw",
+      "textEn": "Give your hero +2 Attack this turn. Gain 2 Armor.",
+      "flavorEn": "The claw decides who will stay and who will go."
     },
     {
       "id": "CS2_013",
@@ -141,7 +156,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_013"
+      "artId": "CS2_013",
+      "nameEn": "Wild Growth",
+      "textEn": "Gain an empty Mana Crystal.",
+      "flavorEn": "Grow your own mana crystals with this Mana Crystal Growth Kit, only 39.99!"
     },
     {
       "id": "CS2_009",
@@ -166,7 +184,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_009"
+      "artId": "CS2_009",
+      "nameEn": "Mark of the Wild",
+      "textEn": "Give a minion <b>Taunt</b> and +2/+2.<i>\n(+2 Attack/+2 Health)</i>",
+      "flavorEn": "Not to be confused with Jim of the Wild."
     },
     {
       "id": "EX1_160",
@@ -191,7 +212,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_160"
+      "artId": "EX1_160",
+      "nameEn": "Power of the Wild",
+      "textEn": "<b>Choose One -</b> Give your minions +1/+1; or Summon a 3/2 Panther.",
+      "flavorEn": "Never look a panther in the eye.  Or is it 'Always look a panther in the eye'?  Well, it's one of those."
     },
     {
       "id": "EX1_154",
@@ -216,7 +240,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_154"
+      "artId": "EX1_154",
+      "nameEn": "Wrath",
+      "textEn": "<b>Choose One -</b>\nDeal $3 damage to a minion; or $1 damage\nand draw a card.",
+      "flavorEn": "The talk around the Ratchet Inn is that this card is too good and should be a Legendary."
     },
     {
       "id": "CS2_011",
@@ -239,7 +266,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_011"
+      "artId": "CS2_011",
+      "nameEn": "Savage Roar",
+      "textEn": "Give your characters +2 Attack this turn.",
+      "flavorEn": "What do they roar? Nobody can quite tell, but it sounds like \"Elephant Macho Breeze\".  It's probably not that, though."
     },
     {
       "id": "EX1_155",
@@ -266,7 +296,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_155"
+      "artId": "EX1_155",
+      "nameEn": "Mark of Nature",
+      "textEn": "<b>Choose One -</b> Give a minion +4 Attack; or +4 Health and <b>Taunt</b>.",
+      "flavorEn": "Druids call it the \"Mark of Nature.\"  Everyone else calls it \"needing a bath.\""
     },
     {
       "id": "CS2_007",
@@ -289,7 +322,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_007"
+      "artId": "CS2_007",
+      "nameEn": "Healing Touch",
+      "textEn": "Restore #8 Health.",
+      "flavorEn": "8 Health, no waiting."
     },
     {
       "id": "EX1_570",
@@ -312,7 +348,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_570"
+      "artId": "EX1_570",
+      "nameEn": "Bite",
+      "textEn": "Give your hero +4 Attack this turn. Gain 4 Armor.",
+      "flavorEn": "Chew your food!"
     },
     {
       "id": "EX1_166",
@@ -339,7 +378,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_166"
+      "artId": "EX1_166",
+      "nameEn": "Keeper of the Grove",
+      "textEn": "<b>Choose One -</b> Deal 2 damage; or <b>Silence</b> a minion.",
+      "flavorEn": "These guys just show up and start Keeping your Groves without even asking."
     },
     {
       "id": "EX1_158",
@@ -364,7 +406,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_158"
+      "artId": "EX1_158",
+      "nameEn": "Soul of the Forest",
+      "textEn": "Give your minions \"<b>Deathrattle:</b> Summon a 2/2 Treant.\"",
+      "flavorEn": "\"Reforestation\" is suddenly a terrifying word."
     },
     {
       "id": "CS2_012",
@@ -387,7 +432,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_012"
+      "artId": "CS2_012",
+      "nameEn": "Swipe",
+      "textEn": "Deal $4 damage to an enemy and $1 damage to all other enemies.",
+      "flavorEn": "When a bear rears back and extends his arms, he's about to Swipe!  ... or hug."
     },
     {
       "id": "EX1_165",
@@ -415,7 +463,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_165"
+      "artId": "EX1_165",
+      "nameEn": "Druid of the Claw",
+      "textEn": "<b>Choose One -</b> <b>Charge</b>; or +2 Health and <b>Taunt</b>.",
+      "flavorEn": "Cat or Bear?  Cat or Bear?!  I just cannot CHOOSE!"
     },
     {
       "id": "NEW1_007",
@@ -440,7 +491,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_007"
+      "artId": "NEW1_007",
+      "nameEn": "Starfall",
+      "textEn": "<b>Choose One -</b>\nDeal $5 damage to a minion; or $2 damage to all enemy minions.",
+      "flavorEn": "Is the sky falling?  Yes.  Yes it is."
     },
     {
       "id": "EX1_164",
@@ -465,7 +519,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_164"
+      "artId": "EX1_164",
+      "nameEn": "Nourish",
+      "textEn": "<b>Choose One -</b> Gain 2 Mana Crystals; or Draw 3 cards.",
+      "flavorEn": "Druids take nourishment from many things: the power of nature, the songbird's chirp, a chocolate cake."
     },
     {
       "id": "EX1_173",
@@ -488,7 +545,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_173"
+      "artId": "EX1_173",
+      "nameEn": "Starfire",
+      "textEn": "Deal $5 damage.\nDraw a card.",
+      "flavorEn": "Balance is important to druids.  This card is perfectly balanced."
     },
     {
       "id": "EX1_571",
@@ -513,7 +573,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_571"
+      "artId": "EX1_571",
+      "nameEn": "Force of Nature",
+      "textEn": "Summon three 2/2 Treants with\n<b>Charge</b> that die at the end of the turn.",
+      "flavorEn": "\"I think I'll just nap under these trees. Wait... AAAAAHHH!\" - Blinkfizz, the Unfortunate Gnome"
     },
     {
       "id": "EX1_178",
@@ -540,7 +603,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_178"
+      "artId": "EX1_178",
+      "nameEn": "Ancient of War",
+      "textEn": "<b>Choose One -</b>\n+5 Attack; or +5 Health and <b>Taunt</b>.",
+      "flavorEn": "Young Night Elves love to play \"Who can get the Ancient of War to Uproot?\"  You lose if you get crushed to death."
     },
     {
       "id": "NEW1_008",
@@ -565,7 +631,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_008"
+      "artId": "NEW1_008",
+      "nameEn": "Ancient of Lore",
+      "textEn": "<b>Choose One -</b> Draw 2 cards; or Restore #5 Health.",
+      "flavorEn": "Go ahead, carve your initials in him."
     },
     {
       "id": "CS2_232",
@@ -590,7 +659,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_232"
+      "artId": "CS2_232",
+      "nameEn": "Ironbark Protector",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "I <i>dare</i> you to attack Darnassus."
     },
     {
       "id": "EX1_573",
@@ -617,7 +689,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_573"
+      "artId": "EX1_573",
+      "nameEn": "Cenarius",
+      "textEn": "<b>Choose One -</b> Give your other minions +2/+2; or Summon two 2/2 Treants with <b>Taunt</b>.",
+      "flavorEn": "Yes, he's a demigod. No, he doesn't need to wear a shirt."
     },
     {
       "id": "CS2_084",
@@ -640,7 +715,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_084"
+      "artId": "CS2_084",
+      "nameEn": "Hunter's Mark",
+      "textEn": "Change a minion's Health to 1.",
+      "flavorEn": "Never play 'Hide and Go Seek' with a Hunter."
     },
     {
       "id": "EX1_544",
@@ -666,7 +744,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_544"
+      "artId": "EX1_544",
+      "nameEn": "Flare",
+      "textEn": "All minions lose <b>Stealth</b>. Destroy all enemy <b>Secrets</b>. Draw a card.",
+      "flavorEn": "Not only does it reveal your enemies, but it's also great for parties!"
     },
     {
       "id": "DS1_185",
@@ -689,7 +770,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_185"
+      "artId": "DS1_185",
+      "nameEn": "Arcane Shot",
+      "textEn": "Deal $2 damage.",
+      "flavorEn": "Magi conjured arcane arrows to sell to hunters, until hunters learned just enough magic to do it themselves.  The resulting loss of jobs sent Stormwind into a minor recession."
     },
     {
       "id": "EX1_549",
@@ -714,7 +798,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_549"
+      "artId": "EX1_549",
+      "nameEn": "Bestial Wrath",
+      "textEn": "Give a Beast +2 Attack and <b>Immune</b> this turn.",
+      "flavorEn": "The seething wrath is just beneath the surface.  Beneath that is wild abandon, followed by slight annoyance."
     },
     {
       "id": "DS1_184",
@@ -737,7 +824,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_184"
+      "artId": "DS1_184",
+      "nameEn": "Tracking",
+      "textEn": "Look at the top 3 cards of your deck. Draw one and discard the others.",
+      "flavorEn": "For the person who just cannot decide what card to put into a deck!"
     },
     {
       "id": "DS1_175",
@@ -762,7 +852,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_175"
+      "artId": "DS1_175",
+      "nameEn": "Timber Wolf",
+      "textEn": "Your other Beasts have +1 Attack.",
+      "flavorEn": "Other beasts totally dig hanging out with timber wolves."
     },
     {
       "id": "CS2_237",
@@ -787,7 +880,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_237"
+      "artId": "CS2_237",
+      "nameEn": "Starving Buzzard",
+      "textEn": "Whenever you summon a Beast, draw a card.",
+      "flavorEn": "If you feed him, he loses his whole <i>identity</i>."
     },
     {
       "id": "EX1_533",
@@ -812,7 +908,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_533"
+      "artId": "EX1_533",
+      "nameEn": "Misdirection",
+      "textEn": "<b>Secret:</b> When an enemy attacks your hero, instead it attacks another random character.",
+      "flavorEn": "Sometimes it's as simple as putting on a fake mustache and pointing at someone else."
     },
     {
       "id": "EX1_554",
@@ -837,7 +936,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_554"
+      "artId": "EX1_554",
+      "nameEn": "Snake Trap",
+      "textEn": "<b>Secret:</b> When one of your minions is attacked, summon three 1/1 Snakes.",
+      "flavorEn": "Why did it have to be snakes?"
     },
     {
       "id": "EX1_611",
@@ -862,7 +964,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_611"
+      "artId": "EX1_611",
+      "nameEn": "Freezing Trap",
+      "textEn": "<b>Secret:</b> When an enemy minion attacks, return it to its owner's hand. It costs (2) more.",
+      "flavorEn": "\"Dang, that's cold.\" - appropriate response to Freezing Trap, or a mean joke."
     },
     {
       "id": "EX1_609",
@@ -887,7 +992,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_609"
+      "artId": "EX1_609",
+      "nameEn": "Snipe",
+      "textEn": "<b>Secret:</b> After your opponent plays a minion, deal $4 damage to it.",
+      "flavorEn": "A great sniper hits the spot.  Just like a delicious flank of boar. Mmmmm."
     },
     {
       "id": "EX1_531",
@@ -912,7 +1020,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_531"
+      "artId": "EX1_531",
+      "nameEn": "Scavenging Hyena",
+      "textEn": "Whenever a friendly Beast dies, gain +2/+1.",
+      "flavorEn": "Hyenas prefer the bones of kodos or windserpents, but they'll eat pretty much anything.  Even Brussels sprouts."
     },
     {
       "id": "EX1_610",
@@ -937,7 +1048,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_610"
+      "artId": "EX1_610",
+      "nameEn": "Explosive Trap",
+      "textEn": "<b>Secret:</b> When your hero is attacked, deal $2 damage to all enemies.",
+      "flavorEn": "It traps your food AND cooks it for you!"
     },
     {
       "id": "EX1_538",
@@ -962,7 +1076,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_538"
+      "artId": "EX1_538",
+      "nameEn": "Unleash the Hounds",
+      "textEn": "For each enemy minion, summon a 1/1 Hound with <b>Charge</b>.",
+      "flavorEn": "You must read the name of this card out loud each time you play it."
     },
     {
       "id": "EX1_536",
@@ -989,7 +1106,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_536"
+      "artId": "EX1_536",
+      "nameEn": "Eaglehorn Bow",
+      "textEn": "Whenever a <b>Secret</b> is revealed, gain +1 Durability.",
+      "flavorEn": "First Lesson: Put the pointy end in the other guy."
     },
     {
       "id": "EX1_539",
@@ -1012,7 +1132,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_539"
+      "artId": "EX1_539",
+      "nameEn": "Kill Command",
+      "textEn": "Deal $3 damage. If you control a Beast, deal\n$5 damage instead.",
+      "flavorEn": "\"Kill!\", he commanded."
     },
     {
       "id": "NEW1_031",
@@ -1035,7 +1158,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_031"
+      "artId": "NEW1_031",
+      "nameEn": "Animal Companion",
+      "textEn": "Summon a random Beast Companion.",
+      "flavorEn": "You could summon Misha, Leokk, or Huffer!  Huffer is more trouble than he's worth."
     },
     {
       "id": "EX1_617",
@@ -1058,7 +1184,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_617"
+      "artId": "EX1_617",
+      "nameEn": "Deadly Shot",
+      "textEn": "Destroy a random enemy minion.",
+      "flavorEn": "Our ballista operator is effective, but not picky."
     },
     {
       "id": "DS1_070",
@@ -1085,7 +1214,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_070"
+      "artId": "DS1_070",
+      "nameEn": "Houndmaster",
+      "textEn": "<b>Battlecry:</b> Give a friendly Beast +2/+2 and <b>Taunt</b>.",
+      "flavorEn": "\"Who let the dogs out?\" he asks.  It's rhetorical."
     },
     {
       "id": "DS1_183",
@@ -1108,7 +1240,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_183"
+      "artId": "DS1_183",
+      "nameEn": "Multi-Shot",
+      "textEn": "Deal $3 damage to two random enemy minions.",
+      "flavorEn": "You see, it's all about <i>throughput</i>."
     },
     {
       "id": "DS1_178",
@@ -1135,7 +1270,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_178"
+      "artId": "DS1_178",
+      "nameEn": "Tundra Rhino",
+      "textEn": "Your Beasts have <b>Charge</b>.",
+      "flavorEn": "Tundra rhinos are often mistaken for kodos.  Or am I mistaken?"
     },
     {
       "id": "EX1_537",
@@ -1158,7 +1296,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_537"
+      "artId": "EX1_537",
+      "nameEn": "Explosive Shot",
+      "textEn": "Deal $5 damage to a minion and $2 damage to adjacent ones.",
+      "flavorEn": "Pull the pin, count to 5, then shoot.  Then duck."
     },
     {
       "id": "EX1_534",
@@ -1183,7 +1324,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_534"
+      "artId": "EX1_534",
+      "nameEn": "Savannah Highmane",
+      "textEn": "<b>Deathrattle:</b> Summon two 2/2 Hyenas.",
+      "flavorEn": "In the jungle, the mighty jungle, the lion gets slowly consumed by hyenas."
     },
     {
       "id": "DS1_188",
@@ -1208,7 +1352,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_188"
+      "artId": "DS1_188",
+      "nameEn": "Gladiator's Longbow",
+      "textEn": "Your hero is <b>Immune</b> while attacking.",
+      "flavorEn": "The longbow allows shots to be fired from farther away and is useful for firing on particularly odorous targets."
     },
     {
       "id": "EX1_543",
@@ -1233,7 +1380,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_543"
+      "artId": "EX1_543",
+      "nameEn": "King Krush",
+      "textEn": "<b>Charge</b>",
+      "flavorEn": "The best defense against King Krush is to have someone you don’t like standing in front of you."
     },
     {
       "id": "NEW1_012",
@@ -1258,7 +1408,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_012"
+      "artId": "NEW1_012",
+      "nameEn": "Mana Wyrm",
+      "textEn": "Whenever you cast a spell, gain +1 Attack.",
+      "flavorEn": "These wyrms feed on arcane energies, and while they are generally considered a nuisance rather than a real threat, you really shouldn't leave them alone with a bucket of mana."
     },
     {
       "id": "EX1_277",
@@ -1283,7 +1436,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_277"
+      "artId": "EX1_277",
+      "nameEn": "Arcane Missiles",
+      "textEn": "Deal $3 damage randomly split among all enemy characters.",
+      "flavorEn": "You'd think you'd be able to control your missiles a little better since you're a powerful mage and all."
     },
     {
       "id": "CS2_031",
@@ -1308,7 +1464,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_031"
+      "artId": "CS2_031",
+      "nameEn": "Ice Lance",
+      "textEn": "<b>Freeze</b> a character. If it was already <b>Frozen</b>, deal $4 damage instead.",
+      "flavorEn": "The trick is not to break the lance.  Otherwise, you have \"Ice Pieces.\"  Ice Pieces aren't as effective."
     },
     {
       "id": "CS2_027",
@@ -1333,7 +1492,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_027"
+      "artId": "CS2_027",
+      "nameEn": "Mirror Image",
+      "textEn": "Summon two 0/2 minions with <b>Taunt</b>.",
+      "flavorEn": "Oh hey it's Mirror Image! !egamI rorriM s'ti yeh hO"
     },
     {
       "id": "EX1_608",
@@ -1358,7 +1520,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_608"
+      "artId": "EX1_608",
+      "nameEn": "Sorcerer's Apprentice",
+      "textEn": "Your spells cost (1) less.",
+      "flavorEn": "Apprentices are great for bossing around.  \"Conjure me some mana buns! And a coffee!  Make that a mana coffee!\""
     },
     {
       "id": "CS2_025",
@@ -1381,7 +1546,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_025"
+      "artId": "CS2_025",
+      "nameEn": "Arcane Explosion",
+      "textEn": "Deal $1 damage to all enemy minions.",
+      "flavorEn": "This spell is much better than Arcane Implosion."
     },
     {
       "id": "CS2_024",
@@ -1406,7 +1574,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_024"
+      "artId": "CS2_024",
+      "nameEn": "Frostbolt",
+      "textEn": "Deal $3 damage to a character and <b>Freeze</b> it.",
+      "flavorEn": "It is customary to yell \"Chill out!\" or \"Freeze!\" or \"Ice ice, baby!\" when you play this card."
     },
     {
       "id": "EX1_294",
@@ -1431,7 +1602,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_294"
+      "artId": "EX1_294",
+      "nameEn": "Mirror Entity",
+      "textEn": "[x]<b>Secret:</b> When\nyour opponent plays a\nminion, summon a copy\nof it.",
+      "flavorEn": "\"You go first.\" - Krush'gor the Behemoth, to his pet boar."
     },
     {
       "id": "EX1_287",
@@ -1458,7 +1632,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_287"
+      "artId": "EX1_287",
+      "nameEn": "Counterspell",
+      "textEn": "<b>Secret:</b> When your opponent casts a spell, <b>Counter</b> it.",
+      "flavorEn": "What's the difference between a mage playing with Counterspell and a mage who isn't?  The mage who isn't is getting Pyroblasted in the face."
     },
     {
       "id": "CS2_023",
@@ -1481,7 +1658,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_023"
+      "artId": "CS2_023",
+      "nameEn": "Arcane Intellect",
+      "textEn": "Draw 2 cards.",
+      "flavorEn": "Playing this card makes you SMARTER.  And let's face it: we could all stand to be a little smarter."
     },
     {
       "id": "EX1_295",
@@ -1508,7 +1688,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_295"
+      "artId": "EX1_295",
+      "nameEn": "Ice Block",
+      "textEn": "<b>Secret:</b> When your hero takes fatal damage, prevent it and become <b>Immune</b> this turn.",
+      "flavorEn": "Ice is nice, and will suffice!"
     },
     {
       "id": "EX1_289",
@@ -1533,7 +1716,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_289"
+      "artId": "EX1_289",
+      "nameEn": "Ice Barrier",
+      "textEn": "[x]<b>Secret:</b> As soon as your\nhero is attacked, gain\n8 Armor.",
+      "flavorEn": "This is Rank 1.  Rank 2 is Chocolate Milk Barrier."
     },
     {
       "id": "CS2_026",
@@ -1558,7 +1744,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_026"
+      "artId": "CS2_026",
+      "nameEn": "Frost Nova",
+      "textEn": "<b>Freeze</b> all enemy minions.",
+      "flavorEn": "Hey man, that's cold.  Literally and metaphorically."
     },
     {
       "id": "tt_010",
@@ -1583,7 +1772,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "tt_010"
+      "artId": "tt_010",
+      "nameEn": "Spellbender",
+      "textEn": "<b>Secret:</b> When an enemy casts a spell on a minion, summon a 1/3 as the new target.",
+      "flavorEn": "While it's fun to intercept enemy lightning bolts, a spellbender much prefers to intercept opposing Marks of the Wild.  It just feels meaner.  And blood elves... well, they're a little mean."
     },
     {
       "id": "EX1_594",
@@ -1608,7 +1800,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_594"
+      "artId": "EX1_594",
+      "nameEn": "Vaporize",
+      "textEn": "<b>Secret:</b> When a minion attacks your hero, destroy it.",
+      "flavorEn": "Rumor has it that Deathwing brought about the Cataclysm after losing a game to this card.  We may never know the truth."
     },
     {
       "id": "EX1_612",
@@ -1635,7 +1830,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_612"
+      "artId": "EX1_612",
+      "nameEn": "Kirin Tor Mage",
+      "textEn": "[x]<b>Battlecry:</b> The next <b>Secret</b>\nyou play this turn costs (0).",
+      "flavorEn": "The Kirin Tor reside in the floating city of Dalaran.  How do you make a Dalaran float?  Two scoops of ice cream, one scoop of Dalaran."
     },
     {
       "id": "EX1_275",
@@ -1660,7 +1858,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_275"
+      "artId": "EX1_275",
+      "nameEn": "Cone of Cold",
+      "textEn": "<b>Freeze</b> a minion and the minions next to it, and deal $1 damage to them.",
+      "flavorEn": "Magi of the Kirin Tor were casting Cubes of Cold for many years before Cones came into fashion some 90 years ago."
     },
     {
       "id": "CS2_033",
@@ -1685,7 +1886,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_033"
+      "artId": "CS2_033",
+      "nameEn": "Water Elemental",
+      "textEn": "<b>Freeze</b> any character damaged by this minion.",
+      "flavorEn": "Don't summon a water elemental at a party.  It'll dampen the mood."
     },
     {
       "id": "CS2_022",
@@ -1708,7 +1912,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_022"
+      "artId": "CS2_022",
+      "nameEn": "Polymorph",
+      "textEn": "Transform a minion\ninto a 1/1 Sheep.",
+      "flavorEn": "There was going to be a pun in this flavor text, but it just came out baa-d."
     },
     {
       "id": "EX1_274",
@@ -1735,7 +1942,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_274"
+      "artId": "EX1_274",
+      "nameEn": "Ethereal Arcanist",
+      "textEn": "If you control a <b>Secret</b> at the end of your turn, gain +2/+2.",
+      "flavorEn": "The ethereals are wrapped in cloth to give form to their non-corporeal bodies. Also because it's nice and soft."
     },
     {
       "id": "CS2_029",
@@ -1758,7 +1968,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_029"
+      "artId": "CS2_029",
+      "nameEn": "Fireball",
+      "textEn": "Deal $6 damage.",
+      "flavorEn": "This spell is useful for burning things.  If you're looking for spells that toast things, or just warm them a little, you're in the wrong place."
     },
     {
       "id": "CS2_028",
@@ -1783,7 +1996,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_028"
+      "artId": "CS2_028",
+      "nameEn": "Blizzard",
+      "textEn": "Deal $2 damage to all enemy minions and <b>Freeze</b> them.",
+      "flavorEn": "This spell can be very Entertaining."
     },
     {
       "id": "EX1_559",
@@ -1808,7 +2024,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_559"
+      "artId": "EX1_559",
+      "nameEn": "Archmage Antonidas",
+      "textEn": "Whenever you cast a spell, add a 'Fireball' spell to your hand.",
+      "flavorEn": "Antonidas was the Grand Magus of the Kirin Tor, and Jaina's mentor.  This was a big step up from being Grand Magus of Jelly Donuts."
     },
     {
       "id": "CS2_032",
@@ -1831,7 +2050,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_032"
+      "artId": "CS2_032",
+      "nameEn": "Flamestrike",
+      "textEn": "Deal $4 damage to all enemy minions.",
+      "flavorEn": "When the ground is on fire, you should <i>not</i> stop, drop, and roll."
     },
     {
       "id": "EX1_279",
@@ -1854,7 +2076,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_279"
+      "artId": "EX1_279",
+      "nameEn": "Pyroblast",
+      "textEn": "Deal $10 damage.",
+      "flavorEn": "Take the time for an evil laugh after you draw this card."
     },
     {
       "id": "CS2_231",
@@ -1877,7 +2102,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_231"
+      "artId": "CS2_231",
+      "nameEn": "Wisp",
+      "textEn": "",
+      "flavorEn": "If you hit an Eredar Lord with enough Wisps, it will explode.   But why?"
     },
     {
       "id": "CS2_188",
@@ -1902,7 +2130,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_188"
+      "artId": "CS2_188",
+      "nameEn": "Abusive Sergeant",
+      "textEn": "<b>Battlecry:</b> Give a minion +2 Attack this turn.",
+      "flavorEn": "ADD ME TO YOUR DECK, MAGGOT!"
     },
     {
       "id": "NEW1_017",
@@ -1927,7 +2158,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_017"
+      "artId": "NEW1_017",
+      "nameEn": "Hungry Crab",
+      "textEn": "<b>Battlecry:</b> Destroy a Murloc and gain +2/+2.",
+      "flavorEn": "Murloc.  It's what's for dinner."
     },
     {
       "id": "CS2_146",
@@ -1952,7 +2186,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_146"
+      "artId": "CS2_146",
+      "nameEn": "Southsea Deckhand",
+      "textEn": "Has <b>Charge</b> while you have a weapon equipped.",
+      "flavorEn": "Pirates are into this new fad called \"Planking\"."
     },
     {
       "id": "EX1_010",
@@ -1977,7 +2214,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_010"
+      "artId": "EX1_010",
+      "nameEn": "Worgen Infiltrator",
+      "textEn": "<b>Stealth</b>",
+      "flavorEn": "If you want to stop a worgen from infiltrating, just yell, \"No! Bad boy!\""
     },
     {
       "id": "CS2_171",
@@ -2002,7 +2242,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_171"
+      "artId": "CS2_171",
+      "nameEn": "Stonetusk Boar",
+      "textEn": "<b>Charge</b>",
+      "flavorEn": "This card is boaring."
     },
     {
       "id": "CS2_168",
@@ -2025,7 +2268,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_168"
+      "artId": "CS2_168",
+      "nameEn": "Murloc Raider",
+      "textEn": "",
+      "flavorEn": "Mrrraggglhlhghghlgh, mrgaaag blarrghlgaahahl mrgggg glhalhah a bghhll graggmgmg Garrosh mglhlhlh mrghlhlhl!!"
     },
     {
       "id": "EX1_509",
@@ -2050,7 +2296,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_509"
+      "artId": "EX1_509",
+      "nameEn": "Murloc Tidecaller",
+      "textEn": "Whenever a Murloc is summoned, gain +1 Attack.",
+      "flavorEn": "This guy gets crazy strong at family reunions."
     },
     {
       "id": "EX1_405",
@@ -2075,7 +2324,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_405"
+      "artId": "EX1_405",
+      "nameEn": "Shieldbearer",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "Have you seen the size of the shields in this game??  This is no easy job."
     },
     {
       "id": "EX1_011",
@@ -2100,7 +2352,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_011"
+      "artId": "EX1_011",
+      "nameEn": "Voodoo Doctor",
+      "textEn": "<b>Battlecry:</b> Restore #2 Health.",
+      "flavorEn": "Voodoo is an oft-misunderstood art. But it <i>is</i> art."
     },
     {
       "id": "NEW1_025",
@@ -2125,7 +2380,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_025"
+      "artId": "NEW1_025",
+      "nameEn": "Bloodsail Corsair",
+      "textEn": "[x]<b>Battlecry:</b> Remove\n1 Durability from your\nopponent's weapon.",
+      "flavorEn": "Every pirate uses the same four digits to access Automated Gold Dispensers.  It's called the \"Pirate's Code\"."
     },
     {
       "id": "EX1_080",
@@ -2152,7 +2410,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_080"
+      "artId": "EX1_080",
+      "nameEn": "Secretkeeper",
+      "textEn": "Whenever a <b>Secret</b> is played, gain +1/+1.",
+      "flavorEn": "Where is Mankrik’s wife? She’ll never tell."
     },
     {
       "id": "EX1_001",
@@ -2177,7 +2438,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_001"
+      "artId": "EX1_001",
+      "nameEn": "Lightwarden",
+      "textEn": "Whenever a character is healed, gain +2 Attack.",
+      "flavorEn": "She’s smaller than her sisters Mediumwarden and Heavywarden."
     },
     {
       "id": "EX1_508",
@@ -2202,7 +2466,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_508"
+      "artId": "EX1_508",
+      "nameEn": "Grimscale Oracle",
+      "textEn": "ALL other Murlocs have +1 Attack.",
+      "flavorEn": "These are the brainy murlocs.  It turns out that doesn’t mean much."
     },
     {
       "id": "CS2_169",
@@ -2227,7 +2494,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_169"
+      "artId": "CS2_169",
+      "nameEn": "Young Dragonhawk",
+      "textEn": "<b>Windfury</b>",
+      "flavorEn": "They were the inspiration for the championship Taurenball team: The Dragonhawks."
     },
     {
       "id": "CS2_189",
@@ -2252,7 +2522,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_189"
+      "artId": "CS2_189",
+      "nameEn": "Elven Archer",
+      "textEn": "<b>Battlecry:</b> Deal 1 damage.",
+      "flavorEn": "Don't bother asking her out on a date.  She'll shoot you down."
     },
     {
       "id": "EX1_029",
@@ -2277,7 +2550,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_029"
+      "artId": "EX1_029",
+      "nameEn": "Leper Gnome",
+      "textEn": "<b>Deathrattle:</b> Deal 2 damage to the enemy hero.",
+      "flavorEn": "He really just wants to be your friend, but the constant rejection is starting to really get to him."
     },
     {
       "id": "EX1_008",
@@ -2302,7 +2578,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_008"
+      "artId": "EX1_008",
+      "nameEn": "Argent Squire",
+      "textEn": "<b>Divine Shield</b>",
+      "flavorEn": "\"I solemnly swear to uphold the Light, purge the world of darkness, and to eat only burritos.\" - The Argent Dawn Oath"
     },
     {
       "id": "EX1_004",
@@ -2327,7 +2606,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_004"
+      "artId": "EX1_004",
+      "nameEn": "Young Priestess",
+      "textEn": "At the end of your turn, give another random friendly minion +1 Health.",
+      "flavorEn": "She can't wait to learn Power Word: Fortitude Rank 2."
     },
     {
       "id": "EX1_009",
@@ -2352,7 +2634,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_009"
+      "artId": "EX1_009",
+      "nameEn": "Angry Chicken",
+      "textEn": "<b>Enrage:</b> +5 Attack.",
+      "flavorEn": "There is no beast more frightening (or ridiculous) than a fully enraged chicken."
     },
     {
       "id": "CS1_042",
@@ -2377,7 +2662,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS1_042"
+      "artId": "CS1_042",
+      "nameEn": "Goldshire Footman",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "If 1/2 minions are all that is defending Goldshire, you would think it would have been overrun years ago."
     },
     {
       "id": "NEW1_037",
@@ -2402,7 +2690,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_037"
+      "artId": "NEW1_037",
+      "nameEn": "Master Swordsmith",
+      "textEn": "At the end of your turn, give another random friendly minion +1 Attack.",
+      "flavorEn": "He's currently trying to craft a \"flail-axe\", but all the other swordsmiths say it can't be done."
     },
     {
       "id": "EX1_045",
@@ -2427,7 +2718,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_045"
+      "artId": "EX1_045",
+      "nameEn": "Ancient Watcher",
+      "textEn": "Can't attack.",
+      "flavorEn": "Why do its eyes seem to follow you as you walk by?"
     },
     {
       "id": "EX1_059",
@@ -2452,7 +2746,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_059"
+      "artId": "EX1_059",
+      "nameEn": "Crazed Alchemist",
+      "textEn": "<b>Battlecry:</b> Swap the Attack and Health of a minion.",
+      "flavorEn": "\"You'll <i>love</i> my new recipe!\" he says... especially if you're not happy with your current number of limbs."
     },
     {
       "id": "NEW1_020",
@@ -2477,7 +2774,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_020"
+      "artId": "NEW1_020",
+      "nameEn": "Wild Pyromancer",
+      "textEn": "After you cast a spell, deal 1 damage to ALL minions.",
+      "flavorEn": "BOOM BABY BOOM!  BAD IS GOOD!  DOWN WITH GOVERNMENT!"
     },
     {
       "id": "EX1_162",
@@ -2503,7 +2803,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_162"
+      "artId": "EX1_162",
+      "nameEn": "Dire Wolf Alpha",
+      "textEn": "Adjacent minions have +1 Attack.",
+      "flavorEn": "We are pretty excited about the upcoming release of Dire Wolf Beta, just repost this sign for a chance at a key."
     },
     {
       "id": "EX1_557",
@@ -2528,7 +2831,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_557"
+      "artId": "EX1_557",
+      "nameEn": "Nat Pagle",
+      "textEn": "At the start of your turn, you have a 50% chance to draw an extra card.",
+      "flavorEn": "Nat Pagle, Azeroth's premier fisherman!  He invented the Auto-Angler 3000, the Extendo-Pole 3000, and the Lure-o-matic 2099 (still in testing)."
     },
     {
       "id": "NEW1_019",
@@ -2553,7 +2859,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_019"
+      "artId": "NEW1_019",
+      "nameEn": "Knife Juggler",
+      "textEn": "[x]After you summon a\nminion, deal 1 damage\nto a random enemy.",
+      "flavorEn": "Ambitious Knife Jugglers sometimes graduate to Bomb Jugglers.    They never last long enough to make it onto a card though."
     },
     {
       "id": "EX1_616",
@@ -2578,7 +2887,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_616"
+      "artId": "EX1_616",
+      "nameEn": "Mana Wraith",
+      "textEn": "ALL minions cost (1) more.",
+      "flavorEn": "They come out at night to eat leftover mana crystals. \"Mmmmmm,\" they say."
     },
     {
       "id": "EX1_055",
@@ -2603,7 +2915,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_055"
+      "artId": "EX1_055",
+      "nameEn": "Mana Addict",
+      "textEn": "Whenever you cast a spell, gain +2 Attack this turn.",
+      "flavorEn": "She’s trying to kick the habit, but still takes some mana whenever she has a stressful day."
     },
     {
       "id": "EX1_506",
@@ -2628,7 +2943,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_506"
+      "artId": "EX1_506",
+      "nameEn": "Murloc Tidehunter",
+      "textEn": "<b>Battlecry:</b> Summon a 1/1 Murloc Scout.",
+      "flavorEn": "\"Death will rise, from the tides!\""
     },
     {
       "id": "CS2_203",
@@ -2655,7 +2973,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_203"
+      "artId": "CS2_203",
+      "nameEn": "Ironbeak Owl",
+      "textEn": "<b>Battlecry:</b> <b>Silence</b> a minion.",
+      "flavorEn": "Their wings are silent but their screech is... whatever the opposite of silent is."
     },
     {
       "id": "CS2_120",
@@ -2678,7 +2999,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_120"
+      "artId": "CS2_120",
+      "nameEn": "River Crocolisk",
+      "textEn": "",
+      "flavorEn": "Edward \"Lefty\" Smith tried to make luggage out of a river crocolisk once."
     },
     {
       "id": "NEW1_029",
@@ -2703,7 +3027,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_029"
+      "artId": "NEW1_029",
+      "nameEn": "Millhouse Manastorm",
+      "textEn": "<b>Battlecry:</b> Enemy spells cost (0) next turn.",
+      "flavorEn": "\"I'm gonna light you up, sweetcheeks!\""
     },
     {
       "id": "CS2_172",
@@ -2726,7 +3053,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_172"
+      "artId": "CS2_172",
+      "nameEn": "Bloodfen Raptor",
+      "textEn": "",
+      "flavorEn": "\"Kill 30 raptors.\" - Hemet Nesingwary"
     },
     {
       "id": "NEW1_018",
@@ -2751,7 +3081,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_018"
+      "artId": "NEW1_018",
+      "nameEn": "Bloodsail Raider",
+      "textEn": "<b>Battlecry:</b> Gain Attack equal to the Attack\nof your weapon.",
+      "flavorEn": "\"I only plunder on days that end in 'y'.\""
     },
     {
       "id": "EX1_066",
@@ -2776,7 +3109,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_066"
+      "artId": "EX1_066",
+      "nameEn": "Acidic Swamp Ooze",
+      "textEn": "<b>Battlecry:</b> Destroy your opponent's weapon.",
+      "flavorEn": "Oozes love Flamenco.  Don't ask."
     },
     {
       "id": "CS2_121",
@@ -2801,7 +3137,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_121"
+      "artId": "CS2_121",
+      "nameEn": "Frostwolf Grunt",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "Grunting is what his father did and his father before that.   It's more than just a job."
     },
     {
       "id": "NEW1_016",
@@ -2826,7 +3165,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_016"
+      "artId": "NEW1_016",
+      "nameEn": "Captain's Parrot",
+      "textEn": "<b>Battlecry:</b> Draw a Pirate from your deck.",
+      "flavorEn": "Pirates and Parrots go together like Virmen and Carrots."
     },
     {
       "id": "EX1_058",
@@ -2853,7 +3195,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_058"
+      "artId": "EX1_058",
+      "nameEn": "Sunfury Protector",
+      "textEn": "<b>Battlecry:</b> Give adjacent minions <b>Taunt</b>.",
+      "flavorEn": "She carries a shield, but only so she can give it to someone she can stand behind."
     },
     {
       "id": "EX1_393",
@@ -2878,7 +3223,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_393"
+      "artId": "EX1_393",
+      "nameEn": "Amani Berserker",
+      "textEn": "<b>Enrage:</b> +3 Attack",
+      "flavorEn": "If an Amani berserker asks \"Joo lookin' at me?!\", the correct response is \"Nah, mon\"."
     },
     {
       "id": "NEW1_023",
@@ -2903,7 +3251,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_023"
+      "artId": "NEW1_023",
+      "nameEn": "Faerie Dragon",
+      "textEn": "<b>Elusive</b>",
+      "flavorEn": "Adorable.  Immune to Magic.  Doesn't pee on the rug.  The perfect pet!"
     },
     {
       "id": "EX1_076",
@@ -2928,7 +3279,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_076"
+      "artId": "EX1_076",
+      "nameEn": "Pint-Sized Summoner",
+      "textEn": "The first minion you play each turn costs (1) less.",
+      "flavorEn": "She's quite jealous of the Gallon-Sized Summoner."
     },
     {
       "id": "EX1_096",
@@ -2953,7 +3307,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_096"
+      "artId": "EX1_096",
+      "nameEn": "Loot Hoarder",
+      "textEn": "<b>Deathrattle:</b> Draw a card.",
+      "flavorEn": "Always roll need."
     },
     {
       "id": "EX1_100",
@@ -2978,7 +3335,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_100"
+      "artId": "EX1_100",
+      "nameEn": "Lorewalker Cho",
+      "textEn": "Whenever a player casts a spell, put a copy into the other player’s hand.",
+      "flavorEn": "Lorewalker Cho archives and shares tales from the land of Pandaria, but his favorite story is the one where Joey and Phoebe go on a road trip."
     },
     {
       "id": "EX1_049",
@@ -3003,7 +3363,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_049"
+      "artId": "EX1_049",
+      "nameEn": "Youthful Brewmaster",
+      "textEn": "<b>Battlecry:</b> Return a friendly minion from the battlefield to your hand.",
+      "flavorEn": "His youthful enthusiasm doesn’t always equal excellence in his brews.   Don’t drink the Mogu Stout!"
     },
     {
       "id": "EX1_082",
@@ -3028,7 +3391,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_082"
+      "artId": "EX1_082",
+      "nameEn": "Mad Bomber",
+      "textEn": "<b>Battlecry:</b> Deal 3 damage randomly split between all other characters.",
+      "flavorEn": "He's not really all that crazy, he is just not as careful with explosives as he should be."
     },
     {
       "id": "CS2_142",
@@ -3053,7 +3419,10 @@
       "spellDamage": 1,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_142"
+      "artId": "CS2_142",
+      "nameEn": "Kobold Geomancer",
+      "textEn": "<b>Spell Damage +1</b>",
+      "flavorEn": "In the old days, Kobolds were the finest candle merchants in the land. Then they got pushed too far..."
     },
     {
       "id": "NEW1_021",
@@ -3078,7 +3447,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_021"
+      "artId": "NEW1_021",
+      "nameEn": "Doomsayer",
+      "textEn": "At the start of your turn, destroy ALL minions.",
+      "flavorEn": "He's almost been right so many times. He was <i>sure</i> it was coming during the Cataclysm."
     },
     {
       "id": "CS2_173",
@@ -3103,7 +3475,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_173"
+      "artId": "CS2_173",
+      "nameEn": "Bluegill Warrior",
+      "textEn": "<b>Charge</b>",
+      "flavorEn": "He just wants a hug.   A sloppy... slimy... hug."
     },
     {
       "id": "EX1_015",
@@ -3128,7 +3503,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_015"
+      "artId": "EX1_015",
+      "nameEn": "Novice Engineer",
+      "textEn": "<b>Battlecry:</b> Draw a card.",
+      "flavorEn": "\"Half of this class will not graduate… since they'll have been turned to chickens.\" - Tinkmaster Overspark, teaching Gizmos 101."
     },
     {
       "id": "EX1_012",
@@ -3154,7 +3532,10 @@
       "spellDamage": 1,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_012"
+      "artId": "EX1_012",
+      "nameEn": "Bloodmage Thalnos",
+      "textEn": "<b>Spell Damage +1</b>\n<b>Deathrattle:</b> Draw a card.",
+      "flavorEn": "He's in charge of the Annual Scarlet Monastery Blood Drive!"
     },
     {
       "id": "CS2_196",
@@ -3179,7 +3560,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_196"
+      "artId": "CS2_196",
+      "nameEn": "Razorfen Hunter",
+      "textEn": "<b>Battlecry:</b> Summon a 1/1 Boar.",
+      "flavorEn": "Someone did mess with Tuskerr once.  ONCE."
     },
     {
       "id": "EX1_007",
@@ -3204,7 +3588,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_007"
+      "artId": "EX1_007",
+      "nameEn": "Acolyte of Pain",
+      "textEn": "Whenever this minion takes damage, draw a card.",
+      "flavorEn": "He trained when he was younger to be an acolyte of joy, but things didn’t work out like he thought they would."
     },
     {
       "id": "CS2_122",
@@ -3229,7 +3616,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_122"
+      "artId": "CS2_122",
+      "nameEn": "Raid Leader",
+      "textEn": "Your other minions have +1 Attack.",
+      "flavorEn": "\"That's a 50 DKP minus!\""
     },
     {
       "id": "tt_004",
@@ -3254,7 +3644,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "tt_004"
+      "artId": "tt_004",
+      "nameEn": "Flesheating Ghoul",
+      "textEn": "Whenever a minion dies, gain +1 Attack.",
+      "flavorEn": "'Flesheating' is an unfair name.  It's just that there's not really much else for him to eat."
     },
     {
       "id": "EX1_005",
@@ -3279,7 +3672,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_005"
+      "artId": "EX1_005",
+      "nameEn": "Big Game Hunter",
+      "textEn": "<b>Battlecry:</b> Destroy a minion with 7 or more Attack.",
+      "flavorEn": "Mere devilsaurs no longer excite him.  Soon he'll be trying to catch Onyxia with only a dull Krol Blade."
     },
     {
       "id": "NEW1_027",
@@ -3304,7 +3700,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_027"
+      "artId": "NEW1_027",
+      "nameEn": "Southsea Captain",
+      "textEn": "Your other Pirates have +1/+1.",
+      "flavorEn": "When he saves enough plunder, he's going to commission an enormous captain's hat.  He has hat envy."
     },
     {
       "id": "EX1_006",
@@ -3329,7 +3728,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_006"
+      "artId": "EX1_006",
+      "nameEn": "Alarm-o-Bot",
+      "textEn": "[x]At the start of your turn,\nswap this minion with a\n   random one in your hand.",
+      "flavorEn": "WARNING.  WARNING.  WARNING."
     },
     {
       "id": "CS2_124",
@@ -3354,7 +3756,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_124"
+      "artId": "CS2_124",
+      "nameEn": "Wolfrider",
+      "textEn": "<b>Charge</b>",
+      "flavorEn": "Orcish raiders ride wolves because they are well adapted to harsh environments, and because they are soft and cuddly."
     },
     {
       "id": "EX1_582",
@@ -3379,7 +3784,10 @@
       "spellDamage": 1,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_582"
+      "artId": "EX1_582",
+      "nameEn": "Dalaran Mage",
+      "textEn": "<b>Spell Damage +1</b>",
+      "flavorEn": "You don't see a lot of Dalaran warriors."
     },
     {
       "id": "CS2_117",
@@ -3404,7 +3812,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_117"
+      "artId": "CS2_117",
+      "nameEn": "Earthen Ring Farseer",
+      "textEn": "<b>Battlecry:</b> Restore #3 Health.",
+      "flavorEn": "He can see really far, and he doesn't use a telescope like those filthy pirates."
     },
     {
       "id": "EX1_507",
@@ -3429,7 +3840,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_507"
+      "artId": "EX1_507",
+      "nameEn": "Murloc Warleader",
+      "textEn": "ALL other murlocs have +2/+1.",
+      "flavorEn": "Do Murlocs ever get tired of making the same old sound?  Nope!  Mrglglrglglglglglglgl!"
     },
     {
       "id": "EX1_019",
@@ -3454,7 +3868,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_019"
+      "artId": "EX1_019",
+      "nameEn": "Shattered Sun Cleric",
+      "textEn": "<b>Battlecry:</b> Give a friendly minion +1/+1.",
+      "flavorEn": "They always have a spare flask of Sunwell Energy Drink™!"
     },
     {
       "id": "CS2_125",
@@ -3479,7 +3896,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_125"
+      "artId": "CS2_125",
+      "nameEn": "Ironfur Grizzly",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "\"Bear Carcass 1/10\""
     },
     {
       "id": "EX1_017",
@@ -3504,7 +3924,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_017"
+      "artId": "EX1_017",
+      "nameEn": "Jungle Panther",
+      "textEn": "<b>Stealth</b>",
+      "flavorEn": "Stranglethorn is a beautiful place to visit, but you wouldn't want to live there."
     },
     {
       "id": "EX1_014",
@@ -3529,7 +3952,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_014"
+      "artId": "EX1_014",
+      "nameEn": "King Mukla",
+      "textEn": "<b>Battlecry:</b> Give your opponent 2 Bananas.",
+      "flavorEn": "King Mukla wanders Jaguero Isle, searching for love."
     },
     {
       "id": "CS2_181",
@@ -3554,7 +3980,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_181"
+      "artId": "CS2_181",
+      "nameEn": "Injured Blademaster",
+      "textEn": "<b>Battlecry:</b> Deal 4 damage to HIMSELF.",
+      "flavorEn": "He claims it is an old war wound, but we think he just cut himself shaving."
     },
     {
       "id": "EX1_020",
@@ -3579,7 +4008,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_020"
+      "artId": "EX1_020",
+      "nameEn": "Scarlet Crusader",
+      "textEn": "<b>Divine Shield</b>",
+      "flavorEn": "Never wash your whites with a Scarlet Crusader."
     },
     {
       "id": "EX1_089",
@@ -3605,7 +4037,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_089"
+      "artId": "EX1_089",
+      "nameEn": "Arcane Golem",
+      "textEn": "<b>Charge</b>. <b>Battlecry:</b> Give your opponent a Mana Crystal.",
+      "flavorEn": "Having Arcane golems at home really classes up the place, and as a bonus they are great conversation pieces."
     },
     {
       "id": "EX1_083",
@@ -3630,7 +4065,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_083"
+      "artId": "EX1_083",
+      "nameEn": "Tinkmaster Overspark",
+      "textEn": "[x]<b>Battlecry:</b> Transform\nanother random minion\ninto a 5/5 Devilsaur\n or a 1/1 Squirrel.",
+      "flavorEn": "Tinkmaster Overspark nearly lost his Tinker's license after the Great Ironforge Squirrel Stampede of '09."
     },
     {
       "id": "EX1_021",
@@ -3655,7 +4093,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_021"
+      "artId": "EX1_021",
+      "nameEn": "Thrallmar Farseer",
+      "textEn": "<b>Windfury</b>",
+      "flavorEn": "He's stationed in the Hellfire Peninsula, but he's hoping for a reassignment closer to Orgrimmar, or really anywhere the ground is less on fire."
     },
     {
       "id": "EX1_103",
@@ -3680,7 +4121,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_103"
+      "artId": "EX1_103",
+      "nameEn": "Coldlight Seer",
+      "textEn": "<b>Battlecry:</b> Give ALL other Murlocs +2 Health.",
+      "flavorEn": "The Coldlight murlocs reside in the darkest pits of the Abyssal Depths.  So no, there's no getting away from murlocs."
     },
     {
       "id": "EX1_050",
@@ -3705,7 +4149,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_050"
+      "artId": "EX1_050",
+      "nameEn": "Coldlight Oracle",
+      "textEn": "<b>Battlecry:</b> Each player draws 2 cards.",
+      "flavorEn": "They can see the future.   In that future both players draw more cards.   Spoooky."
     },
     {
       "id": "CS2_141",
@@ -3730,7 +4177,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_141"
+      "artId": "CS2_141",
+      "nameEn": "Ironforge Rifleman",
+      "textEn": "<b>Battlecry:</b> Deal 1 damage.",
+      "flavorEn": "\"Ready! Aim! Drink!\""
     },
     {
       "id": "CS2_118",
@@ -3753,7 +4203,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_118"
+      "artId": "CS2_118",
+      "nameEn": "Magma Rager",
+      "textEn": "",
+      "flavorEn": "He likes to think he is powerful, but pretty much anyone can solo Molten Core now."
     },
     {
       "id": "CS2_127",
@@ -3778,7 +4231,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_127"
+      "artId": "CS2_127",
+      "nameEn": "Silverback Patriarch",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "He likes to act like he's in charge, but the silverback matriarch actually runs things."
     },
     {
       "id": "EX1_597",
@@ -3803,7 +4259,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_597"
+      "artId": "EX1_597",
+      "nameEn": "Imp Master",
+      "textEn": "[x]At the end of your turn, deal\n1 damage to this minion\n and summon a 1/1 Imp.",
+      "flavorEn": "She would enjoy the job a lot more if she just could get the imps to QUIT BITING HER."
     },
     {
       "id": "EX1_085",
@@ -3828,7 +4287,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_085"
+      "artId": "EX1_085",
+      "nameEn": "Mind Control Tech",
+      "textEn": "[x]<b>Battlecry:</b> If your opponent\nhas 4 or more minions, take\n control of one at random.",
+      "flavorEn": "Mind Control technology is getting better, but that's not saying much."
     },
     {
       "id": "EX1_044",
@@ -3853,7 +4315,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_044"
+      "artId": "EX1_044",
+      "nameEn": "Questing Adventurer",
+      "textEn": "Whenever you play a card, gain +1/+1.",
+      "flavorEn": "\"Does anyone have some extra Boar Pelts?\""
     },
     {
       "id": "EX1_390",
@@ -3880,7 +4345,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_390"
+      "artId": "EX1_390",
+      "nameEn": "Tauren Warrior",
+      "textEn": "<b>Taunt</b>. <b>Enrage:</b> +3 Attack",
+      "flavorEn": "Tauren Warrior: Champion of Mulgore, Slayer of Quilboar, Rider of Thunderbluff Elevators."
     },
     {
       "id": "EX1_102",
@@ -3905,7 +4373,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_102"
+      "artId": "EX1_102",
+      "nameEn": "Demolisher",
+      "textEn": "At the start of your turn, deal 2 damage to a random enemy.",
+      "flavorEn": "Laying siege isn't fun for anyone.  It's not even all that effective, now that everyone has a flying mount."
     },
     {
       "id": "EX1_556",
@@ -3930,7 +4401,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_556"
+      "artId": "EX1_556",
+      "nameEn": "Harvest Golem",
+      "textEn": "<b>Deathrattle:</b> Summon a 2/1 Damaged Golem.",
+      "flavorEn": "\"Overheat threshold exceeded. System failure. Wheat clog in port two. Shutting down.\""
     },
     {
       "id": "EX1_590",
@@ -3957,7 +4431,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_590"
+      "artId": "EX1_590",
+      "nameEn": "Blood Knight",
+      "textEn": "<b>Battlecry:</b> All minions lose <b>Divine Shield</b>. Gain +3/+3 for each Shield lost.",
+      "flavorEn": "The Blood Knights get their holy powers from the Sunwell, which you should NOT bathe in."
     },
     {
       "id": "EX1_170",
@@ -3980,7 +4457,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_170"
+      "artId": "EX1_170",
+      "nameEn": "Emperor Cobra",
+      "textEn": "Destroy any minion damaged by this minion.",
+      "flavorEn": "The Sholazar Basin is home to a lot of really horrible things. If you're going to visit, wear bug spray.  And plate armor."
     },
     {
       "id": "EX1_412",
@@ -4006,7 +4486,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_412"
+      "artId": "EX1_412",
+      "nameEn": "Raging Worgen",
+      "textEn": "<b>Enrage:</b> <b>Windfury</b> and +1 Attack",
+      "flavorEn": "If he's raging now, just wait until he gets nerfed."
     },
     {
       "id": "EX1_046",
@@ -4031,7 +4514,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_046"
+      "artId": "EX1_046",
+      "nameEn": "Dark Iron Dwarf",
+      "textEn": "<b>Battlecry:</b> Give a minion +2 Attack this turn.",
+      "flavorEn": "Guardians of Dark Iron Ore.  Perhaps the most annoying ore, given where you have to forge it."
     },
     {
       "id": "EX1_584",
@@ -4058,7 +4544,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_584"
+      "artId": "EX1_584",
+      "nameEn": "Ancient Mage",
+      "textEn": "<b>Battlecry:</b> Give adjacent minions <b>Spell Damage +1</b>.",
+      "flavorEn": "Sometimes he forgets and just wanders into someone else's game."
     },
     {
       "id": "EX1_057",
@@ -4083,7 +4572,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_057"
+      "artId": "EX1_057",
+      "nameEn": "Ancient Brewmaster",
+      "textEn": "<b>Battlecry:</b> Return a friendly minion from the battlefield to your hand.",
+      "flavorEn": "Most pandaren say his brew tastes like yak.  But apparently that's a compliment."
     },
     {
       "id": "NEW1_022",
@@ -4108,7 +4600,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_022"
+      "artId": "NEW1_022",
+      "nameEn": "Dread Corsair",
+      "textEn": "<b>Taunt</b>\nCosts (1) less per Attack of your weapon.",
+      "flavorEn": "\"Yarrrr\" is a pirate word that means \"Greetings, milord.\""
     },
     {
       "id": "EX1_025",
@@ -4133,7 +4628,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_025"
+      "artId": "EX1_025",
+      "nameEn": "Dragonling Mechanic",
+      "textEn": "<b>Battlecry:</b> Summon a 2/1 Mechanical Dragonling.",
+      "flavorEn": "She is still working on installing the rocket launcher add-on for Mr. Bitey."
     },
     {
       "id": "CS2_147",
@@ -4158,7 +4656,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_147"
+      "artId": "CS2_147",
+      "nameEn": "Gnomish Inventor",
+      "textEn": "<b>Battlecry:</b> Draw a card.",
+      "flavorEn": "She's never quite sure what she's making, she just knows it's AWESOME!"
     },
     {
       "id": "EX1_062",
@@ -4183,7 +4684,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_062"
+      "artId": "EX1_062",
+      "nameEn": "Old Murk-Eye",
+      "textEn": "<b>Charge</b>. Has +1 Attack for each other Murloc on the battlefield.",
+      "flavorEn": "He's a legend among murlocs.  \"Mrghllghghllghg!\", they say."
     },
     {
       "id": "EX1_116",
@@ -4209,7 +4713,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_116"
+      "artId": "EX1_116",
+      "nameEn": "Leeroy Jenkins",
+      "textEn": "<b>Charge</b>. <b>Battlecry:</b> Summon two 1/1 Whelps for your opponent.",
+      "flavorEn": "At least he has Angry Chicken."
     },
     {
       "id": "EX1_396",
@@ -4234,7 +4741,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_396"
+      "artId": "EX1_396",
+      "nameEn": "Mogu'shan Warden",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "All these guys ever do is talk about the Thunder King.   BOOOORRRINNG!"
     },
     {
       "id": "NEW1_026",
@@ -4259,7 +4769,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_026"
+      "artId": "NEW1_026",
+      "nameEn": "Violet Teacher",
+      "textEn": "Whenever you cast a spell, summon a 1/1 Violet Apprentice.",
+      "flavorEn": "If you don't pay attention, you may be turned into a pig.  And then you get your name on the board."
     },
     {
       "id": "CS2_182",
@@ -4282,7 +4795,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_182"
+      "artId": "CS2_182",
+      "nameEn": "Chillwind Yeti",
+      "textEn": "",
+      "flavorEn": "He always dreamed of coming down from the mountains and opening a noodle shop, but he never got the nerve."
     },
     {
       "id": "CS2_179",
@@ -4307,7 +4823,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_179"
+      "artId": "CS2_179",
+      "nameEn": "Sen'jin Shieldmasta",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "Sen'jin Village is nice, if you like trolls and dust."
     },
     {
       "id": "CS2_131",
@@ -4332,7 +4851,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_131"
+      "artId": "CS2_131",
+      "nameEn": "Stormwind Knight",
+      "textEn": "<b>Charge</b>",
+      "flavorEn": "They're still embarrassed about \"The Deathwing Incident\"."
     },
     {
       "id": "EX1_023",
@@ -4357,7 +4879,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_023"
+      "artId": "EX1_023",
+      "nameEn": "Silvermoon Guardian",
+      "textEn": "<b>Divine Shield</b>",
+      "flavorEn": "The first time they tried to guard Silvermoon against the scourge, it didn’t go so well…"
     },
     {
       "id": "EX1_093",
@@ -4384,7 +4909,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_093"
+      "artId": "EX1_093",
+      "nameEn": "Defender of Argus",
+      "textEn": "<b>Battlecry:</b> Give adjacent minions +1/+1 and <b>Taunt</b>.",
+      "flavorEn": "You wouldn’t think that Argus would need this much defending.  But it does."
     },
     {
       "id": "CS2_119",
@@ -4407,7 +4935,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_119"
+      "artId": "CS2_119",
+      "nameEn": "Oasis Snapjaw",
+      "textEn": "",
+      "flavorEn": "His dreams of flying and breathing fire like his idol will never be realized."
     },
     {
       "id": "CS2_197",
@@ -4432,7 +4963,10 @@
       "spellDamage": 1,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_197"
+      "artId": "CS2_197",
+      "nameEn": "Ogre Magi",
+      "textEn": "<b>Spell Damage +1</b>",
+      "flavorEn": "Training Ogres in the art of spellcasting is a questionable decision."
     },
     {
       "id": "EX1_595",
@@ -4457,7 +4991,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_595"
+      "artId": "EX1_595",
+      "nameEn": "Cult Master",
+      "textEn": "After a friendly minion dies, draw a card.",
+      "flavorEn": "She may be an evil cult master, but she still calls her parents once a week."
     },
     {
       "id": "EX1_048",
@@ -4484,7 +5021,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_048"
+      "artId": "EX1_048",
+      "nameEn": "Spellbreaker",
+      "textEn": "<b>Battlecry:</b> <b>Silence</b> a minion.",
+      "flavorEn": "Spellbreakers can rip enchantments from magic-wielders.  The process is painless and can be performed on an outpatient basis."
     },
     {
       "id": "EX1_043",
@@ -4509,7 +5049,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_043"
+      "artId": "EX1_043",
+      "nameEn": "Twilight Drake",
+      "textEn": "<b>Battlecry:</b> Gain +1 Health for each card in your hand.",
+      "flavorEn": "Twilight drakes feed on Mystical Energy.  And Tacos."
     },
     {
       "id": "EX1_028",
@@ -4534,7 +5077,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_028"
+      "artId": "EX1_028",
+      "nameEn": "Stranglethorn Tiger",
+      "textEn": "<b>Stealth</b>",
+      "flavorEn": "The wonderful thing about tigers is tigers are wonderful things!"
     },
     {
       "id": "EX1_095",
@@ -4559,7 +5105,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_095"
+      "artId": "EX1_095",
+      "nameEn": "Gadgetzan Auctioneer",
+      "textEn": "Whenever you cast a spell, draw a card.",
+      "flavorEn": "He used to run the black market auction house, but there was just too much violence and he had to move."
     },
     {
       "id": "EX1_399",
@@ -4584,7 +5133,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_399"
+      "artId": "EX1_399",
+      "nameEn": "Gurubashi Berserker",
+      "textEn": "Whenever this minion takes damage, gain +3 Attack.",
+      "flavorEn": "No Pain, No Gain."
     },
     {
       "id": "NEW1_041",
@@ -4609,7 +5161,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_041"
+      "artId": "NEW1_041",
+      "nameEn": "Stampeding Kodo",
+      "textEn": "<b>Battlecry:</b> Destroy a random enemy minion with 2 or less Attack.",
+      "flavorEn": "This Kodo is so big that he can stampede by <i>himself</i>."
     },
     {
       "id": "EX1_097",
@@ -4635,7 +5190,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_097"
+      "artId": "EX1_097",
+      "nameEn": "Abomination",
+      "textEn": "<b>Taunt</b>. <b>Deathrattle:</b> Deal 2\ndamage to ALL characters.",
+      "flavorEn": "Abominations enjoy Fresh Meat and long walks on the beach."
     },
     {
       "id": "CS2_187",
@@ -4660,7 +5218,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_187"
+      "artId": "CS2_187",
+      "nameEn": "Booty Bay Bodyguard",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "You can hire him... until someone offers him enough gold to turn on you."
     },
     {
       "id": "CS2_226",
@@ -4685,7 +5246,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_226"
+      "artId": "CS2_226",
+      "nameEn": "Frostwolf Warlord",
+      "textEn": "<b>Battlecry:</b> Gain +1/+1 for each other friendly minion on the battlefield.",
+      "flavorEn": "The Frostwolves are locked in combat with the Stormpike Expedition over control of Alterac Valley.  Every attempt at peace-talks has ended with Captain Galvangar killing the mediator."
     },
     {
       "id": "NEW1_024",
@@ -4710,7 +5274,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_024"
+      "artId": "NEW1_024",
+      "nameEn": "Captain Greenskin",
+      "textEn": "<b>Battlecry:</b> Give your weapon +1/+1.",
+      "flavorEn": "He was <i>this close</i> to piloting a massive juggernaut into Stormwind Harbor. If it weren't for those pesky kids!"
     },
     {
       "id": "CS1_069",
@@ -4735,7 +5302,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS1_069"
+      "artId": "CS1_069",
+      "nameEn": "Fen Creeper",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "He used to be called Bog Beast, but it confused people because he wasn't an actual beast.   Boom, New Name!"
     },
     {
       "id": "CS2_150",
@@ -4760,7 +5330,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_150"
+      "artId": "CS2_150",
+      "nameEn": "Stormpike Commando",
+      "textEn": "<b>Battlecry:</b> Deal 2 damage.",
+      "flavorEn": "The Stormpike Commandos are demolition experts.  They also bake a mean cupcake."
     },
     {
       "id": "EX1_593",
@@ -4785,7 +5358,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_593"
+      "artId": "EX1_593",
+      "nameEn": "Nightblade",
+      "textEn": "<b>Battlecry: </b>Deal 3 damage to the enemy hero.",
+      "flavorEn": "Your face is the place you'd probably least like a dagger, and where rogues are most likely to deliver them."
     },
     {
       "id": "DS1_055",
@@ -4810,7 +5386,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_055"
+      "artId": "DS1_055",
+      "nameEn": "Darkscale Healer",
+      "textEn": "<b>Battlecry:</b> Restore #2 Health to all friendly characters.",
+      "flavorEn": "Healing is just something she does in her free time.  It's more of a hobby really."
     },
     {
       "id": "EX1_564",
@@ -4835,7 +5414,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_564"
+      "artId": "EX1_564",
+      "nameEn": "Faceless Manipulator",
+      "textEn": "<b>Battlecry:</b> Choose a minion and become a copy of it.",
+      "flavorEn": "The Faceless Ones are servants of Yogg-Saron, and they feed on fear. Right now they are feeding on your fear of accidentally disenchanting all your good cards."
     },
     {
       "id": "CS2_221",
@@ -4860,7 +5442,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_221"
+      "artId": "CS2_221",
+      "nameEn": "Spiteful Smith",
+      "textEn": "<b>Enrage:</b> Your weapon has +2 Attack.",
+      "flavorEn": "She'll craft you a sword, but you'll need to bring her 5 Steel Ingots, 3 Motes of Earth, and the scalp of her last customer."
     },
     {
       "id": "CS2_151",
@@ -4885,7 +5470,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_151"
+      "artId": "CS2_151",
+      "nameEn": "Silver Hand Knight",
+      "textEn": "<b>Battlecry:</b> Summon a 2/2 Squire.",
+      "flavorEn": "It's good to be a knight.   Less so to be one's squire."
     },
     {
       "id": "PRO_001",
@@ -4910,7 +5498,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "PRO_001"
+      "artId": "PRO_001",
+      "nameEn": "Elite Tauren Chieftain",
+      "textEn": "<b>Battlecry:</b> Give both players the power to ROCK! (with a Power Chord card)",
+      "flavorEn": "He's looking for a drummer.  The current candidates are: Novice Engineer, Sen'jin Shieldmasta', and Ragnaros the Firelord."
     },
     {
       "id": "CS2_227",
@@ -4935,7 +5526,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_227"
+      "artId": "CS2_227",
+      "nameEn": "Venture Co. Mercenary",
+      "textEn": "Your minions cost (3) more.",
+      "flavorEn": "No Job is too big.  No fee is too big."
     },
     {
       "id": "EX1_284",
@@ -4961,7 +5555,10 @@
       "spellDamage": 1,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_284"
+      "artId": "EX1_284",
+      "nameEn": "Azure Drake",
+      "textEn": "<b>Spell Damage +1</b>\n<b>Battlecry:</b> Draw a card.",
+      "flavorEn": "They initially planned to be the Beryl or Cerulean drakes, but those felt a tad too pretentious."
     },
     {
       "id": "EX1_558",
@@ -4986,7 +5583,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_558"
+      "artId": "EX1_558",
+      "nameEn": "Harrison Jones",
+      "textEn": "<b>Battlecry:</b> Destroy your opponent's weapon and draw cards equal to its Durability.",
+      "flavorEn": "“That belongs in the Hall of Explorers!”"
     },
     {
       "id": "EX1_112",
@@ -5011,7 +5611,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_112"
+      "artId": "EX1_112",
+      "nameEn": "Gelbin Mekkatorque",
+      "textEn": "<b>Battlecry:</b> Summon an AWESOME invention.",
+      "flavorEn": "He's the leader of the gnomes, and an incredible inventor.  He's getting better, too; He turns things into chickens WAY less than he used to."
     },
     {
       "id": "EX1_577",
@@ -5036,7 +5639,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_577"
+      "artId": "EX1_577",
+      "nameEn": "The Beast",
+      "textEn": "[x]<b>Deathrattle:</b> Summon a\n3/3 Pip Quickwit for\nyour opponent.",
+      "flavorEn": "He lives in Blackrock Mountain.  He eats Gnomes.  That's pretty much it."
     },
     {
       "id": "EX1_283",
@@ -5062,7 +5668,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_283"
+      "artId": "EX1_283",
+      "nameEn": "Frost Elemental",
+      "textEn": "<b>Battlecry:</b> <b>Freeze</b> a character.",
+      "flavorEn": "When a Water elemental and an Ice elemental love each other VERY much..."
     },
     {
       "id": "CS2_155",
@@ -5087,7 +5696,10 @@
       "spellDamage": 1,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_155"
+      "artId": "CS2_155",
+      "nameEn": "Archmage",
+      "textEn": "<b>Spell Damage +1</b>",
+      "flavorEn": "You earn the title of Archmage when you can destroy anyone who calls you on it."
     },
     {
       "id": "CS2_200",
@@ -5110,7 +5722,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_200"
+      "artId": "CS2_200",
+      "nameEn": "Boulderfist Ogre",
+      "textEn": "",
+      "flavorEn": "\"ME HAVE GOOD STATS FOR THE COST\""
     },
     {
       "id": "NEW1_040",
@@ -5137,7 +5752,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_040"
+      "artId": "NEW1_040",
+      "nameEn": "Hogger",
+      "textEn": "At the end of your turn, summon a 2/2 Gnoll with <b>Taunt</b>.",
+      "flavorEn": "Hogger is super powerful. If you kill him, it's because he <i>let</i> you."
     },
     {
       "id": "CS2_213",
@@ -5162,7 +5780,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_213"
+      "artId": "CS2_213",
+      "nameEn": "Reckless Rocketeer",
+      "textEn": "<b>Charge</b>",
+      "flavorEn": "One Insane Rocketeer.   One Rocket full of Explosives.   Infinite Fun."
     },
     {
       "id": "EX1_033",
@@ -5187,7 +5808,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_033"
+      "artId": "EX1_033",
+      "nameEn": "Windfury Harpy",
+      "textEn": "<b>Windfury</b>",
+      "flavorEn": "Harpies are not pleasant sounding.  That's the nicest I can put it."
     },
     {
       "id": "EX1_016",
@@ -5212,7 +5836,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_016"
+      "artId": "EX1_016",
+      "nameEn": "Sylvanas Windrunner",
+      "textEn": "<b>Deathrattle:</b> Take\ncontrol of a random\nenemy minion.",
+      "flavorEn": "Sylvanas was turned into the Banshee Queen by Arthas, but he probably should have just killed her because it just pissed her off."
     },
     {
       "id": "EX1_583",
@@ -5237,7 +5864,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_583"
+      "artId": "EX1_583",
+      "nameEn": "Priestess of Elune",
+      "textEn": "<b>Battlecry:</b> Restore #4 Health to your hero.",
+      "flavorEn": "If she threatens to \"moon\" you, it's not what you think."
     },
     {
       "id": "EX1_067",
@@ -5263,7 +5893,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_067"
+      "artId": "EX1_067",
+      "nameEn": "Argent Commander",
+      "textEn": "<b>Charge</b>\n<b>Divine Shield</b>",
+      "flavorEn": "The Argent Dawn stands vigilant against the Scourge, as well as people who cut in line at coffee shops."
     },
     {
       "id": "EX1_614",
@@ -5288,7 +5921,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_614"
+      "artId": "EX1_614",
+      "nameEn": "Illidan Stormrage",
+      "textEn": "Whenever you play a card, summon a 2/1 Flame of Azzinoth.",
+      "flavorEn": "Illidan's brother, Malfurion, imprisoned him beneath Hyjal for 10,000 years. Stormrages are not good at letting go of grudges."
     },
     {
       "id": "EX1_110",
@@ -5313,7 +5949,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_110"
+      "artId": "EX1_110",
+      "nameEn": "Cairne Bloodhoof",
+      "textEn": "<b>Deathrattle:</b> Summon a 4/5 Baine Bloodhoof.",
+      "flavorEn": "Cairne was killed by Garrosh, so... don't put this guy in a Warrior deck.  It's pretty insensitive."
     },
     {
       "id": "EX1_032",
@@ -5339,7 +5978,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_032"
+      "artId": "EX1_032",
+      "nameEn": "Sunwalker",
+      "textEn": "<b>Taunt</b>\n<b>Divine Shield</b>",
+      "flavorEn": "She doesn’t ACTUALLY walk on the Sun.  It's just a name.  Don’t worry!"
     },
     {
       "id": "CS2_162",
@@ -5364,7 +6006,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_162"
+      "artId": "CS2_162",
+      "nameEn": "Lord of the Arena",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "He used to be a 2100+ rated arena player, but that was years ago and nobody can get him to shut up about it."
     },
     {
       "id": "EX1_002",
@@ -5391,7 +6036,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_002"
+      "artId": "EX1_002",
+      "nameEn": "The Black Knight",
+      "textEn": "<b>Battlecry:</b> Destroy an enemy minion with <b>Taunt</b>.",
+      "flavorEn": "He was sent by the Lich King to disrupt the Argent Tournament.   We can pretty much mark that a failure."
     },
     {
       "id": "EX1_249",
@@ -5416,7 +6064,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_249"
+      "artId": "EX1_249",
+      "nameEn": "Baron Geddon",
+      "textEn": "At the end of your turn, deal 2 damage to ALL other characters.",
+      "flavorEn": "Baron Geddon was Ragnaros's foremost lieutenant, until he got FIRED."
     },
     {
       "id": "CS2_161",
@@ -5441,7 +6092,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_161"
+      "artId": "CS2_161",
+      "nameEn": "Ravenholdt Assassin",
+      "textEn": "<b>Stealth</b>",
+      "flavorEn": "Just mail him a package with a name and 10,000 gold.  He'll take care of the rest."
     },
     {
       "id": "CS2_222",
@@ -5466,7 +6120,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_222"
+      "artId": "CS2_222",
+      "nameEn": "Stormwind Champion",
+      "textEn": "Your other minions have +1/+1.",
+      "flavorEn": "When Deathwing assaulted the capital, this soldier was the only member of his squad to survive. Now he's all bitter and stuff."
     },
     {
       "id": "CS2_201",
@@ -5489,7 +6146,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_201"
+      "artId": "CS2_201",
+      "nameEn": "Core Hound",
+      "textEn": "",
+      "flavorEn": "You don’t tame a Core Hound. You just train it to eat someone else before it eats you."
     },
     {
       "id": "CS2_186",
@@ -5512,7 +6172,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_186"
+      "artId": "CS2_186",
+      "nameEn": "War Golem",
+      "textEn": "",
+      "flavorEn": "Golems are not afraid, but for some reason they still run when you cast Fear on them.  Instinct, maybe?  A desire to blend in?"
     },
     {
       "id": "NEW1_038",
@@ -5537,7 +6200,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_038"
+      "artId": "NEW1_038",
+      "nameEn": "Gruul",
+      "textEn": "At the end of each turn, gain +1/+1 .",
+      "flavorEn": "He's Gruul \"the Dragonkiller\".  He just wanted to cuddle them… he never meant to…"
     },
     {
       "id": "EX1_298",
@@ -5563,7 +6229,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_298"
+      "artId": "EX1_298",
+      "nameEn": "Ragnaros the Firelord",
+      "textEn": "Can't attack. At the end of your turn, deal 8 damage to a random enemy.",
+      "flavorEn": "Ragnaros was summoned by the Dark Iron dwarves, who were eventually enslaved by the Firelord.  Summoning Ragnaros often doesn’t work out the way you want it to."
     },
     {
       "id": "EX1_560",
@@ -5586,7 +6255,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_560"
+      "artId": "EX1_560",
+      "nameEn": "Nozdormu",
+      "textEn": "Players only have 15 seconds to take their turns.",
+      "flavorEn": "Time to write some flavor text."
     },
     {
       "id": "EX1_563",
@@ -5611,7 +6283,10 @@
       "spellDamage": 1,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_563"
+      "artId": "EX1_563",
+      "nameEn": "Malygos",
+      "textEn": "<b>Spell Damage +5</b>",
+      "flavorEn": "Malygos hates it when mortals use magic.  He gets so mad!"
     },
     {
       "id": "EX1_561",
@@ -5636,7 +6311,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_561"
+      "artId": "EX1_561",
+      "nameEn": "Alexstrasza",
+      "textEn": "<b>Battlecry:</b> Set a hero's remaining Health to 15.",
+      "flavorEn": "Alexstrasza the Life-Binder brings life and hope to everyone.  Except Deathwing.  And Malygos.  And Nekros."
     },
     {
       "id": "EX1_562",
@@ -5661,7 +6339,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_562"
+      "artId": "EX1_562",
+      "nameEn": "Onyxia",
+      "textEn": "<b>Battlecry:</b> Summon 1/1 Whelps until your side of the battlefield is full.",
+      "flavorEn": "Onyxia long manipulated the Stormwind Court by disguising herself as Lady Katrana Prestor.   You would have thought that the giant wings and scales would have been a giveaway."
     },
     {
       "id": "EX1_572",
@@ -5686,7 +6367,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_572"
+      "artId": "EX1_572",
+      "nameEn": "Ysera",
+      "textEn": "At the end of your turn, add a Dream Card to your hand.",
+      "flavorEn": "Ysera rules the Emerald Dream.  Which is some kind of green-mirror-version of the real world, or something?"
     },
     {
       "id": "NEW1_030",
@@ -5711,7 +6395,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_030"
+      "artId": "NEW1_030",
+      "nameEn": "Deathwing",
+      "textEn": "<b>Battlecry:</b> Destroy all other minions and discard your hand.",
+      "flavorEn": "Once a noble dragon known as Neltharion, Deathwing lost his mind and shattered Azeroth before finally being defeated.  Daddy issues?"
     },
     {
       "id": "EX1_586",
@@ -5734,7 +6421,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_586"
+      "artId": "EX1_586",
+      "nameEn": "Sea Giant",
+      "textEn": "Costs (1) less for each other minion on the battlefield.",
+      "flavorEn": "See?  Giant."
     },
     {
       "id": "EX1_105",
@@ -5757,7 +6447,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_105"
+      "artId": "EX1_105",
+      "nameEn": "Mountain Giant",
+      "textEn": "Costs (1) less for each other card in your hand.",
+      "flavorEn": "His mother said that he was just big boned."
     },
     {
       "id": "EX1_620",
@@ -5780,7 +6473,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_620"
+      "artId": "EX1_620",
+      "nameEn": "Molten Giant",
+      "textEn": "Costs (1) less for each damage your hero has taken.",
+      "flavorEn": "He gets terrible heartburn.  BECAUSE HE IS FULL OF LAVA."
     },
     {
       "id": "EX1_360",
@@ -5803,7 +6499,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_360"
+      "artId": "EX1_360",
+      "nameEn": "Humility",
+      "textEn": "Change a minion's Attack to 1.",
+      "flavorEn": "This card makes something really damp.  Oh wait.  That's \"Humidity.\""
     },
     {
       "id": "EX1_130",
@@ -5828,7 +6527,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_130"
+      "artId": "EX1_130",
+      "nameEn": "Noble Sacrifice",
+      "textEn": "<b>Secret:</b> When an enemy attacks, summon a 2/1 Defender as the new target.",
+      "flavorEn": "We will always remember you, \"Defender!\""
     },
     {
       "id": "EX1_136",
@@ -5853,7 +6555,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_136"
+      "artId": "EX1_136",
+      "nameEn": "Redemption",
+      "textEn": "<b>Secret:</b> When a friendly minion dies, return it to life with 1 Health.",
+      "flavorEn": "I am not sure how you get demptioned the first time.  It’s a mystery!"
     },
     {
       "id": "EX1_132",
@@ -5878,7 +6583,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_132"
+      "artId": "EX1_132",
+      "nameEn": "Eye for an Eye",
+      "textEn": "<b>Secret:</b> When your hero takes damage, deal that much damage to the enemy hero.",
+      "flavorEn": "Justice sometimes takes the form of a closed fist into a soft cheek."
     },
     {
       "id": "EX1_371",
@@ -5903,7 +6611,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_371"
+      "artId": "EX1_371",
+      "nameEn": "Hand of Protection",
+      "textEn": "Give a minion <b>Divine Shield</b>.",
+      "flavorEn": "This spell has been renamed so many times, even paladins don’t know what it should be called anymore."
     },
     {
       "id": "CS2_091",
@@ -5926,7 +6637,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_091"
+      "artId": "CS2_091",
+      "nameEn": "Light's Justice",
+      "textEn": "",
+      "flavorEn": "Prince Malchezaar was a collector of rare weapons. He'd animate them and have them dance for him."
     },
     {
       "id": "EX1_363",
@@ -5949,7 +6663,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_363"
+      "artId": "EX1_363",
+      "nameEn": "Blessing of Wisdom",
+      "textEn": "Choose a minion. Whenever it attacks, draw a card.",
+      "flavorEn": "Apparently with wisdom comes the knowledge that you should probably be attacking every turn."
     },
     {
       "id": "EX1_379",
@@ -5974,7 +6691,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_379"
+      "artId": "EX1_379",
+      "nameEn": "Repentance",
+      "textEn": "<b>Secret:</b> After your opponent plays a minion, reduce its Health to 1.",
+      "flavorEn": "Repentance often comes in the moment before obliteration. Curious."
     },
     {
       "id": "CS2_087",
@@ -5997,7 +6717,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_087"
+      "artId": "CS2_087",
+      "nameEn": "Blessing of Might",
+      "textEn": "Give a minion +3 Attack.",
+      "flavorEn": "\"As in, you MIGHT want to get out of my way.\" - Toad Mackle, recently buffed."
     },
     {
       "id": "CS2_089",
@@ -6020,7 +6743,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_089"
+      "artId": "CS2_089",
+      "nameEn": "Holy Light",
+      "textEn": "Restore #6 Health.",
+      "flavorEn": "If you are often bathed in Holy Light, you should consider wearing sunscreen."
     },
     {
       "id": "EX1_362",
@@ -6047,7 +6773,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_362"
+      "artId": "EX1_362",
+      "nameEn": "Argent Protector",
+      "textEn": "<b>Battlecry:</b> Give a friendly minion <b>Divine Shield</b>.",
+      "flavorEn": "\"I'm not saying you can dodge fireballs.  I'm saying with this shield, you won't have to.\""
     },
     {
       "id": "EX1_619",
@@ -6070,7 +6799,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_619"
+      "artId": "EX1_619",
+      "nameEn": "Equality",
+      "textEn": "Change the Health of ALL minions to 1.",
+      "flavorEn": "We are all special unique snowflakes... with 1 Health."
     },
     {
       "id": "EX1_349",
@@ -6093,7 +6825,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_349"
+      "artId": "EX1_349",
+      "nameEn": "Divine Favor",
+      "textEn": "Draw cards until you have as many in hand as your opponent.",
+      "flavorEn": "This is not just a favor, but a divine one, like helping someone move a couch with a fold out bed!"
     },
     {
       "id": "EX1_382",
@@ -6118,7 +6853,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_382"
+      "artId": "EX1_382",
+      "nameEn": "Aldor Peacekeeper",
+      "textEn": "<b>Battlecry:</b> Change an enemy minion's Attack to 1.",
+      "flavorEn": "The Aldor hate two things: the Scryers and smooth jazz."
     },
     {
       "id": "EX1_366",
@@ -6143,7 +6881,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_366"
+      "artId": "EX1_366",
+      "nameEn": "Sword of Justice",
+      "textEn": "After you summon a minion, give it +1/+1 and this loses 1 Durability.",
+      "flavorEn": "I dub you Sir Loin of Beef!"
     },
     {
       "id": "CS2_093",
@@ -6166,7 +6907,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_093"
+      "artId": "CS2_093",
+      "nameEn": "Consecration",
+      "textEn": "Deal $2 damage to all enemies.",
+      "flavorEn": "Consecrated ground glows with Holy energy.  But it smells a little, too."
     },
     {
       "id": "CS2_092",
@@ -6189,7 +6933,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_092"
+      "artId": "CS2_092",
+      "nameEn": "Blessing of Kings",
+      "textEn": "Give a minion +4/+4. <i>(+4 Attack/+4 Health)</i>",
+      "flavorEn": "Given the number of kings who have been assassinated, are you sure you want their blessing?"
     },
     {
       "id": "CS2_097",
@@ -6214,7 +6961,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_097"
+      "artId": "CS2_097",
+      "nameEn": "Truesilver Champion",
+      "textEn": "Whenever your hero attacks, restore #2 Health to it.",
+      "flavorEn": "It Slices, it Dices. You can cut a tin can with it. (But you wouldn't want to.)"
     },
     {
       "id": "CS2_094",
@@ -6237,7 +6987,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_094"
+      "artId": "CS2_094",
+      "nameEn": "Hammer of Wrath",
+      "textEn": "Deal $3 damage.\nDraw a card.",
+      "flavorEn": "A good paladin has many tools.  Hammer of Wrath, Pliers of Vengeance, Hacksaw of Justice, etc."
     },
     {
       "id": "EX1_365",
@@ -6262,7 +7015,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_365"
+      "artId": "EX1_365",
+      "nameEn": "Holy Wrath",
+      "textEn": "Draw a card and deal damage equal to its Cost.",
+      "flavorEn": "C'mon Molten Giant!!"
     },
     {
       "id": "EX1_355",
@@ -6285,7 +7041,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_355"
+      "artId": "EX1_355",
+      "nameEn": "Blessed Champion",
+      "textEn": "Double a minion's Attack.",
+      "flavorEn": "This card causes double the trouble AND double the fun."
     },
     {
       "id": "EX1_384",
@@ -6310,7 +7069,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_384"
+      "artId": "EX1_384",
+      "nameEn": "Avenging Wrath",
+      "textEn": "Deal $8 damage randomly split among all enemy characters.",
+      "flavorEn": "Wham! Wham! Wham! Wham! Wham! Wham! Wham! Wham!"
     },
     {
       "id": "CS2_088",
@@ -6335,7 +7097,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_088"
+      "artId": "CS2_088",
+      "nameEn": "Guardian of Kings",
+      "textEn": "<b>Battlecry:</b> Restore #6 Health to your hero.",
+      "flavorEn": "Holy beings from the beyond are so cliché!"
     },
     {
       "id": "EX1_354",
@@ -6358,7 +7123,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_354"
+      "artId": "EX1_354",
+      "nameEn": "Lay on Hands",
+      "textEn": "Restore #8 Health. Draw 3 cards.",
+      "flavorEn": "A grammatically awkward life saver."
     },
     {
       "id": "EX1_383",
@@ -6385,7 +7153,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_383"
+      "artId": "EX1_383",
+      "nameEn": "Tirion Fordring",
+      "textEn": "<b><b>Divine Shield</b>,</b> <b>Taunt</b> <b>Deathrattle:</b> Equip a 5/3 Ashbringer.",
+      "flavorEn": "If you haven't heard the Tirion Fordring theme song, it's because it doesn't exist."
     },
     {
       "id": "EX1_621",
@@ -6408,7 +7179,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_621"
+      "artId": "EX1_621",
+      "nameEn": "Circle of Healing",
+      "textEn": "Restore #4 Health to ALL minions.",
+      "flavorEn": "It isn't really a circle."
     },
     {
       "id": "EX1_332",
@@ -6433,7 +7207,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_332"
+      "artId": "EX1_332",
+      "nameEn": "Silence",
+      "textEn": "<b>Silence</b> a minion.",
+      "flavorEn": "Reserved for enemy spellcasters, evil liches from beyond the grave, and karaoke nights at the Grim Guzzler."
     },
     {
       "id": "CS1_129",
@@ -6456,7 +7233,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS1_129"
+      "artId": "CS1_129",
+      "nameEn": "Inner Fire",
+      "textEn": "Change a minion's Attack to be equal to its Health.",
+      "flavorEn": "Good idea: Buffing your minions.  Bad idea: Starting a conversation in the Barrens."
     },
     {
       "id": "CS2_003",
@@ -6479,7 +7259,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_003"
+      "artId": "CS2_003",
+      "nameEn": "Mind Vision",
+      "textEn": "Put a copy of a random card in your opponent's hand into your hand.",
+      "flavorEn": "I see what you did there."
     },
     {
       "id": "CS2_235",
@@ -6504,7 +7287,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_235"
+      "artId": "CS2_235",
+      "nameEn": "Northshire Cleric",
+      "textEn": "Whenever a minion is healed, draw a card.",
+      "flavorEn": "They help the downtrodden and distressed.  Also they sell cookies."
     },
     {
       "id": "CS1_130",
@@ -6527,7 +7313,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS1_130"
+      "artId": "CS1_130",
+      "nameEn": "Holy Smite",
+      "textEn": "Deal $2 damage.",
+      "flavorEn": "It doesn't matter how pious you are.  Everyone needs a good smiting now and again."
     },
     {
       "id": "CS2_004",
@@ -6550,7 +7339,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_004"
+      "artId": "CS2_004",
+      "nameEn": "Power Word: Shield",
+      "textEn": "Give a minion +2 Health.\nDraw a card.",
+      "flavorEn": "Sure the extra protection is nice, but the shield really reduces visibility."
     },
     {
       "id": "EX1_341",
@@ -6575,7 +7367,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_341"
+      "artId": "EX1_341",
+      "nameEn": "Lightwell",
+      "textEn": "At the start of your turn, restore #3 Health to a damaged friendly character.",
+      "flavorEn": "It isn't clear if people ignore the Lightwell, or if it is just invisible."
     },
     {
       "id": "CS2_234",
@@ -6598,7 +7393,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_234"
+      "artId": "CS2_234",
+      "nameEn": "Shadow Word: Pain",
+      "textEn": "Destroy a minion with 3 or less Attack.",
+      "flavorEn": "A step up from a spell cast by many beginning acolytes: \"Shadow Word: Annoy\"."
     },
     {
       "id": "DS1_233",
@@ -6621,7 +7419,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "DS1_233"
+      "artId": "DS1_233",
+      "nameEn": "Mind Blast",
+      "textEn": "Deal $5 damage to the enemy hero.",
+      "flavorEn": "This spell blasts you directly in the MIND."
     },
     {
       "id": "CS2_236",
@@ -6644,7 +7445,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_236"
+      "artId": "CS2_236",
+      "nameEn": "Divine Spirit",
+      "textEn": "Double a minion's Health.",
+      "flavorEn": "Double the trouble. Double the fun!"
     },
     {
       "id": "EX1_339",
@@ -6667,7 +7471,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_339"
+      "artId": "EX1_339",
+      "nameEn": "Thoughtsteal",
+      "textEn": "Copy 2 cards in your opponent's deck and add them to your hand.",
+      "flavorEn": "\"What do you get when you cast Thoughtsteal on an Orc?  Nothing!\" - Tauren joke"
     },
     {
       "id": "EX1_622",
@@ -6690,7 +7497,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_622"
+      "artId": "EX1_622",
+      "nameEn": "Shadow Word: Death",
+      "textEn": "Destroy a minion with 5 or more Attack.",
+      "flavorEn": "If you miss, it leaves a lightning-bolt-shaped scar on your target."
     },
     {
       "id": "EX1_625",
@@ -6713,7 +7523,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_625"
+      "artId": "EX1_625",
+      "nameEn": "Shadowform",
+      "textEn": "Your Hero Power becomes 'Deal 2 damage.' If already in Shadowform: 3 damage.",
+      "flavorEn": "If a bright light shines on a priest in Shadowform… do they cast a shadow?"
     },
     {
       "id": "EX1_626",
@@ -6738,7 +7551,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_626"
+      "artId": "EX1_626",
+      "nameEn": "Mass Dispel",
+      "textEn": "<b>Silence</b> all enemy minions. Draw a card.",
+      "flavorEn": "It dispels buffs, powers, hopes, and dreams."
     },
     {
       "id": "EX1_335",
@@ -6761,7 +7577,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_335"
+      "artId": "EX1_335",
+      "nameEn": "Lightspawn",
+      "textEn": "This minion's Attack is always equal to its Health.",
+      "flavorEn": "Spawn of the Light? Or Pawn of the Lights?"
     },
     {
       "id": "EX1_345",
@@ -6784,7 +7603,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_345"
+      "artId": "EX1_345",
+      "nameEn": "Mindgames",
+      "textEn": "Put a copy of\na random minion from\nyour opponent's deck into the battlefield.",
+      "flavorEn": "Sometimes it feels like this is all a game."
     },
     {
       "id": "EX1_591",
@@ -6807,7 +7629,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_591"
+      "artId": "EX1_591",
+      "nameEn": "Auchenai Soulpriest",
+      "textEn": "Your cards and powers that restore Health now deal damage instead.",
+      "flavorEn": "The Auchenai know the end is coming, but they're not sure when."
     },
     {
       "id": "EX1_334",
@@ -6830,7 +7655,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_334"
+      "artId": "EX1_334",
+      "nameEn": "Shadow Madness",
+      "textEn": "Gain control of an enemy minion with 3 or less Attack until end of turn.",
+      "flavorEn": "You can rationalize it all you want, it's still a mean thing to do."
     },
     {
       "id": "CS1_112",
@@ -6853,7 +7681,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS1_112"
+      "artId": "CS1_112",
+      "nameEn": "Holy Nova",
+      "textEn": "Deal $2 damage to all enemies. Restore #2 Health to all friendly characters.",
+      "flavorEn": "If the Holy Light forsakes you, good luck casting this spell.  Also, you're probably a jerk."
     },
     {
       "id": "EX1_091",
@@ -6878,7 +7709,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_091"
+      "artId": "EX1_091",
+      "nameEn": "Cabal Shadow Priest",
+      "textEn": "<b>Battlecry:</b> Take control of an enemy minion that has 2 or less Attack.",
+      "flavorEn": "You never know who may be secretly working for the Cabal...."
     },
     {
       "id": "EX1_623",
@@ -6903,7 +7737,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_623"
+      "artId": "EX1_623",
+      "nameEn": "Temple Enforcer",
+      "textEn": "<b>Battlecry:</b> Give a friendly minion +3 Health.",
+      "flavorEn": "He also moonlights Thursday nights as a bouncer at the Pig and Whistle Tavern."
     },
     {
       "id": "EX1_624",
@@ -6926,7 +7763,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_624"
+      "artId": "EX1_624",
+      "nameEn": "Holy Fire",
+      "textEn": "Deal $5 damage. Restore #5 Health to your hero.",
+      "flavorEn": "Often followed by Holy Smokes!"
     },
     {
       "id": "EX1_350",
@@ -6949,7 +7789,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_350"
+      "artId": "EX1_350",
+      "nameEn": "Prophet Velen",
+      "textEn": "Double the damage and healing of your spells and Hero Power.",
+      "flavorEn": "He's been exiled from his home, and all his brothers turned evil, but otherwise he doesn't have a lot to complain about."
     },
     {
       "id": "CS1_113",
@@ -6972,7 +7815,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS1_113"
+      "artId": "CS1_113",
+      "nameEn": "Mind Control",
+      "textEn": "Take control of an enemy minion.",
+      "flavorEn": "Nominated as \"Spell Most Likely to Make Your Opponent Punch the Wall.\""
     },
     {
       "id": "EX1_144",
@@ -6995,7 +7841,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_144"
+      "artId": "EX1_144",
+      "nameEn": "Shadowstep",
+      "textEn": "Return a friendly minion to your hand. It costs (2) less.",
+      "flavorEn": "Rogue dance troops will sometimes Shadowstep away at the end of a performance.  Crowds love it."
     },
     {
       "id": "CS2_072",
@@ -7018,7 +7867,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_072"
+      "artId": "CS2_072",
+      "nameEn": "Backstab",
+      "textEn": "Deal $2 damage to an undamaged minion.",
+      "flavorEn": "It's funny how often yelling \"Look over there!\" gets your opponent to turn around."
     },
     {
       "id": "EX1_145",
@@ -7041,7 +7893,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_145"
+      "artId": "EX1_145",
+      "nameEn": "Preparation",
+      "textEn": "The next spell you cast this turn costs (3) less.",
+      "flavorEn": "\"Be Prepared\" - Rogue Motto"
     },
     {
       "id": "CS2_073",
@@ -7066,7 +7921,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_073"
+      "artId": "CS2_073",
+      "nameEn": "Cold Blood",
+      "textEn": "Give a minion +2 Attack. <b>Combo:</b> +4 Attack instead.",
+      "flavorEn": "\"I'm cold blooded, check it and see!\""
     },
     {
       "id": "CS2_074",
@@ -7089,7 +7947,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_074"
+      "artId": "CS2_074",
+      "nameEn": "Deadly Poison",
+      "textEn": "Give your weapon +2 Attack.",
+      "flavorEn": "Rogues guard the secrets to poison-making carefully, lest magi start incorporating poison into their spells.  Poisonbolt? Rain of Poison?  Poison Elemental?  Nobody wants that."
     },
     {
       "id": "CS2_075",
@@ -7112,7 +7973,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_075"
+      "artId": "CS2_075",
+      "nameEn": "Sinister Strike",
+      "textEn": "Deal $3 damage to the enemy hero.",
+      "flavorEn": "There's something about this strike that just feels off.  Sinister, even."
     },
     {
       "id": "EX1_128",
@@ -7137,7 +8001,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_128"
+      "artId": "EX1_128",
+      "nameEn": "Conceal",
+      "textEn": "Give your minions <b>Stealth</b> until your next turn.",
+      "flavorEn": "Rogues conceal everything but their emotions.  You can't get 'em to shut up about feelings."
     },
     {
       "id": "EX1_131",
@@ -7162,7 +8029,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_131"
+      "artId": "EX1_131",
+      "nameEn": "Defias Ringleader",
+      "textEn": "<b>Combo:</b> Summon a 2/1 Defias Bandit.",
+      "flavorEn": "He stole the deed to town years ago, so technically the town <i>is</i> his. He just calls people Scrub to be mean."
     },
     {
       "id": "EX1_278",
@@ -7185,7 +8055,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_278"
+      "artId": "EX1_278",
+      "nameEn": "Shiv",
+      "textEn": "Deal $1 damage.\nDraw a card.",
+      "flavorEn": "Rogues are experts at SHIV-al-ry."
     },
     {
       "id": "EX1_126",
@@ -7208,7 +8081,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_126"
+      "artId": "EX1_126",
+      "nameEn": "Betrayal",
+      "textEn": "Force an enemy minion to deal its damage to the minions next to it.",
+      "flavorEn": "Everyone has a price. Gnomes, for example, can be persuaded by stuffed animals and small amounts of chocolate."
     },
     {
       "id": "EX1_124",
@@ -7233,7 +8109,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_124"
+      "artId": "EX1_124",
+      "nameEn": "Eviscerate",
+      "textEn": "Deal $2 damage. <b>Combo:</b> Deal $4 damage instead.",
+      "flavorEn": "There is a high cost to Eviscerating your opponent. You might tweak your elbow! That really hurts!"
     },
     {
       "id": "EX1_522",
@@ -7258,7 +8137,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_522"
+      "artId": "EX1_522",
+      "nameEn": "Patient Assassin",
+      "textEn": "<b>Stealth</b>. Destroy any minion damaged by this minion.",
+      "flavorEn": "He’s not really that patient. It just takes a while for someone to walk by that he can actually reach."
     },
     {
       "id": "CS2_233",
@@ -7283,7 +8165,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_233"
+      "artId": "CS2_233",
+      "nameEn": "Blade Flurry",
+      "textEn": "Destroy your weapon and deal its damage to all enemies.",
+      "flavorEn": "\"Look, it's not just about waving daggers around really fast.  It's a lot more complicated than that.\" - Shan, Rogue Trainer"
     },
     {
       "id": "EX1_581",
@@ -7306,7 +8191,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_581"
+      "artId": "EX1_581",
+      "nameEn": "Sap",
+      "textEn": "Return an enemy minion to your opponent's hand.",
+      "flavorEn": "Rogues love sappy movies."
     },
     {
       "id": "EX1_134",
@@ -7331,7 +8219,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_134"
+      "artId": "EX1_134",
+      "nameEn": "SI:7 Agent",
+      "textEn": "<b>Combo:</b> Deal 2 damage.",
+      "flavorEn": "The agents of SI:7 are responsible for Stormwind's covert activities.  Their duties include espionage, assassination, and throwing surprise birthday parties for the royal family."
     },
     {
       "id": "EX1_137",
@@ -7356,7 +8247,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_137"
+      "artId": "EX1_137",
+      "nameEn": "Headcrack",
+      "textEn": "Deal $2 damage to the enemy hero. <b>Combo:</b> Return this to your hand next turn.",
+      "flavorEn": "When all else fails, nothing beats a swift whack upside the head."
     },
     {
       "id": "EX1_613",
@@ -7381,7 +8275,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_613"
+      "artId": "EX1_613",
+      "nameEn": "Edwin VanCleef",
+      "textEn": "<b>Combo:</b> Gain +2/+2 for each card played earlier this turn.",
+      "flavorEn": "He led the Stonemasons in the reconstruction of Stormwind, and when the nobles refused to pay, he founded the Defias Brotherhood to, well, <i>deconstruct</i> Stormwind."
     },
     {
       "id": "EX1_133",
@@ -7407,7 +8304,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_133"
+      "artId": "EX1_133",
+      "nameEn": "Perdition's Blade",
+      "textEn": "<b>Battlecry:</b> Deal 1 damage. <b>Combo:</b> Deal 2 instead.",
+      "flavorEn": "Perdition's Blade is Ragnaros's back-up weapon while Sulfuras is in the shop."
     },
     {
       "id": "EX1_129",
@@ -7430,7 +8330,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_129"
+      "artId": "EX1_129",
+      "nameEn": "Fan of Knives",
+      "textEn": "Deal $1 damage to all enemy minions. Draw a card.",
+      "flavorEn": "I wouldn't say I LOVE knives, but I'm definitely a fan."
     },
     {
       "id": "NEW1_014",
@@ -7457,7 +8360,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_014"
+      "artId": "NEW1_014",
+      "nameEn": "Master of Disguise",
+      "textEn": "<b>Battlecry:</b> Give a friendly minion <b>Stealth</b>.",
+      "flavorEn": "She's actually a male tauren.  People don't call him \"Master of Disguise\" for nothing."
     },
     {
       "id": "CS2_076",
@@ -7480,7 +8386,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_076"
+      "artId": "CS2_076",
+      "nameEn": "Assassinate",
+      "textEn": "Destroy an enemy minion.",
+      "flavorEn": "If you don't want to be assassinated, move to the Barrens and change your name. Good luck!"
     },
     {
       "id": "CS2_080",
@@ -7503,7 +8412,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_080"
+      "artId": "CS2_080",
+      "nameEn": "Assassin's Blade",
+      "textEn": "",
+      "flavorEn": "Guaranteed to have been owned by a real assassin.   Certificate of authenticity included."
     },
     {
       "id": "NEW1_005",
@@ -7528,7 +8440,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_005"
+      "artId": "NEW1_005",
+      "nameEn": "Kidnapper",
+      "textEn": "<b>Combo:</b> Return a minion to its owner's hand.",
+      "flavorEn": "He just wants people to see his vacation photos."
     },
     {
       "id": "NEW1_004",
@@ -7551,7 +8466,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_004"
+      "artId": "NEW1_004",
+      "nameEn": "Vanish",
+      "textEn": "Return all minions to their owner's hand."
     },
     {
       "id": "CS2_077",
@@ -7574,7 +8491,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_077"
+      "artId": "CS2_077",
+      "nameEn": "Sprint",
+      "textEn": "Draw 4 cards.",
+      "flavorEn": "Rogues are not good joggers."
     },
     {
       "id": "CS2_041",
@@ -7599,7 +8519,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_041"
+      "artId": "CS2_041",
+      "nameEn": "Ancestral Healing",
+      "textEn": "Restore a minion\nto full Health and\ngive it <b>Taunt</b>.",
+      "flavorEn": "I personally prefer some non-ancestral right-the-heck-now healing, but maybe that is just me."
     },
     {
       "id": "EX1_244",
@@ -7622,7 +8545,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_244"
+      "artId": "EX1_244",
+      "nameEn": "Totemic Might",
+      "textEn": "Give your Totems +2 Health.",
+      "flavorEn": "Totem-stomping is no longer recommended."
     },
     {
       "id": "EX1_251",
@@ -7647,7 +8573,10 @@
       "spellDamage": 0,
       "overload": 2,
       "collectible": true,
-      "artId": "EX1_251"
+      "artId": "EX1_251",
+      "nameEn": "Forked Lightning",
+      "textEn": "Deal $2 damage to 2 random enemy minions. <b>Overload:</b> (2)",
+      "flavorEn": "If you combine it with Spooned Lightning and Knived Lightning, you have the full dining set."
     },
     {
       "id": "CS2_037",
@@ -7672,7 +8601,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_037"
+      "artId": "CS2_037",
+      "nameEn": "Frost Shock",
+      "textEn": "Deal $1 damage to an enemy character and <b>Freeze</b> it.",
+      "flavorEn": "FROST SHOCK!"
     },
     {
       "id": "EX1_245",
@@ -7697,7 +8629,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_245"
+      "artId": "EX1_245",
+      "nameEn": "Earth Shock",
+      "textEn": "<b>Silence</b> a minion, then deal $1 damage to it.",
+      "flavorEn": "Earth Shock? Shouldn't it be \"Azeroth Shock\"?"
     },
     {
       "id": "CS2_045",
@@ -7720,7 +8655,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_045"
+      "artId": "CS2_045",
+      "nameEn": "Rockbiter Weapon",
+      "textEn": "Give a friendly character +3 Attack this turn.",
+      "flavorEn": "This would be real handy if your enemy is made of rock."
     },
     {
       "id": "EX1_243",
@@ -7746,7 +8684,10 @@
       "spellDamage": 0,
       "overload": 2,
       "collectible": true,
-      "artId": "EX1_243"
+      "artId": "EX1_243",
+      "nameEn": "Dust Devil",
+      "textEn": "<b>Windfury</b>. <b>Overload:</b> (2)",
+      "flavorEn": "Westfall is full of dust devils. And buzzards. And crazed golems. And pirates. Why does anyone live here?"
     },
     {
       "id": "EX1_238",
@@ -7771,7 +8712,10 @@
       "spellDamage": 0,
       "overload": 1,
       "collectible": true,
-      "artId": "EX1_238"
+      "artId": "EX1_238",
+      "nameEn": "Lightning Bolt",
+      "textEn": "Deal $3 damage. <b>Overload:</b> (1)",
+      "flavorEn": "Lightning Bolt! Lightning Bolt! Lightning Bolt!"
     },
     {
       "id": "CS2_038",
@@ -7796,7 +8740,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_038"
+      "artId": "CS2_038",
+      "nameEn": "Ancestral Spirit",
+      "textEn": "Choose a minion. When that minion is destroyed, return it to the battlefield.",
+      "flavorEn": "It was just a flesh wound."
     },
     {
       "id": "EX1_565",
@@ -7822,7 +8769,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_565"
+      "artId": "EX1_565",
+      "nameEn": "Flametongue Totem",
+      "textEn": "Adjacent minions have +2 Attack.",
+      "flavorEn": "Totemsmiths like to use the rarest woods for their totems.  There are even rumors of totems made of Ironbark Protectors."
     },
     {
       "id": "CS2_039",
@@ -7847,7 +8797,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_039"
+      "artId": "CS2_039",
+      "nameEn": "Windfury",
+      "textEn": "Give a minion <b>Windfury</b>.",
+      "flavorEn": "Windfury is like Earthfury and Firefury, but more light and airy."
     },
     {
       "id": "EX1_247",
@@ -7872,7 +8825,10 @@
       "spellDamage": 0,
       "overload": 1,
       "collectible": true,
-      "artId": "EX1_247"
+      "artId": "EX1_247",
+      "nameEn": "Stormforged Axe",
+      "textEn": "<b>Overload:</b> (1)",
+      "flavorEn": "Yo, that's a nice axe."
     },
     {
       "id": "EX1_575",
@@ -7897,7 +8853,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_575"
+      "artId": "EX1_575",
+      "nameEn": "Mana Tide Totem",
+      "textEn": "At the end of your turn, draw a card.",
+      "flavorEn": "It is said that some shaman can say \"Floatin' totem\" 10 times, fast."
     },
     {
       "id": "EX1_259",
@@ -7922,7 +8881,10 @@
       "spellDamage": 0,
       "overload": 2,
       "collectible": true,
-      "artId": "EX1_259"
+      "artId": "EX1_259",
+      "nameEn": "Lightning Storm",
+      "textEn": "Deal $2-$3 damage to all enemy minions. <b>Overload:</b> (2)",
+      "flavorEn": "An umbrella won't be effective, I'm afraid."
     },
     {
       "id": "EX1_246",
@@ -7947,7 +8909,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_246"
+      "artId": "EX1_246",
+      "nameEn": "Hex",
+      "textEn": "Transform a minion into a 0/1 Frog with <b>Taunt</b>.",
+      "flavorEn": "If you Hex a Murloc... it really isn't much of a change, is it?"
     },
     {
       "id": "EX1_258",
@@ -7974,7 +8939,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_258"
+      "artId": "EX1_258",
+      "nameEn": "Unbound Elemental",
+      "textEn": "Whenever you play a card with <b>Overload</b>, gain +1/+1.",
+      "flavorEn": "Unlike bound elementals, Unbound ones really enjoy a night on the town."
     },
     {
       "id": "EX1_248",
@@ -8001,7 +8969,10 @@
       "spellDamage": 0,
       "overload": 2,
       "collectible": true,
-      "artId": "EX1_248"
+      "artId": "EX1_248",
+      "nameEn": "Feral Spirit",
+      "textEn": "Summon two 2/3 Spirit Wolves with <b>Taunt</b>. <b>Overload:</b> (2)",
+      "flavorEn": "Spirit wolves are like regular wolves with pom-poms."
     },
     {
       "id": "EX1_241",
@@ -8026,7 +8997,10 @@
       "spellDamage": 0,
       "overload": 2,
       "collectible": true,
-      "artId": "EX1_241"
+      "artId": "EX1_241",
+      "nameEn": "Lava Burst",
+      "textEn": "Deal $5 damage. <b>Overload:</b> (2)",
+      "flavorEn": "It's like an ocean of liquid magma in your mouth!"
     },
     {
       "id": "CS2_053",
@@ -8049,7 +9023,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_053"
+      "artId": "CS2_053",
+      "nameEn": "Far Sight",
+      "textEn": "Draw a card. That card costs (3) less.",
+      "flavorEn": "Drek'thar can't see, but he can <i>see</i>. You know what I mean? It's ok if you don't."
     },
     {
       "id": "EX1_587",
@@ -8076,7 +9053,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_587"
+      "artId": "EX1_587",
+      "nameEn": "Windspeaker",
+      "textEn": "<b>Battlecry:</b> Give a friendly minion <b>Windfury</b>.",
+      "flavorEn": "Is there anything worse than a Windspeaker with halitosis?"
     },
     {
       "id": "EX1_250",
@@ -8102,7 +9082,10 @@
       "spellDamage": 0,
       "overload": 3,
       "collectible": true,
-      "artId": "EX1_250"
+      "artId": "EX1_250",
+      "nameEn": "Earth Elemental",
+      "textEn": "<b>Taunt</b>. <b><b>Overload</b>:</b> (3)",
+      "flavorEn": "Nothing beats rock."
     },
     {
       "id": "EX1_567",
@@ -8128,7 +9111,10 @@
       "spellDamage": 0,
       "overload": 2,
       "collectible": true,
-      "artId": "EX1_567"
+      "artId": "EX1_567",
+      "nameEn": "Doomhammer",
+      "textEn": "<b>Windfury, Overload:</b> (2)",
+      "flavorEn": "Orgrim Doomhammer gave this legendary weapon to Thrall.  His name is a total coincidence."
     },
     {
       "id": "CS2_046",
@@ -8151,7 +9137,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_046"
+      "artId": "CS2_046",
+      "nameEn": "Bloodlust",
+      "textEn": "Give your minions +3 Attack this turn.",
+      "flavorEn": "blaarghghLLGHRHARAAHAHHH!!"
     },
     {
       "id": "CS2_042",
@@ -8176,7 +9165,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_042"
+      "artId": "CS2_042",
+      "nameEn": "Fire Elemental",
+      "textEn": "<b>Battlecry:</b> Deal 3 damage.",
+      "flavorEn": "He can never take a bath. Ewww."
     },
     {
       "id": "NEW1_010",
@@ -8204,7 +9196,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_010"
+      "artId": "NEW1_010",
+      "nameEn": "Al'Akir the Windlord",
+      "textEn": "<b>Charge, Divine Shield, Taunt, Windfury</b>",
+      "flavorEn": "He is the weakest of the four Elemental Lords.  And the other three don't let him forget it."
     },
     {
       "id": "EX1_308",
@@ -8227,7 +9222,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_308"
+      "artId": "EX1_308",
+      "nameEn": "Soulfire",
+      "textEn": "[x]Deal $4 damage.\nDiscard a random card.",
+      "flavorEn": "Are you lighting a soul on fire? Or burning someone with your OWN soul? This seems like an important distinction."
     },
     {
       "id": "NEW1_003",
@@ -8250,7 +9248,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_003"
+      "artId": "NEW1_003",
+      "nameEn": "Sacrificial Pact",
+      "textEn": "Destroy a Demon. Restore #5 Health to your hero.",
+      "flavorEn": "This is the reason that Demons never really become friends with Warlocks."
     },
     {
       "id": "CS2_065",
@@ -8275,7 +9276,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_065"
+      "artId": "CS2_065",
+      "nameEn": "Voidwalker",
+      "textEn": "<b>Taunt</b>",
+      "flavorEn": "No relation to \"The Voidsteppers\", the popular Void-based dance troupe."
     },
     {
       "id": "CS2_063",
@@ -8298,7 +9302,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_063"
+      "artId": "CS2_063",
+      "nameEn": "Corruption",
+      "textEn": "Choose an enemy minion. At the start of your turn, destroy it.",
+      "flavorEn": "It starts with stealing a pen from work, and before you know it, BOOOM!  Corrupted!"
     },
     {
       "id": "EX1_316",
@@ -8321,7 +9328,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_316"
+      "artId": "EX1_316",
+      "nameEn": "Power Overwhelming",
+      "textEn": "Give a friendly minion +4/+4 until end of turn. Then, it dies. Horribly.",
+      "flavorEn": "We cannot even describe how horrible the death is.  It's CRAZY bad!  Maybe worse than that.  Just don't do it."
     },
     {
       "id": "CS2_059",
@@ -8347,7 +9357,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_059"
+      "artId": "CS2_059",
+      "nameEn": "Blood Imp",
+      "textEn": "[x]  <b>Stealth</b>. At the end of your  \nturn, give another random\n friendly minion +1 Health.",
+      "flavorEn": "Imps are content to hide and viciously taunt everyone nearby."
     },
     {
       "id": "EX1_302",
@@ -8370,7 +9383,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_302"
+      "artId": "EX1_302",
+      "nameEn": "Mortal Coil",
+      "textEn": "Deal $1 damage to a minion. If it dies,\ndraw a card.",
+      "flavorEn": "If your spells look like horrifying skulls, let's be honest, you should get to draw some cards."
     },
     {
       "id": "EX1_319",
@@ -8395,7 +9411,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_319"
+      "artId": "EX1_319",
+      "nameEn": "Flame Imp",
+      "textEn": "<b>Battlecry:</b> Deal 3 damage to your hero.",
+      "flavorEn": "Imps like being on fire.  They just do."
     },
     {
       "id": "EX1_596",
@@ -8418,7 +9437,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_596"
+      "artId": "EX1_596",
+      "nameEn": "Demonfire",
+      "textEn": "Deal $2 damage to a minion. If it’s a friendly Demon, give it +2/+2 instead.",
+      "flavorEn": "Demonfire is like regular fire except for IT NEVER STOPS BURNING HELLLPPP"
     },
     {
       "id": "EX1_306",
@@ -8443,7 +9465,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_306"
+      "artId": "EX1_306",
+      "nameEn": "Felstalker",
+      "textEn": "<b>Battlecry:</b> Discard a random card.",
+      "flavorEn": "This puppy chews up cards instead of shoes."
     },
     {
       "id": "EX1_304",
@@ -8468,7 +9493,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_304"
+      "artId": "EX1_304",
+      "nameEn": "Void Terror",
+      "textEn": "[x]<b>Battlecry:</b> Destroy both\nadjacent minions and gain\n their Attack and Health.",
+      "flavorEn": "If you put this into your deck, you WILL lose the trust of your other minions."
     },
     {
       "id": "CS2_061",
@@ -8491,7 +9519,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_061"
+      "artId": "CS2_061",
+      "nameEn": "Drain Life",
+      "textEn": "Deal $2 damage. Restore #2 Health to your hero.",
+      "flavorEn": "\"I've just sucked one year of your life away.\""
     },
     {
       "id": "EX1_317",
@@ -8514,7 +9545,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_317"
+      "artId": "EX1_317",
+      "nameEn": "Sense Demons",
+      "textEn": "Draw 2 Demons\nfrom your deck.",
+      "flavorEn": "Generally demons are pretty obvious and you don’t need a spell to sense them."
     },
     {
       "id": "CS2_057",
@@ -8537,7 +9571,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_057"
+      "artId": "CS2_057",
+      "nameEn": "Shadow Bolt",
+      "textEn": "Deal $4 damage\nto a minion.",
+      "flavorEn": "It’s a Bolt.   It's made out of Shadow.   What more do you need to know!"
     },
     {
       "id": "EX1_301",
@@ -8563,7 +9600,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_301"
+      "artId": "EX1_301",
+      "nameEn": "Felguard",
+      "textEn": "<b>Taunt</b>\n<b>Battlecry:</b> Destroy one of your Mana Crystals.",
+      "flavorEn": "Yes, he'll fight for you.  BUT HE'S NOT GOING TO LIKE IT."
     },
     {
       "id": "EX1_315",
@@ -8588,7 +9628,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_315"
+      "artId": "EX1_315",
+      "nameEn": "Summoning Portal",
+      "textEn": "Your minions cost (2) less, but not less than (1).",
+      "flavorEn": "NOT LESS THAN 1!  Don't get any ideas!"
     },
     {
       "id": "EX1_303",
@@ -8613,7 +9656,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_303"
+      "artId": "EX1_303",
+      "nameEn": "Shadowflame",
+      "textEn": "Destroy a friendly minion and deal its Attack damage to all enemy minions.",
+      "flavorEn": "Start with a powerful minion and stir in Shadowflame and you have a good time!"
     },
     {
       "id": "EX1_313",
@@ -8638,7 +9684,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_313"
+      "artId": "EX1_313",
+      "nameEn": "Pit Lord",
+      "textEn": "<b>Battlecry:</b> Deal 5 damage to your hero.",
+      "flavorEn": "Mannoroth, Magtheridon, and Brutallus may be dead, but it turns out there are a LOT of pit lords."
     },
     {
       "id": "CS2_062",
@@ -8661,7 +9710,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_062"
+      "artId": "CS2_062",
+      "nameEn": "Hellfire",
+      "textEn": "Deal $3 damage to ALL characters.",
+      "flavorEn": "It's spells like these that make it hard for Warlocks to get decent help."
     },
     {
       "id": "EX1_320",
@@ -8684,7 +9736,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_320"
+      "artId": "EX1_320",
+      "nameEn": "Bane of Doom",
+      "textEn": "Deal $3 damage to a character. If it dies, summon a random Demon.",
+      "flavorEn": "My advice to you is to avoid Doom, if possible."
     },
     {
       "id": "EX1_310",
@@ -8710,7 +9765,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_310"
+      "artId": "EX1_310",
+      "nameEn": "Doomguard",
+      "textEn": "<b>Charge</b>. <b>Battlecry:</b> Discard two random cards.",
+      "flavorEn": "Summoning a doomguard is risky. <i>Someone</i> is going to die."
     },
     {
       "id": "CS2_064",
@@ -8735,7 +9793,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_064"
+      "artId": "CS2_064",
+      "nameEn": "Dread Infernal",
+      "textEn": "<b>Battlecry:</b> Deal 1 damage to ALL other characters.",
+      "flavorEn": "\"INFERNOOOOOOOOOO!\" - Jaraxxus, Eredar Lord of the Burning Legion"
     },
     {
       "id": "EX1_309",
@@ -8758,7 +9819,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_309"
+      "artId": "EX1_309",
+      "nameEn": "Siphon Soul",
+      "textEn": "Destroy a minion. Restore #3 Health to your hero.",
+      "flavorEn": "You probably should avoid siphoning your own soul.  You might create some kind of weird infinite loop."
     },
     {
       "id": "EX1_312",
@@ -8781,7 +9845,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_312"
+      "artId": "EX1_312",
+      "nameEn": "Twisting Nether",
+      "textEn": "Destroy all minions.",
+      "flavorEn": "The Twisting Nether is a formless place of magic and illusion and destroyed minions."
     },
     {
       "id": "EX1_323",
@@ -8806,7 +9873,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_323"
+      "artId": "EX1_323",
+      "nameEn": "Lord Jaraxxus",
+      "textEn": "<b>Battlecry:</b> Destroy your hero and replace it with Lord Jaraxxus.",
+      "flavorEn": "\"TRIFLING GNOME! YOUR ARROGANCE WILL BE YOUR UNDOING!!!!\""
     },
     {
       "id": "EX1_607",
@@ -8829,7 +9899,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_607"
+      "artId": "EX1_607",
+      "nameEn": "Inner Rage",
+      "textEn": "Deal $1 damage to a minion and give it +2 Attack.",
+      "flavorEn": "They're only smiling on the outside."
     },
     {
       "id": "EX1_409",
@@ -8852,7 +9925,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_409"
+      "artId": "EX1_409",
+      "nameEn": "Upgrade!",
+      "textEn": "If you have a weapon, give it +1/+1. Otherwise equip a 1/3 weapon.",
+      "flavorEn": "Easily worth 50 DKP."
     },
     {
       "id": "CS2_108",
@@ -8875,7 +9951,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_108"
+      "artId": "CS2_108",
+      "nameEn": "Execute",
+      "textEn": "Destroy a damaged enemy minion.",
+      "flavorEn": "It's okay, he deserved it."
     },
     {
       "id": "EX1_410",
@@ -8900,7 +9979,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_410"
+      "artId": "EX1_410",
+      "nameEn": "Shield Slam",
+      "textEn": "Deal 1 damage to a minion for each Armor you have.",
+      "flavorEn": "\"What is a better weapon? The sharp one your enemies expect, or the blunt one they ignore?\" - The Art of Warrior, Chapter 9"
     },
     {
       "id": "EX1_400",
@@ -8923,7 +10005,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_400"
+      "artId": "EX1_400",
+      "nameEn": "Whirlwind",
+      "textEn": "Deal $1 damage to ALL minions.",
+      "flavorEn": "The way to tell seasoned warriors from novice ones: the novices yell \"wheeeee\" while whirlwinding."
     },
     {
       "id": "EX1_391",
@@ -8946,7 +10031,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_391"
+      "artId": "EX1_391",
+      "nameEn": "Slam",
+      "textEn": "Deal $2 damage to a minion. If it survives, draw a card.",
+      "flavorEn": "\"Dun da dun, dun da dun\": if you've heard an ogre sing this, it's too late."
     },
     {
       "id": "CS2_104",
@@ -8969,7 +10057,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_104"
+      "artId": "CS2_104",
+      "nameEn": "Rampage",
+      "textEn": "Give a damaged minion +3/+3.",
+      "flavorEn": "Minion get ANGRY.   Minion SMASH!"
     },
     {
       "id": "EX1_402",
@@ -8994,7 +10085,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_402"
+      "artId": "EX1_402",
+      "nameEn": "Armorsmith",
+      "textEn": "Whenever a friendly minion takes damage, gain 1 Armor.",
+      "flavorEn": "She accepts guild funds for repairs!"
     },
     {
       "id": "CS2_105",
@@ -9017,7 +10111,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_105"
+      "artId": "CS2_105",
+      "nameEn": "Heroic Strike",
+      "textEn": "Give your hero +4 Attack this turn.",
+      "flavorEn": "Really, if you're a hero, this is <i>every</i> strike."
     },
     {
       "id": "CS2_106",
@@ -9040,7 +10137,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_106"
+      "artId": "CS2_106",
+      "nameEn": "Fiery War Axe",
+      "textEn": "",
+      "flavorEn": "During times of tranquility and harmony, this weapon was called by its less popular name, Chilly Peace Axe."
     },
     {
       "id": "EX1_603",
@@ -9065,7 +10165,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_603"
+      "artId": "EX1_603",
+      "nameEn": "Cruel Taskmaster",
+      "textEn": "<b>Battlecry:</b> Deal 1 damage to a minion and give it +2 Attack.",
+      "flavorEn": "\"I'm going to need you to come in on Sunday.\" - Cruel Taskmaster"
     },
     {
       "id": "EX1_392",
@@ -9088,7 +10191,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_392"
+      "artId": "EX1_392",
+      "nameEn": "Battle Rage",
+      "textEn": "Draw a card for each damaged friendly character.",
+      "flavorEn": "\"You won't like me when I'm angry.\""
     },
     {
       "id": "NEW1_036",
@@ -9111,7 +10217,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_036"
+      "artId": "NEW1_036",
+      "nameEn": "Commanding Shout",
+      "textEn": "Your minions can't be reduced below 1 Health this turn. Draw a card.",
+      "flavorEn": "\"Shout! Shout! Let it all out!\" - Advice to warriors-in-training"
     },
     {
       "id": "CS2_114",
@@ -9134,7 +10243,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_114"
+      "artId": "CS2_114",
+      "nameEn": "Cleave",
+      "textEn": "[x]Deal $2 damage to\ntwo random enemy\nminions.",
+      "flavorEn": "Hey you two…could you stand next to each other for a second…"
     },
     {
       "id": "EX1_604",
@@ -9159,7 +10271,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_604"
+      "artId": "EX1_604",
+      "nameEn": "Frothing Berserker",
+      "textEn": "Whenever a minion takes damage, gain +1 Attack.",
+      "flavorEn": "He used to work as an accountant before he tried his hand at Berserkering."
     },
     {
       "id": "CS2_103",
@@ -9184,7 +10299,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_103"
+      "artId": "CS2_103",
+      "nameEn": "Charge",
+      "textEn": "Give a friendly minion +2 Attack and <b>Charge</b>.",
+      "flavorEn": "\"Guys! Guys! Slow down!\" - some kind of non-warrior minion"
     },
     {
       "id": "EX1_606",
@@ -9207,7 +10325,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_606"
+      "artId": "EX1_606",
+      "nameEn": "Shield Block",
+      "textEn": "Gain 5 Armor.\nDraw a card.",
+      "flavorEn": "Shields were invented because Face Block is USELESS."
     },
     {
       "id": "EX1_084",
@@ -9234,7 +10355,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_084"
+      "artId": "EX1_084",
+      "nameEn": "Warsong Commander",
+      "textEn": "Whenever you summon a minion with 3 or less Attack, give it <b>Charge</b>.",
+      "flavorEn": "The Warsong clan is <i>such drama</i>. It's really not worth it to become a commander."
     },
     {
       "id": "EX1_398",
@@ -9259,7 +10383,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_398"
+      "artId": "EX1_398",
+      "nameEn": "Arathi Weaponsmith",
+      "textEn": "<b>Battlecry:</b> Equip a 2/2 weapon.",
+      "flavorEn": "50% off fist weapons, limited time only!"
     },
     {
       "id": "NEW1_011",
@@ -9284,7 +10411,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "NEW1_011"
+      "artId": "NEW1_011",
+      "nameEn": "Kor'kron Elite",
+      "textEn": "<b>Charge</b>",
+      "flavorEn": "The Kor'kron are the elite forces of Garrosh Hellscream. Let's just say you don't want to run into these guys while wearing a blue tabard."
     },
     {
       "id": "EX1_408",
@@ -9307,7 +10437,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_408"
+      "artId": "EX1_408",
+      "nameEn": "Mortal Strike",
+      "textEn": "Deal $4 damage. If you have 12 or less Health, deal $6 instead.",
+      "flavorEn": "\"If you only use one ability, use Mortal Strike.\" - The Warrior Code, Line 6"
     },
     {
       "id": "EX1_407",
@@ -9330,7 +10463,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_407"
+      "artId": "EX1_407",
+      "nameEn": "Brawl",
+      "textEn": "Destroy all minions except one. <i>(chosen randomly)</i>",
+      "flavorEn": "Do you know the first rule of Brawl Club?"
     },
     {
       "id": "CS2_112",
@@ -9353,7 +10489,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "CS2_112"
+      "artId": "CS2_112",
+      "nameEn": "Arcanite Reaper",
+      "textEn": "",
+      "flavorEn": "No… actually you should fear the Reaper."
     },
     {
       "id": "EX1_411",
@@ -9376,7 +10515,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_411"
+      "artId": "EX1_411",
+      "nameEn": "Gorehowl",
+      "textEn": "Attacking a minion costs 1 Attack instead of 1 Durability.",
+      "flavorEn": "Grommash Hellscream's famous axe.  Somehow this ended up in Prince Malchezaar's possession.  Quite the mystery!"
     },
     {
       "id": "EX1_414",
@@ -9403,7 +10545,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": true,
-      "artId": "EX1_414"
+      "artId": "EX1_414",
+      "nameEn": "Grommash Hellscream",
+      "textEn": "<b>Charge</b>\n<b>Enrage:</b> +6 Attack",
+      "flavorEn": "Grommash drank the tainted blood of Mannoroth, dooming the orcs to green skin and red eyes!  Maybe not his best decision."
     }
   ],
   "tokens": [
@@ -9428,7 +10573,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Story_09_DemonfirePuzzle"
+      "artId": "Story_09_DemonfirePuzzle",
+      "nameEn": "Demonfire",
+      "textEn": "Deal $2 damage to a minion. If it’s a friendly Demon, give it +2/+2 instead.",
+      "flavorEn": "Demonfire is like regular fire except for IT NEVER STOPS BURNING HELLLPPP"
     },
     {
       "id": "Story_09_DoomguardPuzzle",
@@ -9454,7 +10602,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Story_09_DoomguardPuzzle"
+      "artId": "Story_09_DoomguardPuzzle",
+      "nameEn": "Doomguard",
+      "textEn": "<b>Charge</b>. <b>Battlecry:</b> Discard two random cards.",
+      "flavorEn": "Summoning a doomguard is risky. <i>Someone</i> is going to die."
     },
     {
       "id": "Story_09_SenseDemons",
@@ -9477,7 +10628,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Story_09_SenseDemons"
+      "artId": "Story_09_SenseDemons",
+      "nameEn": "Sense Demons",
+      "textEn": "Draw 2 Demons\nfrom your deck.",
+      "flavorEn": "Generally demons are pretty obvious and you don’t need a spell to sense them."
     },
     {
       "id": "Story_09_Shadowbolt",
@@ -9500,7 +10654,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Story_09_Shadowbolt"
+      "artId": "Story_09_Shadowbolt",
+      "nameEn": "Shadow Bolt",
+      "textEn": "Deal $4 damage\nto a minion.",
+      "flavorEn": "It’s a Bolt.   It's made out of Shadow.   What more do you need to know!"
     },
     {
       "id": "Story_11_Frostbolt",
@@ -9525,7 +10682,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Story_11_Frostbolt"
+      "artId": "Story_11_Frostbolt",
+      "nameEn": "Frostbolt",
+      "textEn": "Deal $3 damage to a character and <b>Freeze</b> it.",
+      "flavorEn": "It is customary to yell \"Chill out!\" or \"Freeze!\" or \"Ice ice, baby!\" when you play this card."
     },
     {
       "id": "Story_11_MoltenGiantPuzzle",
@@ -9548,7 +10708,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Story_11_MoltenGiantPuzzle"
+      "artId": "Story_11_MoltenGiantPuzzle",
+      "nameEn": "Molten Giant",
+      "textEn": "Costs (1) less for each damage your hero has taken.",
+      "flavorEn": "He gets terrible heartburn.  BECAUSE HE IS FULL OF LAVA."
     },
     {
       "id": "Story_11_PyroblastPuzzle",
@@ -9571,7 +10734,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Story_11_PyroblastPuzzle"
+      "artId": "Story_11_PyroblastPuzzle",
+      "nameEn": "Pyroblast",
+      "textEn": "Deal $10 damage.",
+      "flavorEn": "Take the time for an evil laugh after you draw this card."
     },
     {
       "id": "CS2_050",
@@ -9594,7 +10760,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_050"
+      "artId": "CS2_050",
+      "nameEn": "Searing Totem",
+      "textEn": ""
     },
     {
       "id": "CS2_051",
@@ -9619,7 +10787,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_051"
+      "artId": "CS2_051",
+      "nameEn": "Stoneclaw Totem",
+      "textEn": "<b>Taunt</b>"
     },
     {
       "id": "CS2_052",
@@ -9644,7 +10814,9 @@
       "spellDamage": 1,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_052"
+      "artId": "CS2_052",
+      "nameEn": "Wrath of Air Totem",
+      "textEn": "<b>Spell Damage +1</b>"
     },
     {
       "id": "CS2_073_puzzle",
@@ -9669,7 +10841,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "VAN_CS2_073_puzzle"
+      "artId": "VAN_CS2_073_puzzle",
+      "nameEn": "Cold Blood",
+      "textEn": "Give a minion +2 Attack. <b>Combo:</b> +4 Attack instead.",
+      "flavorEn": "\"I'm cold blooded, check it and see!\""
     },
     {
       "id": "CS2_082",
@@ -9692,7 +10867,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_082"
+      "artId": "CS2_082",
+      "nameEn": "Wicked Knife",
+      "textEn": ""
     },
     {
       "id": "CS2_101t",
@@ -9715,7 +10892,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_101t"
+      "artId": "CS2_101t",
+      "nameEn": "Silver Hand Recruit",
+      "textEn": ""
     },
     {
       "id": "CS2_102_H3",
@@ -9738,7 +10917,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_102_H3"
+      "artId": "CS2_102_H3",
+      "nameEn": "Armor Up!",
+      "textEn": "<b>Hero Power</b>\nGain 2 Armor."
     },
     {
       "id": "CS2_103_Puzzle",
@@ -9763,7 +10944,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "VAN_CS2_103_Puzzle"
+      "artId": "VAN_CS2_103_Puzzle",
+      "nameEn": "Charge",
+      "textEn": "Give a friendly minion <b>Charge</b>. It can't attack heroes this turn.",
+      "flavorEn": "\"Guys! Guys! Slow down!\" - some kind of non-warrior minion"
     },
     {
       "id": "CS2_152",
@@ -9786,7 +10970,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_152"
+      "artId": "CS2_152",
+      "nameEn": "Squire",
+      "textEn": ""
     },
     {
       "id": "CS2_boar",
@@ -9809,7 +10995,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_boar"
+      "artId": "CS2_boar",
+      "nameEn": "Boar",
+      "textEn": ""
     },
     {
       "id": "CS2_mirror",
@@ -9834,7 +11022,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_mirror"
+      "artId": "CS2_mirror",
+      "nameEn": "Mirror Image",
+      "textEn": "<b>Taunt</b>"
     },
     {
       "id": "CS2_tk1",
@@ -9857,7 +11047,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_tk1"
+      "artId": "CS2_tk1",
+      "nameEn": "Sheep",
+      "textEn": ""
     },
     {
       "id": "DFX_001",
@@ -9880,7 +11072,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DFX_001"
+      "artId": "DFX_001",
+      "nameEn": "Fast Spawn to Deck Dummy FX",
+      "textEn": "Holds the FX for inserting a card into a deck quickly."
     },
     {
       "id": "DFX_002",
@@ -9903,7 +11097,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DFX_002"
+      "artId": "DFX_002",
+      "nameEn": "Time Warp Dummy FX",
+      "textEn": "Holds the FX for playing Timewarp FX."
     },
     {
       "id": "DFX_003",
@@ -9926,7 +11122,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DFX_003"
+      "artId": "DFX_003",
+      "nameEn": "Frost Nova Dummy FX",
+      "textEn": "Holds the FX for playing Frost Nova FX."
     },
     {
       "id": "DFX_004",
@@ -9949,7 +11147,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DFX_004"
+      "artId": "DFX_004",
+      "nameEn": "Holy Healing Dummy FX",
+      "textEn": "Holds the FX for playing Holy Healing FX."
     },
     {
       "id": "DFX_005",
@@ -9972,7 +11172,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DFX_005"
+      "artId": "DFX_005",
+      "nameEn": "Flamestrike Dummy FX",
+      "textEn": "Holds the FX for playing Flamestrike FX."
     },
     {
       "id": "EX1_110t",
@@ -9995,7 +11197,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_110t"
+      "artId": "EX1_110t",
+      "nameEn": "Baine Bloodhoof",
+      "textEn": ""
     },
     {
       "id": "EX1_130a",
@@ -10018,7 +11222,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_130a"
+      "artId": "EX1_130a",
+      "nameEn": "Defender",
+      "textEn": ""
     },
     {
       "id": "EX1_154a",
@@ -10041,7 +11247,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_154a"
+      "artId": "EX1_154a",
+      "nameEn": "Solar Wrath",
+      "textEn": "Deal $3 damage to a minion."
     },
     {
       "id": "EX1_154b",
@@ -10064,7 +11272,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_154b"
+      "artId": "EX1_154b",
+      "nameEn": "Nature's Wrath",
+      "textEn": "Deal $1 damage to a minion. Draw a card."
     },
     {
       "id": "EX1_155a",
@@ -10087,7 +11297,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_155a"
+      "artId": "EX1_155a",
+      "nameEn": "Tiger's Fury",
+      "textEn": "+4 Attack."
     },
     {
       "id": "EX1_155b",
@@ -10112,7 +11324,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_155b"
+      "artId": "EX1_155b",
+      "nameEn": "Thick Hide",
+      "textEn": "+4 Health and <b>Taunt</b>."
     },
     {
       "id": "EX1_160a",
@@ -10135,7 +11349,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_160a"
+      "artId": "EX1_160a",
+      "nameEn": "Summon a Panther",
+      "textEn": "Summon a 3/2 Panther."
     },
     {
       "id": "EX1_160b",
@@ -10158,7 +11374,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_160b"
+      "artId": "EX1_160b",
+      "nameEn": "Leader of the Pack",
+      "textEn": "Give your minions +1/+1."
     },
     {
       "id": "EX1_164a",
@@ -10181,7 +11399,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_164a"
+      "artId": "EX1_164a",
+      "nameEn": "Rampant Growth",
+      "textEn": "Gain 2 Mana Crystals."
     },
     {
       "id": "EX1_164b",
@@ -10204,7 +11424,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_164b"
+      "artId": "EX1_164b",
+      "nameEn": "Enrich",
+      "textEn": "Draw 3 cards."
     },
     {
       "id": "EX1_165a",
@@ -10229,7 +11451,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_165a"
+      "artId": "EX1_165a",
+      "nameEn": "Cat Form",
+      "textEn": "<b>Charge</b>"
     },
     {
       "id": "EX1_165b",
@@ -10254,7 +11478,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_165b"
+      "artId": "EX1_165b",
+      "nameEn": "Bear Form",
+      "textEn": "+2 Health and <b>Taunt</b>"
     },
     {
       "id": "EX1_165t1",
@@ -10279,7 +11505,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_165t1"
+      "artId": "EX1_165t1",
+      "nameEn": "Druid of the Claw",
+      "textEn": "<b>Charge</b>"
     },
     {
       "id": "EX1_165t2",
@@ -10304,7 +11532,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_165t2"
+      "artId": "EX1_165t2",
+      "nameEn": "Druid of the Claw",
+      "textEn": "<b>Taunt</b>"
     },
     {
       "id": "EX1_166a",
@@ -10327,7 +11557,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_166a"
+      "artId": "EX1_166a",
+      "nameEn": "Moonfire",
+      "textEn": "Deal 2 damage."
     },
     {
       "id": "EX1_166b",
@@ -10352,7 +11584,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_166b"
+      "artId": "EX1_166b",
+      "nameEn": "Dispel",
+      "textEn": "<b>Silence</b> a minion."
     },
     {
       "id": "EX1_178a",
@@ -10377,7 +11611,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_178a"
+      "artId": "EX1_178a",
+      "nameEn": "Rooted",
+      "textEn": "+5 Health and <b>Taunt</b>."
     },
     {
       "id": "EX1_178b",
@@ -10400,7 +11636,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_178b"
+      "artId": "EX1_178b",
+      "nameEn": "Uproot",
+      "textEn": "+5 Attack."
     },
     {
       "id": "EX1_345t",
@@ -10423,7 +11661,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_345t"
+      "artId": "EX1_345t",
+      "nameEn": "Shadow of Nothing",
+      "textEn": "Mindgames whiffed! Your opponent had no minions!"
     },
     {
       "id": "EX1_506a",
@@ -10446,7 +11686,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_506a"
+      "artId": "EX1_506a",
+      "nameEn": "Murloc Scout",
+      "textEn": ""
     },
     {
       "id": "EX1_554t",
@@ -10469,7 +11711,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_554t"
+      "artId": "EX1_554t",
+      "nameEn": "Snake",
+      "textEn": ""
     },
     {
       "id": "EX1_573a",
@@ -10492,7 +11736,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_573a"
+      "artId": "EX1_573a",
+      "nameEn": "Demigod's Favor",
+      "textEn": "Give your other minions +2/+2."
     },
     {
       "id": "EX1_573b",
@@ -10517,7 +11763,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_573b"
+      "artId": "EX1_573b",
+      "nameEn": "Shan'do's Lesson",
+      "textEn": "Summon two 2/2 Treants with <b>Taunt</b>."
     },
     {
       "id": "EX1_598",
@@ -10540,7 +11788,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_598"
+      "artId": "EX1_598",
+      "nameEn": "Imp",
+      "textEn": ""
     },
     {
       "id": "EX1_finkle",
@@ -10563,7 +11813,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_finkle"
+      "artId": "EX1_finkle",
+      "nameEn": "Pip Quickwit",
+      "textEn": ""
     },
     {
       "id": "EX1_tk11",
@@ -10588,7 +11840,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_tk11"
+      "artId": "EX1_tk11",
+      "nameEn": "Spirit Wolf",
+      "textEn": "<b>Taunt</b>"
     },
     {
       "id": "EX1_tk28",
@@ -10611,7 +11865,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_tk28"
+      "artId": "EX1_tk28",
+      "nameEn": "Squirrel",
+      "textEn": ""
     },
     {
       "id": "EX1_tk29",
@@ -10634,7 +11890,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_tk29"
+      "artId": "EX1_tk29",
+      "nameEn": "Devilsaur",
+      "textEn": ""
     },
     {
       "id": "EX1_tk33",
@@ -10657,7 +11915,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_tk33"
+      "artId": "EX1_tk33",
+      "nameEn": "INFERNO!",
+      "textEn": "<b>Hero Power</b>\nSummon a 6/6 Infernal."
     },
     {
       "id": "EX1_tk34",
@@ -10680,7 +11940,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_tk34"
+      "artId": "EX1_tk34",
+      "nameEn": "Infernal",
+      "textEn": ""
     },
     {
       "id": "EX1_tk9",
@@ -10703,7 +11965,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_tk9"
+      "artId": "EX1_tk9",
+      "nameEn": "Treant",
+      "textEn": ""
     },
     {
       "id": "EX1_tk9b",
@@ -10729,7 +11993,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "VAN_EX1_tk9b"
+      "artId": "VAN_EX1_tk9b",
+      "nameEn": "Treant",
+      "textEn": "<b>Charge</b>. At the end of the turn, destroy this minion."
     },
     {
       "id": "GAME_002",
@@ -10752,7 +12018,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "GAME_002"
+      "artId": "GAME_002",
+      "nameEn": "Avatar of the Coin",
+      "textEn": "<i>You lost the coin flip, but gained a friend.</i>"
     },
     {
       "id": "GAME_006",
@@ -10775,7 +12043,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "GAME_006"
+      "artId": "GAME_006",
+      "nameEn": "NOOOOOOOOOOOO",
+      "textEn": "Somehow, the card you USED to have has been deleted.  Here, have this one instead!",
+      "flavorEn": "Even your flavor text has been deleted. Dang."
     },
     {
       "id": "HERO_01bp",
@@ -10798,7 +12069,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_01bp"
+      "artId": "HERO_01bp",
+      "nameEn": "Armor Up!",
+      "textEn": "<b>Hero Power</b>\nGain 2 Armor."
     },
     {
       "id": "HERO_01bp2",
@@ -10821,7 +12094,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_01bp2"
+      "artId": "HERO_01bp2",
+      "nameEn": "Tank Up!",
+      "textEn": "<b>Hero Power</b>\nGain 4 Armor."
     },
     {
       "id": "HERO_02bp",
@@ -10844,7 +12119,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_02bp"
+      "artId": "HERO_02bp",
+      "nameEn": "Totemic Call",
+      "textEn": "<b>Hero Power</b>\nSummon a random basic Totem."
     },
     {
       "id": "HERO_02bp2",
@@ -10867,7 +12144,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_02bp2"
+      "artId": "HERO_02bp2",
+      "nameEn": "Totemic Slam",
+      "textEn": "<b>Hero Power</b>\nSummon a Totem of your choice."
     },
     {
       "id": "HERO_03bp",
@@ -10890,7 +12169,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_03bp"
+      "artId": "HERO_03bp",
+      "nameEn": "Dagger Mastery",
+      "textEn": "<b>Hero Power</b>\nEquip a 1/2 Dagger."
     },
     {
       "id": "HERO_03bp2",
@@ -10913,7 +12194,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_03bp2"
+      "artId": "HERO_03bp2",
+      "nameEn": "Poisoned Daggers",
+      "textEn": "<b>Hero Power</b>\nEquip a 2/2 Weapon."
     },
     {
       "id": "HERO_04bp",
@@ -10936,7 +12219,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_04bp"
+      "artId": "HERO_04bp",
+      "nameEn": "Reinforce",
+      "textEn": "<b>Hero Power</b>\nSummon a {0} Silver Hand Recruit."
     },
     {
       "id": "HERO_04bp2",
@@ -10959,7 +12244,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_04bp2"
+      "artId": "HERO_04bp2",
+      "nameEn": "The Silver Hand",
+      "textEn": "<b>Hero Power</b>\nSummon two {0} Recruits."
     },
     {
       "id": "HERO_05bp",
@@ -10982,7 +12269,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_05bp"
+      "artId": "HERO_05bp",
+      "nameEn": "Steady Shot",
+      "textEn": "<b>Hero Power</b>\nDeal $2 damage to the enemy hero."
     },
     {
       "id": "HERO_05bp2",
@@ -11005,7 +12294,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_05bp2"
+      "artId": "HERO_05bp2",
+      "nameEn": "Ballista Shot",
+      "textEn": "<b>Hero Power</b>\nDeal $3 damage to the enemy hero."
     },
     {
       "id": "HERO_06bp",
@@ -11028,7 +12319,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_06bp"
+      "artId": "HERO_06bp",
+      "nameEn": "Shapeshift",
+      "textEn": "<b>Hero Power</b>\n+1 Attack this turn.\n+1 Armor."
     },
     {
       "id": "HERO_06bp2",
@@ -11051,7 +12344,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_06bp2"
+      "artId": "HERO_06bp2",
+      "nameEn": "Dire Shapeshift",
+      "textEn": "<b>Hero Power</b>\n+2 Attack this turn.\n+2 Armor."
     },
     {
       "id": "HERO_07bp",
@@ -11074,7 +12369,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_07bp"
+      "artId": "HERO_07bp",
+      "nameEn": "Life Tap",
+      "textEn": "<b>Hero Power</b>\nDraw a card and take $2 damage."
     },
     {
       "id": "HERO_07bp2",
@@ -11097,7 +12394,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_07bp2"
+      "artId": "HERO_07bp2",
+      "nameEn": "Soul Tap",
+      "textEn": "<b>Hero Power</b>\nDraw a card."
     },
     {
       "id": "HERO_08bp",
@@ -11120,7 +12419,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_08bp"
+      "artId": "HERO_08bp",
+      "nameEn": "Fireblast",
+      "textEn": "<b>Hero Power</b>\nDeal $1 damage."
     },
     {
       "id": "HERO_08bp2",
@@ -11143,7 +12444,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_08bp2"
+      "artId": "HERO_08bp2",
+      "nameEn": "Fireblast Rank 2",
+      "textEn": "<b>Hero Power</b>\nDeal $2 damage."
     },
     {
       "id": "HERO_09bp",
@@ -11166,7 +12469,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_09bp"
+      "artId": "HERO_09bp",
+      "nameEn": "Lesser Heal",
+      "textEn": "[x]<b>Hero Power</b>\nRestore #2 Health."
     },
     {
       "id": "HERO_09bp2",
@@ -11189,7 +12494,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "HERO_09bp2"
+      "artId": "HERO_09bp2",
+      "nameEn": "Heal",
+      "textEn": "<b>Hero Power</b>\nRestore #4 Health."
     },
     {
       "id": "NEW1_007a",
@@ -11212,7 +12519,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_007a"
+      "artId": "NEW1_007a",
+      "nameEn": "Stellar Drift",
+      "textEn": "Deal $2 damage to all enemy minions."
     },
     {
       "id": "NEW1_007b",
@@ -11235,7 +12544,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_007b"
+      "artId": "NEW1_007b",
+      "nameEn": "Starlord",
+      "textEn": "Deal $5 damage to a minion."
     },
     {
       "id": "NEW1_008a",
@@ -11258,7 +12569,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_008a"
+      "artId": "NEW1_008a",
+      "nameEn": "Ancient Teachings",
+      "textEn": "Draw 2 cards."
     },
     {
       "id": "NEW1_008b",
@@ -11281,7 +12594,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_008b"
+      "artId": "NEW1_008b",
+      "nameEn": "Ancient Secrets",
+      "textEn": "Restore 5 Health."
     },
     {
       "id": "NEW1_009",
@@ -11306,7 +12621,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_009"
+      "artId": "NEW1_009",
+      "nameEn": "Healing Totem",
+      "textEn": "At the end of your turn, restore #1 Health to all friendly minions."
     },
     {
       "id": "NEW1_026t",
@@ -11329,7 +12646,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_026t"
+      "artId": "NEW1_026t",
+      "nameEn": "Violet Apprentice",
+      "textEn": ""
     },
     {
       "id": "NEW1_032",
@@ -11354,7 +12673,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_032"
+      "artId": "NEW1_032",
+      "nameEn": "Misha",
+      "textEn": "<b>Taunt</b>"
     },
     {
       "id": "NEW1_033",
@@ -11379,7 +12700,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_033"
+      "artId": "NEW1_033",
+      "nameEn": "Leokk",
+      "textEn": "Your other minions have +1 Attack."
     },
     {
       "id": "NEW1_034",
@@ -11404,7 +12727,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_034"
+      "artId": "NEW1_034",
+      "nameEn": "Huffer",
+      "textEn": "<b>Charge</b>"
     },
     {
       "id": "PRO_001c",
@@ -11427,7 +12752,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "PRO_001c"
+      "artId": "PRO_001c",
+      "nameEn": "Power of the Horde",
+      "textEn": "Summon a random Horde Warrior."
     },
     {
       "id": "skele11",
@@ -11450,7 +12777,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "skele11"
+      "artId": "skele11",
+      "nameEn": "Skeleton",
+      "textEn": "<b></b>"
     },
     {
       "id": "skele21",
@@ -11473,7 +12802,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "skele21"
+      "artId": "skele21",
+      "nameEn": "Damaged Golem",
+      "textEn": ""
     },
     {
       "id": "tt_010a",
@@ -11496,7 +12827,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "tt_010a"
+      "artId": "tt_010a",
+      "nameEn": "Spellbender",
+      "textEn": ""
     },
     {
       "id": "TU4e_002t",
@@ -11519,7 +12852,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "TU4e_002t"
+      "artId": "TU4e_002t",
+      "nameEn": "Flame of Azzinoth",
+      "textEn": ""
     },
     {
       "id": "GAME_005",
@@ -11541,7 +12876,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "GAME_005"
+      "artId": "GAME_005",
+      "nameEn": "The Coin",
+      "textEn": "Gain 1 Mana Crystal this turn only.",
+      "flavorEn": "Whether you spend it or save it, it's always there for a second."
     },
     {
       "id": "DREAM_01",
@@ -11565,7 +12903,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DREAM_01"
+      "artId": "DREAM_01",
+      "nameEn": "Laughing Sister",
+      "textEn": "<b>Elusive</b>"
     },
     {
       "id": "DREAM_02",
@@ -11587,7 +12927,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DREAM_02"
+      "artId": "DREAM_02",
+      "nameEn": "Ysera Awakens",
+      "textEn": "Deal $5 damage to all characters except Ysera."
     },
     {
       "id": "DREAM_03",
@@ -11609,7 +12951,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DREAM_03"
+      "artId": "DREAM_03",
+      "nameEn": "Emerald Drake",
+      "textEn": ""
     },
     {
       "id": "DREAM_04",
@@ -11631,7 +12975,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DREAM_04"
+      "artId": "DREAM_04",
+      "nameEn": "Dream",
+      "textEn": "Return a minion to its owner's hand."
     },
     {
       "id": "DREAM_05",
@@ -11653,7 +12999,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DREAM_05"
+      "artId": "DREAM_05",
+      "nameEn": "Nightmare",
+      "textEn": "Give a minion +5/+5. At the start of your next turn, destroy it."
     },
     {
       "id": "EX1_534t",
@@ -11675,7 +13023,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_534t"
+      "artId": "EX1_534t",
+      "nameEn": "Hyena",
+      "textEn": ""
     },
     {
       "id": "EX1_158t",
@@ -11697,7 +13047,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_158t"
+      "artId": "EX1_158t",
+      "nameEn": "Treant",
+      "textEn": ""
     },
     {
       "id": "hexfrog",
@@ -11721,7 +13073,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "hexfrog"
+      "artId": "hexfrog",
+      "nameEn": "Frog",
+      "textEn": "<b>Taunt</b>"
     },
     {
       "id": "EX1_538t",
@@ -11745,7 +13099,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_538t"
+      "artId": "EX1_538t",
+      "nameEn": "Hound",
+      "textEn": "<b>Charge</b>"
     },
     {
       "id": "EX1_323w",
@@ -11767,7 +13123,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_323w"
+      "artId": "EX1_323w",
+      "nameEn": "Blood Fury",
+      "textEn": ""
     },
     {
       "id": "EX1_323h",
@@ -11789,7 +13147,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_323h"
+      "artId": "EX1_323h",
+      "nameEn": "Lord Jaraxxus",
+      "textEn": ""
     },
     {
       "id": "EX1_383t",
@@ -11811,7 +13171,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_383t"
+      "artId": "EX1_383t",
+      "nameEn": "Ashbringer",
+      "textEn": ""
     },
     {
       "id": "EX1_116t",
@@ -11833,7 +13195,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_116t"
+      "artId": "EX1_116t",
+      "nameEn": "Whelp",
+      "textEn": ""
     },
     {
       "id": "EX1_614t",
@@ -11855,7 +13219,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_614t"
+      "artId": "EX1_614t",
+      "nameEn": "Xavian Satyr",
+      "textEn": ""
     },
     {
       "id": "EX1_025t",
@@ -11877,7 +13243,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_025t"
+      "artId": "EX1_025t",
+      "nameEn": "Mechanical Dragonling",
+      "textEn": ""
     },
     {
       "id": "DS1_070",
@@ -11903,7 +13271,10 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "DS1_070"
+      "artId": "DS1_070",
+      "nameEn": "Houndmaster",
+      "textEn": "<b>Battlecry:</b> Give a friendly Beast +2/+2 and <b>Taunt</b>.",
+      "flavorEn": "\"Who let the dogs out?\" he asks.  It's rhetorical."
     },
     {
       "id": "EX1_014t",
@@ -11925,7 +13296,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_014t"
+      "artId": "EX1_014t",
+      "nameEn": "Bananas",
+      "textEn": "Give a minion +1/+1."
     },
     {
       "id": "PRO_001a",
@@ -11947,7 +13320,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "PRO_001a"
+      "artId": "PRO_001a",
+      "nameEn": "I Am Murloc",
+      "textEn": "Summon three, four, or five 1/1 Murlocs."
     },
     {
       "id": "PRO_001b",
@@ -11969,7 +13344,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "PRO_001b"
+      "artId": "PRO_001b",
+      "nameEn": "Rogues Do It...",
+      "textEn": "Deal $4 damage. Draw a card."
     },
     {
       "id": "Mekka1",
@@ -11993,7 +13370,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Mekka1"
+      "artId": "Mekka1",
+      "nameEn": "Homing Chicken",
+      "textEn": "At the start of your turn, destroy this minion and draw 3 cards."
     },
     {
       "id": "Mekka2",
@@ -12017,7 +13396,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Mekka2"
+      "artId": "Mekka2",
+      "nameEn": "Repair Bot",
+      "textEn": "At the end of your turn, restore #6 Health to a damaged character."
     },
     {
       "id": "Mekka3",
@@ -12041,7 +13422,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Mekka3"
+      "artId": "Mekka3",
+      "nameEn": "Emboldener 3000",
+      "textEn": "At the end of your turn, give a random minion +1/+1."
     },
     {
       "id": "Mekka4",
@@ -12065,7 +13448,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Mekka4"
+      "artId": "Mekka4",
+      "nameEn": "Poultryizer",
+      "textEn": "At the start of your turn, transform a random minion into a 1/1 Chicken."
     },
     {
       "id": "Mekka4t",
@@ -12087,7 +13472,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "Mekka4t"
+      "artId": "Mekka4t",
+      "nameEn": "Chicken",
+      "textEn": "<i>Hey Chicken!</i>"
     },
     {
       "id": "NEW1_040t",
@@ -12111,7 +13498,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "NEW1_040t"
+      "artId": "NEW1_040t",
+      "nameEn": "Gnoll",
+      "textEn": "<b>Taunt</b>"
     },
     {
       "id": "EX1_131t",
@@ -12133,7 +13522,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_131t"
+      "artId": "EX1_131t",
+      "nameEn": "Defias Bandit",
+      "textEn": ""
     },
     {
       "id": "EX1_398t",
@@ -12155,7 +13546,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_398t"
+      "artId": "EX1_398t",
+      "nameEn": "Battle Axe",
+      "textEn": ""
     },
     {
       "id": "EX1_409t",
@@ -12177,7 +13570,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_409t"
+      "artId": "EX1_409t",
+      "nameEn": "Heavy Axe",
+      "textEn": ""
     },
     {
       "id": "EX1_160t",
@@ -12199,7 +13594,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_160t"
+      "artId": "EX1_160t",
+      "nameEn": "Panther",
+      "textEn": ""
     },
     {
       "id": "CS2_013t",
@@ -12221,7 +13618,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "CS2_013t"
+      "artId": "CS2_013t",
+      "nameEn": "Excess Mana",
+      "textEn": "Draw a card. <i>(You can only have 10 Mana in your tray.)</i>"
     },
     {
       "id": "EX1_625t",
@@ -12243,7 +13642,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_625t"
+      "artId": "EX1_625t",
+      "nameEn": "Mind Spike",
+      "textEn": "Deal $2 damage."
     },
     {
       "id": "EX1_625t2",
@@ -12265,7 +13666,9 @@
       "spellDamage": 0,
       "overload": 0,
       "collectible": false,
-      "artId": "EX1_625t2"
+      "artId": "EX1_625t2",
+      "nameEn": "Mind Shatter",
+      "textEn": "Deal $3 damage."
     }
   ]
 }

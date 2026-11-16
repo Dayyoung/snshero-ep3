@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
+import { useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 
 export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnterHub }) => {
+  const { tr } = useHeroLanguage();
   const [opening, setOpening] = useState(false);
 
   const embers = useMemo(
@@ -171,7 +173,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
             className="relative w-[305px] max-w-[88vw] drop-shadow-[0_18px_32px_rgba(0,0,0,0.95)] sm:w-[540px]"
           />
           <div className="hs-title -mt-1.5 tracking-[0.22em] text-xs font-extrabold text-[#f7dfb0] sm:-mt-2 sm:text-sm sm:tracking-[0.26em]">
-            워크래프트의 영웅들
+            {tr('워크래프트의 영웅들', 'HEROES OF WARCRAFT')}
           </div>
         </div>
 
@@ -186,7 +188,7 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
           <div className="pointer-events-none absolute inset-3 rounded-full bg-sky-400/35 blur-xl" />
           <img
             src="/stone-assets/ui/box_compass_medallion.webp"
-            alt="여관 인장"
+            alt={tr('여관 인장', 'Tavern Crest')}
             draggable={false}
             className="relative h-28 w-28 object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.95)] transition-transform duration-300 hover:scale-108 sm:h-40 sm:w-40"
           />
@@ -202,15 +204,15 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
             }}
             className="hs-arcane-btn hs-title hs-outline min-h-[48px] rounded-2xl px-10 py-3 text-base tracking-widest sm:px-14 sm:py-4 sm:text-xl"
           >
-            여관 문 열기
+            {tr('여관 문 열기', 'Enter the Tavern')}
           </button>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 rounded-xl border border-[#8d6732]/60 bg-[#130b05]/85 px-3.5 py-1.5 text-[11px] font-bold text-[#e7cda0] shadow-xl sm:gap-2.5 sm:px-4 sm:text-xs">
-            <span>오리지널 9대 직업</span>
+            <span>{tr('오리지널 9대 직업', '9 Classic Classes')}</span>
             <span className="text-amber-500">·</span>
-            <span>수집 카드 382종 완비</span>
+            <span>{tr('수집 카드 382종 완비', '382 Collectible Cards')}</span>
             <span className="text-amber-500">·</span>
-            <span className="text-sky-300">공식 한국어 음성</span>
+            <span className="text-sky-300">{tr('공식 한국어 음성', 'Voice & SFX Ready')}</span>
           </div>
         </div>
       </div>
@@ -221,7 +223,10 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
           opening ? 'opacity-0' : 'opacity-100'
         }`}
       >
-        화면을 터치하거나 클릭하면 스톤브루의 여관이 열립니다
+        {tr(
+          '화면을 터치하거나 클릭하면 스톤브루의 여관이 열립니다',
+          "Tap or click anywhere to open Stonebrew's Tavern",
+        )}
       </footer>
     </div>
   );

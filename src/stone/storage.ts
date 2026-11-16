@@ -1,3 +1,4 @@
+import { tr } from '../i18n/heroLang';
 import {
   CLASSIC_PRESET_DECKS,
   CRAFTING_COST,
@@ -80,9 +81,37 @@ function defaultProfile(): PlayerProfile {
   };
 }
 
+function localizeQuest(q: DailyQuest): DailyQuest {
+  if (q.id === 'q_win_3') {
+    return {
+      ...q,
+      title: tr('여관의 승부사', 'Tavern Challenger'),
+      description: tr(
+        '아무 직업으로 대전 또는 연습에서 2승 달성',
+        'Win 2 games in Play or Practice mode with any class',
+      ),
+    };
+  }
+  if (q.id === 'q_play_minions') {
+    return {
+      ...q,
+      title: tr('전장의 함성', 'Call to Arms'),
+      description: tr('하수인 15마리 소환하기', 'Summon 15 minions'),
+    };
+  }
+  if (q.id === 'q_cast_spells') {
+    return {
+      ...q,
+      title: tr('비전 마법의 대가', 'Spell Master'),
+      description: tr('주문 10회 시전하기', 'Cast 10 spells'),
+    };
+  }
+  return q;
+}
+
 function defaultQuests(): DailyQuest[] {
   return [
-    {
+    localizeQuest({
       id: 'q_win_3',
       title: '여관의 승부사',
       description: '아무 직업으로 대전 또는 연습에서 2승 달성',
@@ -90,8 +119,8 @@ function defaultQuests(): DailyQuest[] {
       goal: 2,
       rewardGold: 60,
       completed: false,
-    },
-    {
+    }),
+    localizeQuest({
       id: 'q_play_minions',
       title: '전장의 함성',
       description: '하수인 15마리 소환하기',
@@ -99,8 +128,8 @@ function defaultQuests(): DailyQuest[] {
       goal: 15,
       rewardGold: 40,
       completed: false,
-    },
-    {
+    }),
+    localizeQuest({
       id: 'q_cast_spells',
       title: '비전 마법의 대가',
       description: '주문 10회 시전하기',
@@ -108,7 +137,7 @@ function defaultQuests(): DailyQuest[] {
       goal: 10,
       rewardGold: 50,
       completed: false,
-    },
+    }),
   ];
 }
 
@@ -192,7 +221,7 @@ class HearthstoneStorage {
   getQuests(): DailyQuest[] {
     try {
       const raw = localStorage.getItem(KEYS.QUESTS);
-      if (raw) return JSON.parse(raw) as DailyQuest[];
+      if (raw) return (JSON.parse(raw) as DailyQuest[]).map(localizeQuest);
     } catch {
       // ignore
     }
@@ -466,17 +495,32 @@ class HearthstoneStorage {
   craftCard(cardId: string): { ok: boolean; reason?: string } {
     const def = cardDb.getCard(cardId);
     if (!def || def.rarity === 'FREE') {
-      return { ok: false, reason: '기본 카드는 제작할 수 없습니다.' };
+      return {
+        ok: false,
+        reason: tr('기본 카드는 제작할 수 없습니다.', 'Basic cards cannot be crafted.'),
+      };
     }
     const cost = CRAFTING_COST[def.rarity] || 40;
     const p = this.getProfile();
     if (p.arcaneDust < cost) {
-      return { ok: false, reason: `신비한 가루가 부족합니다. (필요: ${cost})` };
+      return {
+        ok: false,
+        reason: tr(
+          `신비한 가루가 부족합니다. (필요: ${cost})`,
+          `Not enough Arcane Dust. (${cost} required)`,
+        ),
+      };
     }
     const col = this.getCollection();
     const maxUseful = def.rarity === 'LEGENDARY' ? 1 : 2;
     if ((col[cardId] || 0) >= maxUseful) {
-      return { ok: false, reason: '덱에 넣을 수 있는 최대 수량을 이미 보유하고 있습니다.' };
+      return {
+        ok: false,
+        reason: tr(
+          '덱에 넣을 수 있는 최대 수량을 이미 보유하고 있습니다.',
+          'You already own the maximum playable copies.',
+        ),
+      };
     }
     p.arcaneDust -= cost;
     col[cardId] = (col[cardId] || 0) + 1;
@@ -488,11 +532,17 @@ class HearthstoneStorage {
   disenchantCard(cardId: string): { ok: boolean; reason?: string } {
     const def = cardDb.getCard(cardId);
     if (!def || def.rarity === 'FREE') {
-      return { ok: false, reason: '기본 카드는 마력을 추출할 수 없습니다.' };
+      return {
+        ok: false,
+        reason: tr('기본 카드는 마력을 추출할 수 없습니다.', 'Basic cards cannot be disenchanted.'),
+      };
     }
     const col = this.getCollection();
     if ((col[cardId] || 0) <= 0) {
-      return { ok: false, reason: '보유한 카드가 없습니다.' };
+      return {
+        ok: false,
+        reason: tr('보유한 카드가 없습니다.', 'You do not own any copy of this card.'),
+      };
     }
     const val = DISENCHANT_VALUE[def.rarity] || 5;
     col[cardId] -= 1;
@@ -701,7 +751,7 @@ class HearthstoneStorage {
         return {
           success: false,
           restoredCount: 0,
-          message: '유효한 백업 JSON 형식이 아닙니다.',
+          message: tr('유효한 백업 JSON 형식이 아닙니다.', 'Invalid backup JSON format.'),
         };
       }
 
@@ -717,20 +767,29 @@ class HearthstoneStorage {
         return {
           success: false,
           restoredCount: 0,
-          message: '복원 가능한 하스스톤(stone_hs_*) 데이터가 없습니다.',
+          message: tr(
+            '복원 가능한 하스스톤(stone_hs_*) 데이터가 없습니다.',
+            'No restorable Hearthstone (stone_hs_*) data found.',
+          ),
         };
       }
 
       return {
         success: true,
         restoredCount: count,
-        message: `하스스톤 데이터 ${count}개 항목을 성공적으로 복원했습니다.`,
+        message: tr(
+          `하스스톤 데이터 ${count}개 항목을 성공적으로 복원했습니다.`,
+          `Successfully restored ${count} Hearthstone save items.`,
+        ),
       };
     } catch {
       return {
         success: false,
         restoredCount: 0,
-        message: '백업 코드 또는 JSON 파일 형식이 올바르지 않습니다.',
+        message: tr(
+          '백업 코드 또는 JSON 파일 형식이 올바르지 않습니다.',
+          'Invalid backup code or JSON file format.',
+        ),
       };
     }
   }

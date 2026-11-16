@@ -1,7 +1,8 @@
+import { isKoreanLanguage, tr } from '../../i18n/heroLang';
 import { CLASSIC_PRESET_DECKS, cardDb } from '../cardDb';
+import { getLocalizedHeroInfo } from '../i18nData';
 import {
   BattleMatchState,
-  CLASSIC_HEROES,
   GameMode,
   HERO_CLASS_ORDER,
   HeroClass,
@@ -261,6 +262,18 @@ export const LADDER_OPPONENT_NAMES: Record<HeroClass, string[]> = {
   DRUID: ['세나리온 대드루이드', '달숲의 수호자', '에메랄드 꿈지기'],
 };
 
+export const LADDER_OPPONENT_NAMES_EN: Record<HeroClass, string[]> = {
+  MAGE: ['Kirin Tor Archmage', 'Dalaran Arcanist', 'Frostfire Scholar'],
+  WARRIOR: ['Orgrimmar Centurion', 'Blackrock Gladiator', 'Warsong Vanguard'],
+  HUNTER: ['Stranglethorn Marksman', 'Silverpine Tracker', "Rexxar's Pathfinder"],
+  PALADIN: ['Silver Hand Crusader', 'Lightsworn Knight', 'Stormwind Templar'],
+  PRIEST: ['Cathedral High Priest', 'Shadowmoon Prophet', 'Northshire Cleric'],
+  ROGUE: ['SI:7 Shadowblade', 'Bloodsail Assassin', 'Ravenholdt Cutthroat'],
+  SHAMAN: ['Earthen Ring Shaman', 'Thunder Bluff Sage', 'Stormcaller'],
+  WARLOCK: ['Shadow Council Warlock', 'Hellfire Summoner', 'Felblade Occultist'],
+  DRUID: ['Cenarion Archdruid', 'Moonglade Guardian', 'Emerald Dreamkeeper'],
+};
+
 export function buildAiOpponentSetup(
   mode: GameMode,
   preferredOpponentClass?: HeroClass,
@@ -272,7 +285,7 @@ export function buildAiOpponentSetup(
   if (mode === 'TUTORIAL') {
     const preset = CLASSIC_PRESET_DECKS.find((d) => d.heroClass === 'WARRIOR')!;
     return {
-      opponentName: '밀하우스 & 들창코 교관',
+      opponentName: tr('밀하우스 & 들창코 교관', 'Hogger & Millhouse'),
       opponentClass: 'WARRIOR',
       opponentDeck: [...preset.cards],
     };
@@ -281,12 +294,13 @@ export function buildAiOpponentSetup(
   const oppClass =
     preferredOpponentClass ||
     HERO_CLASS_ORDER[Math.floor(Math.random() * HERO_CLASS_ORDER.length)];
+  const oppClassLabel = getLocalizedHeroInfo(oppClass).className;
 
   if (mode === 'PRACTICE_NORMAL') {
     const preset =
       CLASSIC_PRESET_DECKS.find((d) => d.heroClass === oppClass) || CLASSIC_PRESET_DECKS[0];
     return {
-      opponentName: `여관주인 (${CLASSIC_HEROES[oppClass].classNameKo})`,
+      opponentName: tr(`여관주인 (${oppClassLabel})`, `Innkeeper (${oppClassLabel})`),
       opponentClass: oppClass,
       opponentDeck: [...preset.cards],
     };
@@ -295,14 +309,16 @@ export function buildAiOpponentSetup(
   if (mode === 'PRACTICE_EXPERT') {
     const expert = CLASSIC_EXPERT_AI_DECKS[oppClass];
     return {
-      opponentName: `숙련 여관주인 (${CLASSIC_HEROES[oppClass].classNameKo})`,
+      opponentName: tr(`숙련 여관주인 (${oppClassLabel})`, `Expert Innkeeper (${oppClassLabel})`),
       opponentClass: oppClass,
       opponentDeck: [...expert.cards],
     };
   }
 
   // RANKED or CASUAL
-  const names = LADDER_OPPONENT_NAMES[oppClass];
+  const names = isKoreanLanguage()
+    ? LADDER_OPPONENT_NAMES[oppClass]
+    : LADDER_OPPONENT_NAMES_EN[oppClass];
   const opponentName = names[Math.floor(Math.random() * names.length)];
   const expert = CLASSIC_EXPERT_AI_DECKS[oppClass];
   return {
