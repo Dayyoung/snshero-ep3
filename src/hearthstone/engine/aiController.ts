@@ -392,9 +392,10 @@ export function evaluateStateForAi(
 
   let score = 0;
 
-  // Low-deck / late-turn urgency shifts evaluation toward closing out the game via face damage
+  // Low-deck / late-turn urgency shifts evaluation toward aggressive face damage
+  // When remaining deck <= 5 cards, enter full aggro pressure mode (DEV-019)
   const lowDeckPressure =
-    me.deck.length <= 8 || foe.deck.length <= 8 || s.turnNumber >= 14 ? 1.38 : 1.0;
+    me.deck.length <= 5 ? 1.75 : me.deck.length <= 8 || foe.deck.length <= 8 || s.turnNumber >= 14 ? 1.38 : 1.0;
 
   // 1. Hero Health & Armor (non-linear urgency when low!)
   const meEhp = me.health + me.armor;

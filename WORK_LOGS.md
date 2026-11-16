@@ -2,6 +2,20 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 07:59 KST] [`/checkIssue` + `/checkBug` + `/checkMarket` 3종 시트 일괄 해결·테스트·배포 완료]
+- **작업자**: `Antigravity Assistant`
+- **해결 및 구현 내역**:
+  1. **`/checkIssue` (Row 8, `ISS-004`)**: 좌측 실리아 필살기를 [`KadanChatbotWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/KadanChatbotWidget.tsx) 스타일의 **실리아 챗봇 버튼(클릭 시 3스킬 팝업 열림) + 컷신별 스프라이트 애니메이션(`idle_01..04`, `cast_defense/attack/heal_01..02`)**으로 전면 업그레이드 (`public/hs-assets/silia-bot/` 10종 WebP 및 [`SiliaUltimateWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SiliaUltimateWidget.tsx)).
+  2. **`/checkBug` (`DEV-013` ~ `DEV-019`, 7건 전수 완료)**:
+     - `DEV-013`·`DEV-019`: [`index.html`](file:///Users/dayyoung/project/snshero/index.html) `/promotion` 앵커 추가, [`SharedAdSenseShell.tsx`](file:///Users/dayyoung/project/snshero/src/components/SharedAdSenseShell.tsx)·[`GameAdSenseLayout.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/GameAdSenseLayout.tsx) 광고 컨테이너 `data-nosnippet` 적용, [`aiController.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/aiController.ts) 잔여 덱 5장 이하 어그로/킬각 보강.
+     - `DEV-014`·`DEV-015`: `/webtoon` 전용 SEO 분리 검증, [`book.html`](file:///Users/dayyoung/project/snshero/book.html) 40화 목차 링크 보강 및 [`BookSection.tsx`](file:///Users/dayyoung/project/snshero/src/reader/BookSection.tsx) `snshero_last_novel_ep` 이어읽기 배너 구현.
+     - `DEV-016`·`DEV-017`·`DEV-018`: [`types.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/types.ts) `'태양 갑주'` 명명 통일, [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx) 영웅 능력 0.85s 카드 드로우 프리뷰 토스트·패배 자동이동 6초 완화, [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx) `sessionStorage('snshero_deeplink_intent')` 보존 및 미해금 회차 체험 안내 토스트, 사용자 확정 도전만화 링크(`titleId=857363`) 단일화 검증 완료.
+  3. **`/checkMarket` (코드 적용 가능 항목 추가 완료)**:
+     - `MKT-038`([`robots.txt`](file:///Users/dayyoung/project/snshero/public/robots.txt) 크롤링 규칙 검증 완료), `MKT-044`([`game-manifest.json`](file:///Users/dayyoung/project/snshero/public/game-manifest.json) 382종 명세 갱신), `MKT-045`(팩 개봉 후 1클릭 출격 검증), `MKT-048`([`CollectionScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/CollectionScreen.tsx) 30장 덱 완성도 게이지 바 추가), `MKT-049`([`victoryCardShare.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/utils/victoryCardShare.ts) & [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx) 승리 결과 1초 1200x630 전적 인증 카드 PNG 저장·공유 추가).
+- **통합 검증 및 배포**:
+  - `npx tsc --noEmit && npm run build` 0에러(`✓ built in 6.09s`), 100전 자동플레이(`fatigueEnds: 0`, `avgTurns: 17.3`), 실리아 컷신·영웅 스킬 아이콘·`/webtoon` SEO·`/book.html` 이어읽기·`/`·`/sns`·`/stone` AdSense(`CLS <= 0.0923`, `data-nosnippet`) Chrome E2E 전수 통과.
+  - `git push origin main` 배포, 3대 구글 시트 최신화 및 구글 폼 보고 완료.
+
 ## [2026-11-17 07:25 KST] [구글 시트 브라우저 바로열기 3종 스킬(`/showIssue`, `/showMarket`, `/showBug`) 생성 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

@@ -1081,8 +1081,17 @@ export const CollectionScreen: React.FC<{
                             <span style={{ color: dh.accentColor }}>{dhLoc.className}</span>
                             <span className="text-stone-500">·</span>
                             <span className={complete ? 'text-emerald-300' : 'text-amber-300'}>
-                              {isKo ? `${d.cards.length}/30장` : `${d.cards.length}/30`}
+                              {isKo ? `${d.cards.length}/30장` : `${d.cards.length}/30`} ({Math.round((d.cards.length / 30) * 100)}%)
                             </span>
+                          </div>
+                          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-stone-800/90">
+                            <div
+                              style={{
+                                width: `${Math.min(100, Math.round((d.cards.length / 30) * 100))}%`,
+                                backgroundColor: complete ? '#34d399' : '#fbbf24',
+                              }}
+                              className="h-full transition-all"
+                            />
                           </div>
                         </div>
                       </button>

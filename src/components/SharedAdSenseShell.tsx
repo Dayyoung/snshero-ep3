@@ -92,6 +92,7 @@ export const SharedAdSenseShell: React.FC<SharedAdSenseShellProps> = ({
           <div
             id="adsense-mobile-top"
             ref={mobileTopRef}
+            data-nosnippet=""
             style={{
               display: desktopWide ? 'none' : 'block',
               height: 52,
@@ -123,6 +124,7 @@ export const SharedAdSenseShell: React.FC<SharedAdSenseShellProps> = ({
           <aside
             id="adsense-desktop-left"
             ref={leftGutterRef}
+            data-nosnippet=""
             style={{ display: desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
             className={`adsense-gutter adsense-desktop-left relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-start border-r px-2 py-4 text-center ${gutterBg}`}
             aria-label="Google AdSense Left Wing"
@@ -147,6 +149,7 @@ export const SharedAdSenseShell: React.FC<SharedAdSenseShellProps> = ({
           <aside
             id="adsense-desktop-right"
             ref={rightGutterRef}
+            data-nosnippet=""
             style={{ display: desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
             className={`adsense-gutter adsense-desktop-right relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-start border-l px-2 py-4 text-center ${gutterBg}`}
             aria-label="Google AdSense Right Wing"

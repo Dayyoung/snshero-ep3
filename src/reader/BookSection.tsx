@@ -62,6 +62,7 @@ export function setBookEpisode(ep: number, updateUrl: boolean = true): void {
   if (typeof localStorage !== 'undefined') {
     try {
       localStorage.setItem('hero_hs_last_novel_ep', String(currentBookEpisode));
+      localStorage.setItem('snshero_last_novel_ep', String(currentBookEpisode));
     } catch {
       // Ignore storage quota errors
     }
@@ -80,6 +81,8 @@ export function setBookEpisode(ep: number, updateUrl: boolean = true): void {
   }
 }
 
+let savedResumeEpisodeNotice: number | null = null;
+
 export function initBookEpisodeFromUrl(): void {
   if (typeof window === 'undefined') return;
   const searchMatch = (window.location.search || '').match(/[?&]ep=(\d+)/);
@@ -92,12 +95,21 @@ export function initBookEpisodeFromUrl(): void {
     }
   } else if (typeof localStorage !== 'undefined') {
     try {
-      const profileRaw = localStorage.getItem('hero_hs_profile');
-      if (profileRaw) {
-        const parsed = JSON.parse(profileRaw) as { journeyMaxStageCleared?: number };
-        const cleared = parsed?.journeyMaxStageCleared || 0;
-        if (cleared > 0) {
-          currentBookEpisode = Math.max(1, Math.min(40, cleared + 1));
+      const lastReadRaw =
+        localStorage.getItem('snshero_last_novel_ep') ||
+        localStorage.getItem('hero_hs_last_novel_ep');
+      const lastReadEp = lastReadRaw ? parseInt(lastReadRaw, 10) : 0;
+      if (!isNaN(lastReadEp) && lastReadEp >= 2 && lastReadEp <= 40) {
+        currentBookEpisode = lastReadEp;
+        savedResumeEpisodeNotice = lastReadEp;
+      } else {
+        const profileRaw = localStorage.getItem('hero_hs_profile');
+        if (profileRaw) {
+          const parsed = JSON.parse(profileRaw) as { journeyMaxStageCleared?: number };
+          const cleared = parsed?.journeyMaxStageCleared || 0;
+          if (cleared > 0) {
+            currentBookEpisode = Math.max(1, Math.min(40, cleared + 1));
+          }
         }
       }
     } catch {
@@ -107,6 +119,7 @@ export function initBookEpisodeFromUrl(): void {
   if (typeof localStorage !== 'undefined') {
     try {
       localStorage.setItem('hero_hs_last_novel_ep', String(currentBookEpisode));
+      localStorage.setItem('snshero_last_novel_ep', String(currentBookEpisode));
     } catch {
       // ignore storage quota error
     }
@@ -335,6 +348,13 @@ export function renderBookSection(): string {
           </div>
 
           <!-- Quick Episode Controls Bar -->
+          ${
+            savedResumeEpisodeNotice && savedResumeEpisodeNotice === ep
+              ? `<div data-testid="book-resume-banner" class="mt-2 rounded-xl border border-emerald-400/45 bg-emerald-950/60 px-3 py-1.5 text-center text-[11px] font-extrabold text-emerald-200">
+                  📖 ${tr(`마지막 읽던 제${ep}화 이어읽기로 자동 복원되었습니다.`, `Resumed from your last read Chapter (EP.${ep}).`)}
+                </div>`
+              : ''
+          }
           <div class="flex items-center justify-between gap-2 pt-3 border-t border-amber-700/30 mt-2.5">
             <!-- Prev Episode Button -->
             <button

@@ -20,6 +20,7 @@ import {
 import { CardZoomAction, CardZoomModal } from '../components/CardZoomModal';
 import { LiveBattleHelpSnapshot } from '../components/KadanChatbotWidget';
 import { SiliaSkillKind, SiliaUltimateWidget } from '../components/SiliaUltimateWidget';
+import { downloadVictoryCertificatePng } from '../utils/victoryCardShare';
 import {
   StoryDuelDialogueOverlay,
   StoryEpisodeSelectorModal,
@@ -578,6 +579,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [handDrag, setHandDrag] = useState<HandDragState | null>(null);
   const [hoveredHandCost, setHoveredHandCost] = useState<number | null>(null);
   const [newlyDrawnUids, setNewlyDrawnUids] = useState<Set<string>>(() => new Set());
+  const [drawnCardToast, setDrawnCardToast] = useState<string | null>(null);
   const [mulliganSwapping, setMulliganSwapping] = useState(false);
   const [coinGiftShowcase, setCoinGiftShowcase] = useState(false);
   const [playedCardShowcase, setPlayedCardShowcase] = useState<{
@@ -671,13 +673,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         fresh.forEach((u) => next.add(u));
         return next;
       });
+      // DEV-016: Show central 0.85s drawn card preview toast when drawing during own turn (e.g. Hero Power draw)
+      if (matchState.activeSide === 'PLAYER' && matchState.history[0]?.kind === 'HERO_POWER') {
+        const firstDrawn = matchState.player.hand.find((h) => h.uid === fresh[0]);
+        if (firstDrawn) setDrawnCardToast(firstDrawn.cardId);
+      }
       const t = window.setTimeout(() => {
+        setDrawnCardToast(null);
         setNewlyDrawnUids((prev) => {
           const next = new Set(prev);
           fresh.forEach((u) => next.delete(u));
           return next;
         });
-      }, 620);
+      }, 850);
       return () => window.clearTimeout(t);
     }
   }, [matchState.phase, matchState.player.hand]);
@@ -1212,7 +1220,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       );
       setOutcomeSummary(summary);
       setLiveProfile(hsStorage.getProfile());
-      setPostGameRemainingMs(3000);
+      setPostGameRemainingMs(matchState.winner === 'PLAYER' ? 3000 : 6000);
       postGameFiredRef.current = false;
     }
   }, [
@@ -3545,6 +3553,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <div className="mt-1 max-w-[155px] rounded-xl border border-amber-400/50 bg-stone-950/92 px-2 py-0.5 text-center text-[9.5px] font-bold text-amber-100 shadow-xl sm:max-w-[215px] sm:px-2.5 sm:py-1 sm:text-[11px]">
             {playedCardShowcase.detail}
           </div>
+        </div>
+      )}
+
+      {/* Central 0.85s Hero Power / Effect Drawn Card Preview Toast (DEV-016) */}
+      {drawnCardToast && cardDb.getCard(drawnCardToast) && (
+        <div
+          data-testid="hero-power-draw-toast"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[87] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center animate-[hsCardPop_0.28s_ease-out]"
+        >
+          <div className="hs-title hs-outline mb-1.5 rounded-full border border-sky-300/60 bg-stone-950/90 px-3 py-0.5 text-sm font-extrabold text-sky-200 sm:text-base">
+            {tr('🃏 드로우!', '🃏 Card Drawn!')}
+          </div>
+          <HearthstoneCard card={cardDb.mustGetCard(drawnCardToast)} playableGlow="GREEN" size="SM" />
         </div>
       )}
 
@@ -6208,6 +6229,25 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   )}
                   <button
                     type="button"
+                    data-testid="victory-certificate-btn"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click');
+                      downloadVictoryCertificatePng({
+                        isKo,
+                        playerName: matchState.player.heroNameKo,
+                        heroClass: matchState.player.heroClass,
+                        opponentName: matchState.opponent.heroNameKo,
+                        turnCount: matchState.turnNumber,
+                        episode: matchState.journeyMeta?.episode,
+                        goldEarned: outcomeSummary?.goldDelta || 0,
+                      });
+                    }}
+                    className="hs-gold-btn w-full rounded-xl py-2 text-xs font-extrabold sm:text-sm"
+                  >
+                    📸 {tr('1초 전적 인증 카드 이미지 저장 & 공유', 'Save & Share 1-Click Victory Card')}
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => {
                       postGameFiredRef.current = true;
                       hsAudio.playSfx('menu_select');
@@ -6316,6 +6356,26 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     className="hs-arcane-btn hs-title hs-outline-sm w-full rounded-2xl py-3 text-base font-extrabold text-white sm:text-lg"
                   >
                     {tr('⚔ 같은 덱으로 다음 판 시작', '⚔ Play Again (Same Deck)')}
+                  </button>
+                )}
+                {matchState.winner === 'PLAYER' && (
+                  <button
+                    type="button"
+                    data-testid="victory-certificate-btn"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click');
+                      downloadVictoryCertificatePng({
+                        isKo,
+                        playerName: matchState.player.heroNameKo,
+                        heroClass: matchState.player.heroClass,
+                        opponentName: matchState.opponent.heroNameKo,
+                        turnCount: matchState.turnNumber,
+                        goldEarned: outcomeSummary?.goldDelta || 0,
+                      });
+                    }}
+                    className="hs-gold-btn w-full rounded-xl py-2 text-xs font-extrabold sm:text-sm"
+                  >
+                    📸 {tr('1초 전적 인증 카드 이미지 저장 & 공유', 'Save & Share 1-Click Victory Card')}
                   </button>
                 )}
                 <button

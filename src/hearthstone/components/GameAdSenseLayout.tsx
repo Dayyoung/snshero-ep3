@@ -208,6 +208,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
           <div
             id="adsense-mobile-top"
             ref={mobileTopRef}
+            data-nosnippet=""
             style={{
               display: desktopWide ? 'none' : 'block',
               height: 52,
@@ -245,6 +246,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
           <aside
             id="adsense-desktop-left"
             ref={leftGutterRef}
+            data-nosnippet=""
             style={{ display: desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
             className="adsense-gutter adsense-desktop-left relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-center overflow-hidden border-r border-[#c8a158]/25 bg-[#0c0805] px-2 py-3 text-center"
             aria-label="Google AdSense Left Wing"
@@ -309,6 +311,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
           <aside
             id="adsense-desktop-right"
             ref={rightGutterRef}
+            data-nosnippet=""
             style={{ display: desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
             className="adsense-gutter adsense-desktop-right relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-center overflow-hidden border-l border-[#c8a158]/25 bg-[#0c0805] px-2 py-3 text-center"
             aria-label="Google AdSense Right Wing"

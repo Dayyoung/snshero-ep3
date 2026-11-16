@@ -1,7 +1,7 @@
 {
-  "name": "눈히어로 — 엘윈마을 카드 배틀",
+  "name": "눈히어로: 카단의 여정 — 382종 무설치 전략 웹 TCG",
   "short_name": "눈히어로",
-  "description": "눈히어로(SNSHero) 전용 전체화면 웹 카드 배틀 게임 — 랭킹대전 · AI대전 · 스토리모드",
+  "description": "9종족 382장 정통 30장 덱 빌딩·스토리모드 40화(3장=3배 각성)·무료 3팩 즉시 지급 브라우저 웹 TCG",
   "categories": ["games", "entertainment", "card games", "strategy games"],
   "lang": "ko",
   "dir": "ltr",

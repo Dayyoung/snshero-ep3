@@ -150,8 +150,23 @@ export const HearthstoneApp: React.FC = () => {
             setScreen('BOX_HUB');
           }
         } else {
-          // PWA App Shortcuts & Marketing Deep Links (`?mode=story&ep=N`, `?open=pack3|shop`, `?claim_promo=1`, `?faction=PRIEST`, `?deck=...`, `?restore=...`)
+          // Preserve marketing / novel / webtoon deep-link intent in sessionStorage across gates (DEV-018)
           const params = new URLSearchParams(window.location.search);
+          if (window.location.search && typeof sessionStorage !== 'undefined') {
+            try {
+              sessionStorage.setItem(
+                'snshero_deeplink_intent',
+                JSON.stringify({
+                  mode: params.get('mode') || '',
+                  ep: params.get('ep') || '',
+                  faction: params.get('faction') || '',
+                  open: params.get('open') || '',
+                }),
+              );
+            } catch {
+              // ignore sessionStorage error
+            }
+          }
           const launchMode = params.get('mode')?.toLowerCase();
           const openParam = params.get('open')?.toLowerCase();
           const claimPromo = params.get('claim_promo') === '1';
@@ -255,8 +270,18 @@ export const HearthstoneApp: React.FC = () => {
             setShopOpen(true);
           } else if (launchMode === 'story') {
             hsStorage.markJourneyGuideDone();
+            const curProg = hsStorage.getProfile();
+            const maxCleared = curProg.journeyMaxStageCleared || 0;
             if (epNum !== undefined) {
-              hsStorage.setJourneyProgress(epNum, hsStorage.getProfile().journeyReincarnation);
+              if (epNum > maxCleared + 1 && curProg.journeyReincarnation === 0) {
+                setLaunchNotice(
+                  tr(
+                    `⚔ 제${epNum}화 스토리 체험 모드로 바로 출격합니다! (현재 해금 진행도: ${maxCleared}화)`,
+                    `⚔ Launching Story Preview for EP.${epNum}! (Unlocked up to EP.${maxCleared})`,
+                  ),
+                );
+              }
+              hsStorage.setJourneyProgress(epNum, curProg.journeyReincarnation);
             }
             setActiveBattleParams({
               mode: 'TUTORIAL',
