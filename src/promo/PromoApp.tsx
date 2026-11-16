@@ -30,6 +30,8 @@ import {
   SnsBoosterPackArt,
   SnsSnowCompassSeal,
 } from '../hearthstone/components/SnsHeroArtKit';
+import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget';
+import { hsStorage } from '../hearthstone/storage';
 import {
   CARD_CLASS_LABELS_EN,
   getCardCharName,
@@ -59,6 +61,11 @@ export const PromoApp: React.FC = () => {
 
   const [cards, setCards] = useState<ClassicCardDef[]>([]);
   const [cardsLoading, setCardsLoading] = useState(true);
+  const [promoAutoRunning, setPromoAutoRunning] = useState(false);
+  const [promoProfile] = useState(() => {
+    hsStorage.ensureInitialized();
+    return hsStorage.getProfile();
+  });
   const [selectedHeroClass, setSelectedHeroClass] = useState<HeroClass>('PRIEST');
   const [activeFeatureTab, setActiveFeatureTab] = useState<FeatureTabId>('story');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1706,6 +1713,43 @@ export const PromoApp: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Fullscreen Bottom-Right 2-Head-Tall Chibi Kadan Chatbot */}
+      <KadanChatbotWidget
+        screen="BOX_HUB"
+        profile={promoProfile}
+        selectedMode="RANKED"
+        autoPlay={promoAutoRunning}
+        battleSnapshot={null}
+        onEnableAutoPlay={() => {
+          setPromoAutoRunning(true);
+          window.setTimeout(() => {
+            window.location.href = '/game?mode=story_battle&autoplay=1';
+          }, 550);
+        }}
+        onDisableAutoPlay={() => setPromoAutoRunning(false)}
+        onNavigateScreen={(target, modeOverride) => {
+          if (target === 'PACK_OPENING') {
+            window.location.href = '/game?mode=pack';
+          } else if (target === 'COLLECTION') {
+            window.location.href = '/game?mode=collection';
+          } else if (target === 'HERO_SELECT') {
+            window.location.href =
+              modeOverride === 'PRACTICE_NORMAL' ? '/game?mode=ai' : '/game?mode=ranked';
+          } else {
+            window.location.href = '/game';
+          }
+        }}
+        onStartJourney={() => {
+          window.location.href = '/game?mode=story';
+        }}
+        onOpenShop={() => {
+          window.location.href = '/game?mode=pack';
+        }}
+        onOpenQuestLog={() => {
+          window.location.href = '/game';
+        }}
+      />
     </div>
   );
 };

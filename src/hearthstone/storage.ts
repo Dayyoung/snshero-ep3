@@ -135,7 +135,7 @@ export const MODE_REWARD_GUIDES: Record<GameMode, ModeRewardGuide> = {
   TUTORIAL: {
     mode: 'TUTORIAL',
     modeNameKo: '스토리모드 (카단의 여정)',
-    playStyleBadge: '자동 플레이 기본 · 3장=3배 강화 적용',
+    playStyleBadge: '우측하단 카단 자동플레이 지원(시작 시 OFF) · 3장=3배 각성',
     baseWinRewardText: '승리 시 45G~240G+ (회차·환생 비례 증가)',
     specialBonusText: '최초 돌파 +30G · 5화마다 보스 팩 +1개 · 40화 완주 시 +300G & 팩 +3개 + 환생 개방',
     summaryOneLine: '회차 돌파 골드 + 5화 단위 눈히어로 팩 + 40화 완주 시 3팩 & 환생 보너스',
@@ -178,7 +178,7 @@ export const MODE_REWARD_GUIDES_EN: Record<GameMode, ModeRewardGuide> = {
   TUTORIAL: {
     mode: 'TUTORIAL',
     modeNameKo: "Story Mode (Kadan's Journey)",
-    playStyleBadge: 'Auto-Play Built-in · 3 Copies = 3x Power',
+    playStyleBadge: 'Ask Kadan for Auto-Play (Starts OFF) · 3 Copies = 3x Power',
     baseWinRewardText: '45G–240G+ per win (scales with episode & Reincarnation)',
     specialBonusText: 'First Clear +30G · Boss Pack every 5 EP · EP.40 Clear +300G & 3 Packs + Reincarnation',
     summaryOneLine: 'Episode Gold + Boss Packs every 5 EP + 3 Packs on EP.40 Clear',

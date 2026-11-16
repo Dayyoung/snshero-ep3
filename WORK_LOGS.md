@@ -394,5 +394,21 @@
     - `npm run build` 정상 완료 (`5.46s`, 에러 `0건`).
     - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
 
+## [2026-11-16 15:12 KST] [전체화면 우측하단 2등신 『카단 챗봇』 개발(좌우 살피기·달리기 8프레임 스프라이트) 및 전 모드 시작 시 자동플레이 기본 중지 적용]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 2등신(SD Chibi) 카단 애니메이션 프레임 8종(`idle` 4컷 + `run` 4컷) 크로마키 생성 및 정밀 투명화**:
+    - `#FF00AA` 핫핑크 크로마키 배경과 폐곡선 흑색 선화로 2등신 눈히어로 카단(눈꽃 방패 · 은빛 룬 단검 · 붉은 머플러) 스프라이트 시트 2종 생성 후 발 위치 기준선 정렬 및 마젠타 디스필 처리를 거쳐 투명 `RGBA WEBP` 8프레임([`idle_01~04.webp`](file:///Users/dayyoung/project/snshero/public/hs-assets/kadan-bot/idle_01.webp), [`run_01~04.webp`](file:///Users/dayyoung/project/snshero/public/hs-assets/kadan-bot/run_01.webp)) 저장 완료.
+  - **2. 전 게임 모드 시작 시 자동플레이 기본 중지(`OFF`) 전환**:
+    - [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx), [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx), [`storage.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/storage.ts)에서 스토리모드(제0화~40화)·랭킹대전·일반전·AI대전 등 어떤 모드로 시작하든 자동플레이가 기본 `false`(중지)로 시작하며 전투 종료 시에도 자동플레이가 해제되도록 통일.
+  - **3. 우측하단 인터랙티브 2등신 카단 챗봇([`KadanChatbotWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/KadanChatbotWidget.tsx)) 구현**:
+    - 전체화면 우측하단 상시 노출(`/game` 전 화면 및 `/` 메인 쇼케이스 [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx) 연동).
+    - **정지 상태(가만히 서서 좌우 살피는 카단)** 클릭 시: 현재 화면(전투 실시간 손패·마나·공격 추천, 카드첩 덱 구성·제작, 카드팩 개봉 3배 각성, 영웅 선택 종족 가이드, 로비 길 안내) 맞춤 도움말 메뉴 표시 ➔ 항목 클릭 시 카단 대사 코칭 또는 해당 화면 즉시 이동.
+    - **`⚡ 자동플레이 해줘.` 클릭 시**: 카단이 즉시 **달리기 애니메이션 모드**로 변경되며 자동플레이 전환(비전투 화면에서는 즉시 전장 진입 + 자동플레이 가동).
+    - **달리는 카단 클릭 시**: 자동플레이 즉시 중지 및 가만히 서서 좌우 살피는 카단으로 복귀 ➔ 다시 클릭 시 도움말 메뉴 재표시.
+  - **4. 빌드·타입 검증 및 구글 폼 보고**:
+    - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료 (`6.88s`).
+    - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
+
 
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*

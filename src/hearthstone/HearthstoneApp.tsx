@@ -3,6 +3,10 @@ import { tr, useHeroLanguage } from '../i18n/heroLang';
 import { cardDb } from './cardDb';
 import { GameAdSenseLayout } from './components/GameAdSenseLayout';
 import {
+  KadanChatbotWidget,
+  LiveBattleHelpSnapshot,
+} from './components/KadanChatbotWidget';
+import {
   GameOptionsModal,
   PaymentSuccessModal,
   QuestLogModal,
@@ -54,6 +58,8 @@ export const HearthstoneApp: React.FC = () => {
   const [selectedMode, setSelectedMode] = useState<GameMode>('RANKED');
   const [battleSessionKey, setBattleSessionKey] = useState(1);
   const [returnToJourneyActive, setReturnToJourneyActive] = useState(false);
+  const [globalAutoPlay, setGlobalAutoPlay] = useState(false);
+  const [battleSnapshot, setBattleSnapshot] = useState<LiveBattleHelpSnapshot | null>(null);
   const [activeBattleParams, setActiveBattleParams] = useState<{
     mode: GameMode;
     deck: CustomDeck;
@@ -145,6 +151,9 @@ export const HearthstoneApp: React.FC = () => {
           // PWA App Shortcuts (`?mode=story` / `?mode=ranked` / `?mode=ai` / `?mode=pack` / `?mode=collection` / `?mode=battle`) or standalone launch
           const params = new URLSearchParams(window.location.search);
           const launchMode = params.get('mode')?.toLowerCase();
+          const wantAutoPlay =
+            params.get('autoplay') === '1' || params.get('autoplay') === 'true';
+          setGlobalAutoPlay(wantAutoPlay);
           const decks = hsStorage.getDecks();
           const kadanDeck = decks.find((d) => d.heroClass === 'PRIEST') || decks[0];
 
@@ -238,11 +247,13 @@ export const HearthstoneApp: React.FC = () => {
   }, [ready, popupBridge, popupReturnDone]);
 
   const launchJourneyBattle = useCallback(
-    (episodeOverride?: number, skipStoryIntro = false) => {
+    (episodeOverride?: number, skipStoryIntro = false, startWithAutoPlay = false) => {
       hsStorage.markJourneyGuideDone();
       const decks = hsStorage.getDecks();
       const kadanDeck = decks.find((d) => d.heroClass === 'PRIEST') || decks[0];
       setReturnToJourneyActive(false);
+      setGlobalAutoPlay(startWithAutoPlay);
+      setBattleSnapshot(null);
       setBattleSessionKey((k) => k + 1);
       setActiveBattleParams({
         mode: 'TUTORIAL',
@@ -257,6 +268,29 @@ export const HearthstoneApp: React.FC = () => {
     },
     [refreshProfile],
   );
+
+  const handleEnableAutoPlayFromKadan = useCallback(() => {
+    if (screen === 'BATTLE' && activeBattleParams) {
+      setGlobalAutoPlay(true);
+      return;
+    }
+    const decks = hsStorage.getDecks();
+    const kadanDeck = decks.find((d) => d.heroClass === 'PRIEST') || decks[0];
+    if (screen === 'HERO_SELECT') {
+      setReturnToJourneyActive(false);
+      setBattleSnapshot(null);
+      setGlobalAutoPlay(true);
+      setBattleSessionKey((k) => k + 1);
+      setActiveBattleParams({
+        mode: selectedMode,
+        deck: kadanDeck,
+        skipStoryIntro: true,
+      });
+      setScreen('BATTLE');
+      return;
+    }
+    launchJourneyBattle(undefined, true, true);
+  }, [screen, activeBattleParams, selectedMode, launchJourneyBattle]);
 
   if (loadError) {
     return (
@@ -369,169 +403,225 @@ export const HearthstoneApp: React.FC = () => {
   }
 
   return (
-    <GameAdSenseLayout screenKey={screen}>
-      {screen === 'TAVERN_INTRO' && (
-        <TavernIntroScreen onEnterHub={() => setScreen('BOX_HUB')} />
-      )}
+    <>
+      <GameAdSenseLayout screenKey={screen}>
+        {screen === 'TAVERN_INTRO' && (
+          <TavernIntroScreen onEnterHub={() => setScreen('BOX_HUB')} />
+        )}
 
-      {screen === 'BOX_HUB' && (
-        <BoxHubScreen
-          profile={profile}
-          onSelectPlayMode={(m) => {
-            if (m === 'TUTORIAL') {
-              launchJourneyBattle();
-              return;
+        {screen === 'BOX_HUB' && (
+          <BoxHubScreen
+            profile={profile}
+            onSelectPlayMode={(m) => {
+              setGlobalAutoPlay(false);
+              if (m === 'TUTORIAL') {
+                launchJourneyBattle(undefined, false, false);
+                return;
+              }
+              setReturnToJourneyActive(false);
+              setSelectedMode(m);
+              setScreen('HERO_SELECT');
+            }}
+            onOpenCollection={() => {
+              setGlobalAutoPlay(false);
+              setReturnToJourneyActive(false);
+              setScreen('COLLECTION');
+            }}
+            onOpenPacks={() => {
+              setGlobalAutoPlay(false);
+              setReturnToJourneyActive(false);
+              setScreen('PACK_OPENING');
+            }}
+            onOpenQuestLog={() => setQuestLogOpen(true)}
+            onOpenShop={() => setShopOpen(true)}
+            onOpenOptions={() => setOptionsState({ open: true, inBattle: false })}
+          />
+        )}
+
+        {screen === 'HERO_SELECT' && (
+          <HeroDeckSelectScreen
+            initialMode={selectedMode}
+            onBack={() => {
+              setGlobalAutoPlay(false);
+              refreshProfile();
+              setScreen('BOX_HUB');
+            }}
+            onEditDecks={() => {
+              setGlobalAutoPlay(false);
+              setScreen('COLLECTION');
+            }}
+            onLaunchBattle={(params) => {
+              setGlobalAutoPlay(false);
+              setBattleSnapshot(null);
+              setReturnToJourneyActive(false);
+              setBattleSessionKey((k) => k + 1);
+              setActiveBattleParams(params);
+              setScreen('BATTLE');
+            }}
+          />
+        )}
+
+        {screen === 'COLLECTION' && (
+          <CollectionScreen
+            onBack={() => {
+              setGlobalAutoPlay(false);
+              setReturnToJourneyActive(false);
+              refreshProfile();
+              setScreen('BOX_HUB');
+            }}
+            onProfileChanged={refreshProfile}
+            onReturnToJourney={
+              returnToJourneyActive
+                ? () => launchJourneyBattle(undefined, false, false)
+                : undefined
             }
-            setReturnToJourneyActive(false);
-            setSelectedMode(m);
-            setScreen('HERO_SELECT');
-          }}
-          onOpenCollection={() => {
-            setReturnToJourneyActive(false);
-            setScreen('COLLECTION');
-          }}
-          onOpenPacks={() => {
-            setReturnToJourneyActive(false);
-            setScreen('PACK_OPENING');
-          }}
-          onOpenQuestLog={() => setQuestLogOpen(true)}
-          onOpenShop={() => setShopOpen(true)}
-          onOpenOptions={() => setOptionsState({ open: true, inBattle: false })}
-        />
-      )}
+          />
+        )}
 
-      {screen === 'HERO_SELECT' && (
-        <HeroDeckSelectScreen
-          initialMode={selectedMode}
-          onBack={() => {
-            refreshProfile();
-            setScreen('BOX_HUB');
-          }}
-          onEditDecks={() => setScreen('COLLECTION')}
-          onLaunchBattle={(params) => {
-            setReturnToJourneyActive(false);
-            setBattleSessionKey((k) => k + 1);
-            setActiveBattleParams(params);
-            setScreen('BATTLE');
-          }}
-        />
-      )}
+        {screen === 'PACK_OPENING' && (
+          <PackOpeningScreen
+            onBack={() => {
+              setGlobalAutoPlay(false);
+              setReturnToJourneyActive(false);
+              refreshProfile();
+              setScreen('BOX_HUB');
+            }}
+            onOpenShop={() => setShopOpen(true)}
+            onProfileChanged={refreshProfile}
+            onReturnToJourney={
+              returnToJourneyActive
+                ? () => launchJourneyBattle(undefined, false, false)
+                : undefined
+            }
+          />
+        )}
 
-      {screen === 'COLLECTION' && (
-        <CollectionScreen
-          onBack={() => {
-            setReturnToJourneyActive(false);
-            refreshProfile();
-            setScreen('BOX_HUB');
-          }}
-          onProfileChanged={refreshProfile}
-          onReturnToJourney={
-            returnToJourneyActive ? () => launchJourneyBattle() : undefined
-          }
-        />
-      )}
-
-      {screen === 'PACK_OPENING' && (
-        <PackOpeningScreen
-          onBack={() => {
-            setReturnToJourneyActive(false);
-            refreshProfile();
-            setScreen('BOX_HUB');
-          }}
-          onOpenShop={() => setShopOpen(true)}
-          onProfileChanged={refreshProfile}
-          onReturnToJourney={
-            returnToJourneyActive ? () => launchJourneyBattle() : undefined
-          }
-        />
-      )}
-
-      {screen === 'BATTLE' && activeBattleParams && (
-        <BattleScreen
-          key={battleSessionKey}
-          mode={activeBattleParams.mode}
-          playerDeck={activeBattleParams.deck}
-          preferredOpponentClass={activeBattleParams.preferredOpponentClass}
-          preferredBoardTheme={activeBattleParams.boardTheme}
-          journeyEpisodeOverride={activeBattleParams.journeyEpisodeOverride}
-          skipStoryIntro={activeBattleParams.skipStoryIntro}
-          onOpenOptions={(concedeFn) =>
-            setOptionsState({ open: true, inBattle: true, concedeFn })
-          }
-          onOpenShopFromBattle={() => setShopOpen(true)}
-          onGoOpenPacksFromBattle={() => {
-            refreshProfile();
-            setReturnToJourneyActive(true);
-            setActiveBattleParams(null);
-            setScreen('PACK_OPENING');
-          }}
-          onGoCollectionFromBattle={() => {
-            refreshProfile();
-            setReturnToJourneyActive(true);
-            setActiveBattleParams(null);
-            setScreen('COLLECTION');
-          }}
-          onStartJourneyEpisode={(ep, skipStory) => {
-            hsStorage.setJourneyProgress(ep, hsStorage.getProfile().journeyReincarnation);
-            launchJourneyBattle(ep, Boolean(skipStory));
-          }}
-          onRematchSameMode={() => {
-            refreshProfile();
-            setBattleSessionKey((k) => k + 1);
-          }}
-          onExitBattle={() => {
-            setReturnToJourneyActive(false);
-            refreshProfile();
-            setActiveBattleParams(null);
-            setScreen('BOX_HUB');
-          }}
-        />
-      )}
-
-      {/* Global Overlays */}
-      {questLogOpen && (
-        <QuestLogModal
-          onClose={() => setQuestLogOpen(false)}
-          onProfileChanged={refreshProfile}
-        />
-      )}
-
-      {shopOpen && (
-        <TavernShopModal
-          onClose={() => setShopOpen(false)}
-          onProfileChanged={refreshProfile}
-          onGoOpenPacks={() => {
-            if (screen === 'BATTLE' && activeBattleParams?.mode === 'TUTORIAL') {
+        {screen === 'BATTLE' && activeBattleParams && (
+          <BattleScreen
+            key={battleSessionKey}
+            mode={activeBattleParams.mode}
+            playerDeck={activeBattleParams.deck}
+            preferredOpponentClass={activeBattleParams.preferredOpponentClass}
+            preferredBoardTheme={activeBattleParams.boardTheme}
+            journeyEpisodeOverride={activeBattleParams.journeyEpisodeOverride}
+            skipStoryIntro={activeBattleParams.skipStoryIntro}
+            externalAutoPlay={globalAutoPlay}
+            onAutoPlayChange={setGlobalAutoPlay}
+            onBattleHelpSnapshot={setBattleSnapshot}
+            onOpenOptions={(concedeFn) =>
+              setOptionsState({ open: true, inBattle: true, concedeFn })
+            }
+            onOpenShopFromBattle={() => setShopOpen(true)}
+            onGoOpenPacksFromBattle={() => {
+              setGlobalAutoPlay(false);
+              setBattleSnapshot(null);
+              refreshProfile();
               setReturnToJourneyActive(true);
               setActiveBattleParams(null);
-            }
-            setScreen('PACK_OPENING');
-          }}
-        />
-      )}
-
-      {paymentResult && (
-        <PaymentSuccessModal
-          info={paymentResult}
-          onOpenPacks={() => {
-            setPaymentResult(null);
-            if (screen === 'BATTLE' && activeBattleParams?.mode === 'TUTORIAL') {
+              setScreen('PACK_OPENING');
+            }}
+            onGoCollectionFromBattle={() => {
+              setGlobalAutoPlay(false);
+              setBattleSnapshot(null);
+              refreshProfile();
               setReturnToJourneyActive(true);
               setActiveBattleParams(null);
-            }
-            setScreen('PACK_OPENING');
-          }}
-          onClose={() => setPaymentResult(null)}
-        />
-      )}
+              setScreen('COLLECTION');
+            }}
+            onStartJourneyEpisode={(ep, skipStory) => {
+              hsStorage.setJourneyProgress(ep, hsStorage.getProfile().journeyReincarnation);
+              launchJourneyBattle(ep, Boolean(skipStory), false);
+            }}
+            onRematchSameMode={() => {
+              setGlobalAutoPlay(false);
+              setBattleSnapshot(null);
+              refreshProfile();
+              setBattleSessionKey((k) => k + 1);
+            }}
+            onExitBattle={() => {
+              setGlobalAutoPlay(false);
+              setBattleSnapshot(null);
+              setReturnToJourneyActive(false);
+              refreshProfile();
+              setActiveBattleParams(null);
+              setScreen('BOX_HUB');
+            }}
+          />
+        )}
 
-      {optionsState.open && (
-        <GameOptionsModal
-          inBattle={optionsState.inBattle}
-          onConcede={optionsState.concedeFn}
-          onClose={() => setOptionsState({ open: false, inBattle: false })}
-        />
-      )}
-    </GameAdSenseLayout>
+        {/* Global Overlays */}
+        {questLogOpen && (
+          <QuestLogModal
+            onClose={() => setQuestLogOpen(false)}
+            onProfileChanged={refreshProfile}
+          />
+        )}
+
+        {shopOpen && (
+          <TavernShopModal
+            onClose={() => setShopOpen(false)}
+            onProfileChanged={refreshProfile}
+            onGoOpenPacks={() => {
+              setGlobalAutoPlay(false);
+              if (screen === 'BATTLE' && activeBattleParams?.mode === 'TUTORIAL') {
+                setReturnToJourneyActive(true);
+                setActiveBattleParams(null);
+              }
+              setScreen('PACK_OPENING');
+            }}
+          />
+        )}
+
+        {paymentResult && (
+          <PaymentSuccessModal
+            info={paymentResult}
+            onOpenPacks={() => {
+              setGlobalAutoPlay(false);
+              setPaymentResult(null);
+              if (screen === 'BATTLE' && activeBattleParams?.mode === 'TUTORIAL') {
+                setReturnToJourneyActive(true);
+                setActiveBattleParams(null);
+              }
+              setScreen('PACK_OPENING');
+            }}
+            onClose={() => setPaymentResult(null)}
+          />
+        )}
+
+        {optionsState.open && (
+          <GameOptionsModal
+            inBattle={optionsState.inBattle}
+            onConcede={optionsState.concedeFn}
+            onClose={() => setOptionsState({ open: false, inBattle: false })}
+          />
+        )}
+      </GameAdSenseLayout>
+
+      {/* Fullscreen Bottom-Right 2-Head-Tall Chibi Kadan Chatbot */}
+      <KadanChatbotWidget
+        screen={screen}
+        profile={profile}
+        selectedMode={selectedMode}
+        autoPlay={globalAutoPlay}
+        battleSnapshot={screen === 'BATTLE' ? battleSnapshot : null}
+        onEnableAutoPlay={handleEnableAutoPlayFromKadan}
+        onDisableAutoPlay={() => setGlobalAutoPlay(false)}
+        onNavigateScreen={(target, modeOverride) => {
+          setGlobalAutoPlay(false);
+          setBattleSnapshot(null);
+          if (screen === 'BATTLE') {
+            setActiveBattleParams(null);
+          }
+          if (modeOverride) {
+            setSelectedMode(modeOverride);
+          }
+          refreshProfile();
+          setScreen(target);
+        }}
+        onStartJourney={() => launchJourneyBattle(undefined, false, false)}
+        onOpenShop={() => setShopOpen(true)}
+        onOpenQuestLog={() => setQuestLogOpen(true)}
+      />
+    </>
   );
 };

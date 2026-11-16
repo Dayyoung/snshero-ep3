@@ -18,6 +18,7 @@ import {
   HsManaGem,
 } from '../components/CardVisual';
 import { CardZoomAction, CardZoomModal } from '../components/CardZoomModal';
+import { LiveBattleHelpSnapshot } from '../components/KadanChatbotWidget';
 import {
   StoryDuelDialogueOverlay,
   StoryEpisodeSelectorModal,
@@ -88,6 +89,9 @@ export interface BattleScreenProps {
   onGoCollectionFromBattle?: () => void;
   onStartJourneyEpisode?: (episode: number, skipStoryIntro?: boolean) => void;
   onRematchSameMode?: () => void;
+  externalAutoPlay?: boolean;
+  onAutoPlayChange?: (active: boolean) => void;
+  onBattleHelpSnapshot?: (snapshot: LiveBattleHelpSnapshot) => void;
 }
 
 type PendingSelection =
@@ -404,6 +408,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   onGoCollectionFromBattle,
   onStartJourneyEpisode,
   onRematchSameMode,
+  externalAutoPlay = false,
+  onAutoPlayChange,
+  onBattleHelpSnapshot,
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
@@ -475,19 +482,33 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   );
   const [liveProfile, setLiveProfile] = useState(() => hsStorage.getProfile());
 
-  // 스토리모드 = 웹툰 5컷 인트로 없이 즉시 [에피소드 - 제목 + VS 대결화면] 표시 -> 카드 전장 위 상반신 교차 대사(최대 6대사) -> 대사 종료 즉시 카드 대결 개시!
-  // 랭킹대전 / AI대전 = 매판 시작 시 자동플레이 비활성화(OFF) 시작, 전투 종료 시에도 즉시 비활성화(OFF) 초기화!
+  // 모든 모드(스토리모드·랭킹대전·AI대전) 시작 시 자동플레이 기본 비활성화(OFF) 원칙!
+  // 오직 카단 챗봇("자동플레이 해줘.") 또는 자동플레이 토글을 명시적으로 켰을 때만 활성화됩니다.
   const [storyPhase, setStoryPhase] = useState<'DIALOGUE' | 'CLOSED'>(() =>
     mode === 'TUTORIAL' && !skipStoryIntro ? 'DIALOGUE' : 'CLOSED',
   );
   const [episodeSelectorOpen, setEpisodeSelectorOpen] = useState(false);
-  const [autoPlay, setAutoPlay] = useState<boolean>(() => {
-    if (mode !== 'TUTORIAL') return false;
-    const epNum = matchState.journeyMeta?.episode ?? 1;
-    if (epNum === 0) return true;
-    const isFirstEp1 = epNum === 1 && liveProfile.totalGames === 0;
-    return !isFirstEp1;
-  });
+  const [autoPlay, setAutoPlayInternal] = useState<boolean>(() => Boolean(externalAutoPlay));
+  const onAutoPlayChangeRef = useRef(onAutoPlayChange);
+  onAutoPlayChangeRef.current = onAutoPlayChange;
+
+  const setAutoPlay = useCallback((nextOrUpdater: boolean | ((prev: boolean) => boolean)) => {
+    setAutoPlayInternal((prev) => {
+      const next = typeof nextOrUpdater === 'function' ? nextOrUpdater(prev) : nextOrUpdater;
+      if (next !== prev) {
+        window.setTimeout(() => onAutoPlayChangeRef.current?.(next), 0);
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    setAutoPlayInternal(Boolean(externalAutoPlay));
+    if (externalAutoPlay) {
+      setStoryPhase('CLOSED');
+      setVsIntroActive(false);
+    }
+  }, [externalAutoPlay]);
   const [quickRulesOpen, setQuickRulesOpen] = useState(false);
   const [coachCollapsed, setCoachCollapsed] = useState(false);
   const isEp0Tutorial = mode === 'TUTORIAL' && (matchState.journeyMeta?.episode ?? 1) === 0;
@@ -513,11 +534,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const ep0OpponentPlaysRef = useRef<string[]>([]);
   const ep0SummaryShownTurnRef = useRef<string | null>(null);
 
+  const prevMatchIdRef = useRef(matchState.matchId);
   useEffect(() => {
-    if (mode !== 'TUTORIAL') {
+    if (prevMatchIdRef.current !== matchState.matchId) {
+      prevMatchIdRef.current = matchState.matchId;
       setAutoPlay(false);
     }
-  }, [matchState.matchId, mode]);
+  }, [matchState.matchId, setAutoPlay]);
 
   const [vsIntroActive, setVsIntroActive] = useState(true);
   const [selection, setSelection] = useState<PendingSelection | null>(null);
@@ -1019,6 +1042,54 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     };
   }, [matchState, autoPlay, selection, engine, isKo]);
 
+  // 실시간 전장 스냅샷을 우측 하단 2등신 카단 챗봇에 동기화
+  const onBattleHelpSnapshotRef = useRef(onBattleHelpSnapshot);
+  onBattleHelpSnapshotRef.current = onBattleHelpSnapshot;
+  useEffect(() => {
+    if (!onBattleHelpSnapshotRef.current) return;
+    const isPTurn = matchState.phase === 'PLAYING' && matchState.activeSide === 'PLAYER';
+    const handCards = matchState.player.hand.map((hc) => {
+      const def = cardDb.mustGetCard(hc.cardId);
+      const effCost = Math.max(0, def.cost + hc.costDelta);
+      const playInfo = isPTurn ? engine.inspectPlayability('PLAYER', hc) : { canPlay: false };
+      return {
+        name: getCardName(def, lang),
+        cost: effCost,
+        type: def.type,
+        playable: Boolean(playInfo.canPlay),
+        text: isKo ? def.text : def.textEn || def.text,
+      };
+    });
+    const minAtk = isPTurn
+      ? matchState.player.board.filter((m) => engine.canAttackerSwing('PLAYER', m.uid).ok).length
+      : 0;
+    const heroAtkOk = isPTurn && engine.canAttackerSwing('PLAYER', 'PLAYER_HERO').ok ? 1 : 0;
+    const enemyTaunts = matchState.opponent.board
+      .filter((m) => !m.stealth && (m.taunt || m.auraTaunt))
+      .map((m) => getCardName(cardDb.mustGetCard(m.cardId), lang));
+    const canHp =
+      isPTurn &&
+      !matchState.player.heroPowerUsedThisTurn &&
+      matchState.player.mana >= 2;
+
+    onBattleHelpSnapshotRef.current({
+      mode,
+      turnNumber: matchState.turnNumber,
+      isPlayerTurn: isPTurn,
+      phase: matchState.phase,
+      playerMana: matchState.player.mana,
+      playerMaxMana: matchState.player.maxMana,
+      playerHealth: matchState.player.health + matchState.player.armor,
+      opponentHealth: matchState.opponent.health + matchState.opponent.armor,
+      opponentName: matchState.opponent.name,
+      handCards,
+      readyAttackersCount: minAtk + heroAtkOk,
+      enemyTauntNames: enemyTaunts,
+      canUseHeroPower: canHp,
+      journeyEpisode: matchState.journeyMeta?.episode,
+    });
+  }, [matchState, engine, mode, lang, isKo]);
+
   // Clear banner / error messages smoothly
   useEffect(() => {
     if (!matchState.bannerMessage) return;
@@ -1064,19 +1135,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   }, []);
 
   // Record match outcome & rewards once when GAME_OVER triggers
-  // (In Ranked / AI modes, immediately deactivate Auto-Play upon battle end so each match requires fresh activation!)
+  // (모든 모드에서 전투 종료 시 자동플레이를 즉시 비활성화하여 새 게임 시작 시 항상 정지 상태를 보장!)
   useEffect(() => {
-    if (matchState.phase === 'GAME_OVER' && mode !== 'TUTORIAL' && autoPlay) {
+    if (matchState.phase === 'GAME_OVER' && autoPlay) {
       setAutoPlay(false);
     }
-  }, [matchState.phase, mode, autoPlay]);
+  }, [matchState.phase, autoPlay, setAutoPlay]);
 
   useEffect(() => {
     if (matchState.phase === 'GAME_OVER' && !recordedResultRef.current) {
       recordedResultRef.current = true;
-      if (mode !== 'TUTORIAL') {
-        setAutoPlay(false);
-      }
+      setAutoPlay(false);
       setSelection(null);
       setZoomState(null);
       setHandDrag(null);
@@ -5972,8 +6041,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       className="hs-arcane-btn hs-title hs-outline-sm w-full rounded-2xl py-3 text-base font-extrabold text-white sm:text-lg"
                     >
                       {isEp0Tutorial
-                        ? tr(`⚔ 제${outcomeSummary.nextEpisode}화 자동플레이 시작`,
-                            `⚔ Start Episode ${outcomeSummary.nextEpisode} Auto-Play`,
+                        ? tr(
+                            `⚔ 제${outcomeSummary.nextEpisode}화 본편 시작`,
+                            `⚔ Start Episode ${outcomeSummary.nextEpisode}`,
                           )
                         : isKo
                           ? `⚔ 다음 여정 진행 (${
