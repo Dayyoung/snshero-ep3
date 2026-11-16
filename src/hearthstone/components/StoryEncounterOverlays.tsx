@@ -9,11 +9,10 @@ import {
 } from '../storyEncounterData';
 import { MatchRewardBreakdown } from '../types';
 
-const STICKER_OUTLINE_FILTER =
-  'drop-shadow(2px 0 0 rgba(248,250,252,0.95)) drop-shadow(-2px 0 0 rgba(248,250,252,0.95)) drop-shadow(0 2px 0 rgba(248,250,252,0.95)) drop-shadow(0 -2px 0 rgba(248,250,252,0.95)) drop-shadow(0 18px 32px rgba(0,0,0,0.88))';
+// Single-pass GPU-safe portrait filters (prevents iOS Safari WebKit Metal texture OOM crash from 5x chained drop-shadows!)
+const STICKER_OUTLINE_FILTER = 'drop-shadow(0 8px 16px rgba(0,0,0,0.85))';
 
-const DIMMED_OUTLINE_FILTER =
-  'brightness(0.44) saturate(0.52) drop-shadow(1.5px 0 0 rgba(148,163,184,0.65)) drop-shadow(-1.5px 0 0 rgba(148,163,184,0.65)) drop-shadow(0 1.5px 0 rgba(148,163,184,0.65)) drop-shadow(0 -1.5px 0 rgba(148,163,184,0.65)) drop-shadow(0 12px 24px rgba(0,0,0,0.85))';
+const DIMMED_OUTLINE_FILTER = 'brightness(0.45) saturate(0.55)';
 
 const PARCHMENT_STAR_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14 6 L15.6 12.4 L22 14 L15.6 15.6 L14 22 L12.4 15.6 L6 14 L12.4 12.4 Z' fill='%23b8ad96' fill-opacity='0.34'/%3E%3C/svg%3E")`;
 
@@ -219,7 +218,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         e.stopPropagation();
         handleInteract();
       }}
-      className="absolute inset-0 z-[91] cursor-pointer select-none overflow-hidden bg-black/48 backdrop-blur-[2.5px]"
+      className="absolute inset-0 z-[91] cursor-pointer select-none overflow-hidden bg-black/62"
     >
       {/* Subtle Top & Bottom Cinematic Vignette */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/72" />
@@ -488,8 +487,8 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
       }}
       className={`absolute inset-0 z-[95] flex flex-col items-center justify-center overflow-hidden select-none transition-colors duration-300 ${
         step === 'ITEM_CARD'
-          ? 'bg-black/80 backdrop-blur-md'
-          : 'cursor-pointer bg-black/55 backdrop-blur-[3px]'
+          ? 'bg-black/88'
+          : 'cursor-pointer bg-black/68'
       }`}
     >
       {/* Top Reward Receipt Pill (Gold / Pack Earned) */}

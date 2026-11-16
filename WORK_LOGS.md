@@ -552,4 +552,21 @@
     - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료 (`8.07s`).
     - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
 
+## [2026-11-16 20:33 KST] [모바일 iOS Safari(`/game`) 플레이 중 『문제가 반복적으로 발생했습니다』 WebKit 프로세스 크래시(GPU/메모리/MutationObserver/WebAudio 누수) 5대 원인 전수 해결]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. AdSense `MutationObserver` 마이크로태스크 폭주 및 스타일 핑퐁 루프 차단 ([`adsenseManager.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/services/adsenseManager.ts))**:
+    - `document.body`에 `subtree: true, attributeFilter: ['style']`이 등록되어 게임 플레이 중 매 프레임(대사 바운스·카드 드래그·공격 연출)마다 전체 DOM `querySelectorAll` 순회와 AdSense `aswift_*` 인라인 `style` 재변이가 반복되던 치명적 CPU/메모리 루프를 제거 (`subtree: false`, `attributeFilter: ['aria-hidden', 'class']`, `350ms` 스로틀링 및 값 변경 시에만 `setProperty` 호출).
+  - **2. 대사 화면 5중 중첩 `drop-shadow` + `backdrop-blur` Metal GPU VRAM 폭발 해소 ([`StoryEncounterOverlays.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/StoryEncounterOverlays.tsx))**:
+    - `@3x` 아이폰 Retina 해상도의 대형 상반신 레이어 2개에 각각 5중 `drop-shadow`와 전면 `backdrop-blur`가 중첩되어 약 `250~360MB`의 오프스크린 GPU 텍스처를 점유하던 문제를 단일 패스 `drop-shadow` 및 불투명 시네마 암전(`bg-black/62`, `bg-black/68`)으로 경량화.
+  - **3. iOS WebKit `AudioContext` 노드 그래프 누수 및 `HTMLAudioElement`(`AVPlayer`) 디코더 고갈 방지 ([`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts))**:
+    - `playAnimaleseBlip` 및 `playProceduralVfxSound` 종료(`onended`) 시 모든 `OscillatorNode`·`BiquadFilterNode`·`GainNode`를 즉시 `disconnect()`하고 `38ms` 간격 가드를 추가.
+    - `playSfx` 및 `playCustomVoUrl` 종료 시 `a.pause(); a.src = '';`로 iOS 네이티브 미디어 디코더를 즉시 반환하고 동시 활성 SFX 상한(`<= 10`) 및 `decodedVoBufferCache` 상한(`<= 16`) 적용.
+  - **4. 턴 타이머 매초 전체 앱 리렌더 차단·코스트 `NaN` 수정 및 2등신 카단 무디코딩 프레임 전환 ([`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx), [`KadanChatbotWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/KadanChatbotWidget.tsx), [`GameAdSenseLayout.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/GameAdSenseLayout.tsx))**:
+    - 1초마다 감소하는 `turnSecondsLeft`에 의해 `setBattleSnapshot`이 매초 전체 앱 트리를 리렌더하던 현상을 전황 스냅샷 키 게이팅으로 차단하고 `hc.costMod` 계산 오류 수정.
+    - `KadanChatbotWidget`이 자동플레이 중 `<img src>`를 교체하며 WebP 재디코딩을 유발하던 구조를 4프레임 사전 마운트 `opacity` 전환으로 변경하고, `GameAdSenseLayout`의 동일 치수 `setStageMetrics` 객체 재생성을 차단.
+  - **5. 빌드·타입 검증 및 구글 폼 보고**:
+    - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료 (`5.27s`), 포트 `3000` 프리뷰 서버 즉시 반영 완료.
+    - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
+
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*

@@ -1058,14 +1058,37 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   }, [matchState, autoPlay, selection, engine, isKo]);
 
   // 실시간 전장 스냅샷을 우측 하단 2등신 카단 챗봇에 동기화
+  // (매초 감소하는 turnSecondsLeft 타이머에는 반응하지 않도록 실제 전황 키로 게이팅하여 불필요한 전체 앱 리렌더 원천 차단!)
   const onBattleHelpSnapshotRef = useRef(onBattleHelpSnapshot);
   onBattleHelpSnapshotRef.current = onBattleHelpSnapshot;
+  const lastHelpSnapshotKeyRef = useRef('');
   useEffect(() => {
     if (!onBattleHelpSnapshotRef.current) return;
     const isPTurn = matchState.phase === 'PLAYING' && matchState.activeSide === 'PLAYER';
+    const snapKey = [
+      mode,
+      lang,
+      matchState.matchId,
+      matchState.phase,
+      matchState.activeSide,
+      matchState.turnNumber,
+      matchState.player.mana,
+      matchState.player.maxMana,
+      matchState.player.health,
+      matchState.player.armor,
+      matchState.player.heroPowerUsedThisTurn ? 1 : 0,
+      matchState.opponent.health,
+      matchState.opponent.armor,
+      matchState.player.hand.map((h) => `${h.uid}:${h.costMod || 0}`).join(','),
+      matchState.player.board.map((m) => `${m.uid}:${m.attacksMadeThisTurn}:${m.health}`).join(','),
+      matchState.opponent.board.map((m) => `${m.uid}:${m.taunt ? 1 : 0}:${m.auraTaunt ? 1 : 0}`).join(','),
+    ].join('|');
+    if (lastHelpSnapshotKeyRef.current === snapKey) return;
+    lastHelpSnapshotKeyRef.current = snapKey;
+
     const handCards = matchState.player.hand.map((hc) => {
       const def = cardDb.mustGetCard(hc.cardId);
-      const effCost = Math.max(0, def.cost + hc.costDelta);
+      const effCost = Math.max(0, def.cost + (hc.costMod || 0));
       const playInfo = isPTurn ? engine.inspectPlayability('PLAYER', hc) : { canPlay: false };
       return {
         name: getCardName(def, lang),

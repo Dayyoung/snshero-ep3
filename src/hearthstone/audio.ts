@@ -138,6 +138,7 @@ class SnsHeroCardAudioEngine {
   private heroNameVoMapPromise: Promise<Record<string, string>> | null = null;
   private activeSfx = new Set<HTMLAudioElement>();
   private ctx: AudioContext | null = null;
+  private lastAnimaleseAt = 0;
   private unlocked = false;
   private isWindowActive = true;
   private activeVibrateUntil = 0;
@@ -539,11 +540,37 @@ class SnsHeroCardAudioEngine {
   ) {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
     try {
+      // iOS Safari WebKit caps concurrent HTMLAudioElement/AVPlayer pipelines; evict oldest if >= 10
+      if (this.activeSfx.size >= 10) {
+        const oldest = this.activeSfx.values().next().value;
+        if (oldest) {
+          this.activeSfx.delete(oldest);
+          try {
+            oldest.onended = null;
+            oldest.onerror = null;
+            oldest.pause();
+            oldest.src = '';
+          } catch {
+            // ignore
+          }
+        }
+      }
       const a = new Audio(`/hs-assets/snshero-audio/sfx/${name}.mp3?v=melody2`);
       a.volume = Math.min(1, this.settings.sfxVolume * volumeScale * 0.72);
       this.activeSfx.add(a);
+      let cleaned = false;
       const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
         this.activeSfx.delete(a);
+        a.onended = null;
+        a.onerror = null;
+        try {
+          a.pause();
+          a.src = '';
+        } catch {
+          // ignore
+        }
       };
       a.onended = cleanup;
       a.onerror = cleanup;
@@ -565,6 +592,10 @@ class SnsHeroCardAudioEngine {
   ) {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
     if (!char || /[\s.,…!?"'“”‘’—\-~:;()[\]{}·/\\<>]/.test(char)) return;
+
+    const perfNow = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (perfNow - this.lastAnimaleseAt < 38) return;
+    this.lastAnimaleseAt = perfNow;
 
     const ctx = this.getAudioCtx();
     if (!ctx) return;
@@ -674,6 +705,18 @@ class SnsHeroCardAudioEngine {
     filter.connect(master);
     master.connect(ctx.destination);
 
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        subOsc.disconnect();
+        subGain.disconnect();
+        filter.disconnect();
+        master.disconnect();
+      } catch {
+        // ignore
+      }
+    };
+
     osc.start(now);
     subOsc.start(now);
     osc.stop(now + dur + 0.01);
@@ -730,9 +773,24 @@ class SnsHeroCardAudioEngine {
       g.gain.exponentialRampToValueAtTime(0.001, now + delay + dur);
       osc.connect(g);
       g.connect(master);
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          g.disconnect();
+        } catch {
+          // ignore
+        }
+      };
       osc.start(now + delay);
       osc.stop(now + delay + dur + 0.02);
     };
+    window.setTimeout(() => {
+      try {
+        master.disconnect();
+      } catch {
+        // ignore
+      }
+    }, 1200);
 
     switch (kind) {
       case 'MANA_GAIN':
@@ -1117,6 +1175,14 @@ class SnsHeroCardAudioEngine {
         const finish = () => {
           if (settled) return;
           settled = true;
+          a.onended = null;
+          a.onerror = null;
+          try {
+            a.pause();
+            a.src = '';
+          } catch {
+            // ignore
+          }
           if (this.currentVo === a) {
             this.currentVo = null;
             this.currentVoResolve = null;
@@ -1196,6 +1262,11 @@ class SnsHeroCardAudioEngine {
         return null;
       });
 
+    // Bound uncompressed PCM cache to <= 16 entries so mobile Safari RAM stays flat across episodes
+    if (this.decodedVoBufferCache.size >= 16) {
+      const oldestKey = this.decodedVoBufferCache.keys().next().value;
+      if (oldestKey) this.decodedVoBufferCache.delete(oldestKey);
+    }
     this.decodedVoBufferCache.set(versionedUrl, pending);
     return pending;
   }

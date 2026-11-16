@@ -114,7 +114,15 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
     if (!vp) return;
     const rect = vp.getBoundingClientRect();
     if (rect.width > 0 && rect.height > 0) {
-      setStageMetrics(computeStageMetrics(rect.width, rect.height));
+      const next = computeStageMetrics(rect.width, rect.height);
+      setStageMetrics((prev) =>
+        prev.stageW === next.stageW &&
+        prev.stageH === next.stageH &&
+        Math.abs(prev.scale - next.scale) < 0.001 &&
+        prev.letterboxed === next.letterboxed
+          ? prev
+          : next,
+      );
     }
   }, []);
 

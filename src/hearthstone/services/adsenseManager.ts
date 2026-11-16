@@ -246,23 +246,31 @@ export function cleanupUncontainedAds(): void {
       mobileTop
         .querySelectorAll<HTMLElement>('ins.adsbygoogle, div[id^="aswift_"], iframe')
         .forEach((inner) => {
-          if (inner.style.maxHeight !== '50px') {
+          if (inner.style.getPropertyValue('max-height') !== '50px') {
             inner.style.setProperty('max-height', '50px', 'important');
           }
-          if (inner.style.position === 'fixed' || inner.style.position === 'absolute') {
+          const pos = inner.style.getPropertyValue('position');
+          if (pos === 'fixed' || pos === 'absolute') {
             inner.style.setProperty('position', 'relative', 'important');
           }
         });
     }
 
-    // Reset unwanted body/html padding/margins injected by AdSense
-    if (document.body && (document.body.style.paddingTop || document.body.style.marginTop)) {
+    // Reset unwanted body/html padding/margins injected by AdSense (only when non-zero!)
+    if (
+      document.body &&
+      ((document.body.style.paddingTop && document.body.style.paddingTop !== '0px') ||
+        (document.body.style.marginTop && document.body.style.marginTop !== '0px'))
+    ) {
       document.body.style.paddingTop = '0px';
       document.body.style.marginTop = '0px';
     }
     if (
       document.documentElement &&
-      (document.documentElement.style.paddingTop || document.documentElement.style.marginTop)
+      ((document.documentElement.style.paddingTop &&
+        document.documentElement.style.paddingTop !== '0px') ||
+        (document.documentElement.style.marginTop &&
+          document.documentElement.style.marginTop !== '0px'))
     ) {
       document.documentElement.style.paddingTop = '0px';
       document.documentElement.style.marginTop = '0px';
@@ -490,10 +498,10 @@ export function initAdSenseContainmentObserver(): void {
   isObserverInitialized = true;
 
   try {
-    const observer = new MutationObserver((mutations) => {
+    let scheduledTimer: number | null = null;
+    const runThrottledSweep = () => {
+      scheduledTimer = null;
       cleanupUncontainedAds();
-      protectLinksFromVignette();
-
       // Detect if Google Vignette hijacked body
       if (
         window.location.hash.includes('google_vignette') ||
@@ -503,13 +511,21 @@ export function initAdSenseContainmentObserver(): void {
       } else if (rescueButtonEl && !isVignetteActive()) {
         dismissGoogleVignette();
       }
+    };
+
+    // IMPORTANT (iOS Safari Crash Prevention):
+    // NEVER observe `subtree: true` with `attributeFilter: ['style']` — gameplay animations mutate
+    // child `style` 60+ times/sec, which previously caused microtask storms & AdSense style ping-pong!
+    const observer = new MutationObserver(() => {
+      if (scheduledTimer !== null) return;
+      scheduledTimer = window.setTimeout(runThrottledSweep, 350);
     });
 
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
+      subtree: false,
       attributes: true,
-      attributeFilter: ['aria-hidden', 'style'],
+      attributeFilter: ['aria-hidden', 'class'],
     });
 
     // Initial pass

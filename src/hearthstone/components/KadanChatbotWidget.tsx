@@ -93,8 +93,9 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
   // Animate 2-head-tall Kadan: slow left/right look when idle, brisk sprint when running
   useEffect(() => {
     setFrameIdx(0);
-    const intervalMs = autoPlay ? 135 : 720;
+    const intervalMs = autoPlay ? 150 : 760;
     const id = window.setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       setFrameIdx((prev) => (prev + 1) % 4);
     }, intervalMs);
     return () => window.clearInterval(id);
@@ -570,7 +571,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
     onOpenQuestLog,
   ]);
 
-  const currentSprite = autoPlay ? RUN_FRAMES[frameIdx] : IDLE_FRAMES[frameIdx];
+  const activeFrames = autoPlay ? RUN_FRAMES : IDLE_FRAMES;
 
   return (
     <div
@@ -695,18 +696,31 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
           <div className="pointer-events-none absolute inset-x-1 bottom-4 top-2 rounded-full bg-emerald-400/20 blur-md animate-pulse" />
         )}
 
-        {/* Chibi Kadan Sprite */}
+        {/* Chibi Kadan Sprite (Pre-mounted 4-frame opacity swap — zero WebKit image re-decode per tick!) */}
         <div
           className={`relative flex h-[74px] w-[74px] items-center justify-center transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[92px] sm:w-[92px] ${
-            autoPlay ? 'drop-shadow-[0_0_12px_rgba(52,211,153,0.88)]' : 'drop-shadow-[0_6px_12px_rgba(0,0,0,0.92)]'
+            autoPlay ? 'drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]' : 'drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)]'
           }`}
         >
-          <img
-            src={currentSprite}
-            alt={autoPlay ? tr('달리는 2등신 카단', 'Running Chibi Kadan') : tr('살피는 2등신 카단', 'Idle Chibi Kadan')}
-            draggable={false}
-            className="h-full w-full select-none object-contain"
-          />
+          {activeFrames.map((src, idx) => (
+            <img
+              key={src}
+              src={src}
+              decoding="async"
+              alt={
+                idx === frameIdx
+                  ? autoPlay
+                    ? tr('달리는 2등신 카단', 'Running Chibi Kadan')
+                    : tr('살피는 2등신 카단', 'Idle Chibi Kadan')
+                  : ''
+              }
+              aria-hidden={idx !== frameIdx}
+              draggable={false}
+              className={`absolute inset-0 h-full w-full select-none object-contain ${
+                idx === frameIdx ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ))}
 
           {/* Cute Floating "?" / "⚡" Status Pin */}
           <span
