@@ -494,6 +494,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   );
   const [episodeSelectorOpen, setEpisodeSelectorOpen] = useState(false);
   const [autoPlay, setAutoPlayInternal] = useState<boolean>(() => Boolean(externalAutoPlay));
+  const [siliaAutoPaused, setSiliaAutoPaused] = useState(false);
   const onAutoPlayChangeRef = useRef(onAutoPlayChange);
   onAutoPlayChangeRef.current = onAutoPlayChange;
 
@@ -1750,7 +1751,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           });
         }
         setMatchState(eng.confirmMulligan(replaceUids));
-      }, isEp0Tutorial ? 1100 : 750);
+      }, Math.round((isEp0Tutorial ? 1100 : 750) * 1.5));
       return () => window.clearTimeout(t);
     }
 
@@ -1758,8 +1759,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return;
     }
 
-    // Pause auto-play tick while player is inspecting an enlarged card
-    if (zoomState) return;
+    // Pause auto-play tick while player is inspecting an enlarged card or using Silia Ultimate
+    if (zoomState || siliaAutoPaused) return;
     if (selection) setSelection(null);
 
     const plannedAction: AiAction | null =
@@ -1770,13 +1771,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       isEp0Tutorial &&
       plannedAction?.kind === 'END_TURN' &&
       ep0SummaryShownTurnRef.current !== `${cur.turnNumber}_PLAYER`;
-    const stepDelayMs = isEp0Tutorial
+    const baseStepDelayMs = isEp0Tutorial
       ? plannedAction?.kind === 'PLAY_CARD'
         ? 3000
         : plannedAction?.kind === 'END_TURN' && !isEp0TurnSummaryPending
           ? 2400
           : 950
       : 560;
+    // Give player comfortable breathing room to cast Silia Ultimates (1.5x slower Auto-Play)
+    const stepDelayMs = Math.round(baseStepDelayMs * 1.5);
     const timer = window.setTimeout(() => {
       if (attackLockRef.current) return;
       const snap = latestMatchRef.current;
@@ -1941,6 +1944,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     playerActionStateKey,
     selection,
     zoomState,
+    siliaAutoPaused,
     attackAnim,
     triggerPhysicalAttack,
     isEp0Tutorial,
@@ -1992,13 +1996,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       isEp0Tutorial &&
       plannedOpp.kind === 'END_TURN' &&
       ep0SummaryShownTurnRef.current !== `${cur.turnNumber}_OPPONENT`;
-    const stepDelayMs = isEp0Tutorial
+    const baseOppStepDelayMs = isEp0Tutorial
       ? plannedOpp.kind === 'PLAY_CARD'
         ? 3000
         : plannedOpp.kind === 'END_TURN' && !isEp0OppSummaryPending
           ? 2400
           : 950
       : 620;
+    // Match 1.5x slower Auto-Play pace during Opponent turns when Auto-Play is active
+    const stepDelayMs = autoPlay ? Math.round(baseOppStepDelayMs * 1.5) : baseOppStepDelayMs;
     const timer = window.setTimeout(() => {
       if (attackLockRef.current) return;
       const snap = latestMatchRef.current;
@@ -2128,6 +2134,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
     return () => clearTimeout(timer);
   }, [
+    autoPlay,
     storyPhase,
     vsIntroActive,
     mulliganSwapping,
@@ -6437,6 +6444,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         enemyBoardCount={matchState.opponent.board.length}
         friendlyNames={matchState.player.board.map((m) => m.name)}
         enemyNames={matchState.opponent.board.map((m) => m.name)}
+        onInteractionPauseChange={setSiliaAutoPaused}
         onCastSkill={(skillKind: SiliaSkillKind) => {
           // Snapshot live stage coordinates of all entities BEFORE state mutation
           // so even minions killed immediately (e.g. 1 HP) get targeted Windstorm VFX!

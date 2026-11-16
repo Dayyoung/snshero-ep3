@@ -14,6 +14,7 @@ interface SiliaUltimateWidgetProps {
   friendlyNames?: string[];
   enemyNames?: string[];
   onCastSkill: (skillKind: SiliaSkillKind) => void;
+  onInteractionPauseChange?: (paused: boolean) => void;
 }
 
 const IDLE_FRAMES = [
@@ -301,6 +302,7 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
   friendlyNames = [],
   enemyNames = [],
   onCastSkill,
+  onInteractionPauseChange,
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
@@ -353,6 +355,15 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
       setSpeechText(null);
     }
   }, [visible, castingSkill, windstormSkill]);
+
+  // Notify BattleScreen to pause Auto-Play while player chooses/casts Silia Ultimate
+  useEffect(() => {
+    const busy = visible && (menuOpen || castingSkill !== null || windstormSkill !== null);
+    onInteractionPauseChange?.(busy);
+    return () => {
+      if (busy) onInteractionPauseChange?.(false);
+    };
+  }, [visible, menuOpen, castingSkill, windstormSkill, onInteractionPauseChange]);
 
   useEffect(() => {
     if (!speechText || menuOpen || castingSkill) return;
