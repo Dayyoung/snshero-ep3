@@ -15,6 +15,7 @@ import {
   getCardBustUrl,
   getCardTileUrl,
   getHeroArtUrl,
+  getHeroPowerArtUrl,
 } from '../cardDb';
 import {
   getHeroAttack,
@@ -1689,10 +1690,11 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
     ? getHeroArtUrl('EX1_323h')
     : customHero?.portraitUrl || getHeroArtUrl(player.heroId);
   const isHeroCutout = heroPortraitSrc.includes('/cutouts/');
-  const heroPowerArtSrc =
-    customHero?.heroPowerIconUrl ||
-    customHero?.portraitUrl ||
-    getCardTileUrl(player.heroPowerId);
+  const heroPowerArtSrc = getHeroPowerArtUrl(
+    player.heroPowerId,
+    player.heroClass,
+    customHero?.heroPowerIconUrl,
+  );
   const isHeroPowerCutout = heroPowerArtSrc.includes('/cutouts/');
   const weaponArtSrc = player.weapon ? getCardArtUrl(player.weapon.cardId) : '';
   const isWeaponCutout = weaponArtSrc.includes('/cutouts/');
@@ -1964,7 +1966,10 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
                   src={heroPowerArtSrc}
                   alt={heroPowerDisplayName}
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = getHeroArtUrl(heroMeta.heroId);
+                    (e.currentTarget as HTMLImageElement).src = getHeroPowerArtUrl(
+                      player.heroPowerId,
+                      player.heroClass,
+                    );
                   }}
                   className={
                     isHeroPowerCutout

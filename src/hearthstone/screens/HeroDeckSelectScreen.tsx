@@ -6,6 +6,7 @@ import {
   CLASS_CREST_URL,
   cardDb,
   getHeroArtUrl,
+  getHeroPowerArtUrl,
 } from '../cardDb';
 import { HsGoldCoinIcon } from '../components/CardVisual';
 import {
@@ -395,11 +396,18 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               <div className="mt-0.5 truncate text-[11px] font-bold text-amber-200 sm:text-xs">
                 {tr(`출전 덱: ${selectedDeckLabel}`, `Active Deck: ${selectedDeckLabel}`)}
               </div>
-              <div className="mt-1.5 rounded-xl border border-[#c8a158]/40 bg-black/45 px-2.5 py-1 text-[10.5px] leading-snug sm:mt-2 sm:py-1.5 sm:text-[11px]">
-                <b className="text-sky-300">
-                  {tr(`영웅 능력 [${heroLoc.heroPowerName}]:`, `Hero Power [${heroLoc.heroPowerName}]:`)}
-                </b>{' '}
-                {heroLoc.heroPowerText}
+              <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-[#c8a158]/40 bg-black/45 px-2.5 py-1 text-[10.5px] leading-snug sm:mt-2 sm:py-1.5 sm:text-[11px]">
+                <img
+                  src={getHeroPowerArtUrl(hero.heroPowerId, hero.heroClass)}
+                  alt={heroLoc.heroPowerName}
+                  className="h-7 w-7 shrink-0 rounded-full border border-[#edd189]/80 object-cover shadow"
+                />
+                <div className="min-w-0">
+                  <b className="text-sky-300">
+                    {tr(`영웅 능력 [${heroLoc.heroPowerName}]:`, `Hero Power [${heroLoc.heroPowerName}]:`)}
+                  </b>{' '}
+                  {heroLoc.heroPowerText}
+                </div>
               </div>
             </div>
           </div>

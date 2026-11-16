@@ -240,9 +240,15 @@ export function cleanupUncontainedAds(): void {
       }
     });
 
-    // Clamp #adsense-mobile-top inner ad tags/iframes so they cannot expand over top game buttons
+    // Clamp #adsense-mobile-top and its inner ad tags/iframes so unfilled adsbygoogle scripts
+    // cannot collapse the fixed 52px frame (CLS = 0) or expand over game buttons
     const mobileTop = document.getElementById('adsense-mobile-top');
     if (mobileTop) {
+      if (mobileTop.style.getPropertyValue('height') !== '52px') {
+        mobileTop.style.setProperty('height', '52px', 'important');
+        mobileTop.style.setProperty('min-height', '52px', 'important');
+        mobileTop.style.setProperty('max-height', '52px', 'important');
+      }
       mobileTop
         .querySelectorAll<HTMLElement>('ins.adsbygoogle, div[id^="aswift_"], iframe')
         .forEach((inner) => {

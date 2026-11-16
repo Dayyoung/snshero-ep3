@@ -119,6 +119,43 @@ export function getHeroArtUrl(heroId: string): string {
   return c?.artUrl || c?.bustUrl || '/hs-assets/characters/cutouts/041_Kadan.webp';
 }
 
+const HERO_POWER_ICON_URLS: Record<string, string> = {
+  HERO_01bp: '/hs-assets/hero-powers/HERO_01bp.webp',
+  HERO_02bp: '/hs-assets/hero-powers/HERO_02bp.webp',
+  HERO_03bp: '/hs-assets/hero-powers/HERO_03bp.webp',
+  HERO_04bp: '/hs-assets/hero-powers/HERO_04bp.webp',
+  HERO_05bp: '/hs-assets/hero-powers/HERO_05bp.webp',
+  HERO_06bp: '/hs-assets/hero-powers/HERO_06bp.webp',
+  HERO_07bp: '/hs-assets/hero-powers/HERO_07bp.webp',
+  HERO_08bp: '/hs-assets/hero-powers/HERO_08bp.webp',
+  HERO_09bp: '/hs-assets/hero-powers/HERO_09bp.webp',
+  EX1_625t: '/hs-assets/hero-powers/EX1_625t.webp',
+  EX1_625t2: '/hs-assets/hero-powers/EX1_625t2.webp',
+  EX1_tk33: '/hs-assets/hero-powers/EX1_tk33.webp',
+};
+
+/**
+ * Resolves dedicated skill icon artwork for a Hero Power so it never duplicates a Hero portrait.
+ */
+export function getHeroPowerArtUrl(
+  heroPowerId: string,
+  heroClass?: HeroClass,
+  explicitSkillIconUrl?: string,
+): string {
+  if (explicitSkillIconUrl && explicitSkillIconUrl.includes('/hero-powers/')) {
+    return explicitSkillIconUrl;
+  }
+  const cleanId = heroPowerId.startsWith('VAN_') ? heroPowerId.slice(4) : heroPowerId;
+  if (HERO_POWER_ICON_URLS[cleanId]) return HERO_POWER_ICON_URLS[cleanId];
+  if (heroClass) {
+    const classPowerId = CLASSIC_HEROES[heroClass]?.heroPowerId;
+    if (classPowerId && HERO_POWER_ICON_URLS[classPowerId]) {
+      return HERO_POWER_ICON_URLS[classPowerId];
+    }
+  }
+  return '/hs-assets/hero-powers/HERO_08bp.webp';
+}
+
 function makeCrestDataUri(bgTop: string, bgBot: string, rim: string, glyphPath: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>

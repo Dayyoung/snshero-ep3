@@ -567,7 +567,10 @@ export type VfxKind =
   | 'TOY_SPARKS'
   | 'TOY_RADISH'
   | 'TOY_SPLASH'
-  | 'TOY_DRUM';
+  | 'TOY_DRUM'
+  | 'SILIA_WIND_DEFENSE'
+  | 'SILIA_WIND_ATTACK'
+  | 'SILIA_WIND_HEAL';
 
 export interface VfxEvent {
   id: string;
@@ -633,6 +636,8 @@ export interface BattleMatchState {
   errorBanner: string | null;
   tutorialStep: number;
   journeyMeta?: JourneyBattleMeta;
+  siliaUsedThisTurn?: boolean;
+  siliaLastSkillKind?: 'DEFENSE' | 'ATTACK' | 'HEAL';
 }
 
 export interface CustomDeck {

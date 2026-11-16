@@ -6809,21 +6809,21 @@ export function getJourneyDifficultySpec(
   let baseScale = 0.62;
 
   if (ep <= 6) {
-    // 초반 입문 구간 (1~6화): 15HP(×0.62) -> 21HP(×0.77), 기본 덱 자동플레이로 4~6화 막힘 없는 쾌속 돌파 보장
-    baseHp = Math.round(15 + (ep - 1) * 1.2);
-    baseScale = 0.62 + (ep - 1) * 0.03;
+    // 초반 입문 구간 (1~6화): 실리아 바람결계/녹풍 지원 밸런싱 상향 반영 (16HP -> 24HP)
+    baseHp = Math.round(16 + (ep - 1) * 1.6);
+    baseScale = 0.65 + (ep - 1) * 0.04;
   } else if (ep <= 15) {
-    // 제1막 후반~제2막 중반 (7~15화): 22HP(×0.81) -> 34HP(×1.12), 패배 시 골드 카드팩 1개 구매·개봉으로 ×3배 각성 즉시 돌파 구간
-    baseHp = Math.round(21 + (ep - 6) * 1.45);
-    baseScale = 0.77 + (ep - 6) * 0.039;
+    // 제1막 후반~제2막 중반 (7~15화): 26HP(×0.89) -> 42HP(×1.25), 실리아 궁극기 연계 돌파 구간
+    baseHp = Math.round(24 + (ep - 6) * 2.0);
+    baseScale = 0.85 + (ep - 6) * 0.044;
   } else if (ep <= 28) {
-    // 중후반 성장 구간 (16~28화): 36HP(×1.17) -> 58HP(×1.75), 누적 카드팩 개봉을 통한 다수 카드 ×3배~×4배 각성 구간
-    baseHp = Math.round(34 + (ep - 15) * 1.85);
-    baseScale = 1.12 + (ep - 15) * 0.048;
+    // 중후반 성장 구간 (16~28화): 44HP(×1.31) -> 68HP(×1.95)
+    baseHp = Math.round(42 + (ep - 15) * 2.0);
+    baseScale = 1.25 + (ep - 15) * 0.054;
   } else {
-    // 최종 결전 구간 (29~40화): 60HP(×1.81) -> 88HP(×2.48)
-    baseHp = Math.round(58 + (ep - 28) * 2.5);
-    baseScale = 1.75 + (ep - 28) * 0.061;
+    // 최종 결전 구간 (29~40화): 71HP(×2.02) -> 102HP(×2.74)
+    baseHp = Math.round(68 + (ep - 28) * 2.8);
+    baseScale = 1.95 + (ep - 28) * 0.066;
   }
 
   if (ep % 5 === 0) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { tr as translateStatic, useHeroLanguage } from '../i18n/heroLang';
+import { GameAdSenseLayout } from '../hearthstone/components/GameAdSenseLayout';
 import { cardDb } from './cardDb';
 import {
   GameOptionsModal,
@@ -88,32 +89,36 @@ export const HearthstoneApp: React.FC = () => {
 
   if (loadError) {
     return (
-      <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 p-6 text-center text-amber-100">
-        <h1 className="text-2xl font-extrabold text-red-400">
-          {tr('여관 데이터를 불러오지 못했습니다', 'Failed to load Tavern data')}
-        </h1>
-        <p className="mt-2 text-sm text-amber-200/80">{loadError}</p>
-      </div>
+      <GameAdSenseLayout screenKey="ERROR">
+        <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 p-6 text-center text-amber-100">
+          <h1 className="text-2xl font-extrabold text-red-400">
+            {tr('여관 데이터를 불러오지 못했습니다', 'Failed to load Tavern data')}
+          </h1>
+          <p className="mt-2 text-sm text-amber-200/80">{loadError}</p>
+        </div>
+      </GameAdSenseLayout>
     );
   }
 
   if (!ready || !profile) {
     return (
-      <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 text-amber-100">
-        <img
-          src="/stone-assets/ui/hs_titlelogo.webp"
-          alt={tr('하스스톤', 'Hearthstone')}
-          className="w-72 animate-pulse drop-shadow-2xl"
-        />
-        <div className="mt-4 text-sm font-extrabold tracking-wider text-amber-200">
-          {tr('스톤브루의 여관 테이블을 준비하고 있습니다...', "Preparing Stonebrew's Tavern table...")}
+      <GameAdSenseLayout screenKey="LOADING">
+        <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 text-amber-100">
+          <img
+            src="/stone-assets/ui/hs_titlelogo.webp"
+            alt={tr('하스스톤', 'Hearthstone')}
+            className="w-72 animate-pulse drop-shadow-2xl"
+          />
+          <div className="mt-4 text-sm font-extrabold tracking-wider text-amber-200">
+            {tr('스톤브루의 여관 테이블을 준비하고 있습니다...', "Preparing Stonebrew's Tavern table...")}
+          </div>
         </div>
-      </div>
+      </GameAdSenseLayout>
     );
   }
 
   return (
-    <>
+    <GameAdSenseLayout screenKey={screen}>
       {screen === 'TAVERN_INTRO' && (
         <TavernIntroScreen onEnterHub={() => setScreen('BOX_HUB')} />
       )}
@@ -226,6 +231,6 @@ export const HearthstoneApp: React.FC = () => {
       )}
 
       {reaModalOpen && <ReaEvidenceModal onClose={() => setReaModalOpen(false)} />}
-    </>
+    </GameAdSenseLayout>
   );
 };

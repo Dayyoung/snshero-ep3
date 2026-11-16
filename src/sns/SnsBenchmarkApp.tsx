@@ -23,6 +23,7 @@ import { cardDb } from '../hearthstone/cardDb';
 import { computeNextAiAction } from '../hearthstone/engine/aiController';
 import { HERO_CLASS_ORDER, HeroClass } from '../hearthstone/types';
 import { useHeroLanguage } from '../i18n/heroLang';
+import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
 import {
   ActiveMatchSession,
   BatchSimulationResult,
@@ -490,7 +491,8 @@ export const SnsBenchmarkApp: React.FC = () => {
     typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
 
   return (
-    <div className="min-h-[100dvh] bg-[#090d16] text-[#fdfcfc] font-mono selection:bg-amber-400 selection:text-[#090d16]">
+    <SharedAdSenseShell pageKey="sns" theme="terminal">
+      <div className="min-h-[100dvh] bg-[#090d16] text-[#fdfcfc] font-mono selection:bg-amber-400 selection:text-[#090d16]">
       {/* Top Terminal Header */}
       <header className="sticky top-0 z-30 bg-[#090d16] border-b border-white/15">
         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -503,16 +505,16 @@ export const SnsBenchmarkApp: React.FC = () => {
               <span>SNSHERO // AI ARENA &amp; /MCP</span>
             </a>
             <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] border rounded-sm ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] border rounded-sm whitespace-nowrap shrink-0 min-h-[28px] ${
                 mcpServerOnline
                   ? 'border-emerald-400/50 bg-emerald-950/60 text-emerald-300'
                   : 'border-amber-400/40 bg-amber-950/40 text-amber-200'
               }`}
             >
-              <span className="inline-block w-2 h-2 bg-current" />
+              <span className="inline-block w-2 h-2 bg-current shrink-0" />
               {mcpServerOnline
                 ? tr('MCP 서버 가동 중 (/mcp)', 'MCP ONLINE (/mcp)')
-                : tr('AA 기준치 + 클라이언트 엔진 모드', 'AA BASELINE + CLIENT ENGINE')}
+                : tr('AA 기준치 · 클라이언트 모드', 'AA BASELINE · CLIENT MODE')}
             </span>
           </div>
 
@@ -1808,6 +1810,7 @@ export const SnsBenchmarkApp: React.FC = () => {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </SharedAdSenseShell>
   );
 };

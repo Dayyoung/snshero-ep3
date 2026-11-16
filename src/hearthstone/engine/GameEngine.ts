@@ -190,6 +190,7 @@ export function createBattleMatch(opts: {
     errorBanner: null,
     tutorialStep: opts.mode === 'TUTORIAL' ? 1 : 0,
     journeyMeta: opts.mode === 'TUTORIAL' ? opts.journeyMeta : undefined,
+    siliaUsedThisTurn: false,
   };
 }
 
@@ -1455,6 +1456,9 @@ export function createEngine(rawState: BattleMatchState) {
 
     p.immuneThisTurn = false;
     p.heroPowerUsedThisTurn = false;
+    if (side === 'PLAYER') {
+      state.siliaUsedThisTurn = false;
+    }
     p.attacksMadeThisTurn = 0;
     p.tempAttack = 0;
     p.cardsPlayedThisTurn = 0;
@@ -2419,6 +2423,93 @@ export function createEngine(rawState: BattleMatchState) {
     return state;
   };
 
+  /**
+   * Story-mode-only companion skill by Silia (usable once per player turn).
+   */
+  const useSiliaSkill = (skillKind: 'DEFENSE' | 'ATTACK' | 'HEAL'): BattleMatchState => {
+    if (state.mode !== 'TUTORIAL') {
+      state.errorBanner = ko
+        ? '실리아 궁극기는 스토리 모드에서만 사용할 수 있습니다.'
+        : "Silia's Ultimate is available only in Story Mode.";
+      return state;
+    }
+    if (state.phase !== 'PLAYING' || state.activeSide !== 'PLAYER') {
+      state.errorBanner = ko ? '내 턴에만 사용할 수 있습니다.' : 'Only usable on your turn.';
+      return state;
+    }
+    if (state.siliaUsedThisTurn) {
+      state.errorBanner = ko
+        ? '실리아 궁극기는 매 턴 1회만 사용할 수 있습니다.'
+        : 'Silia skill can only be used once per turn.';
+      return state;
+    }
+
+    state.siliaUsedThisTurn = true;
+    state.siliaLastSkillKind = skillKind;
+
+    if (skillKind === 'DEFENSE') {
+      pushVfx(
+        'SILIA_WIND_DEFENSE',
+        'PLAYER_HERO',
+        'SILIA',
+        undefined,
+        ko ? '실리아 · 녹풍 방어막!' : 'Silia · Wind Barrier!',
+      );
+      for (const m of state.player.board) {
+        m.divineShield = true;
+        pushVfx('BUFF_POP', m.uid, 'SILIA', undefined, ko ? '방어막!' : 'Shield!');
+      }
+      pushHistory({
+        actorSide: 'PLAYER',
+        cardId: 'HERO_09bp',
+        title: ko ? '실리아 방어스킬' : 'Silia Defense',
+        detail: ko
+          ? `아군 전장 하수인 ${state.player.board.length}체에 천상의 보호막 부여`
+          : `Granted Divine Shield to ${state.player.board.length} friendly minions`,
+        kind: 'HERO_POWER',
+      });
+    } else if (skillKind === 'ATTACK') {
+      pushVfx(
+        'SILIA_WIND_ATTACK',
+        'OPPONENT_HERO',
+        'SILIA',
+        1,
+        ko ? '실리아 · 녹풍 참격 (-1)!' : 'Silia · Gale Slash (-1)!',
+      );
+      for (const em of [...state.opponent.board]) {
+        dealDamage(em.uid, 1, 'PLAYER', undefined, 'SILIA');
+      }
+      pushHistory({
+        actorSide: 'PLAYER',
+        cardId: 'HERO_08bp',
+        title: ko ? '실리아 공격스킬' : 'Silia Attack',
+        detail: ko
+          ? `적 전장 하수인 ${state.opponent.board.length}체에 -1 피해`
+          : `Dealt 1 damage to ${state.opponent.board.length} enemy minions`,
+        kind: 'HERO_POWER',
+      });
+      resolveDeaths();
+    } else {
+      pushVfx(
+        'SILIA_WIND_HEAL',
+        'PLAYER_HERO',
+        'SILIA',
+        2,
+        ko ? '실리아 · 생명의 미풍 (+2)!' : 'Silia · Vital Breeze (+2)!',
+      );
+      healTarget('PLAYER_HERO', 2, 'PLAYER');
+      pushHistory({
+        actorSide: 'PLAYER',
+        cardId: 'HERO_09bp',
+        title: ko ? '실리아 회복스킬' : 'Silia Heal',
+        detail: ko ? '아군 영웅 생명력 +2 회복' : 'Healed friendly hero for +2 HP',
+        kind: 'HERO_POWER',
+      });
+    }
+
+    return state;
+  };
+
   const concede = (side: PlayerSide): BattleMatchState => {
     state.phase = 'GAME_OVER';
     state.winner = getEnemySide(side);
@@ -2453,6 +2544,7 @@ export function createEngine(rawState: BattleMatchState) {
     playCardFromHand,
     resolveTrackingChoice,
     useHeroPower,
+    useSiliaSkill,
     performAttack,
     endTurn,
     concede,

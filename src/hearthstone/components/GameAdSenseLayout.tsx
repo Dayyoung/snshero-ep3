@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   initAdSenseContainmentObserver,
+  isDesktopWideLandscape,
   protectLinksFromVignette,
   pushAdSenseTags,
   syncAdSenseRatioLayout,
@@ -95,6 +96,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
   children,
 }) => {
   const [vipAdRemoved, setVipAdRemoved] = useState<boolean>(() => isHsGameAdRemoved());
+  const [desktopWide] = useState<boolean>(() => isDesktopWideLandscape());
   const hideAllAds = vipAdRemoved || hideAdsForFtue;
   const mobileTopRef = useRef<HTMLDivElement | null>(null);
   const leftGutterRef = useRef<HTMLElement | null>(null);
@@ -127,16 +129,6 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
   }, []);
 
   useEffect(() => {
-    if (mobileTopRef.current && !mobileTopRef.current.style.display) {
-      mobileTopRef.current.style.display = 'none';
-    }
-    if (leftGutterRef.current && !leftGutterRef.current.style.display) {
-      leftGutterRef.current.style.display = 'none';
-    }
-    if (rightGutterRef.current && !rightGutterRef.current.style.display) {
-      rightGutterRef.current.style.display = 'none';
-    }
-
     initAdSenseContainmentObserver();
     syncAdSenseRatioLayout('game');
     pushAdSenseTags('game');
@@ -202,31 +194,47 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
       ref={rootRef}
       className="fixed inset-0 flex h-full w-full flex-col overflow-hidden bg-[#070402] text-[#f8ebd2]"
     >
-      {/* Tablet & Smartphone Top Ribbon Banner (320x50 inside 52px safe bar) */}
+      {/* Tablet & Smartphone Top Ribbon Banner (fixed 52px frame prevents AdSense unfilled collapse CLS) */}
       {!hideAllAds && (
         <div
-          id="adsense-mobile-top"
-          ref={mobileTopRef}
-          style={{ height: 52, minHeight: 52, maxHeight: 52, isolation: 'isolate' }}
-          className="adsense-banner-top relative z-0 w-full shrink-0 select-none overflow-hidden border-b border-[#c8a158]/30 bg-[#100a06] px-1 text-center"
-          aria-label="Google AdSense Top Banner"
+          style={{
+            display: desktopWide ? 'none' : 'block',
+            height: 52,
+            minHeight: 52,
+            maxHeight: 52,
+          }}
+          className="w-full shrink-0 overflow-hidden"
         >
-          <div className="adsense-banner-inner relative mx-auto flex h-[50px] max-w-[360px] items-center justify-center gap-1.5 overflow-hidden">
-            {onOpenAdRemovalShop ? (
-              <button
-                type="button"
-                onClick={onOpenAdRemovalShop}
-                title="광고 영구 제거 (4,000원 / $2.99)"
-                className="shrink-0 cursor-pointer rounded border border-amber-400/50 bg-amber-950/90 px-1.5 py-0.5 text-[8px] font-extrabold text-amber-200 hover:bg-amber-900"
-              >
-                ✨AD제거
-              </button>
-            ) : (
-              <span className="shrink-0 rounded border border-amber-500/35 bg-black/70 px-1 py-0.5 text-[8px] font-extrabold tracking-wider text-amber-200/75 uppercase">
-                AD
-              </span>
-            )}
-            <div className="adsense-slot-wrapper relative flex h-[50px] max-h-[50px] min-h-[50px] flex-1 items-center justify-center overflow-hidden" />
+          <div
+            id="adsense-mobile-top"
+            ref={mobileTopRef}
+            style={{
+              display: desktopWide ? 'none' : 'block',
+              height: 52,
+              minHeight: 52,
+              maxHeight: 52,
+              isolation: 'isolate',
+            }}
+            className="adsense-banner-top relative z-0 w-full shrink-0 select-none overflow-hidden border-b border-[#c8a158]/30 bg-[#100a06] px-1 text-center"
+            aria-label="Google AdSense Top Banner"
+          >
+            <div className="adsense-banner-inner relative mx-auto flex h-[50px] max-w-[360px] items-center justify-center gap-1.5 overflow-hidden">
+              {onOpenAdRemovalShop ? (
+                <button
+                  type="button"
+                  onClick={onOpenAdRemovalShop}
+                  title="광고 영구 제거 (4,000원 / $2.99)"
+                  className="shrink-0 cursor-pointer rounded border border-amber-400/50 bg-amber-950/90 px-1.5 py-0.5 text-[8px] font-extrabold text-amber-200 hover:bg-amber-900"
+                >
+                  ✨AD제거
+                </button>
+              ) : (
+                <span className="shrink-0 rounded border border-amber-500/35 bg-black/70 px-1 py-0.5 text-[8px] font-extrabold tracking-wider text-amber-200/75 uppercase">
+                  AD
+                </span>
+              )}
+              <div className="adsense-slot-wrapper relative flex h-[50px] max-h-[50px] min-h-[50px] flex-1 items-center justify-center overflow-hidden" />
+            </div>
           </div>
         </div>
       )}
@@ -237,7 +245,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
           <aside
             id="adsense-desktop-left"
             ref={leftGutterRef}
-            style={{ isolation: 'isolate' }}
+            style={{ display: desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
             className="adsense-gutter adsense-desktop-left relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-center overflow-hidden border-r border-[#c8a158]/25 bg-[#0c0805] px-2 py-3 text-center"
             aria-label="Google AdSense Left Wing"
           >
@@ -301,7 +309,7 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
           <aside
             id="adsense-desktop-right"
             ref={rightGutterRef}
-            style={{ isolation: 'isolate' }}
+            style={{ display: desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
             className="adsense-gutter adsense-desktop-right relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-center overflow-hidden border-l border-[#c8a158]/25 bg-[#0c0805] px-2 py-3 text-center"
             aria-label="Google AdSense Right Wing"
           >

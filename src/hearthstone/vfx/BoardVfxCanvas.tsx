@@ -350,6 +350,74 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           spawnBurst(stageW * 0.5, stageH * 0.45, 16, ['#f8fafc', '#94a3b8'], 9, 5, 'SHARD', 0);
           break;
 
+        case 'SILIA_WIND_DEFENSE': {
+          hsAudio.playSfx('whoosh', 0.95);
+          hsAudio.playProceduralVfxSound('HOLY');
+          const yBand = stageH * 0.58;
+          for (let i = 0; i < 5; i++) {
+            const px = stageW * (0.24 + i * 0.13);
+            spawnBurst(px, yBand, 9, ['#22c55e', '#4ade80', '#bbf7d0', '#fef08a'], 7.5, 6, 'STAR', -0.04);
+            spawnRing(px, yBand, '#4ade80', 110);
+          }
+          spawnRing(stageW * 0.5, yBand, '#22c55e', 340);
+          badgesRef.current.push({
+            x: stageW * 0.5,
+            y: yBand - 24,
+            vy: -0.9,
+            text: ev.label || '바람 결계!',
+            subKind: 'BUFF',
+            life: 0,
+            maxLife: 48,
+          });
+          ensureLoopRef.current();
+          break;
+        }
+
+        case 'SILIA_WIND_ATTACK': {
+          hsAudio.playSfx('whoosh', 0.95);
+          hsAudio.playSfx('big_attack', 0.78);
+          hsAudio.vibrateByDamage(3);
+          impactCbRef.current?.(3);
+          const yBand = stageH * 0.34;
+          for (let i = 0; i < 5; i++) {
+            const px = stageW * (0.24 + i * 0.13);
+            spawnBurst(px, yBand, 10, ['#10b981', '#34d399', '#6ee7b7', '#ffffff'], 9.0, 6, 'SHARD', 0);
+            spawnRing(px, yBand, '#10b981', 120);
+          }
+          spawnRing(stageW * 0.5, yBand, '#34d399', 360);
+          badgesRef.current.push({
+            x: stageW * 0.5,
+            y: yBand - 24,
+            vy: -0.9,
+            text: ev.label || '녹풍 참격!',
+            subKind: 'DAMAGE',
+            life: 0,
+            maxLife: 48,
+          });
+          ensureLoopRef.current();
+          break;
+        }
+
+        case 'SILIA_WIND_HEAL': {
+          hsAudio.playSfx('whoosh', 0.85);
+          hsAudio.playProceduralVfxSound('HOLY');
+          const heroPt = getEntityCenter('PLAYER_HERO');
+          spawnBurst(heroPt.x, heroPt.y, 18, ['#4ade80', '#86efac', '#fef08a', '#ffffff'], 7.5, 6, 'STAR', -0.05);
+          spawnRing(heroPt.x, heroPt.y, '#4ade80', 175);
+          spawnRing(heroPt.x, heroPt.y, '#86efac', 240);
+          badgesRef.current.push({
+            x: heroPt.x,
+            y: heroPt.y - 36,
+            vy: -0.9,
+            text: ev.label || '+2 HP',
+            subKind: 'HEAL',
+            life: 0,
+            maxLife: 48,
+          });
+          ensureLoopRef.current();
+          break;
+        }
+
         case 'EXPLOSION': {
           const exDmg = Math.max(7, ev.value || 8);
           hsAudio.playSfx('big_attack', 0.9);

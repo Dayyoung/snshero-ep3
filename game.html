@@ -258,9 +258,22 @@
       display: none !important;
       pointer-events: none !important;
     }
-    #adsense-mobile-top,
+    #adsense-mobile-top {
+      height: 52px !important;
+      min-height: 52px !important;
+      max-height: 52px !important;
+    }
     #adsense-desktop-left,
     #adsense-desktop-right {
+      width: 176px !important;
+      min-width: 176px !important;
+      position: relative !important;
+      z-index: 1 !important;
+      overflow: hidden !important;
+      contain: layout paint !important;
+      transform: translateZ(0);
+    }
+    #adsense-mobile-top {
       position: relative !important;
       z-index: 1 !important;
       overflow: hidden !important;

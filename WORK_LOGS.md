@@ -2,6 +2,22 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 07:21 KST] [`/checkIssue` 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`) 5건 전수 수정·테스트·배포 완료]
+- **작업자**: `Antigravity Assistant`
+- **처리 이슈 및 구현 내역 (`ISS-001` ~ `ISS-004`)**:
+  1. **`ISS-001` (P1) Google AdSense 공유 레이아웃 4대 라우트 확장**: [`SharedAdSenseShell.tsx`](file:///Users/dayyoung/project/snshero/src/components/SharedAdSenseShell.tsx) 신규 구축 및 [`GameAdSenseLayout.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/GameAdSenseLayout.tsx)·[`adsenseManager.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/services/adsenseManager.ts) 고정 크기(`52px !important` 모바일 띠배너, `176px` 데스크톱 좌·우 사이드 거터) 보강. [`index.html`](file:///Users/dayyoung/project/snshero/index.html), [`sns.html`](file:///Users/dayyoung/project/snshero/sns.html), [`stone.html`](file:///Users/dayyoung/project/snshero/stone.html), [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx), [`SnsBenchmarkApp.tsx`](file:///Users/dayyoung/project/snshero/src/sns/SnsBenchmarkApp.tsx), [`stone/HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/stone/HearthstoneApp.tsx) 적용(스톤 무료/결제 배제 준수).
+  2. **`ISS-002` (P0) 자동플레이 AI 상호 카드 소멸·탈진 데드락 근절**: [`aiController.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/aiController.ts) 및 [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx) 내 `history.length <= 24` 상한 버그(`didHistoryAdvance`로 교체) 완전 해결 및 저잔여덱/후반전 페이스 압박·2턴 킬·과도한 드로우 억제 휴리스틱 개선.
+  3. **`ISS-003` (P0) 스토리 모드 전용 좌측 실리아(`062_Celia.webp`) 궁극기 위젯 & 난이도 밸런싱**: [`SiliaUltimateWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SiliaUltimateWidget.tsx), [`GameEngine.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/GameEngine.ts)(`useSiliaSkill` 턴당 1회 제한), [`BoardVfxCanvas.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/vfx/BoardVfxCanvas.tsx)(녹풍 회오리 VFX), [`kadanJourneyData.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/kadanJourneyData.ts)(1~40화 적 체력·배율 상향 밸런싱) 구현.
+  4. **`ISS-004 #1` (P0) 경쾌한 하스스톤 선술집풍 BGM 전면 교체**: CoreAudio DLS 오케스트라/어쿠스틱 합주로 5트랙(`tavern_hub.mp3`, `collection.mp3`, `mulligan.mp3`, `duel_1.mp3`, `duel_2.mp3`) 재제작 및 [`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts) 캐시 키(`?v=tavern_upbeat1`) 갱신.
+  5. **`ISS-004 #2` (P0) 영웅 능력(스킬) 전용 아트워크 분리**: `public/hs-assets/hero-powers/` 12종 `.webp` 스킬 아이콘 제작 및 [`cardDb.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/cardDb.ts)(`getHeroPowerArtUrl`), [`CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/CardVisual.tsx), [`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx) 적용.
+  6. **`ISS-004 #3` (P0) 홈페이지(`/`) 초기 진입 흰 글자 깨짐(FOUC) 제거**: [`index.html`](file:///Users/dayyoung/project/snshero/index.html) 초기 `html, body` 다크 배경(`#120b06`) 고정 및 SSR SEO 텍스트 블록 `.promo-seo-sr` 오프스크린 전환으로 마운트 전 깨진 텍스트 플래시 0% 달성.
+- **검증 및 배포 결과**:
+  - `npx tsc --noEmit && npm run build`: 0에러 빌드 완료.
+  - 자동플레이 100회 연속 헤드리스 검증: `combatEnds: 100, fatigueEnds: 0 (0.0%), avgTurns: 17.7`.
+  - 실리아 3대 스킬·턴당 1회 제한·스토리 전용 제한·영웅 스킬 아이콘 분리 유닛 검증 통과.
+  - Playwright Chromium 라이브 E2E(`/`, `/sns.html`, `/stone.html`, `/game.html`): 데스크톱/모바일 AdSense 및 CLS(`/`: 0.0001/0, `/sns`: 0/0, `/stone`: 0.0923/0.0502), 실리아 UI 1회 제한 잠금, 5종 BGM HTTP 200 OK 전수 통과.
+  - `git push origin main` 배포, 이슈 시트 `J2:J6` `"완료"` 갱신 및 구글 폼 보고 완료.
+
 ## [2026-11-17 06:53 KST] [구글 시트 연동 3종 자동화 스킬(`/checkIssue`, `/checkMarket`, `/checkBug`) 생성 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

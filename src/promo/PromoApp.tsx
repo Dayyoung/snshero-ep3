@@ -31,6 +31,7 @@ import {
   SnsSnowCompassSeal,
 } from '../hearthstone/components/SnsHeroArtKit';
 import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget';
+import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
 import { hsStorage } from '../hearthstone/storage';
 import {
   CARD_CLASS_LABELS_EN,
@@ -403,7 +404,8 @@ export const PromoApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#120b06] text-[#f8ebd2]">
+    <SharedAdSenseShell pageKey="promo" theme="tavern">
+      <div className="min-h-screen w-full bg-[#120b06] text-[#f8ebd2]">
       {/* =====================================================================
           1. Sticky Tavern Wood Top Navigation (GNB)
       ===================================================================== */}
@@ -2238,6 +2240,7 @@ export const PromoApp: React.FC = () => {
           window.location.href = '/game';
         }}
       />
-    </div>
+      </div>
+    </SharedAdSenseShell>
   );
 };

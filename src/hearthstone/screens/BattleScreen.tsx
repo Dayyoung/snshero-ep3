@@ -19,6 +19,7 @@ import {
 } from '../components/CardVisual';
 import { CardZoomAction, CardZoomModal } from '../components/CardZoomModal';
 import { LiveBattleHelpSnapshot } from '../components/KadanChatbotWidget';
+import { SiliaSkillKind, SiliaUltimateWidget } from '../components/SiliaUltimateWidget';
 import {
   StoryDuelDialogueOverlay,
   StoryEpisodeSelectorModal,
@@ -33,7 +34,7 @@ import {
   SnsCardBackArt,
   SnsRankMedallion,
 } from '../components/SnsHeroArtKit';
-import { AiAction, buildAiOpponentSetup, computeNextAiAction } from '../engine/aiController';
+import { AiAction, buildAiOpponentSetup, computeNextAiAction, didHistoryAdvance } from '../engine/aiController';
 import {
   createBattleMatch,
   createEngine,
@@ -1824,7 +1825,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         // Safety fallback: prevent deadlock if action failed to advance state
         if (
           next.errorBanner ||
-          (next.history.length <= snap.history.length &&
+          (!didHistoryAdvance(snap, next) &&
             !next.chooseOnePrompt &&
             !next.trackingPrompt)
         ) {
@@ -1859,7 +1860,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           });
         }
         const next = sim.useHeroPower('PLAYER', action.targetId);
-        if (next.errorBanner || next.history.length <= snap.history.length) {
+        if (next.errorBanner || !didHistoryAdvance(snap, next)) {
           setAiHighlightText(null);
           setMatchState(createEngine(snap).endTurn());
           return;
@@ -2036,7 +2037,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           insertIndex: action.insertIndex,
           chooseOptionIndex: action.chooseOptionIndex,
         });
-        if (next.errorBanner || next.history.length <= snap.history.length) {
+        if (next.errorBanner || !didHistoryAdvance(snap, next)) {
           setAiHighlightText(null);
           setMatchState(createEngine(snap).endTurn());
           return;
@@ -2064,7 +2065,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           });
         }
         const next = sim.useHeroPower('OPPONENT', action.targetId);
-        if (next.errorBanner || next.history.length <= snap.history.length) {
+        if (next.errorBanner || !didHistoryAdvance(snap, next)) {
           setAiHighlightText(null);
           setMatchState(createEngine(snap).endTurn());
           return;
@@ -6361,6 +6362,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           onClose={() => setQuickRulesOpen(false)}
         />
       )}
+
+      {/* Story Mode Left-Side Silia Companion Ultimate Widget (1 skill per turn) */}
+      <SiliaUltimateWidget
+        visible={
+          mode === 'TUTORIAL' &&
+          matchState.phase === 'PLAYING' &&
+          storyPhase === 'CLOSED' &&
+          !vsIntroActive
+        }
+        isPlayerTurn={matchState.activeSide === 'PLAYER'}
+        usedThisTurn={Boolean(matchState.siliaUsedThisTurn)}
+        friendlyBoardCount={matchState.player.board.length}
+        enemyBoardCount={matchState.opponent.board.length}
+        onCastSkill={(skillKind: SiliaSkillKind) => {
+          const next = createEngine(latestMatchRef.current).useSiliaSkill(skillKind);
+          setMatchState(next);
+        }}
+      />
 
       {/* Universal Enlarged Card Inspection & Bottom Action Modal */}
       {renderActiveZoomModal()}

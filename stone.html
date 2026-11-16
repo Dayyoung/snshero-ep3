@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <title>Hearthstone: Heroes of Warcraft — Classic Web Edition</title>
   <meta name="description" content="Classic Hearthstone Web Edition featuring 9 iconic classes, 382 collectible cards, pack opening, collection & deck builder, and tavern gameplay." />
   <meta name="robots" content="noindex, nofollow" />
@@ -10,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" href="/stone-assets/fonts/BelweBdBTBold.ttf" as="font" type="font/ttf" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6937094123258335" crossorigin="anonymous"></script>
   <style>
     @font-face {
       font-family: 'BelweBdBT';
@@ -238,6 +240,55 @@
     ::-webkit-scrollbar { width: 7px; height: 7px; }
     ::-webkit-scrollbar-track { background: rgba(20, 12, 6, 0.7); border-radius: 4px; }
     ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #b88a44, #6e4c1e); border-radius: 4px; border: 1px solid #2b1a08; }
+
+    /* Google AdSense containment & viewport scaling fit for /stone.html */
+    ins.adsbygoogle[data-anchor-status],
+    ins.adsbygoogle[data-ad-status="unfilled"],
+    body > ins.adsbygoogle,
+    body > .google-auto-placed,
+    body > div[id^="aswift_"],
+    body > iframe[id^="aswift_"],
+    .grippy-host {
+      display: none !important;
+      pointer-events: none !important;
+    }
+    #adsense-mobile-top {
+      height: 52px !important;
+      min-height: 52px !important;
+      max-height: 52px !important;
+      position: relative !important;
+      z-index: 1 !important;
+      overflow: hidden !important;
+      contain: layout paint !important;
+      transform: translateZ(0);
+    }
+    #adsense-desktop-left,
+    #adsense-desktop-right {
+      width: 176px !important;
+      min-width: 176px !important;
+      position: relative !important;
+      z-index: 1 !important;
+      overflow: hidden !important;
+      contain: layout paint !important;
+      transform: translateZ(0);
+    }
+    #adsense-mobile-top ins.adsbygoogle,
+    #adsense-mobile-top div[id^="aswift_"],
+    #adsense-mobile-top iframe {
+      max-height: 50px !important;
+      position: relative !important;
+    }
+    #hs-game-viewport {
+      position: relative;
+      z-index: 20;
+    }
+    #hs-stage-canvas {
+      height: 100%;
+    }
+    #hs-stage-canvas .h-\[100dvh\] {
+      height: 100% !important;
+      min-height: 100% !important;
+    }
   </style>
 </head>
 <body>
