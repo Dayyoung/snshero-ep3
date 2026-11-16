@@ -2,6 +2,13 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 08:04 KST] [`/checkIssue` 추가 2건(드럼리스 판타지 BGM · `/webtoon`/`/book` AdSense 전면 적용) 완료]
+- **작업자**: `Antigravity Assistant`
+- **해결 내역**:
+  1. **Row 9 (`ISS-004` 판타지 게임 맞춤 BGM 전면 교체)**: GM 드럼 트랙(`ch 9`)을 100% 제거하고 하프·나일론 류트·플루트·오보에·바이올린·첼로·프렌치 호른·팀파니 기반의 정통 판타지 오케스트라 5트랙 재작곡·마스터링 (`public/hs-assets/snshero-audio/bgm/*.mp3`, [`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts) `?v=fantasy_orch2`).
+  2. **Row 10 (`ISS-004` `/webtoon`·`/book`·`/novel` 포함 전 화면 Google AdSense 확장)**: [`webtoon.html`](file:///Users/dayyoung/project/snshero/webtoon.html), [`book.html`](file:///Users/dayyoung/project/snshero/book.html), [`novel.html`](file:///Users/dayyoung/project/snshero/novel.html), [`ReaderChrome.ts`](file:///Users/dayyoung/project/snshero/src/reader/ReaderChrome.ts)(`ensureReaderContentMount`), [`bookMain.ts`](file:///Users/dayyoung/project/snshero/src/reader/bookMain.ts), [`webtoonMain.ts`](file:///Users/dayyoung/project/snshero/src/reader/webtoonMain.ts)에 상시 고정 AdSense 슬롯 적용 + [`WebtoonSection.tsx`](file:///Users/dayyoung/project/snshero/src/reader/WebtoonSection.tsx) 16:9 `aspect-video` 보강.
+- **검증 및 배포**: `npm run build`(`4.17s`), Chrome E2E `/webtoon.html`·`/book.html`·`/`·`/sns.html` 모두 `CLS 0`, `origin main` 푸시 및 이슈 시트 `J9:J10` `"완료"`(9/9 100%) 반영·구글 폼 보고 완료.
+
 ## [2026-11-17 07:59 KST] [`/checkIssue` + `/checkBug` + `/checkMarket` 3종 시트 일괄 해결·테스트·배포 완료]
 - **작업자**: `Antigravity Assistant`
 - **해결 및 구현 내역**:

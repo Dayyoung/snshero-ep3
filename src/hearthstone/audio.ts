@@ -486,7 +486,7 @@ class SnsHeroCardAudioEngine {
       this.currentBgm = null;
     }
     this.currentBgmKey = track;
-    const audio = new Audio(`/hs-assets/snshero-audio/bgm/${track}.mp3?v=tavern_upbeat1`);
+    const audio = new Audio(`/hs-assets/snshero-audio/bgm/${track}.mp3?v=fantasy_orch2`);
     audio.loop = track !== 'mulligan';
     audio.volume = this.settings.muted ? 0 : this.settings.bgmVolume;
     this.currentBgm = audio;

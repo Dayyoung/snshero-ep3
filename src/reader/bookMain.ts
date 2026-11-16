@@ -1,6 +1,6 @@
 import './styles.css';
 import { getCurrentLanguage, setLanguage, SupportedLanguage, tr } from './i18n';
-import { renderReaderHeader, renderReaderFooter, toggleReaderMobileMenu, closeReaderMobileMenu } from './ReaderChrome';
+import { renderReaderHeader, renderReaderFooter, toggleReaderMobileMenu, closeReaderMobileMenu, ensureReaderContentMount } from './ReaderChrome';
 import {
   renderBookSection,
   handleBookAction,
@@ -16,7 +16,7 @@ function renderApp(): void {
       "SNSHero Official Web Novel — Kadan's Journey (40 Episodes) | SNSHero.com"
     );
   }
-  const root = document.getElementById('reader-root');
+  const root = ensureReaderContentMount('book');
   if (!root) return;
   root.innerHTML = `
     <div class="min-h-screen flex flex-col bg-[#120b06] text-[#f8ebd2]">

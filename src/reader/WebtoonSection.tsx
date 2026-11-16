@@ -621,16 +621,18 @@ export function renderWebtoonSection(): string {
                         </div>
 
                         <!-- Panel Image Frame -->
-                        <div class="relative w-full bg-[#0d0704] flex items-center justify-center overflow-hidden">
+                        <div class="relative w-full aspect-video bg-[#0d0704] flex items-center justify-center overflow-hidden">
                           <img
                             src="${imgSrc}"
                             alt="EP.${ep} ${panelBadge}"
+                            width="768"
+                            height="432"
                             loading="lazy"
                             decoding="async"
                             data-action="webtoon-zoom-image"
                             data-episode="${ep}"
                             data-scene-index="${sceneIndex}"
-                            class="w-full h-auto block object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                            class="w-full h-full block object-cover cursor-pointer hover:opacity-95 transition-opacity"
                             onerror="this.onerror=null; this.src='/webtoon-assets/episode_01/scene_00.webp';"
                             title="${tr('클릭하여 전체화면 모드로 감상', 'Click to view in fullscreen mode', 'クリックして全画面モードで鑑賞')}"
                           />

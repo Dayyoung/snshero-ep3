@@ -1,4 +1,12 @@
 import { getCurrentLanguage, SupportedLanguage, tr } from './i18n';
+import {
+  initAdSenseContainmentObserver,
+  isAdRemoved,
+  isDesktopWideLandscape,
+  protectLinksFromVignette,
+  pushAdSenseTags,
+  syncAdSenseRatioLayout,
+} from '../hearthstone/services/adsenseManager';
 
 export type ReaderMode = 'book' | 'webtoon';
 
@@ -176,4 +184,83 @@ export function renderReaderFooter(): string {
       </div>
     </footer>
   `;
+}
+
+let readerShellBoundMode: ReaderMode | null = null;
+
+/**
+ * Ensures the persistent Google AdSense wrapper (#adsense-mobile-top / #adsense-desktop-left/right)
+ * wraps #reader-root's mount child once without wiping live ad iframes on episode switches.
+ */
+export function ensureReaderContentMount(mode: ReaderMode): HTMLElement | null {
+  if (typeof document === 'undefined') return null;
+  const root = document.getElementById('reader-root');
+  if (!root) return null;
+
+  let mount = document.getElementById('reader-content-host');
+  if (!mount) {
+    const adRemoved = isAdRemoved();
+    const desktopWide = isDesktopWideLandscape();
+    const topBarHtml = adRemoved
+      ? ''
+      : `
+      <div style="display:${desktopWide ? 'none' : 'block'};height:52px;min-height:52px;max-height:52px;" class="w-full shrink-0 overflow-hidden">
+        <div id="adsense-mobile-top" data-nosnippet="" style="display:${desktopWide ? 'none' : 'block'};height:52px;min-height:52px;max-height:52px;isolation:isolate;" class="adsense-banner-top relative z-0 w-full shrink-0 select-none overflow-hidden border-b border-[#c8a158]/25 bg-[#100a06] px-1 text-center" aria-label="Google AdSense Top Banner">
+          <div class="adsense-banner-inner relative mx-auto flex h-[50px] max-w-[360px] items-center justify-center gap-1.5 overflow-hidden">
+            <span class="shrink-0 rounded border border-amber-500/35 bg-black/70 px-1 py-0.5 text-[8px] font-extrabold tracking-wider text-amber-200/75 uppercase">AD</span>
+            <div class="adsense-slot-wrapper relative flex h-[50px] max-h-[50px] min-h-[50px] flex-1 items-center justify-center overflow-hidden"></div>
+          </div>
+        </div>
+      </div>`;
+
+    const leftGutterHtml = adRemoved
+      ? ''
+      : `
+      <aside id="adsense-desktop-left" data-nosnippet="" style="display:${desktopWide ? 'flex' : 'none'};isolation:isolate;" class="adsense-gutter adsense-desktop-left relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-start border-r border-[#c8a158]/20 bg-[#0c0805] px-2 py-4 text-center" aria-label="Google AdSense Left Wing">
+        <div class="sticky top-4 w-[160px] overflow-hidden rounded-xl border border-[#c8a158]/25 bg-black/50 p-1.5">
+          <div class="mb-1 flex items-center justify-between border-b border-amber-500/20 pb-1 text-[9px] font-bold tracking-wider text-amber-200/65 uppercase">
+            <span>AD</span><span>Google Ads</span>
+          </div>
+          <div class="adsense-slot-wrapper relative flex min-h-[600px] w-full items-center justify-center overflow-hidden"></div>
+        </div>
+      </aside>`;
+
+    const rightGutterHtml = adRemoved
+      ? ''
+      : `
+      <aside id="adsense-desktop-right" data-nosnippet="" style="display:${desktopWide ? 'flex' : 'none'};isolation:isolate;" class="adsense-gutter adsense-desktop-right relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-start border-l border-[#c8a158]/20 bg-[#0c0805] px-2 py-4 text-center" aria-label="Google AdSense Right Wing">
+        <div class="sticky top-4 w-[160px] overflow-hidden rounded-xl border border-[#c8a158]/25 bg-black/50 p-1.5">
+          <div class="mb-1 flex items-center justify-between border-b border-amber-500/20 pb-1 text-[9px] font-bold tracking-wider text-amber-200/65 uppercase">
+            <span>AD</span><span>Google Ads</span>
+          </div>
+          <div class="adsense-slot-wrapper relative flex min-h-[600px] w-full items-center justify-center overflow-hidden"></div>
+        </div>
+      </aside>`;
+
+    root.innerHTML = `
+      <div class="flex min-h-screen w-full flex-col bg-[#120b06] text-[#f8ebd2]">
+        ${topBarHtml}
+        <div class="flex min-w-0 flex-1 flex-row items-stretch">
+          ${leftGutterHtml}
+          <div id="reader-content-host" class="min-w-0 flex-1"></div>
+          ${rightGutterHtml}
+        </div>
+      </div>
+    `;
+    mount = document.getElementById('reader-content-host');
+  }
+
+  if (readerShellBoundMode !== mode) {
+    readerShellBoundMode = mode;
+    initAdSenseContainmentObserver();
+    syncAdSenseRatioLayout(mode);
+    pushAdSenseTags(mode);
+    window.addEventListener('resize', () => syncAdSenseRatioLayout(mode));
+    window.addEventListener('orientationchange', () => syncAdSenseRatioLayout(mode));
+  }
+
+  if (mount) {
+    protectLinksFromVignette(mount);
+  }
+  return mount;
 }
