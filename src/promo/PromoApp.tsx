@@ -133,7 +133,7 @@ export const PromoApp: React.FC = () => {
             'Built-in Smart Auto-Play lets anyone enjoy both theater and battles effortlessly',
           ),
         ],
-        imageUrl: '/hs-assets/screenshots/ingame_story_theater.png',
+        imageUrl: '/hs-assets/screenshots/ingame_story_theater.png?v=20261116',
         ctaText: tr('스토리모드 바로 출정', 'Enter Story Mode'),
         ctaHref: '/game?mode=story',
       },
@@ -163,7 +163,7 @@ export const PromoApp: React.FC = () => {
             'Clear Crafting safeguards warn you before disenchanting Journey multiplier copies',
           ),
         ],
-        imageUrl: '/hs-assets/screenshots/ingame_collection_awake.png',
+        imageUrl: '/hs-assets/screenshots/ingame_collection_awake.png?v=20261116',
         ctaText: tr('내 덱 강화하러 가기', 'Upgrade Your Deck'),
         ctaHref: '/game',
       },
@@ -190,7 +190,7 @@ export const PromoApp: React.FC = () => {
             'Disenchant extras into Arcane Dust to craft any Legendary you desire',
           ),
         ],
-        imageUrl: '/hs-assets/screenshots/ingame_pack_altar.png',
+        imageUrl: '/hs-assets/screenshots/ingame_pack_altar.png?v=20261116',
         ctaText: tr('무료 3팩 개봉하기', 'Open 3 Free Packs'),
         ctaHref: '/game',
       },
@@ -1246,7 +1246,7 @@ export const PromoApp: React.FC = () => {
               <div className="lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src="/hs-assets/screenshots/ingame_ranked_battle.png"
+                    src="/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116"
                     alt={tr('랭킹대전', 'Ranked Play')}
                     className="aspect-video w-full object-cover"
                   />
@@ -1305,7 +1305,7 @@ export const PromoApp: React.FC = () => {
               <div className="order-1 lg:order-2 lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src="/hs-assets/screenshots/ingame_story_battle.png"
+                    src="/hs-assets/screenshots/ingame_story_battle.png?v=20261116"
                     alt={tr('AI대전', 'AI Battle')}
                     className="aspect-video w-full object-cover"
                   />
@@ -1318,7 +1318,7 @@ export const PromoApp: React.FC = () => {
               <div className="lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src="/hs-assets/screenshots/ingame_story_theater.png"
+                    src="/hs-assets/screenshots/ingame_story_theater.png?v=20261116"
                     alt={tr('스토리모드 카단의 여정', "Story Mode Kadan's Journey")}
                     className="aspect-video w-full object-cover"
                   />

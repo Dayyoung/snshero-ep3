@@ -2,6 +2,18 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 14:32 KST] [`/hs-assets/screenshots/ingame_ranked_battle.png` 서비스 워커 캐시 고착 및 이미지 미표시 방지 개선 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 서비스 워커(`public/sw.js`) 캐시 무효화 및 `Network-First` 전환**:
+    - 기존 `snshero-media-v18-clean20261113` 캐시가 `/hs-assets/screenshots/*.png` 및 직접 URL 탐색(`request.mode === 'navigate'`)까지 Cache-First로 가로채어 배포 직후나 과거 깨진/스테일 응답이 영구 고정될 수 있던 문제를 해결.
+    - [`public/sw.js`](file:///Users/dayyoung/project/snshero/public/sw.js): `MEDIA_CACHE_NAME`을 `snshero-media-v19-20261116`으로 갱신해 구버전 캐시를 자동 폐기하고, `request.mode === 'navigate'`는 네트워크 표준 스택으로 통과시키며, `/hs-assets/screenshots/`를 `Network-First` 대상으로 편입하고 `isValidMediaResponse()`(`res.ok` 및 `text/html` 오캐싱 차단) 검증 추가.
+  - **2. 서비스 워커 즉시 갱신 & 홍보 이미지 캐시 버스팅 (`index.html`, `game.html`, `src/promo/PromoApp.tsx`)**:
+    - [`index.html`](file:///Users/dayyoung/project/snshero/index.html) 및 [`game.html`](file:///Users/dayyoung/project/snshero/game.html)의 `navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })` 옵션 추가로 브라우저의 구형 `sw.js` HTTP 캐시 재사용 방지.
+    - [`src/promo/PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx) 내 `/hs-assets/screenshots/*.png` 경로에 `?v=20261116` 쿼리 버저닝 적용.
+  - **3. 타입체크 · 빌드 · Playwright 검증 완료**:
+    - `npx tsc --noEmit` 및 `npm run build` 에러 0건 통과, Playwright 검증에서 `snshero-media-v19-20261116` 활성·홍보 페이지 스크린샷 전종(`1920×1080`) 및 `/hs-assets/screenshots/ingame_ranked_battle.png` 직접 접속(`200 OK`, `1920×1080`)·`ERRORS: []` 확인.
+
 ## [2026-11-16 13:00 KST] [`/stone.html` 적용 전체 개선사항 `/game.html`(눈히어로) 전수 동기화 및 실브라우저 검증 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

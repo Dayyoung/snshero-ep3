@@ -4,10 +4,17 @@
  * HTML, JS 번들, CSS, JSON, API 등 모든 코드/데이터는 실시간 네트워크에서 즉시 받아옵니다.
  */
 
-const MEDIA_CACHE_NAME = 'snshero-media-v18-clean20261113';
+const MEDIA_CACHE_NAME = 'snshero-media-v19-20261116';
 
 // 캐싱 대상 미디어 파일 확장자 정규식
 const MEDIA_EXT_REGEX = /\.(png|jpg|jpeg|webp|gif|svg|ico|avif|mp3|wav|ogg)(\?.*)?$/i;
+
+function isValidMediaResponse(res) {
+  if (!res || !res.ok) return false;
+  const ct = (res.headers.get('content-type') || '').toLowerCase();
+  if (ct.includes('text/html')) return false;
+  return true;
+}
 
 self.addEventListener('install', (event) => {
   // 새 서비스 워커 즉시 활성화
@@ -33,51 +40,59 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
 
-  // GET 요청만 처리
-  if (request.method !== 'GET') {
+  // GET 요청만 처리하고, 브라우저 직접 주소 입력(navigate)은 네트워크 표준 스택으로 통과
+  if (request.method !== 'GET' || request.mode === 'navigate') {
     return;
   }
 
   const url = new URL(request.url);
 
-  // 1. 캐릭터 상반신(busts) 및 컷아웃 에셋: Network-First 전략 (업데이트된 이미지 즉시 반영)
-  if (url.pathname.includes('/hs-assets/characters/busts/') || url.pathname.includes('/hs-assets/characters/cutouts/')) {
+  // 1. 캐릭터 상반신(busts), 컷아웃 및 홍보 스크린샷 에셋: Network-First 전략 (업데이트된 이미지 즉시 반영)
+  if (
+    url.pathname.includes('/hs-assets/characters/busts/') ||
+    url.pathname.includes('/hs-assets/characters/cutouts/') ||
+    url.pathname.includes('/hs-assets/screenshots/')
+  ) {
     event.respondWith(
-      fetch(request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseClone = networkResponse.clone();
-          caches.open(MEDIA_CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
-        }
-        return networkResponse;
-      }).catch(() => {
-        return caches.match(request).then((cachedResponse) => {
-          return cachedResponse || new Response(null, { status: 404 });
-        });
-      })
-    );
-    return;
-  }
-
-  // 2. 그 외 이미지 및 사운드 파일: Cache-First 전략 (빠른 미디어 로딩 & 트래픽 절약)
-  if (MEDIA_EXT_REGEX.test(url.pathname) || MEDIA_EXT_REGEX.test(url.href)) {
-    event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
+      fetch(request)
+        .then((networkResponse) => {
+          if (isValidMediaResponse(networkResponse)) {
             const responseClone = networkResponse.clone();
             caches.open(MEDIA_CACHE_NAME).then((cache) => {
               cache.put(request, responseClone);
             });
           }
           return networkResponse;
-        }).catch(() => {
-          return cachedResponse || new Response(null, { status: 404 });
-        });
+        })
+        .catch(() => {
+          return caches.match(request).then((cachedResponse) => {
+            return (isValidMediaResponse(cachedResponse) ? cachedResponse : null) || new Response(null, { status: 404 });
+          });
+        })
+    );
+    return;
+  }
+
+  // 2. 그 외 이미지 및 사운드 파일: Cache-First 전략 (유효한 미디어 응답만 캐싱·반환)
+  if (MEDIA_EXT_REGEX.test(url.pathname) || MEDIA_EXT_REGEX.test(url.href)) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (isValidMediaResponse(cachedResponse)) {
+          return cachedResponse;
+        }
+        return fetch(request)
+          .then((networkResponse) => {
+            if (isValidMediaResponse(networkResponse)) {
+              const responseClone = networkResponse.clone();
+              caches.open(MEDIA_CACHE_NAME).then((cache) => {
+                cache.put(request, responseClone);
+              });
+            }
+            return networkResponse;
+          })
+          .catch(() => {
+            return new Response(null, { status: 404 });
+          });
       })
     );
     return;
