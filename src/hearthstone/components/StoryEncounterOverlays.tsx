@@ -247,20 +247,19 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         </button>
       </div>
 
-      {/* Left Character Upper-Body Cutout (Protagonist / Ally — True Waist-Up `상반신` Capped Under 50% Height) */}
+      {/* Left Character Upper-Body Cutout (Protagonist / Ally — Large Waist-Up `상반신` 66%~78% Viewport Height!) */}
       <div
         data-testid="story-dialogue-left-portrait"
         style={{
           filter: isLeftSpeaking ? STICKER_OUTLINE_FILTER : DIMMED_OUTLINE_FILTER,
+          transformOrigin: 'bottom center',
           transform: isLeftSpeaking
-            ? `translate3d(-50%, ${talkBob ? '-9px' : '-4px'}, 0) scale(1.02)`
-            : 'translate3d(-50%, 4px, 0) scale(0.95)',
+            ? `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.03)`
+            : 'translate3d(-50%, 6px, 0) scale(0.96)',
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
         }}
-        className={`pointer-events-none absolute bottom-0 left-[27%] flex max-h-[48%] justify-center overflow-hidden sm:left-[28%] ${
-          encounter.leftSpriteUrl.includes('/characters/cutouts/')
-            ? 'h-[40%] items-start sm:h-[47%]'
-            : 'h-[38%] items-end sm:h-[47%]'
+        className={`pointer-events-none absolute -bottom-2.5 left-[25%] flex h-[68%] justify-center sm:left-[27%] sm:h-[78%] ${
+          encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
         } ${isLeftSpeaking ? 'z-20' : 'z-10'}`}
       >
         <img
@@ -268,25 +267,28 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
           alt={isKo ? encounter.leftNameKo : encounter.leftNameEn}
           draggable={false}
           className={`w-auto max-w-none select-none ${
-            encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'h-[155%]' : 'h-full'
+            encounter.leftSpriteUrl.includes('/characters/cutouts/')
+              ? 'h-[168%]'
+              : encounter.leftSpriteUrl.endsWith('kadan_upper.webp')
+                ? 'h-[122%]'
+                : 'h-full'
           }`}
         />
       </div>
 
-      {/* Right Character Upper-Body Cutout (Opponent / Boss — True Waist-Up `상반신` Capped Under 50% Height) */}
+      {/* Right Character Upper-Body Cutout (Opponent / Boss — Large Waist-Up `상반신` 66%~78% Viewport Height!) */}
       <div
         data-testid="story-dialogue-right-portrait"
         style={{
           filter: !isLeftSpeaking ? STICKER_OUTLINE_FILTER : DIMMED_OUTLINE_FILTER,
+          transformOrigin: 'bottom center',
           transform: !isLeftSpeaking
-            ? `translate3d(-50%, ${talkBob ? '-9px' : '-4px'}, 0) scale(1.02)`
-            : 'translate3d(-50%, 4px, 0) scale(0.95)',
+            ? `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.03)`
+            : 'translate3d(-50%, 6px, 0) scale(0.96)',
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease',
         }}
-        className={`pointer-events-none absolute bottom-0 left-[73%] flex max-h-[48%] justify-center overflow-hidden sm:left-[72%] ${
-          encounter.rightSpriteUrl.includes('/characters/cutouts/')
-            ? 'h-[40%] items-start sm:h-[47%]'
-            : 'h-[38%] items-end sm:h-[47%]'
+        className={`pointer-events-none absolute -bottom-2.5 left-[75%] flex h-[68%] justify-center sm:left-[73%] sm:h-[78%] ${
+          encounter.rightSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
         } ${!isLeftSpeaking ? 'z-20' : 'z-10'}`}
       >
         <img
@@ -294,7 +296,11 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
           alt={isKo ? encounter.rightNameKo : encounter.rightNameEn}
           draggable={false}
           className={`w-auto max-w-none select-none ${
-            encounter.rightSpriteUrl.includes('/characters/cutouts/') ? 'h-[155%]' : 'h-full'
+            encounter.rightSpriteUrl.includes('/characters/cutouts/')
+              ? 'h-[168%]'
+              : encounter.rightSpriteUrl.endsWith('kadan_upper.webp')
+                ? 'h-[122%]'
+                : 'h-full'
           }`}
         />
       </div>
@@ -508,7 +514,7 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
         </div>
       )}
 
-      {/* Protagonist Upper-Body Cutout (True Waist-Up `상반신` Capped Under 50% Height) */}
+      {/* Protagonist Upper-Body Cutout (Large Waist-Up `상반신` 70%~80% Viewport Height!) */}
       <div
         data-testid="story-victory-portrait"
         style={{
@@ -516,16 +522,15 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
             step === 'ITEM_CARD'
               ? 'brightness(0.28) blur(2px)'
               : STICKER_OUTLINE_FILTER,
+          transformOrigin: 'bottom center',
           transform:
             step === 'CHARACTER_LINE'
-              ? `translate3d(-50%, ${victoryTalkBob ? '-6px' : '0px'}, 0)`
+              ? `translate3d(-50%, ${victoryTalkBob ? '-7px' : '0px'}, 0)`
               : 'translate3d(-50%, 0, 0)',
           transition: 'filter 320ms ease, opacity 320ms ease, transform 140ms ease',
         }}
-        className={`pointer-events-none absolute bottom-0 left-1/2 flex max-h-[48%] justify-center overflow-hidden ${
-          encounter.leftSpriteUrl.includes('/characters/cutouts/')
-            ? 'h-[40%] items-start sm:h-[48%]'
-            : 'h-[38%] items-end sm:h-[48%]'
+        className={`pointer-events-none absolute -bottom-2.5 left-1/2 flex h-[70%] justify-center sm:h-[80%] ${
+          encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
         } ${
           step === 'ITEM_CARD' ? 'z-10 scale-98 opacity-45' : 'z-20 scale-100 opacity-100'
         }`}
@@ -535,7 +540,11 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
           alt={speakerName}
           draggable={false}
           className={`w-auto max-w-none select-none ${
-            encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'h-[155%]' : 'h-full'
+            encounter.leftSpriteUrl.includes('/characters/cutouts/')
+              ? 'h-[168%]'
+              : encounter.leftSpriteUrl.endsWith('kadan_upper.webp')
+                ? 'h-[122%]'
+                : 'h-full'
           }`}
         />
       </div>

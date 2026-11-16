@@ -541,4 +541,15 @@
     - `npx tsc --noEmit`, `npm run build` 성공 및 헤드리스 Chromium Playwright 통합 검증 통과(페이지 오류 0건).
     - 구글 시트 `개발개선점 상세`(`K4:L16`) 및 `4대페이지 기능별 실측판정`(`I10:I72`) 전수 완료 처리 및 로컬 커밋·구글 폼 보고 완료.
 
+## [2026-11-16 17:29 KST] [스토리모드 대사 화면(전투 전·승리 대사) 캐릭터 상반신 키 높이 화면 절반 이상(68%~80%) 확대 적용]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 스토리모드 대사 화면 캐릭터 상반신 비율 대폭 확대 ([`StoryEncounterOverlays.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/StoryEncounterOverlays.tsx))**:
+    - 기존 `max-h-[48%]`(`38%~47%`) 제한을 제거하고, 전투 전 교차 대사(`StoryDuelDialogueOverlay`)는 모바일 **`68%`** · 데스크톱 **`78%`**, 승리 대사(`StoryVictorySceneOverlay`)는 모바일 **`70%`** · 데스크톱 **`80%`** 높이로 상반신이 화면의 절반을 훌쩍 넘어 시원하게 꽉 차도록 확대.
+    - 7등신 전신 컷아웃(`/characters/cutouts/*.webp`)은 내부 `h-[168%]` 및 상단 정렬(`items-start`)로 정수리부터 허리·골반까지 큼직한 상반신이 표시되도록 조정하고, `kadan_upper.webp`의 상단 `18.6%` 투명 여백은 `h-[122%]`로 보정하여 제0화 허수아비 로봇 및 제1~40화 전 캐릭터의 시각적 키 높이를 일관되게 통일.
+    - 컨테이너 `overflow-hidden`으로 인한 외곽 스티커 테두리 잘림 현상을 해소하고 `transformOrigin: 'bottom center'` 및 `-bottom-2.5` 앵커링으로 토킹 바운스 시에도 하단 절단선이 노출되지 않도록 마감.
+  - **2. 빌드·타입 검증 및 구글 폼 보고**:
+    - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료 (`8.07s`).
+    - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
+
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*
