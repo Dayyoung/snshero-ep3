@@ -2,6 +2,21 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 11:13 KST] [`/stone.html` (및 `/game.html` 동기화) 상대 턴 진행 멈춤 데드락 및 `자동 ON` 자동플레이 미진행 버그 전수 해결 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 하수인·영웅 공격 직후 `attackLockRef` / `attackAnim` 의존성 누락으로 인한 턴 정지 데드락 해결 (`src/stone/screens/BattleScreen.tsx`, `src/hearthstone/screens/BattleScreen.tsx`)**:
+    - 기존 [`src/stone/screens/BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/BattleScreen.tsx)에서 `triggerPhysicalAttack`이 `0ms`에 `attackLockRef.current = true`를 걸고 `270ms`에 `setMatchState(next)`를 호출할 때 AI/자동플레이 `useEffect`가 `if (attackLockRef.current) return;`으로 조기 종료된 뒤, `500ms`에 `attackLockRef.current = false` 및 `setAttackAnim(null)`이 실행되어도 `useEffect` 의존성 배열에 `attackAnim`이 없어 다음 행동 타이머가 영구히 재등록되지 않던 결정적 데드락을 해결(`attackAnim` 의존성 추가 및 `tImpact` `try...finally` 보장).
+  - **2. 1초 밧줄 타이머·배너 해제 리렌더링에 의한 `setTimeout` 취소 원천 차단 (`actionStateKey` 정밀화)**:
+    - `matchState` 객체 참조 전체 대신 순수 전투 상태 시그니처(`actionStateKey` / `playerActionStateKey`: `phase`, `activeSide`, `turnNumber`, `history`, `chooseOnePrompt`, `trackingPrompt`, 양측 마나·체력·방어도·공격 횟수·무기·비밀·손패·하수인 세부 상태)만 구독하도록 변경하여 매 1초 `turnSecondsLeft` 감소 및 `bannerMessage`/`errorBanner` 해제 시 진행 중이던 AI/자동플레이 타이머가 취소·초기화되던 현상 제거.
+    - [`src/hearthstone/screens/BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx) 내 `playerActionStateKey` 및 Ep0 분기에서 존재하지 않던 필드명(`heroHealth`/`heroArmor`/`attacksRemaining`)을 실제 `PlayerBattleState`/`MinionInstance` 필드(`health`/`armor`/`attacksMadeThisTurn`/`permAttack`/`divineShield`)로 교정하여 천상의 보호막/얼음 방패 타격 직후에도 막힘 없이 진행되도록 보강.
+  - **3. 플레이어 `자동 ON` 시뮬레이션 구조 정상화 및 프롬프트·모달 자동 해소 (`src/stone/engine/aiController.ts`, `src/stone/screens/BattleScreen.tsx`)**:
+    - 기존 `simStateForPlayer`에서 `player`와 `opponent`를 억지로 뒤바꿔 시뮬레이션하면서 하수인 소유자(`owner`), 비밀, 사냥꾼 `추적`(`DS1_184`), 드루이드 `선택` 카드에서 오작동·멈춤이 발생하던 문제를 해결하기 위해 [`src/stone/engine/aiController.ts`](file:///Users/dayyoung/project/snshero/src/stone/engine/aiController.ts)의 `evaluateStateForAi` 및 `computeNextAiAction`이 `actorSide: 'OPPONENT' | 'PLAYER'`를 직접 지원하도록 개선(유효 대상 없는 선택 주문 제외 및 무진행 후보 필터링 포함).
+    - 플레이어 `자동 ON` 상태에서 멀리건(`4코스트 이상` 자동 교체 + 후공 동전 연출 + 멀리건 화면 내 `⚙ 자동플레이 ON/OFF` 버튼 추가), 드루이드 `선택`(`chooseOnePrompt`), 사냥꾼 `추적`(`trackingPrompt`) 팝업까지 모두 자동으로 즉시 해결하도록 구현하고, `자동 ON` 전환 시 열려 있던 카드 확대 모달(`zoomState`)/조준 상태(`selection`)를 자동 해제하며 무진행 예외 발생 시 안전하게 `endTurn()`으로 폴백하도록 방어 로직 추가.
+  - **4. 빌드 및 Playwright 다수 턴 실전 교전 검증 · 구글 폼 보고 완료**:
+    - `npx tsc --noEmit` 및 `npm run build` 에러 `0`건 통과.
+    - Playwright 실브라우저 검증에서 `/stone.html` 사냥꾼 덱으로 멀리건부터 `자동 ON` 활성화 후 5턴 이상 연속 아군/상대 교전·하수인 공격·턴 교대 무정지 진행 및 수동 전환 후 상대 공격 턴 왕복(`manual_opponent_turn_roundtrip_ok: true`, 콘솔/페이지 에러 `0`건), `/game.html` 다수 턴 자동플레이 정상 진행 확인 완료, 로컬 커밋 및 구글 폼 보고 제출 완료.
+
 ## [2026-11-16 09:16 KST] [`/stone.html` 오리지널 하스스톤 정밀 고증 업그레이드 및 `/game.html`(눈히어로) 전수 양방향 엔진·연출·UI 동기화 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

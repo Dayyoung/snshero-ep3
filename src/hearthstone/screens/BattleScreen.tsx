@@ -1443,23 +1443,26 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }, 115);
 
       const tImpact = window.setTimeout(() => {
-        // 주고받는 총 데미지 (공격 피해 + 반격으로 받은 피해) 비례 화면 흔들림 & 안드로이드 진동 강도 차등 적용
-        const exchangedDamage = Math.max(1, attackVal + counterDmg);
-        hsAudio.vibrateByDamage(exchangedDamage);
-        const latest = matchStateRef.current;
-        if (latest.phase === 'PLAYING') {
-          const sim = createEngine(latest);
-          const next = sim.performAttack(side, attackerId, defenderId);
-          setMatchState(next);
+        try {
+          // 주고받는 총 데미지 (공격 피해 + 반격으로 받은 피해) 비례 화면 흔들림 & 안드로이드 진동 강도 차등 적용
+          const exchangedDamage = Math.max(1, attackVal + counterDmg);
+          hsAudio.vibrateByDamage(exchangedDamage);
+          const latest = matchStateRef.current;
+          if (latest.phase === 'PLAYING') {
+            const sim = createEngine(latest);
+            const next = sim.performAttack(side, attackerId, defenderId);
+            setMatchState(next);
+          }
+          hsAudio.playSfx(
+            exchangedDamage >= 7 || attackVal >= 5 ? 'big_attack' : 'attack',
+            Math.min(1, 0.72 + Math.min(12, exchangedDamage) * 0.024),
+          );
+          triggerDamageImpact(exchangedDamage);
+        } finally {
+          setAttackAnim((prev) =>
+            prev && prev.id === animId ? { ...prev, phase: 'IMPACT_RETURN' } : prev,
+          );
         }
-        hsAudio.playSfx(
-          exchangedDamage >= 7 || attackVal >= 5 ? 'big_attack' : 'attack',
-          Math.min(1, 0.72 + Math.min(12, exchangedDamage) * 0.024),
-        );
-        triggerDamageImpact(exchangedDamage);
-        setAttackAnim((prev) =>
-          prev && prev.id === animId ? { ...prev, phase: 'IMPACT_RETURN' } : prev,
-        );
       }, 270);
 
       const tDone = window.setTimeout(() => {
@@ -1519,36 +1522,56 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const playerActionStateKey = useMemo(() => {
     const p = matchState.player;
     const o = matchState.opponent;
+    const serializeSide = (s: PlayerBattleState) =>
+      [
+        s.mana,
+        s.maxMana,
+        s.health,
+        s.armor,
+        s.tempAttack,
+        s.attacksMadeThisTurn,
+        s.heroPowerUsedThisTurn ? 1 : 0,
+        s.frozen ? 1 : 0,
+        s.weapon ? `${s.weapon.cardId}:${s.weapon.attack}:${s.weapon.durability}` : '',
+        s.secrets.length,
+        s.hand.map((h) => `${h.uid}:${h.costMod}`).join(','),
+        s.board
+          .map(
+            (m) =>
+              `${m.uid}:${m.attacksMadeThisTurn}:${m.permAttack}:${m.tempAttack}:${m.health}:${m.divineShield ? 1 : 0}:${m.frozen ? 1 : 0}:${m.stealth ? 1 : 0}:${m.taunt ? 1 : 0}`,
+          )
+          .join(','),
+      ].join(';');
+
     return [
       matchState.matchId,
       matchState.phase,
       matchState.activeSide,
       matchState.turnNumber,
-      p.mana,
-      p.hand.length,
-      p.board.length,
-      p.heroHealth,
-      p.heroArmor,
-      p.heroPowerUsedThisTurn ? 1 : 0,
-      p.heroAttacksRemaining,
-      p.board.map((m) => `${m.uid}:${m.attacksRemaining}:${m.attack}:${m.health}`).join(','),
-      o.mana,
-      o.hand.length,
-      o.board.length,
-      o.heroHealth,
-      o.heroArmor,
-      o.heroPowerUsedThisTurn ? 1 : 0,
-      o.heroAttacksRemaining,
-      o.board.map((m) => `${m.uid}:${m.attacksRemaining}:${m.attack}:${m.health}`).join(','),
+      matchState.history.length,
+      matchState.history[0]?.id || '',
       matchState.chooseOnePrompt ? 1 : 0,
       matchState.trackingPrompt ? 1 : 0,
+      serializeSide(p),
+      serializeSide(o),
     ].join('|');
   }, [matchState]);
+
+  useEffect(() => {
+    if (autoPlay) {
+      setSelection(null);
+      setZoomState(null);
+      setHandDrag(null);
+      handDragRef.current = null;
+      attackerDragRef.current = null;
+      document.body.classList.remove('hs-dragging-active');
+    }
+  }, [autoPlay]);
 
   // ==================== PLAYER AUTO-PLAY ENGINE (카단의 여정 기본 ON, 수동 전환 즉시 해제) ====================
   useEffect(() => {
     const cur = latestMatchRef.current;
-    if (!autoPlay || storyPhase !== 'CLOSED' || vsIntroActive) return;
+    if (!autoPlay || storyPhase !== 'CLOSED' || vsIntroActive || mulliganSwapping) return;
     if (cur.phase === 'GAME_OVER') return;
     if (attackAnim || attackLockRef.current) return;
 
@@ -1738,6 +1761,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     autoPlay,
     storyPhase,
     vsIntroActive,
+    mulliganSwapping,
     playerActionStateKey,
     selection,
     zoomState,
@@ -1753,6 +1777,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     const cur = latestMatchRef.current;
     if (
       storyPhase !== 'CLOSED' ||
+      vsIntroActive ||
+      mulliganSwapping ||
       cur.phase !== 'PLAYING' ||
       cur.activeSide !== 'OPPONENT'
     ) {
@@ -1779,7 +1805,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       } else if (plannedOpp.kind === 'PLAY_CARD' && ep0OpponentPlaysRef.current.length >= 1) {
         plannedOpp = { kind: 'END_TURN' };
       } else if (
-        cur.player.heroHealth <= 10 &&
+        cur.player.health <= 10 &&
         plannedOpp.kind === 'ATTACK' &&
         plannedOpp.defenderId === 'PLAYER_HERO'
       ) {
@@ -1811,7 +1837,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         } else if (action.kind === 'PLAY_CARD' && ep0OpponentPlaysRef.current.length >= 1) {
           action = { kind: 'END_TURN' };
         } else if (
-          snap.player.heroHealth <= 10 &&
+          snap.player.health <= 10 &&
           action.kind === 'ATTACK' &&
           action.defenderId === 'PLAYER_HERO'
         ) {
@@ -1913,6 +1939,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     return () => clearTimeout(timer);
   }, [
     storyPhase,
+    vsIntroActive,
+    mulliganSwapping,
     playerActionStateKey,
     mode,
     attackAnim,

@@ -666,10 +666,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   );
 
   const triggerPhysicalAttack = useCallback(
-    (side: 'PLAYER' | 'OPPONENT', attackerId: string, defenderId: string) => {
-      if (attackLockRef.current) return;
+    (side: 'PLAYER' | 'OPPONENT', attackerId: string, defenderId: string): boolean => {
+      if (attackLockRef.current) return false;
       const current = matchStateRef.current;
-      if (current.phase !== 'PLAYING') return;
+      if (current.phase !== 'PLAYING') return false;
 
       const atkPlayer = side === 'PLAYER' ? current.player : current.opponent;
       const enemySide = side === 'PLAYER' ? 'OPPONENT' : 'PLAYER';
@@ -681,12 +681,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const atkMinion = isHeroAttacker
         ? null
         : atkPlayer.board.find((m) => m.uid === attackerId) || null;
-      if (!isHeroAttacker && !atkMinion) return;
+      if (!isHeroAttacker && !atkMinion) return false;
 
       const defMinion = isHeroDefender
         ? null
         : defPlayer.board.find((m) => m.uid === defenderId) || null;
-      if (!isHeroDefender && !defMinion) return;
+      if (!isHeroDefender && !defMinion) return false;
 
       const w = window.innerWidth || 1280;
       const h = window.innerHeight || 720;
@@ -773,22 +773,25 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }, 115);
 
       const tImpact = window.setTimeout(() => {
-        const exchangedDamage = Math.max(1, attackVal + counterDmg);
-        hsAudio.vibrateByDamage(exchangedDamage);
-        const latest = matchStateRef.current;
-        if (latest.phase === 'PLAYING') {
-          const sim = createEngine(latest);
-          const next = sim.performAttack(side, attackerId, defenderId);
-          setMatchState(next);
+        try {
+          const exchangedDamage = Math.max(1, attackVal + counterDmg);
+          hsAudio.vibrateByDamage(exchangedDamage);
+          const latest = matchStateRef.current;
+          if (latest.phase === 'PLAYING') {
+            const sim = createEngine(latest);
+            const next = sim.performAttack(side, attackerId, defenderId);
+            setMatchState(next);
+          }
+          hsAudio.playSfx(
+            exchangedDamage >= 7 || attackVal >= 5 ? 'big_attack' : 'attack',
+            Math.min(1, 0.72 + Math.min(12, exchangedDamage) * 0.024),
+          );
+          triggerDamageImpact(exchangedDamage);
+        } finally {
+          setAttackAnim((prev) =>
+            prev && prev.id === animId ? { ...prev, phase: 'IMPACT_RETURN' } : prev,
+          );
         }
-        hsAudio.playSfx(
-          exchangedDamage >= 7 || attackVal >= 5 ? 'big_attack' : 'attack',
-          Math.min(1, 0.72 + Math.min(12, exchangedDamage) * 0.024),
-        );
-        triggerDamageImpact(exchangedDamage);
-        setAttackAnim((prev) =>
-          prev && prev.id === animId ? { ...prev, phase: 'IMPACT_RETURN' } : prev,
-        );
       }, 270);
 
       const tDone = window.setTimeout(() => {
@@ -802,6 +805,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         tImpact,
         tDone,
       ];
+      return true;
     },
     [triggerDamageImpact],
   );
@@ -830,111 +834,242 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     [],
   );
 
-  // Step-by-Step AI Turn Execution Loop (Paced so Big Card Showcase is clearly readable!)
+  // Pure Gameplay Action Signature (Ignores 1s rope ticks, banner fades, and VFX array churn so AI/Auto-Play timers are NEVER cancelled mid-step!)
+  const actionStateKey = useMemo(() => {
+    const p = matchState.player;
+    const o = matchState.opponent;
+    const serializeSide = (s: typeof p) =>
+      [
+        s.mana,
+        s.maxMana,
+        s.health,
+        s.armor,
+        s.tempAttack,
+        s.attacksMadeThisTurn,
+        s.heroPowerUsedThisTurn ? 1 : 0,
+        s.frozen ? 1 : 0,
+        s.weapon ? `${s.weapon.cardId}:${s.weapon.attack}:${s.weapon.durability}` : '',
+        s.secrets.length,
+        s.hand.map((h) => `${h.uid}:${h.costMod}`).join(','),
+        s.board
+          .map(
+            (m) =>
+              `${m.uid}:${m.attacksMadeThisTurn}:${m.permAttack}:${m.tempAttack}:${m.health}:${m.divineShield ? 1 : 0}:${m.frozen ? 1 : 0}:${m.stealth ? 1 : 0}:${m.taunt ? 1 : 0}`,
+          )
+          .join(','),
+      ].join(';');
+
+    return [
+      matchState.matchId,
+      matchState.phase,
+      matchState.activeSide,
+      matchState.turnNumber,
+      matchState.history.length,
+      matchState.history[0]?.id || '',
+      matchState.chooseOnePrompt ? 1 : 0,
+      matchState.trackingPrompt ? 1 : 0,
+      serializeSide(p),
+      serializeSide(o),
+    ].join('|');
+  }, [matchState]);
+
+  // Step-by-Step Opponent AI Turn Execution Loop (Immune to timer-tick cancellation & attackLock deadlocks!)
   useEffect(() => {
-    if (matchState.phase !== 'PLAYING' || matchState.activeSide !== 'OPPONENT') {
-      setAiHighlightText(null);
+    const cur = matchStateRef.current;
+    if (
+      vsIntroActive ||
+      mulliganSwapping ||
+      cur.phase !== 'PLAYING' ||
+      cur.activeSide !== 'OPPONENT'
+    ) {
+      if (cur.activeSide !== 'PLAYER' && !attackAnim) setAiHighlightText(null);
       return;
     }
-    if (attackLockRef.current) return;
+    if (attackAnim || attackLockRef.current) return;
 
     const difficulty = mode === 'PRACTICE_NORMAL' || mode === 'TUTORIAL' ? 'NORMAL' : 'EXPERT';
     const timer = window.setTimeout(() => {
-      const action: AiAction = computeNextAiAction(matchState, difficulty);
-      const sim = createEngine(matchState);
+      if (attackLockRef.current) return;
+      const snap = matchStateRef.current;
+      if (snap.phase !== 'PLAYING' || snap.activeSide !== 'OPPONENT') return;
 
-      if ( action.kind === 'PLAY_CARD' ) {
-        const def = cardDb.mustGetCard(action.cardId);
-        hsAudio.playSfx('card_place', 0.85);
-        setAiHighlightText(
-          def.mechanics.includes('SECRET')
-            ? `${matchState.opponent.heroNameKo}: [? 비밀] 시전!`
-            : `${matchState.opponent.heroNameKo}: [${def.name}] 사용!`,
-        );
-        setMatchState(
-          sim.playCardFromHand('OPPONENT', action.handUid, {
-            targetId: action.targetId,
-            insertIndex: action.insertIndex,
-            chooseOptionIndex: action.chooseOptionIndex,
-          }),
-        );
-      } else if (action.kind === 'HERO_POWER') {
-        hsAudio.playSfx('hero_power', 0.85);
-        setAiHighlightText(
-          `${matchState.opponent.heroNameKo}: 영웅 능력 [${matchState.opponent.heroPowerNameKo}]!`,
-        );
-        setMatchState(sim.useHeroPower('OPPONENT', action.targetId));
-      } else if (action.kind === 'ATTACK') {
-        triggerPhysicalAttack('OPPONENT', action.attackerId, action.defenderId);
-      } else {
-        hsAudio.playSfx('end_turn', 0.85);
-        setAiHighlightText(null);
-        setMatchState(sim.endTurn());
-      }
-    }, 960);
-
-    return () => clearTimeout(timer);
-  }, [matchState, mode, triggerPhysicalAttack]);
-
-  // Step-by-Step Player Auto-Play Loop (when autoPlay === true)
-  useEffect(() => {
-    if (!autoPlay || vsIntroActive) return;
-    if (matchState.phase === 'MULLIGAN') {
-      const t = window.setTimeout(() => {
-        const sim = createEngine(matchState);
-        setMatchState(sim.confirmMulligan([]));
-      }, 420);
-      return () => clearTimeout(t);
-    }
-    if (matchState.phase !== 'PLAYING' || matchState.activeSide !== 'PLAYER') return;
-    if (attackLockRef.current) return;
-
-    const timer = window.setTimeout(() => {
-      const simStateForPlayer = {
-        ...matchState,
-        activeSide: 'OPPONENT' as const,
-        player: matchState.opponent,
-        opponent: matchState.player,
-      };
-      const action: AiAction = computeNextAiAction(simStateForPlayer, 'EXPERT');
-      const sim = createEngine(matchState);
-
-      const mapTarget = (tid?: string) => {
-        if (!tid) return undefined;
-        if (tid === 'OPPONENT_HERO') return 'PLAYER_HERO';
-        if (tid === 'PLAYER_HERO') return 'OPPONENT_HERO';
-        return tid;
-      };
+      const action: AiAction = computeNextAiAction(snap, difficulty, 'OPPONENT');
+      const sim = createEngine(snap);
 
       if (action.kind === 'PLAY_CARD') {
         const def = cardDb.mustGetCard(action.cardId);
         hsAudio.playSfx('card_place', 0.85);
-        setAiHighlightText(`자동플레이: [${def.name}] 사용!`);
-        setMatchState(
-          sim.playCardFromHand('PLAYER', action.handUid, {
-            targetId: mapTarget(action.targetId),
-            insertIndex: action.insertIndex,
-            chooseOptionIndex: action.chooseOptionIndex,
-          }),
+        setAiHighlightText(
+          def.mechanics.includes('SECRET')
+            ? `${snap.opponent.heroNameKo}: [? 비밀] 시전!`
+            : `${snap.opponent.heroNameKo}: [${def.name}] 사용!`,
         );
+        const next = sim.playCardFromHand('OPPONENT', action.handUid, {
+          targetId: action.targetId,
+          insertIndex: action.insertIndex,
+          chooseOptionIndex: action.chooseOptionIndex,
+        });
+        if (next.errorBanner || next.history.length <= snap.history.length) {
+          setAiHighlightText(null);
+          setMatchState(createEngine(snap).endTurn());
+          return;
+        }
+        setMatchState(next);
       } else if (action.kind === 'HERO_POWER') {
         hsAudio.playSfx('hero_power', 0.85);
-        setAiHighlightText(`자동플레이: 영웅 능력 [${matchState.player.heroPowerNameKo}]!`);
-        setMatchState(sim.useHeroPower('PLAYER', mapTarget(action.targetId)));
+        setAiHighlightText(
+          `${snap.opponent.heroNameKo}: 영웅 능력 [${snap.opponent.heroPowerNameKo}]!`,
+        );
+        const next = sim.useHeroPower('OPPONENT', action.targetId);
+        if (next.errorBanner || next.history.length <= snap.history.length) {
+          setAiHighlightText(null);
+          setMatchState(createEngine(snap).endTurn());
+          return;
+        }
+        setMatchState(next);
       } else if (action.kind === 'ATTACK') {
-        const mappedAtk =
-          action.attackerId === 'OPPONENT_HERO' ? 'PLAYER_HERO' : action.attackerId;
-        const mappedDef = mapTarget(action.defenderId) || 'OPPONENT_HERO';
-        triggerPhysicalAttack('PLAYER', mappedAtk, mappedDef);
+        const started = triggerPhysicalAttack('OPPONENT', action.attackerId, action.defenderId);
+        if (!started) {
+          setAiHighlightText(null);
+          setMatchState(sim.endTurn());
+        }
       } else {
         hsAudio.playSfx('end_turn', 0.85);
         setAiHighlightText(null);
         setMatchState(sim.endTurn());
       }
-    }, 640);
+    }, 820);
 
-    return () => clearTimeout(timer);
-  }, [autoPlay, vsIntroActive, matchState, triggerPhysicalAttack]);
+    return () => window.clearTimeout(timer);
+  }, [actionStateKey, mode, attackAnim, vsIntroActive, mulliganSwapping, triggerPhysicalAttack]);
+
+  // Step-by-Step Player Auto-Play Loop (when autoPlay === true)
+  useEffect(() => {
+    const cur = matchStateRef.current;
+    if (!autoPlay || vsIntroActive || mulliganSwapping) return;
+    if (cur.phase === 'GAME_OVER') return;
+    if (attackAnim || attackLockRef.current) return;
+
+    // 1. Auto-Mulligan: swap cards costing >= 4 and begin duel!
+    if (cur.phase === 'MULLIGAN') {
+      const t = window.setTimeout(() => {
+        const snap = matchStateRef.current;
+        if (snap.phase !== 'MULLIGAN') return;
+        const replaceUids = snap.player.hand
+          .filter((hc) => cardDb.mustGetCard(hc.cardId).cost >= 4)
+          .map((hc) => hc.uid);
+        hsAudio.playSfx('box_press', 0.8);
+        hsAudio.playBgm(Math.random() < 0.5 ? 'duel_1' : 'duel_2');
+        if (snap.firstPlayer === 'OPPONENT') {
+          hsAudio.playInnkeeper('coin');
+          setCoinGiftShowcase(true);
+          window.setTimeout(() => setCoinGiftShowcase(false), 1750);
+        }
+        const sim = createEngine(snap);
+        setMatchState(sim.confirmMulligan(replaceUids));
+      }, 520);
+      return () => window.clearTimeout(t);
+    }
+
+    if (cur.phase !== 'PLAYING' || cur.activeSide !== 'PLAYER') return;
+    if (zoomState) return;
+    if (selection) setSelection(null);
+
+    const timer = window.setTimeout(() => {
+      if (attackLockRef.current) return;
+      const snap = matchStateRef.current;
+      if (snap.phase !== 'PLAYING' || snap.activeSide !== 'PLAYER') return;
+      const sim = createEngine(snap);
+
+      // Resolve pending Druid Choose-One prompt automatically
+      if (snap.chooseOnePrompt) {
+        const prompt = snap.chooseOnePrompt;
+        const viableOpt =
+          prompt.options.find((o) => !o.needsTarget || o.validTargets.length > 0) ||
+          prompt.options[0];
+        const targetId = viableOpt.needsTarget ? viableOpt.validTargets[0] : undefined;
+        hsAudio.playSfx('card_place', 0.8);
+        const next = sim.playCardFromHand('PLAYER', prompt.sourceHandUid, {
+          chooseOptionIndex: viableOpt.index,
+          insertIndex: prompt.insertIndex,
+          targetId,
+        });
+        if (next.errorBanner) {
+          setMatchState({ ...snap, chooseOnePrompt: null, errorBanner: null });
+          return;
+        }
+        setMatchState(next);
+        return;
+      }
+
+      // Resolve pending Hunter Tracking prompt automatically
+      if (snap.trackingPrompt) {
+        const pickId = snap.trackingPrompt.cards[0];
+        hsAudio.playSfx('card_place', 0.8);
+        setMatchState(sim.resolveTrackingChoice(pickId));
+        return;
+      }
+
+      const action: AiAction = computeNextAiAction(snap, 'EXPERT', 'PLAYER');
+
+      if (action.kind === 'PLAY_CARD') {
+        const def = cardDb.mustGetCard(action.cardId);
+        hsAudio.playSfx('card_place', 0.85);
+        setAiHighlightText(`⚡ 자동플레이: [${def.name}] 사용!`);
+        const next = sim.playCardFromHand('PLAYER', action.handUid, {
+          targetId: action.targetId,
+          insertIndex: action.insertIndex,
+          chooseOptionIndex: action.chooseOptionIndex,
+        });
+        if (
+          next.errorBanner ||
+          (next.history.length <= snap.history.length &&
+            !next.chooseOnePrompt &&
+            !next.trackingPrompt)
+        ) {
+          setAiHighlightText(null);
+          setMatchState(createEngine(snap).endTurn());
+          return;
+        }
+        if (next.chooseOnePrompt === null) {
+          if (def.type === 'MINION') hsStorage.recordQuestProgress('MINION', 1);
+          else if (def.type === 'SPELL') hsStorage.recordQuestProgress('SPELL', 1);
+        }
+        setMatchState(next);
+      } else if (action.kind === 'HERO_POWER') {
+        hsAudio.playSfx('hero_power', 0.85);
+        setAiHighlightText(`⚡ 자동플레이: 영웅 능력 [${snap.player.heroPowerNameKo}]!`);
+        const next = sim.useHeroPower('PLAYER', action.targetId);
+        if (next.errorBanner || next.history.length <= snap.history.length) {
+          setAiHighlightText(null);
+          setMatchState(createEngine(snap).endTurn());
+          return;
+        }
+        setMatchState(next);
+      } else if (action.kind === 'ATTACK') {
+        const started = triggerPhysicalAttack('PLAYER', action.attackerId, action.defenderId);
+        if (!started) {
+          setAiHighlightText(null);
+          setMatchState(sim.endTurn());
+        }
+      } else {
+        hsAudio.playSfx('end_turn', 0.85);
+        setAiHighlightText(null);
+        setMatchState(sim.endTurn());
+      }
+    }, 580);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    autoPlay,
+    vsIntroActive,
+    mulliganSwapping,
+    actionStateKey,
+    selection,
+    zoomState,
+    attackAnim,
+    triggerPhysicalAttack,
+  ]);
 
   const updateFriendlyInsertIndex = useCallback((clientX: number) => {
     if (!friendlyRowRef.current) return 0;
@@ -2634,7 +2769,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           onClick={(e) => {
             e.stopPropagation();
             hsAudio.playSfx('ui_click', 0.8);
-            setAutoPlay((prev) => !prev);
+            setAutoPlay((prev) => {
+              const next = !prev;
+              if (next) {
+                setSelection(null);
+                setZoomState(null);
+                setHandDrag(null);
+                handDragRef.current = null;
+                attackerDragRef.current = null;
+                document.body.classList.remove('hs-dragging-active');
+              }
+              return next;
+            });
           }}
           className={`rounded-xl border px-2 py-1 text-[10.5px] font-extrabold transition sm:px-2.5 sm:text-xs ${
             autoPlay
@@ -3467,14 +3613,36 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             })}
           </div>
 
-          <button
-            type="button"
-            disabled={mulliganSwapping}
-            onClick={confirmMulliganNow}
-            className="hs-arcane-btn hs-title hs-outline-sm rounded-2xl px-12 py-2.5 text-xl font-extrabold tracking-widest text-white shadow-[0_12px_28px_rgba(0,0,0,0.9)] disabled:opacity-75 sm:px-16 sm:py-3 sm:text-2xl"
-          >
-            {mulliganSwapping ? '교체 중...' : '확인'}
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              disabled={mulliganSwapping}
+              onClick={confirmMulliganNow}
+              className="hs-arcane-btn hs-title hs-outline-sm rounded-2xl px-12 py-2.5 text-xl font-extrabold tracking-widest text-white shadow-[0_12px_28px_rgba(0,0,0,0.9)] disabled:opacity-75 sm:px-16 sm:py-3 sm:text-2xl"
+            >
+              {mulliganSwapping ? '교체 중...' : '확인'}
+            </button>
+            <button
+              type="button"
+              data-testid="toggle-autoplay-mulligan"
+              data-autoplay-active={autoPlay ? 'true' : 'false'}
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.8);
+                setAutoPlay((prev) => {
+                  const next = !prev;
+                  if (next) setZoomState(null);
+                  return next;
+                });
+              }}
+              className={`flex min-h-[48px] items-center gap-2 rounded-2xl border-2 px-5 py-2.5 text-sm font-extrabold shadow-xl transition hover:scale-105 sm:text-base ${
+                autoPlay
+                  ? 'border-emerald-300 bg-gradient-to-b from-emerald-600 via-teal-800 to-emerald-950 text-white shadow-[0_0_18px_rgba(52,211,153,0.75)]'
+                  : 'border-[#c8a158]/80 bg-gradient-to-b from-stone-800 to-stone-950 text-amber-200 hover:border-amber-300'
+              }`}
+            >
+              <span>{autoPlay ? '⚙ 자동플레이 ON' : '⚙ 자동플레이 OFF'}</span>
+            </button>
+          </div>
         </div>
       )}
 

@@ -506,9 +506,13 @@ export function computeNextAiAction(
 
     if (check.hasChooseOne && spec?.chooseOne) {
       for (const optIdx of [0, 1] as const) {
+        const sub = spec.chooseOne[optIdx];
         const simPreview = createEngine(rawState);
         simPreview.playCardFromHand(actorSide, hc.uid, { insertIndex: insertPositions[0] });
         const promptOpt = simPreview.state.chooseOnePrompt?.options[optIdx];
+        if (def.type === 'SPELL' && sub.targetKind !== 'NONE' && (!promptOpt || promptOpt.validTargets.length === 0)) {
+          continue;
+        }
         const targets =
           promptOpt && promptOpt.needsTarget ? promptOpt.validTargets : [undefined];
 
@@ -519,6 +523,9 @@ export function computeNextAiAction(
             targetId: tid,
             insertIndex: insertPositions[0],
           });
+          if (sim.state.errorBanner || sim.state.history.length <= rawState.history.length) {
+            continue;
+          }
           const sc = evaluateStateForAi(sim.state, actorSide) + 1.2;
           candidates.push({
             action: {
@@ -544,6 +551,12 @@ export function computeNextAiAction(
           targetId: tid,
           insertIndex: pos,
         });
+        if (sim.state.trackingPrompt && sim.state.trackingPrompt.cards.length > 0) {
+          sim.resolveTrackingChoice(sim.state.trackingPrompt.cards[0]);
+        }
+        if (sim.state.errorBanner || sim.state.history.length <= rawState.history.length) {
+          continue;
+        }
         let sc = evaluateStateForAi(sim.state, actorSide);
         if (def.type === 'MINION') sc += 1.6 + def.cost * 0.35;
         if (def.mechanics.includes('SECRET')) sc += 2.2;
