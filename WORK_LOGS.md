@@ -2,6 +2,15 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 16:39 KST] [`https://snshero.com/stone.html?lang=ko` 한글판 유튜브 본편(16:9) · 쇼츠(9:16) · 한글 썸네일 · 후킹 제목/설명 제작 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **한국어 UI 실플레이 녹화 (`?lang=ko`)**: Playwright로 데스크톱(`1280x720`) 4개 화면 및 모바일(`540x960`→`720x1280`) 한국어 하스스톤 웹게임 녹화.
+  - **한글 유튜브 본편 (`stone_youtube_ko_16x9.mp4`, 87.50초) & 한글 쇼츠 (`stone_youtube_shorts_ko_9x16.mp4`, 39.13초)**: 쾌활한 한국어 남성 음성(`ko-KR-InJoonNeural`, `rate=+15%`, `pitch=+4Hz`) + 정품 BGM/SFX 믹싱 + `NotoSansKR` 볼드/블랙 자막 적용.
+  - **한국어 유튜브 썸네일 (`1920x1080`)**: `stone_youtube_thumbnail_ko.png` / `.jpg` 및 복붙용 한글 후킹 제목/설명/타임스탬프/고정 댓글 리포트 생성.
+- **검증 및 보고**:
+  - HyperFrames `check --json`(0 에러) · `audio --json` · `ffprobe` · 디코드 프레임 검수 및 구글 폼 보고 완료.
+
 ## [2026-11-16 16:29 KST] [마케팅 분석 로그(MKT-001~MKT-034) 코드 반영 및 스프레드시트 상태 갱신 완료]
 - **작업자**: `Antigravity Assistant`
 - **연동 스프레드시트**: `1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU` (`마케팅 분석 로그` / `요약 대시보드`)
