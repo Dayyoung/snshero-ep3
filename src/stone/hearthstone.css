@@ -402,3 +402,61 @@
   }
 }
 
+/* Mulligan: Replaced Card Flip-Away & Fresh Card Deal-In */
+@keyframes hsMulliganSwapOut {
+  0% {
+    transform: perspective(900px) rotateY(0deg) translateY(0px) scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: perspective(900px) rotateY(90deg) translateY(-18px) scale(0.92);
+    opacity: 0.9;
+  }
+  100% {
+    transform: perspective(900px) rotateY(160deg) translateY(-70px) scale(0.55);
+    opacity: 0;
+  }
+}
+
+@keyframes hsMulliganDealIn {
+  0% {
+    transform: perspective(900px) translate3d(24vw, -18vh, 0) rotateY(-80deg) scale(0.5);
+    opacity: 0;
+  }
+  65% {
+    transform: perspective(900px) translate3d(0, 4px, 0) rotateY(6deg) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(900px) translate3d(0, 0, 0) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Burned / Milled Card Fiery Singe Glow */
+@keyframes hsCardBurnPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.95)) drop-shadow(0 0 26px rgba(220, 38, 38, 0.85));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(254, 240, 138, 1)) drop-shadow(0 0 38px rgba(239, 68, 68, 1)) brightness(1.12);
+  }
+}
+
+/* Interactive Board Corner Toy Click Bounce */
+@keyframes hsToyBounce {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.24) rotate(-8deg);
+  }
+  65% {
+    transform: scale(0.92) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+

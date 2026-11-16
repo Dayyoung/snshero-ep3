@@ -582,7 +582,15 @@ class SnsHeroCardAudioEngine {
       | 'ROPE_TICK'
       | 'ARMOR'
       | 'FATIGUE'
-      | 'LEGENDARY_FANFARE',
+      | 'LEGENDARY_FANFARE'
+      | 'DEATH_CRACK'
+      | 'CARD_BURN'
+      | 'POISON'
+      | 'TOY_BELL'
+      | 'TOY_CATAPULT'
+      | 'TOY_RADISH'
+      | 'TOY_DRUM'
+      | 'TOY_SPLASH',
   ) {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
     const ctx = this.getAudioCtx();
@@ -665,6 +673,37 @@ class SnsHeroCardAudioEngine {
         tone(587.33, 587.33, 0.78, 'triangle', 0.09);
         tone(739.99, 739.99, 0.82, 'sine', 0.14);
         tone(880.0, 1174.66, 0.85, 'sine', 0.18);
+        break;
+      case 'DEATH_CRACK':
+        tone(190, 48, 0.28, 'sawtooth', 0);
+        tone(620, 140, 0.16, 'triangle', 0.03);
+        break;
+      case 'CARD_BURN':
+        tone(340, 85, 0.36, 'sawtooth', 0);
+        tone(920, 210, 0.26, 'triangle', 0.05);
+        break;
+      case 'POISON':
+        tone(460, 720, 0.16, 'sine', 0);
+        tone(680, 290, 0.24, 'triangle', 0.08);
+        break;
+      case 'TOY_BELL':
+        tone(1046.5, 1046.5, 0.52, 'sine', 0);
+        tone(1567.98, 1567.98, 0.44, 'triangle', 0.06);
+        break;
+      case 'TOY_CATAPULT':
+        tone(140, 420, 0.22, 'sawtooth', 0);
+        tone(160, 45, 0.38, 'triangle', 0.24);
+        break;
+      case 'TOY_RADISH':
+        tone(320, 780, 0.16, 'sine', 0);
+        break;
+      case 'TOY_DRUM':
+        tone(115, 42, 0.28, 'triangle', 0);
+        tone(145, 52, 0.24, 'sine', 0.12);
+        break;
+      case 'TOY_SPLASH':
+        tone(680, 240, 0.22, 'sine', 0);
+        tone(980, 420, 0.18, 'triangle', 0.06);
         break;
     }
   }

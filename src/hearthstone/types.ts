@@ -518,8 +518,19 @@ export interface ActionHistoryItem {
   cardId: string;
   title: string;
   detail: string;
-  kind: 'PLAY_MINION' | 'CAST_SPELL' | 'EQUIP_WEAPON' | 'HERO_POWER' | 'ATTACK' | 'SECRET_TRIGGER' | 'TRIGGER';
+  kind:
+    | 'PLAY_MINION'
+    | 'CAST_SPELL'
+    | 'EQUIP_WEAPON'
+    | 'HERO_POWER'
+    | 'ATTACK'
+    | 'SECRET_TRIGGER'
+    | 'TRIGGER'
+    | 'FATIGUE'
+    | 'MILL_BURN';
   targetName?: string;
+  isHiddenSecret?: boolean;
+  fatigueDamage?: number;
 }
 
 export type VfxKind =
@@ -544,7 +555,19 @@ export type VfxKind =
   | 'ARMOR_POP'
   | 'BUFF_POP'
   | 'LEGENDARY_SLAM'
-  | 'HERO_EXPLODE';
+  | 'HERO_EXPLODE'
+  | 'MINION_SUMMON'
+  | 'MINION_DEATH'
+  | 'FATIGUE_HIT'
+  | 'MILL_BURN'
+  | 'FREEZE_SHARD'
+  | 'POISON_VENOM'
+  | 'TOY_BELL'
+  | 'TOY_CATAPULT'
+  | 'TOY_SPARKS'
+  | 'TOY_RADISH'
+  | 'TOY_SPLASH'
+  | 'TOY_DRUM';
 
 export interface VfxEvent {
   id: string;

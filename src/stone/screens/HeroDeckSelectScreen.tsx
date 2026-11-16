@@ -83,6 +83,22 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const hero = CLASSIC_HEROES[selectedDeck.heroClass];
   const isPractice = mode === 'PRACTICE_NORMAL' || mode === 'PRACTICE_EXPERT';
 
+  const selectedDeckStats = useMemo(() => {
+    const curve = [0, 0, 0, 0, 0, 0, 0, 0];
+    let minions = 0;
+    let spells = 0;
+    let weapons = 0;
+    for (const cid of selectedDeck.cards) {
+      const def = cardDb.getCard(cid);
+      if (!def) continue;
+      curve[Math.min(7, def.cost)] += 1;
+      if (def.type === 'MINION') minions += 1;
+      else if (def.type === 'SPELL') spells += 1;
+      else if (def.type === 'WEAPON') weapons += 1;
+    }
+    return { curve, minions, spells, weapons };
+  }, [selectedDeck]);
+
   useEffect(() => {
     if (!matching) return;
     let tick = 0;
@@ -353,6 +369,39 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 <b className="text-sky-300">영웅 능력 [{hero.heroPowerNameKo}]:</b>{' '}
                 {hero.heroPowerTextKo}
               </div>
+            </div>
+          </div>
+
+          {/* Selected Deck Mana Curve (0 ~ 7+) & Minion/Spell/Weapon Breakdown */}
+          <div className="relative z-10 mt-2 rounded-2xl border border-[#c8a158]/40 bg-black/40 px-3 py-2">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1 text-[10.5px] font-extrabold">
+              <span className="text-amber-200">덱 마나 커브</span>
+              <span className="text-sky-200">
+                하수인 {selectedDeckStats.minions} · 주문 {selectedDeckStats.spells}
+                {selectedDeckStats.weapons > 0 ? ` · 무기 ${selectedDeckStats.weapons}` : ''}
+              </span>
+            </div>
+            <div className="flex h-11 items-end gap-1">
+              {selectedDeckStats.curve.map((cnt, costBucket) => {
+                const maxBar = Math.max(6, ...selectedDeckStats.curve);
+                const hPct = Math.round((cnt / maxBar) * 100);
+                return (
+                  <div key={costBucket} className="flex flex-1 flex-col items-center">
+                    <span className="mb-0.5 h-2.5 text-[8.5px] font-extrabold text-amber-200">
+                      {cnt > 0 ? cnt : ''}
+                    </span>
+                    <div className="flex h-6 w-full items-end overflow-hidden rounded-t border border-amber-500/25 bg-stone-900/95">
+                      <div
+                        style={{ height: `${hPct}%` }}
+                        className="w-full rounded-t bg-gradient-to-t from-blue-700 via-sky-500 to-sky-200 transition-all"
+                      />
+                    </div>
+                    <span className="hs-num mt-0.5 text-[9px] text-sky-200">
+                      {costBucket === 7 ? '7+' : costBucket}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

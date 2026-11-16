@@ -836,11 +836,13 @@ export interface HeroZoneProps {
   canUseHeroPower: boolean;
   isHeroPowerSelected: boolean;
   isDefeated?: boolean;
+  isSquelched?: boolean;
   emoteBubbleText?: string | null;
   onClickHero: () => void;
   onClickHeroPower: () => void;
   onHeroPointerDown?: (e: React.PointerEvent) => void;
   onHeroPowerPointerDown?: (e: React.PointerEvent) => void;
+  onHeroContextMenu?: (e: React.MouseEvent) => void;
 }
 
 export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
@@ -853,11 +855,13 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
   canUseHeroPower,
   isHeroPowerSelected,
   isDefeated = false,
+  isSquelched = false,
   emoteBubbleText,
   onClickHero,
   onClickHeroPower,
   onHeroPointerDown,
   onHeroPowerPointerDown,
+  onHeroContextMenu,
 }) => {
   const entityId = isFriendly ? 'PLAYER_HERO' : 'OPPONENT_HERO';
   const heroPowerEntityId = isFriendly ? 'PLAYER_HERO_POWER' : 'OPPONENT_HERO_POWER';
@@ -923,6 +927,13 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
       <div
         data-hs-entity={entityId}
         onPointerDown={onHeroPointerDown}
+        onContextMenu={(e) => {
+          if (onHeroContextMenu) {
+            e.preventDefault();
+            e.stopPropagation();
+            onHeroContextMenu(e);
+          }
+        }}
         onClick={(e) => {
           e.stopPropagation();
           onClickHero();
@@ -1007,6 +1018,11 @@ export const HeroPortraitZone: React.FC<HeroZoneProps> = React.memo(({
           {player.immuneThisTurn && (
             <div className="hs-outline-sm pointer-events-none absolute inset-x-0 top-1.5 text-center text-[8.5px] font-black text-yellow-200 sm:top-2 sm:text-[10px]">
               면역
+            </div>
+          )}
+          {isSquelched && !isFriendly && (
+            <div className="pointer-events-none absolute left-1/2 top-1 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-stone-400/75 bg-stone-950/92 px-1.5 py-0.5 text-[8px] font-extrabold text-stone-200 shadow">
+              차단됨
             </div>
           )}
           {/* Defeated Fiery Fracture Cracks Overlay */}

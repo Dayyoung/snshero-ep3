@@ -42,7 +42,7 @@ interface FloatingBadge {
   y: number;
   vy: number;
   text: string;
-  subKind: 'DAMAGE' | 'HEAL' | 'ARMOR' | 'BUFF' | 'BANNER';
+  subKind: 'DAMAGE' | 'HEAL' | 'ARMOR' | 'BUFF' | 'BANNER' | 'SKULL';
   life: number;
   maxLife: number;
 }
@@ -56,8 +56,6 @@ export function recordEntityStagePosition(entityId: string, pos: { x: number; y:
 function getEntityCenter(entityId?: string): { x: number; y: number } {
   const { width: w, height: h } = getStageSize();
   if (!entityId) return { x: w * 0.5, y: h * 0.46 };
-  const cached = lastKnownEntityCenters.get(entityId);
-  if (cached) return cached;
 
   const el = document.querySelector(`[data-hs-entity="${entityId}"]`);
   if (el) {
@@ -65,8 +63,18 @@ function getEntityCenter(entityId?: string): { x: number; y: number } {
     lastKnownEntityCenters.set(entityId, pos);
     return pos;
   }
+
+  const cached = lastKnownEntityCenters.get(entityId);
+  if (cached) return cached;
+
   if (entityId === 'PLAYER_HERO') return { x: w * 0.5, y: h * 0.77 };
   if (entityId === 'OPPONENT_HERO') return { x: w * 0.5, y: h * 0.17 };
+  if (entityId === 'PLAYER_DECK') return { x: w * 0.94, y: h * 0.62 };
+  if (entityId === 'OPPONENT_DECK') return { x: w * 0.94, y: h * 0.31 };
+  if (entityId === 'TOY_TL') return { x: w * 0.08, y: h * 0.12 };
+  if (entityId === 'TOY_TR') return { x: w * 0.92, y: h * 0.12 };
+  if (entityId === 'TOY_BL') return { x: w * 0.08, y: h * 0.82 };
+  if (entityId === 'TOY_BR') return { x: w * 0.92, y: h * 0.82 };
   return { x: w * 0.5, y: h * 0.46 };
 }
 
@@ -515,6 +523,245 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
             ensureLoopRef.current();
           }
           break;
+
+        case 'MINION_SUMMON':
+          spawnRing(targetPos.x, targetPos.y + 8, '#fde68a', 76);
+          spawnBurst(
+            targetPos.x,
+            targetPos.y + 10,
+            12,
+            ['#fef3c7', '#d6d3d1', '#a8a29e', '#fbbf24'],
+            4.8,
+            6,
+            'CIRCLE',
+            0.04,
+          );
+          break;
+
+        case 'MINION_DEATH':
+          hsAudio.playProceduralVfxSound('DEATH_CRACK');
+          spawnRing(targetPos.x, targetPos.y, '#94a3b8', 88);
+          spawnBurst(
+            targetPos.x,
+            targetPos.y,
+            16,
+            ['#cbd5e1', '#64748b', '#475569', '#f87171'],
+            6.2,
+            7,
+            'SHARD',
+            0.12,
+          );
+          badgesRef.current.push({
+            x: targetPos.x,
+            y: targetPos.y - 4,
+            vy: -0.95,
+            text: '☠',
+            subKind: 'SKULL',
+            life: 0,
+            maxLife: 42,
+          });
+          ensureLoopRef.current();
+          break;
+
+        case 'FATIGUE_HIT': {
+          const fatVal = Math.max(1, ev.value || 1);
+          hsAudio.playProceduralVfxSound('DEATH_CRACK');
+          hsAudio.playSfx('big_attack', 0.85);
+          hsAudio.vibrateByDamage(Math.max(4, fatVal * 2));
+          impactCbRef.current?.(Math.max(4, fatVal * 2));
+          spawnRing(targetPos.x, targetPos.y, '#a855f7', 135);
+          spawnBurst(
+            targetPos.x,
+            targetPos.y,
+            20,
+            ['#c084fc', '#ef4444', '#7e22ce', '#fca5a5'],
+            7.2,
+            8,
+            'SHARD',
+            0.08,
+          );
+          badgesRef.current.push({
+            x: targetPos.x,
+            y: targetPos.y - 34,
+            vy: -0.8,
+            text: ev.label || (isKoreanLanguage() ? `☠ 탈진 -${fatVal}` : `☠ Fatigue -${fatVal}`),
+            subKind: 'BANNER',
+            life: 0,
+            maxLife: 68,
+          });
+          ensureLoopRef.current();
+          break;
+        }
+
+        case 'MILL_BURN':
+          hsAudio.playProceduralVfxSound('CARD_BURN');
+          spawnRing(targetPos.x, targetPos.y, '#f97316', 96);
+          spawnBurst(
+            targetPos.x,
+            targetPos.y,
+            22,
+            ['#fef08a', '#fb923c', '#ef4444', '#292524'],
+            6.5,
+            7,
+            'SHARD',
+            -0.09,
+          );
+          if (ev.label) {
+            badgesRef.current.push({
+              x: targetPos.x - 36,
+              y: targetPos.y - 18,
+              vy: -0.9,
+              text: isKoreanLanguage() ? `🔥 [${ev.label}] 소멸` : `🔥 [${ev.label}] Burned`,
+              subKind: 'BANNER',
+              life: 0,
+              maxLife: 64,
+            });
+            ensureLoopRef.current();
+          }
+          break;
+
+        case 'FREEZE_SHARD':
+          hsAudio.playProceduralVfxSound('FROST');
+          spawnRing(targetPos.x, targetPos.y, '#38bdf8', 82);
+          spawnBurst(
+            targetPos.x,
+            targetPos.y,
+            16,
+            ['#e0f2fe', '#7dd3fc', '#38bdf8', '#ffffff'],
+            5.8,
+            7,
+            'SHARD',
+            0.04,
+          );
+          break;
+
+        case 'POISON_VENOM':
+          hsAudio.playProceduralVfxSound('POISON');
+          spawnRing(targetPos.x, targetPos.y, '#22c55e', 88);
+          spawnBurst(
+            targetPos.x,
+            targetPos.y,
+            18,
+            ['#bbf7d0', '#4ade80', '#16a34a', '#a3e635'],
+            5.6,
+            7,
+            'CIRCLE',
+            -0.05,
+          );
+          if (ev.label) {
+            badgesRef.current.push({
+              x: targetPos.x,
+              y: targetPos.y - 24,
+              vy: -0.9,
+              text: `☠ ${ev.label}`,
+              subKind: 'BUFF',
+              life: 0,
+              maxLife: 52,
+            });
+            ensureLoopRef.current();
+          }
+          break;
+
+        case 'TOY_BELL':
+          hsAudio.playProceduralVfxSound('TOY_BELL');
+          spawnRing(targetPos.x, targetPos.y, '#fde047', 86);
+          spawnBurst(targetPos.x, targetPos.y, 12, ['#fef9c3', '#facc15', '#fbbf24'], 4.2, 6, 'STAR', -0.04);
+          if (ev.label) {
+            badgesRef.current.push({
+              x: targetPos.x,
+              y: targetPos.y - 16,
+              vy: -0.85,
+              text: ev.label,
+              subKind: 'BUFF',
+              life: 0,
+              maxLife: 46,
+            });
+            ensureLoopRef.current();
+          }
+          break;
+
+        case 'TOY_CATAPULT':
+          hsAudio.playProceduralVfxSound('TOY_CATAPULT');
+          spawnBurst(sourcePos.x, sourcePos.y, 10, ['#d6d3d1', '#a8a29e', '#fbbf24'], 4.5, 6, 'CIRCLE', 0.08);
+          projectilesRef.current.push({
+            x0: sourcePos.x,
+            y0: sourcePos.y,
+            x1: targetPos.x,
+            y1: targetPos.y,
+            t: 0,
+            speed: 0.048,
+            colorCore: '#e7e5e4',
+            colorGlow: '#f97316',
+            radius: 13,
+            kind: 'TOY_CATAPULT',
+          });
+          ensureLoopRef.current();
+          break;
+
+        case 'TOY_SPARKS':
+          hsAudio.playProceduralVfxSound('FIRE');
+          spawnBurst(
+            targetPos.x,
+            targetPos.y,
+            18,
+            ['#fef08a', '#fb923c', '#ef4444', '#ffffff'],
+            6.8,
+            6,
+            'STAR',
+            0.12,
+          );
+          spawnRing(targetPos.x, targetPos.y, '#fb923c', 72);
+          break;
+
+        case 'TOY_RADISH':
+          hsAudio.playProceduralVfxSound('TOY_RADISH');
+          spawnBurst(
+            targetPos.x,
+            targetPos.y,
+            16,
+            ev.value === 777
+              ? ['#fef08a', '#facc15', '#f59e0b', '#ffffff']
+              : ['#86efac', '#4ade80', '#a16207', '#fef08a'],
+            5.5,
+            7,
+            ev.value === 777 ? 'STAR' : 'CIRCLE',
+            0.09,
+          );
+          if (ev.label) {
+            badgesRef.current.push({
+              x: targetPos.x,
+              y: targetPos.y - 18,
+              vy: -1.0,
+              text: ev.label,
+              subKind: 'BANNER',
+              life: 0,
+              maxLife: 56,
+            });
+            ensureLoopRef.current();
+          }
+          break;
+
+        case 'TOY_SPLASH':
+          hsAudio.playProceduralVfxSound('TOY_SPLASH');
+          spawnRing(targetPos.x, targetPos.y, '#38bdf8', 84);
+          spawnBurst(
+            targetPos.x,
+            targetPos.y,
+            16,
+            ['#e0f2fe', '#7dd3fc', '#38bdf8', '#ffffff'],
+            5.2,
+            6,
+            'CIRCLE',
+            0.11,
+          );
+          break;
+
+        case 'TOY_DRUM':
+          hsAudio.playProceduralVfxSound('TOY_DRUM');
+          impactCbRef.current?.(2);
+          spawnRing(targetPos.x, targetPos.y, '#f59e0b', 96);
+          spawnBurst(targetPos.x, targetPos.y, 12, ['#fde68a', '#f97316', '#ef4444'], 4.8, 6, 'STAR', 0);
+          break;
       }
     }
   }, [events]);
@@ -599,11 +846,18 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
         ctx.globalAlpha = 1;
 
         if (pr.t >= 1) {
-          const pDmg = pr.kind === 'FIREBALL' ? 6 : pr.kind === 'SHADOW_BOLT' ? 4 : 3;
-          hsAudio.vibrateByDamage(pDmg);
-          impactCbRef.current?.(pDmg);
-          spawnBurst(pr.x1, pr.y1, 16, [pr.colorCore, pr.colorGlow, '#ffffff'], 7, 8, 'SHARD', 0.08);
-          spawnRing(pr.x1, pr.y1, pr.colorGlow, 80);
+          if (pr.kind === 'TOY_CATAPULT') {
+            hsAudio.playSfx('attack', 0.58);
+            impactCbRef.current?.(2);
+            spawnBurst(pr.x1, pr.y1, 14, ['#e7e5e4', '#fb923c', '#fde047'], 6.2, 7, 'SHARD', 0.12);
+            spawnRing(pr.x1, pr.y1, '#fb923c', 72);
+          } else {
+            const pDmg = pr.kind === 'FIREBALL' ? 6 : pr.kind === 'SHADOW_BOLT' ? 4 : 3;
+            hsAudio.vibrateByDamage(pDmg);
+            impactCbRef.current?.(pDmg);
+            spawnBurst(pr.x1, pr.y1, 16, [pr.colorCore, pr.colorGlow, '#ffffff'], 7, 8, 'SHARD', 0.08);
+            spawnRing(pr.x1, pr.y1, pr.colorGlow, 80);
+          }
         } else {
           nextProj.push(pr);
         }
@@ -720,6 +974,15 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           ctx.textBaseline = 'middle';
           ctx.lineWidth = 4;
           ctx.strokeStyle = '#0f172a';
+          ctx.strokeText(b.text, 0, 0);
+          ctx.fillStyle = '#e2e8f0';
+          ctx.fillText(b.text, 0, 0);
+        } else if (b.subKind === 'SKULL') {
+          ctx.font = '900 30px "Nanum Gothic", "나눔고딕", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.lineWidth = 5;
+          ctx.strokeStyle = '#09090b';
           ctx.strokeText(b.text, 0, 0);
           ctx.fillStyle = '#e2e8f0';
           ctx.fillText(b.text, 0, 0);

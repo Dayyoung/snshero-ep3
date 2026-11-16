@@ -484,18 +484,26 @@ export const CollectionScreen: React.FC<{
   };
 
   const deckGrouped = useMemo(() => {
-    if (!editingDeck) return { entries: [], curve: [0, 0, 0, 0, 0, 0, 0, 0] };
+    if (!editingDeck) {
+      return { entries: [], curve: [0, 0, 0, 0, 0, 0, 0, 0], minions: 0, spells: 0, weapons: 0 };
+    }
     const counts = new Map<string, number>();
     const curve = [0, 0, 0, 0, 0, 0, 0, 0];
+    let minions = 0;
+    let spells = 0;
+    let weapons = 0;
     for (const cid of editingDeck.cards) {
       counts.set(cid, (counts.get(cid) || 0) + 1);
       const d = cardDb.mustGetCard(cid);
       curve[Math.min(7, d.cost)] += 1;
+      if (d.type === 'MINION') minions += 1;
+      else if (d.type === 'WEAPON') weapons += 1;
+      else spells += 1;
     }
     const entries = Array.from(counts.entries())
       .map(([cid, count]) => ({ card: cardDb.mustGetCard(cid), count }))
       .sort((a, b) => compareCardsStoneOrder(a.card, b.card));
-    return { entries, curve };
+    return { entries, curve, minions, spells, weapons };
   }, [editingDeck]);
 
   const ownedUniqueCount = useMemo(
@@ -1124,6 +1132,14 @@ export const CollectionScreen: React.FC<{
                       </div>
                     );
                   })}
+                </div>
+                {/* Card Type Breakdown (Minion / Spell / Weapon) */}
+                <div className="relative z-10 mt-1.5 flex items-center justify-between border-t border-amber-600/20 pt-1.5 text-[10px] font-extrabold text-amber-200/90">
+                  <span>{tr('하수인', 'Minions')} {deckGrouped.minions}</span>
+                  <span>·</span>
+                  <span>{tr('주문', 'Spells')} {deckGrouped.spells}</span>
+                  <span>·</span>
+                  <span>{tr('무기', 'Weapons')} {deckGrouped.weapons}</span>
                 </div>
               </div>
 

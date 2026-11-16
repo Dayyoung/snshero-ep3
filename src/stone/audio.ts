@@ -390,7 +390,15 @@ class HearthstoneAudioEngine {
       | 'ROPE_TICK'
       | 'ARMOR'
       | 'FATIGUE'
-      | 'LEGENDARY_FANFARE',
+      | 'LEGENDARY_FANFARE'
+      | 'DEATH_CRACK'
+      | 'CARD_BURN'
+      | 'POISON'
+      | 'TOY_BELL'
+      | 'TOY_CATAPULT'
+      | 'TOY_RADISH'
+      | 'TOY_DRUM'
+      | 'TOY_SPLASH',
   ) {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
     const ctx = this.getAudioCtx();
@@ -471,6 +479,39 @@ class HearthstoneAudioEngine {
         tone(659.25, 659.25, 0.28, 'triangle', 0.09);
         tone(783.99, 783.99, 0.35, 'triangle', 0.18);
         tone(1046.5, 1046.5, 0.65, 'sine', 0.26);
+        break;
+      case 'DEATH_CRACK':
+        tone(165, 48, 0.28, 'sawtooth', 0);
+        tone(420, 140, 0.22, 'triangle', 0.03);
+        break;
+      case 'CARD_BURN':
+        tone(540, 120, 0.36, 'sawtooth', 0);
+        tone(980, 260, 0.26, 'triangle', 0.04);
+        break;
+      case 'POISON':
+        tone(340, 620, 0.18, 'sine', 0);
+        tone(580, 210, 0.26, 'sawtooth', 0.08);
+        break;
+      case 'TOY_BELL':
+        tone(880, 880, 0.65, 'sine', 0);
+        tone(1318.5, 1312, 0.55, 'triangle', 0.01);
+        tone(1760, 1752, 0.42, 'sine', 0.03);
+        break;
+      case 'TOY_CATAPULT':
+        tone(120, 290, 0.16, 'sawtooth', 0);
+        tone(320, 75, 0.38, 'triangle', 0.12);
+        break;
+      case 'TOY_RADISH':
+        tone(280, 780, 0.14, 'sine', 0);
+        tone(520, 1040, 0.12, 'triangle', 0.06);
+        break;
+      case 'TOY_DRUM':
+        tone(135, 42, 0.34, 'sine', 0);
+        tone(96, 36, 0.38, 'triangle', 0.08);
+        break;
+      case 'TOY_SPLASH':
+        tone(720, 240, 0.22, 'sine', 0);
+        tone(1120, 460, 0.24, 'triangle', 0.05);
         break;
     }
   }

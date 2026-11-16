@@ -2,6 +2,24 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 09:16 KST] [`/stone.html` 오리지널 하스스톤 정밀 고증 업그레이드 및 `/game.html`(눈히어로) 전수 양방향 엔진·연출·UI 동기화 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 게임 엔진(`GameEngine.ts`)·타입(`types.ts`)·60fps 파티클 캔버스(`BoardVfxCanvas.tsx`)·프로시저럴 오디오(`audio.ts`) 정밀 복원 (양쪽 동시 반영)**:
+    - [`src/stone/engine/GameEngine.ts`](file:///Users/dayyoung/project/snshero/src/stone/engine/GameEngine.ts), [`src/hearthstone/engine/GameEngine.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/engine/GameEngine.ts): 손패 10장 초과 시 카드 소각(`MILL_BURN`), 덱 소진 시 해골 탈진 피해(`FATIGUE` / `FATIGUE_HIT`), 하수인 소환 충격파(`MINION_SUMMON`), 하수인 사망 파편·영혼 승천(`MINION_DEATH`), 빙결 결정 파편(`FREEZE_SHARD`), 독성 즉사 맹독(`POISON_VENOM`), 상대편 비밀 비공개 마스킹(`isHiddenSecret: side === 'OPPONENT'`) 정밀 구현.
+    - [`src/stone/vfx/BoardVfxCanvas.tsx`](file:///Users/dayyoung/project/snshero/src/stone/vfx/BoardVfxCanvas.tsx), [`src/hearthstone/vfx/BoardVfxCanvas.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/vfx/BoardVfxCanvas.tsx): 하수인 사망 직전 DOM 좌표 캐시 연동, `SKULL` 해골 배지, 12종 신규 VFX(투석기 포물선 바위 발사 `TOY_CATAPULT`, 종 파동 `TOY_BELL`, 순무/황금 영초 수확 `TOY_RADISH`, 북 `TOY_DRUM`, 대장간 불꽃 `TOY_SPARKS`, 물보라 `TOY_SPLASH` 포함) 렌더링 추가.
+    - [`src/stone/audio.ts`](file:///Users/dayyoung/project/snshero/src/stone/audio.ts), [`src/hearthstone/audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts): `DEATH_CRACK`, `CARD_BURN`, `POISON` 및 5종 전장 기물 전용 WebAudio 효과음 합성 추가.
+  - **2. 대전 전장(`BattleScreen.tsx`, `CardVisual.tsx`, `hearthstone.css`) 오리지널 하스스톤 상호작용 및 연출 완성**:
+    - [`src/stone/screens/BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/BattleScreen.tsx), [`src/hearthstone/screens/BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx):
+      - **좌측 대형 카드 공개 쇼케이스(`playedCardShowcase`)**: 상대 하수인/주문/무기 사용(`PLAY_MINION` · `CAST_SPELL` · `EQUIP_WEAPON`), 상대 비공개 비밀 시전(`?` 비밀 카드), 비밀 발동(`SECRET_TRIGGER`), 덱 고갈 탈진(`☠` 탈진 카드), 손패 10장 초과 소각(`🔥` 불타는 카드) 전수 연동 및 상대 비밀 발동 전 정체 완벽 은닉(행동 기록·툴팁·모달 전체 보호).
+      - **포인터 드래그 앤 드롭 전투(`/game.html` `#hs-stage-canvas` 스케일 좌표 동기화 포함)**: 손패 카드를 전장으로 드래그해 원하는 슬롯(`여기 배치` / `소환 위치`)에 즉시 소환하거나 대상에게 드래그 시전, 아군 하수인·영웅·영웅 능력 드래그 조준 공격(단순 클릭 시 확대 모달 `CardZoomModal` 병행 유지), 손패 호버 시 우측 하단 마나 수정 소모 예정 개수 점멸 미리보기, 덱→손패 드로우 비행 연출.
+      - **1클릭 멀리건(`✕` 교체 스탬프) & 2단계 교체 애니메이션**: 카드 클릭 즉시 `✕` 교체 토글(`카드 확대` 보조 버튼 및 우클릭 확대 지원) + 확인 클릭 시 교체 카드 뒤집힘 퇴장(`hsMulliganSwapOut`) → 새 카드 드로우 비행 → 후공 보너스 카드(`동전 한 닢` / `엘윈의 은화`) 쇼케이스.
+      - **6방향 방사형 말풍선 감정표현 & 상대 차단(`Squelch`)**: 영웅 좌우 3개씩 펼쳐지는 정통 6개 말풍선(`감사/칭찬/인사` · `감탄/실수/위협`), 상대 영웅 우클릭/클릭 시 `🔇 차단` / `🔊 차단 해제` 토글 및 `차단됨` 배지, 플레이 오류 시 영웅 말풍선 + 성우 대사 연동, 4코너 전장 기물 물리 인터랙션(판다리아 황금 순무 / 바람 신전 황금 영초 이스터에그 포함), 덱 스택 호버 상태 팝오버, 밧줄 도화선 불꽃(`hsRopeSpark`), 문장형 턴 전환 배너, 모바일 한국어 `턴 종료` 라벨 보정.
+  - **3. 덱 선택 및 카드첩(`HeroDeckSelectScreen.tsx`, `CollectionScreen.tsx`) `0~7+` 마나 커브 히스토그램 및 카드 유형 통계 추가**:
+    - [`src/stone/screens/HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/HeroDeckSelectScreen.tsx), [`src/hearthstone/screens/HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx), [`src/stone/screens/CollectionScreen.tsx`](file:///Users/dayyoung/project/snshero/src/stone/screens/CollectionScreen.tsx), [`src/hearthstone/screens/CollectionScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/CollectionScreen.tsx): 선택/편집 중인 덱의 `0~7+` 실시간 마나 커브 막대 그래프 및 `하수인 · 주문 · 무기` 구성 비율 표시 추가.
+  - **4. 거버넌스 준수 · 프로덕션 빌드 · Playwright E2E 검증 · 구글 폼 보고 완료**:
+    - 수집 가능 카드 수 **382장** 엄격 동결 확인(`stone: 382`, `game: 382`), `/stone.html` 100% 무료 및 로컬스토리지/에셋 격리(`stone_hs_*` vs `hero_hs_*`) 100% 준수, `npx tsc --noEmit` 및 `npm run build` 에러 0건 통과, Playwright 데스크톱(`1440×900`)·모바일(`390×844`) 전 기능 검증 및 콘솔/런타임 에러 `0`건 확인, 로컬 git 커밋 및 구글 폼 보고서 제출 완료.
+
 ## [2026-11-15 09:36 KST] [`/stone.html` 및 `/game.html` 카드 확대 모달(`CardZoomModal`) 좌우 스와이프·이동 버튼·키보드 조작 및 카드첩 382장 전체 순회 네비게이션 구현 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

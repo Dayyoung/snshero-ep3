@@ -276,3 +276,178 @@
     opacity: 0;
   }
 }
+
+/* Authentic Hearthstone Deck -> Hand Card Draw Flight */
+@keyframes hsCardDrawFly {
+  0% {
+    transform: translate3d(32vw, -22vh, 0) scale(0.45) rotate(22deg);
+    opacity: 0;
+    filter: brightness(1.5);
+  }
+  35% {
+    opacity: 1;
+  }
+  75% {
+    transform: translate3d(-6px, -10px, 0) scale(1.06) rotate(-2deg);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* Authentic Opponent / Secret / Fatigue / Burn Left-Side Card Reveal Showcase */
+@keyframes hsCardPlayedShowcase {
+  0% {
+    transform: translate3d(-70px, -24px, 0) scale(0.48) rotate(-10deg);
+    opacity: 0;
+  }
+  18% {
+    transform: translate3d(0, 0, 0) scale(1.06) rotate(1deg);
+    opacity: 1;
+  }
+  80% {
+    transform: translate3d(0, -4px, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(24px, -14px, 0) scale(0.82) rotate(3deg);
+    opacity: 0;
+  }
+}
+
+/* Minion Board Drop Slam */
+@keyframes hsMinionSummonDrop {
+  0% {
+    transform: translate3d(0, -34px, 0) scale(1.25);
+    opacity: 0;
+    filter: brightness(1.45);
+  }
+  65% {
+    transform: translate3d(0, 4px, 0) scale(0.95);
+    opacity: 1;
+    filter: brightness(1.12);
+  }
+  85% {
+    transform: translate3d(0, -2px, 0) scale(1.03);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* Mulligan Red Cross Stamp Pop */
+@keyframes hsMulliganCrossPop {
+  0% {
+    transform: scale(1.65) rotate(-12deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(0.94) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Mulligan Swapped Card Flip-Back to Deck */
+@keyframes hsMulliganSwapOut {
+  0% {
+    transform: translate3d(0, 0, 0) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: translate3d(0, -18px, 0) rotateY(90deg) scale(1.05);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(28vw, -16vh, 0) rotateY(180deg) scale(0.38);
+    opacity: 0;
+  }
+}
+
+/* Mulligan Card Initial Deal-In */
+@keyframes hsMulliganDealIn {
+  0% {
+    transform: translate3d(26vw, -16vh, 0) scale(0.45) rotate(16deg);
+    opacity: 0;
+  }
+  70% {
+    transform: translate3d(-4px, 3px, 0) scale(1.04) rotate(-1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Overdraw / Mill Card Burn Ember Pulse */
+@keyframes hsCardBurnPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.95)) brightness(1.08);
+  }
+  50% {
+    filter: drop-shadow(0 0 26px rgba(239, 68, 68, 1)) brightness(1.32) sepia(0.35);
+  }
+}
+
+/* Interactive Corner Diorama Toy Click Bounce */
+@keyframes hsToyBounce {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.18) rotate(-5deg) translateY(-4px);
+  }
+  65% {
+    transform: scale(0.95) rotate(4deg) translateY(1px);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Burning Rope Fuse Spark Flicker */
+@keyframes hsRopeSpark {
+  0%,
+  100% {
+    transform: scale(0.92) rotate(-6deg);
+    filter: brightness(1.05);
+  }
+  50% {
+    transform: scale(1.26) rotate(8deg);
+    filter: brightness(1.45);
+  }
+}
+
+/* Victory / Defeat / Turn Heraldic Banner Entrance */
+@keyframes hsVictoryBannerPop {
+  0% {
+    transform: scale(0.42) translateY(36px);
+    opacity: 0;
+  }
+  68% {
+    transform: scale(1.06) translateY(-4px);
+    opacity: 1;
+  }
+  86% {
+    transform: scale(0.98) translateY(1px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.hs-dragging-active,
+.hs-dragging-active * {
+  cursor: grabbing !important;
+}

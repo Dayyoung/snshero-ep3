@@ -64,6 +64,8 @@ import {
   MinionInstance,
   PlayerBattleState,
   PlayerSide,
+  VfxEvent,
+  VfxKind,
 } from '../types';
 import { BoardVfxCanvas, recordEntityStagePosition } from '../vfx/BoardVfxCanvas';
 
@@ -119,6 +121,28 @@ type BattleZoomState =
   | { kind: 'BOARD_MINION'; minion: MinionInstance; isFriendly: boolean }
   | { kind: 'HISTORY_ITEM'; item: ActionHistoryItem };
 
+interface HandDragState {
+  handUid: string;
+  cardId: string;
+  startX: number;
+  startY: number;
+  stageX: number;
+  stageY: number;
+  isDragging: boolean;
+  needsTarget: boolean;
+  isMinion: boolean;
+  hasChooseOne: boolean;
+}
+
+interface AttackerDragState {
+  sourceKind: 'ATTACKER' | 'HERO_POWER';
+  sourceId: string;
+  validTargets: string[];
+  startX: number;
+  startY: number;
+  isDragging: boolean;
+}
+
 interface ActiveAttackAnim {
   id: number;
   side: PlayerSide;
@@ -152,25 +176,33 @@ const BOARD_BG_URL: Record<BoardThemeId, string> = {
 
 const BOARD_CORNER_TOYS: Record<
   BoardThemeId,
-  { pos: 'TL' | 'TR' | 'BL' | 'BR'; icon: string; name: string; nameEn: string; reaction: string; reactionEn: string }[]
+  {
+    pos: 'TL' | 'TR' | 'BL' | 'BR';
+    icon: string;
+    vfxKind: VfxKind;
+    name: string;
+    nameEn: string;
+    reaction: string;
+    reactionEn: string;
+  }[]
 > = {
   STORMWIND: [
-    { pos: 'TL', icon: '🔔', name: '엘윈마을 설원 종탑', nameEn: 'Elwin Snowfield Bell Tower', reaction: '땡~ 땡~! 엘윈마을 설원 종탑의 종소리가 맑게 울려 퍼집니다!', reactionEn: 'Clang~ clang! The Elwin Snowfield bell rings crystal clear!' },
-    { pos: 'TR', icon: '🏮', name: '설원 온기 등불', nameEn: 'Warm Frost Lantern', reaction: '화르륵! 엘윈마을 청동 등불이 따스하게 타오릅니다!', reactionEn: 'Whoosh! Elwin Village’s bronze lantern glows warmly!' },
-    { pos: 'BL', icon: '🛡', name: '눈꽃 방패 거치대', nameEn: 'Snowflake Shield Rack', reaction: '챙! 카단의 눈꽃 방패에서 푸른 서리빛이 반짝입니다!', reactionEn: 'Clang! Kadan’s Snowflake Shield shimmers with frostlight!' },
-    { pos: 'BR', icon: '❄️', name: '엘윈 빙결 수정', nameEn: 'Elwin Frost Crystal', reaction: '반짝! 만년설 빙결 수정 속에서 오로라 빛이 춤춥니다!', reactionEn: 'Sparkle! Aurora light dances inside the permafrost crystal!' },
+    { pos: 'TL', icon: '🔔', vfxKind: 'TOY_BELL', name: '엘윈마을 설원 종탑', nameEn: 'Elwin Snowfield Bell Tower', reaction: '땡~ 땡~! 엘윈마을 설원 종탑의 종소리가 맑게 울려 퍼집니다!', reactionEn: 'Clang~ clang! The Elwin Snowfield bell rings crystal clear!' },
+    { pos: 'TR', icon: '🏮', vfxKind: 'TOY_SPARKS', name: '설원 온기 등불', nameEn: 'Warm Frost Lantern', reaction: '화르륵! 엘윈마을 청동 등불이 따스하게 타오릅니다!', reactionEn: 'Whoosh! Elwin Village’s bronze lantern glows warmly!' },
+    { pos: 'BL', icon: '🛡', vfxKind: 'TOY_SPARKS', name: '눈꽃 방패 거치대', nameEn: 'Snowflake Shield Rack', reaction: '챙! 카단의 눈꽃 방패에서 푸른 서리빛이 반짝입니다!', reactionEn: 'Clang! Kadan’s Snowflake Shield shimmers with frostlight!' },
+    { pos: 'BR', icon: '❄️', vfxKind: 'TOY_SPLASH', name: '엘윈 빙결 수정', nameEn: 'Elwin Frost Crystal', reaction: '반짝! 만년설 빙결 수정 속에서 오로라 빛이 춤춥니다!', reactionEn: 'Sparkle! Aurora light dances inside the permafrost crystal!' },
   ],
   ORGRIMMAR: [
-    { pos: 'TL', icon: '🔥', name: '불꽃 성채 화로', nameEn: 'Flame Citadel Brazier', reaction: '활활! 불꽃 성채의 용암 화로에서 뜨거운 불길이 솟구칩니다!', reactionEn: 'Roar! Fierce flames surge from the Flame Citadel brazier!' },
-    { pos: 'TR', icon: '⚒', name: '황금 제련 모루', nameEn: 'Gilded Forge Anvil', reaction: '깡! 깡! 달궈진 강철 모루에서 불꽃 파편이 튱니다!', reactionEn: 'Clink! Sparks fly off the glowing forge anvil!' },
-    { pos: 'BL', icon: '🦁', name: '태양 사자 부조', nameEn: 'Sun Lion Relief', reaction: '크르르! 성채 수호 사자상의 붉은 보석 눈이 번쩍입니다!', reactionEn: 'Growl! The guardian lion’s ruby eyes flash fiercely!' },
-    { pos: 'BR', icon: '🥁', name: '결투장 전고', nameEn: 'Arena War Drum', reaction: '둥! 둥! 불꽃 성채 결투장의 우렁찬 북소리가 울립니다!', reactionEn: 'Boom! Boom! Thunderous war drums echo across the arena!' },
+    { pos: 'TL', icon: '☄', vfxKind: 'TOY_CATAPULT', name: '성채 공성 투석기', nameEn: 'Citadel Siege Catapult', reaction: '부우웅— 쾅!! 성채 투석기 화염석이 전장 너머로 발사됩니다!', reactionEn: 'Whoosh—BOOM! A siege boulder launches across the citadel!' },
+    { pos: 'TR', icon: '⚒', vfxKind: 'TOY_SPARKS', name: '황금 제련 모루', nameEn: 'Gilded Forge Anvil', reaction: '깡! 깡! 달궈진 강철 모루에서 불꽃 파편이 튱니다!', reactionEn: 'Clink! Sparks fly off the glowing forge anvil!' },
+    { pos: 'BL', icon: '🔥', vfxKind: 'TOY_SPARKS', name: '불꽃 성채 화로', nameEn: 'Flame Citadel Brazier', reaction: '활활! 불꽃 성채의 용암 화로에서 뜨거운 불길이 솟구칩니다!', reactionEn: 'Roar! Fierce flames surge from the Flame Citadel brazier!' },
+    { pos: 'BR', icon: '🥁', vfxKind: 'TOY_DRUM', name: '결투장 전고', nameEn: 'Arena War Drum', reaction: '둥! 둥! 불꽃 성채 결투장의 우렁찬 북소리가 울립니다!', reactionEn: 'Boom! Boom! Thunderous war drums echo across the arena!' },
   ],
   PANDARIA: [
-    { pos: 'TL', icon: '🎐', name: '바람 신전 비취 풍경', nameEn: 'Jade Wind Chime', reaction: '딸랑~! 바람의 신전 비취 풍경 소리가 은은하게 퍼집니다!', reactionEn: 'Ting-ling~ Gentle jade chimes drift across the Wind Shrine!' },
-    { pos: 'TR', icon: '🌊', name: '천공 폭포 수차', nameEn: 'Sky Cascade Mill', reaction: '쏴아아~ 구름 너머 천공 폭포수가 시원하게 쏟아집니다!', reactionEn: 'Whoosh~ Skyfall waters tumble cleanly past the clouds!' },
-    { pos: 'BL', icon: '🏹', name: '청풍 활터 과녁', nameEn: 'Zephyr Archery Target', reaction: '핑— 퍽! 바람 화살이 과녁 정중앙을 꿰뚫었습니다!', reactionEn: 'Twang—thwack! A wind arrow splits the bullseye!' },
-    { pos: 'BR', icon: '🍃', name: '신록의 에메랄드 석등', nameEn: 'Verdant Emerald Lantern', reaction: '반짝~ 에메랄드 룬 석등에서 청량한 바람 기운이 피어오릅니다!', reactionEn: 'Glow~ Cool emerald breeze rises from the rune lantern!' },
+    { pos: 'TL', icon: '🎐', vfxKind: 'TOY_BELL', name: '바람 신전 비취 풍경', nameEn: 'Jade Wind Chime', reaction: '딸랑~! 바람의 신전 비취 풍경 소리가 은은하게 퍼집니다!', reactionEn: 'Ting-ling~ Gentle jade chimes drift across the Wind Shrine!' },
+    { pos: 'TR', icon: '🌊', vfxKind: 'TOY_SPLASH', name: '천공 폭포 수차', nameEn: 'Sky Cascade Mill', reaction: '쏴아아~ 구름 너머 천공 폭포수가 시원하게 쏟아집니다!', reactionEn: 'Whoosh~ Skyfall waters tumble cleanly past the clouds!' },
+    { pos: 'BL', icon: '🌱', vfxKind: 'TOY_RADISH', name: '신전 약초 텃밭', nameEn: 'Sanctuary Herb Patch', reaction: '쑥! 바람 신전 텃밭에서 탐스러운 영초 뿌리를 뽑았습니다!', reactionEn: 'Pop! Plucked a plump spirit root from the Sanctuary garden!' },
+    { pos: 'BR', icon: '🍃', vfxKind: 'TOY_SPARKS', name: '신록의 에메랄드 석등', nameEn: 'Verdant Emerald Lantern', reaction: '반짝~ 에메랄드 룬 석등에서 청량한 바람 기운이 피어오릅니다!', reactionEn: 'Glow~ Cool emerald breeze rises from the rune lantern!' },
   ],
 };
 
@@ -260,8 +292,15 @@ const TargetingArrowOverlay = React.memo<{ selection: PendingSelection | null }>
         sy = c.y;
       }
     } else if (selection.kind === 'HERO_POWER') {
-      sx = stageW * 0.58;
-      sy = stageH * 0.77;
+      const hpEl = document.querySelector('[data-hs-entity="PLAYER_HERO_POWER"]');
+      if (hpEl) {
+        const c = elementCenterInStage(hpEl);
+        sx = c.x;
+        sy = c.y;
+      } else {
+        sx = stageW * 0.58;
+        sy = stageH * 0.77;
+      }
     } else if (selection.kind === 'HAND_CARD') {
       const el = document.querySelector(`[data-hand-uid="${selection.handUid}"]`);
       if (el) {
@@ -495,7 +534,30 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [hoveredHistoryItem, setHoveredHistoryItem] = useState<ActionHistoryItem | null>(null);
   const [playerEmoteText, setPlayerEmoteText] = useState<string | null>(null);
   const [opponentEmoteText, setOpponentEmoteText] = useState<string | null>(null);
+  const [opponentSquelched, setOpponentSquelched] = useState(false);
+  const [squelchMenuOpen, setSquelchMenuOpen] = useState(false);
+  const [playErrorBubble, setPlayErrorBubble] = useState<string | null>(null);
   const [toyToast, setToyToast] = useState<string | null>(null);
+  const [activeToyPos, setActiveToyPos] = useState<'TL' | 'TR' | 'BL' | 'BR' | null>(null);
+  const [localVfxQueue, setLocalVfxQueue] = useState<VfxEvent[]>([]);
+  const [deckTooltipSide, setDeckTooltipSide] = useState<'PLAYER' | 'OPPONENT' | null>(null);
+  const [handDrag, setHandDrag] = useState<HandDragState | null>(null);
+  const [hoveredHandCost, setHoveredHandCost] = useState<number | null>(null);
+  const [newlyDrawnUids, setNewlyDrawnUids] = useState<Set<string>>(() => new Set());
+  const [mulliganSwapping, setMulliganSwapping] = useState(false);
+  const [coinGiftShowcase, setCoinGiftShowcase] = useState(false);
+  const [playedCardShowcase, setPlayedCardShowcase] = useState<{
+    id: string;
+    showcaseType: 'CARD' | 'SECRET_HIDDEN' | 'SECRET_TRIGGER' | 'FATIGUE' | 'MILL_BURN';
+    cardId: string;
+    actorSide: 'PLAYER' | 'OPPONENT';
+    actorClass: HeroClass;
+    actorName: string;
+    detail: string;
+    fatigueDamage?: number;
+  } | null>(null);
+
+  useModalDismiss(squelchMenuOpen, () => setSquelchMenuOpen(false));
   const [shakeState, setShakeState] = useState<{
     active: boolean;
     seq: number;
@@ -529,6 +591,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const drawRetryFiredRef = useRef(false);
   const matchStateRef = useRef<BattleMatchState>(matchState);
   matchStateRef.current = matchState;
+  const handDragRef = useRef<HandDragState | null>(null);
+  handDragRef.current = handDrag;
+  const attackerDragRef = useRef<AttackerDragState | null>(null);
+  const suppressNextClickRef = useRef(false);
+  const knownHandUidsRef = useRef<Set<string>>(
+    new Set(matchState.player.hand.map((h) => h.uid)),
+  );
+  const lastShowcasedHistoryIdRef = useRef<string | null>(null);
   const attackLockRef = useRef(false);
   const attackSeqRef = useRef(0);
   const attackTimersRef = useRef<number[]>([]);
@@ -538,12 +608,108 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   useEffect(() => {
     return () => {
+      document.body.classList.remove('hs-dragging-active');
       for (const tid of attackTimersRef.current) window.clearTimeout(tid);
       attackTimersRef.current = [];
       if (shakeTimerRef.current !== null) window.clearTimeout(shakeTimerRef.current);
       attackLockRef.current = false;
     };
   }, []);
+
+  // Track newly drawn cards in Player's hand for deck -> hand flight animation!
+  useEffect(() => {
+    const currentUids = matchState.player.hand.map((h) => h.uid);
+    if (matchState.phase !== 'PLAYING') {
+      knownHandUidsRef.current = new Set(currentUids);
+      return;
+    }
+    const fresh: string[] = [];
+    for (const uid of currentUids) {
+      if (!knownHandUidsRef.current.has(uid)) {
+        fresh.push(uid);
+        knownHandUidsRef.current.add(uid);
+      }
+    }
+    if (fresh.length > 0) {
+      hsAudio.playSfx('card_flip', 0.68);
+      setNewlyDrawnUids((prev) => {
+        const next = new Set(prev);
+        fresh.forEach((u) => next.add(u));
+        return next;
+      });
+      const t = window.setTimeout(() => {
+        setNewlyDrawnUids((prev) => {
+          const next = new Set(prev);
+          fresh.forEach((u) => next.delete(u));
+          return next;
+        });
+      }, 620);
+      return () => window.clearTimeout(t);
+    }
+  }, [matchState.phase, matchState.player.hand]);
+
+  // Left-Side Big Card Showcase: Opponent Play, Hidden Secret, Secret Reveal, Fatigue, or Mill Burn!
+  useEffect(() => {
+    const latest = matchState.history[0];
+    if (!latest || latest.id === lastShowcasedHistoryIdRef.current) return;
+    lastShowcasedHistoryIdRef.current = latest.id;
+
+    const actorSideState =
+      latest.actorSide === 'OPPONENT' ? matchState.opponent : matchState.player;
+    const actorName = isKo
+      ? actorSideState.heroNameKo || actorSideState.name
+      : actorSideState.customHero?.heroNameEn ||
+        actorSideState.name ||
+        getLocalizedHeroInfo(actorSideState.heroClass, lang).name;
+    const actorClass = actorSideState.heroClass;
+
+    let showcaseType:
+      | 'CARD'
+      | 'SECRET_HIDDEN'
+      | 'SECRET_TRIGGER'
+      | 'FATIGUE'
+      | 'MILL_BURN'
+      | null = null;
+
+    if (latest.kind === 'FATIGUE') {
+      showcaseType = 'FATIGUE';
+    } else if (latest.kind === 'MILL_BURN' && cardDb.getCard(latest.cardId)) {
+      showcaseType = 'MILL_BURN';
+    } else if (latest.kind === 'SECRET_TRIGGER' && cardDb.getCard(latest.cardId)) {
+      showcaseType = 'SECRET_TRIGGER';
+    } else if (
+      latest.actorSide === 'OPPONENT' &&
+      (latest.kind === 'PLAY_MINION' ||
+        latest.kind === 'CAST_SPELL' ||
+        latest.kind === 'EQUIP_WEAPON')
+    ) {
+      if (latest.isHiddenSecret) {
+        showcaseType = 'SECRET_HIDDEN';
+      } else if (cardDb.getCard(latest.cardId)) {
+        showcaseType = 'CARD';
+      }
+    }
+
+    if (!showcaseType) return;
+
+    const durationMs =
+      showcaseType === 'FATIGUE' || showcaseType === 'MILL_BURN' ? 1650 : 1450;
+
+    setPlayedCardShowcase({
+      id: latest.id,
+      showcaseType,
+      cardId: latest.cardId,
+      actorSide: latest.actorSide,
+      actorClass,
+      actorName,
+      detail: latest.detail,
+      fatigueDamage: latest.fatigueDamage,
+    });
+    const t = window.setTimeout(() => {
+      setPlayedCardShowcase((prev) => (prev?.id === latest.id ? null : prev));
+    }, durationMs);
+    return () => window.clearTimeout(t);
+  }, [matchState.history, matchState.opponent, matchState.player, isKo, lang]);
 
   const resolveHeroPortraitUrl = useCallback((p: PlayerBattleState): string => {
     if (p.isJaraxxus) return '/hs-assets/characters/cutouts/080_Ironforge.webp';
@@ -776,7 +942,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       };
     }
 
-    if (selection?.kind === 'MINION' || selection?.kind === 'HERO') {
+    if (selection?.kind === 'ATTACKER') {
       const hasEnemyTaunt = matchState.opponent.board.some(
         (m) => !m.stealth && (m.taunt || m.auraTaunt),
       );
@@ -843,11 +1009,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   useEffect(() => {
     if (!matchState.errorBanner) return;
+    const msg = matchState.errorBanner;
+    setPlayErrorBubble(msg);
+    if (msg.includes('마나') || msg.toLowerCase().includes('mana')) {
+      hsAudio.playHeroVo(matchState.player.heroClass, 'error_mana');
+    } else if (msg.includes('도발') || msg.toLowerCase().includes('taunt')) {
+      hsAudio.playHeroVo(matchState.player.heroClass, 'error_taunt');
+    } else if (msg.includes('공격') || msg.toLowerCase().includes('attack')) {
+      hsAudio.playHeroVo(matchState.player.heroClass, 'error_attacked');
+    }
     const t = window.setTimeout(() => {
       setMatchState((s) => ({ ...s, errorBanner: null }));
+      setPlayErrorBubble(null);
     }, 2100);
     return () => clearTimeout(t);
-  }, [matchState.errorBanner]);
+  }, [matchState.errorBanner, matchState.player.heroClass]);
 
   useEffect(() => {
     const onResize = () =>
@@ -878,6 +1054,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }
       setSelection(null);
       setZoomState(null);
+      setHandDrag(null);
+      document.body.classList.remove('hs-dragging-active');
       setAiHighlightText(null);
       const didWin = matchState.winner === 'PLAYER';
       if (didWin) {
@@ -1071,6 +1249,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         }
         if (nextSec <= 0) {
           setSelection(null);
+          setHandDrag(null);
+          document.body.classList.remove('hs-dragging-active');
           const nextEng = createEngine(prev);
           hsAudio.playSfx('end_turn');
           return nextEng.endTurn();
@@ -1641,7 +1821,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       if (action.kind === 'PLAY_CARD') {
         const def = cardDb.mustGetCard(action.cardId);
-        const dispName = getCardName(def, lang);
+        const isSecret = def.mechanics.includes('SECRET');
+        const dispName = isSecret
+          ? isKo
+            ? '? 비밀'
+            : '? Secret'
+          : getCardName(def, lang);
         hsAudio.playSfx('card_place', 0.85);
         setAiHighlightText(
           isKo
@@ -1737,58 +1922,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     describeEp0Action,
   ]);
 
-  const isPlacingMinion =
-    selection?.kind === 'HAND_CARD' && !selection.needsTarget && selection.isMinion;
-
-  // Escape Cancel always active; minion placement pointermove listener ONLY runs while placing a minion!
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setSelection(null);
-        setEmoteMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
-  useEffect(() => {
-    if (!isPlacingMinion) return;
-    let rafId = 0;
-    const onMove = (e: PointerEvent) => {
-      const cx = e.clientX;
-      if (rafId !== 0) return;
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        if (!friendlyRowRef.current) return;
-        const children = friendlyRowRef.current.querySelectorAll('[data-hs-entity]');
-        let idx = children.length;
-        for (let i = 0; i < children.length; i++) {
-          const rect = (children[i] as HTMLElement).getBoundingClientRect();
-          if (cx < rect.left + rect.width / 2) {
-            idx = i;
-            break;
-          }
-        }
-        setInsertPreviewIdx((prev) => (prev === idx ? prev : idx));
-      });
-    };
-    window.addEventListener('pointermove', onMove, { passive: true });
-    return () => {
-      window.removeEventListener('pointermove', onMove);
-      if (rafId !== 0) window.cancelAnimationFrame(rafId);
-    };
-  }, [isPlacingMinion]);
-
   const handleConcede = useCallback(() => {
     if (matchState.phase === 'GAME_OVER') return;
     const eng = createEngine(matchState);
     setMatchState(eng.concede('PLAYER'));
   }, [matchState]);
 
-  // Toggle Mulligan Card Selection
+  // Toggle Mulligan Card Selection (1-Click authentic Hearthstone stamp!)
   const toggleMulliganCard = (uid: string) => {
-    hsAudio.playSfx('card_flip', 0.7);
+    if (mulliganSwapping) return;
+    hsAudio.playSfx('card_flip', 0.75);
     setMatchState((prev) => {
       const exists = prev.mulliganSelectedUids.includes(uid);
       return {
@@ -1801,13 +1944,36 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   };
 
   const confirmMulliganNow = () => {
+    if (mulliganSwapping) return;
     hsAudio.playSfx('box_press');
     hsAudio.playBgm(Math.random() < 0.5 ? 'duel_1' : 'duel_2');
-    if (matchState.firstPlayer === 'OPPONENT') {
-      hsAudio.playInnkeeper('coin');
+
+    const selectedToSwap = [...matchState.mulliganSelectedUids];
+    const keptUids = matchState.player.hand
+      .filter((h) => !selectedToSwap.includes(h.uid))
+      .map((h) => h.uid);
+
+    const finalizeMulligan = () => {
+      const goingSecond = matchState.firstPlayer === 'OPPONENT';
+      if (goingSecond) {
+        hsAudio.playInnkeeper('coin');
+        setCoinGiftShowcase(true);
+        window.setTimeout(() => setCoinGiftShowcase(false), 1750);
+      }
+      knownHandUidsRef.current = new Set(keptUids);
+      const eng = createEngine(matchStateRef.current);
+      const next = eng.confirmMulligan(selectedToSwap);
+      setMulliganSwapping(false);
+      setMatchState(next);
+    };
+
+    if (selectedToSwap.length > 0) {
+      setMulliganSwapping(true);
+      hsAudio.playSfx('whoosh', 0.85);
+      window.setTimeout(finalizeMulligan, 420);
+    } else {
+      finalizeMulligan();
     }
-    const eng = createEngine(matchState);
-    setMatchState(eng.confirmMulligan(matchState.mulliganSelectedUids));
   };
 
   // Play an untargeted or targeted card
@@ -1815,11 +1981,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     handUid: string,
     opts?: { targetId?: string; insertIndex?: number; chooseOptionIndex?: 0 | 1 },
   ) => {
-    const hc = matchState.player.hand.find((h) => h.uid === handUid);
+    const cur = matchStateRef.current;
+    const hc = cur.player.hand.find((h) => h.uid === handUid);
     if (!hc) return;
     const def = cardDb.mustGetCard(hc.cardId);
     hsAudio.playSfx('card_place', 0.9);
-    const eng = createEngine(matchState);
+    const eng = createEngine(cur);
     const next = eng.playCardFromHand('PLAYER', handUid, opts);
     // Quest tracking!
     if (next.chooseOnePrompt === null) {
@@ -1827,11 +1994,336 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       else if (def.type === 'SPELL') hsStorage.recordQuestProgress('SPELL', 1);
     }
     setSelection(null);
+    setHoveredHandCost(null);
     setMatchState(next);
   };
 
-  // Click a card in Player's Hand -> Select & Enlarge Card first (never play immediately!)
+  const executePlayPlayerCardRef = useRef(executePlayPlayerCard);
+  executePlayPlayerCardRef.current = executePlayPlayerCard;
+
+  const updateFriendlyInsertIndex = useCallback((clientX: number): number => {
+    if (!friendlyRowRef.current) return 0;
+    const children = friendlyRowRef.current.querySelectorAll('[data-hs-entity]');
+    let idx = children.length;
+    for (let i = 0; i < children.length; i++) {
+      const rect = (children[i] as HTMLElement).getBoundingClientRect();
+      if (clientX < rect.left + rect.width / 2) {
+        idx = i;
+        break;
+      }
+    }
+    setInsertPreviewIdx((prev) => (prev === idx ? prev : idx));
+    return idx;
+  }, []);
+
+  // Unified Pointer Move, Drag-and-Drop Release & Escape Cancel
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      // 1. Hand Card Dragging
+      const hd = handDragRef.current;
+      if (hd) {
+        const dist = Math.hypot(e.clientX - hd.startX, e.clientY - hd.startY);
+        const stagePt = clientToStagePoint(e.clientX, e.clientY);
+        if (!hd.isDragging && dist > 14) {
+          const cur = matchStateRef.current;
+          const isTurn = cur.phase === 'PLAYING' && cur.activeSide === 'PLAYER';
+          const hc = cur.player.hand.find((h) => h.uid === hd.handUid);
+          if (!isTurn || !hc || attackLockRef.current) {
+            handDragRef.current = null;
+            setHandDrag(null);
+            return;
+          }
+          const eng = createEngine(cur);
+          const check = eng.inspectPlayability('PLAYER', hc);
+          if (!check.canPlay) {
+            if (e.clientY < hd.startY - 18) {
+              setMatchState((s) => ({
+                ...s,
+                errorBanner:
+                  check.reason ||
+                  (isKoreanLanguage() ? '마나가 부족합니다!' : 'Not enough Mana!'),
+              }));
+            }
+            suppressNextClickRef.current = true;
+            window.setTimeout(() => {
+              suppressNextClickRef.current = false;
+            }, 80);
+            handDragRef.current = null;
+            setHandDrag(null);
+            return;
+          }
+
+          document.body.classList.add('hs-dragging-active');
+          hsAudio.playSfx('card_hover', 0.72);
+          updateFriendlyInsertIndex(e.clientX);
+          const nextHd: HandDragState = {
+            ...hd,
+            stageX: stagePt.x,
+            stageY: stagePt.y,
+            isDragging: true,
+          };
+          handDragRef.current = nextHd;
+          setHandDrag(nextHd);
+
+          if (check.needsTarget && !check.hasChooseOne) {
+            setSelection({
+              kind: 'HAND_CARD',
+              handUid: hc.uid,
+              cardId: hc.cardId,
+              needsTarget: true,
+              validTargets: check.validTargets,
+              isMinion: hd.isMinion,
+              hasChooseOne: false,
+            });
+          } else {
+            setSelection(null);
+          }
+        } else if (hd.isDragging) {
+          if (hd.isMinion) updateFriendlyInsertIndex(e.clientX);
+          const nextHd = { ...hd, stageX: stagePt.x, stageY: stagePt.y };
+          handDragRef.current = nextHd;
+          setHandDrag(nextHd);
+        }
+      }
+
+      // 2. Friendly Minion / Hero / Hero Power Drag-Targeting
+      const ad = attackerDragRef.current;
+      if (ad && !ad.isDragging) {
+        const dist = Math.hypot(e.clientX - ad.startX, e.clientY - ad.startY);
+        if (dist > 12) {
+          ad.isDragging = true;
+          document.body.classList.add('hs-dragging-active');
+          hsAudio.playSfx('ui_click', 0.72);
+          if (ad.sourceKind === 'ATTACKER') {
+            setSelection({
+              kind: 'ATTACKER',
+              attackerId: ad.sourceId,
+              validTargets: ad.validTargets,
+            });
+          } else {
+            setSelection({
+              kind: 'HERO_POWER',
+              validTargets: ad.validTargets,
+            });
+          }
+        }
+      }
+    };
+
+    const onUp = (e: PointerEvent) => {
+      // 1. Finish Hand Card Drag
+      const hd = handDragRef.current;
+      if (hd) {
+        handDragRef.current = null;
+        setHandDrag(null);
+        document.body.classList.remove('hs-dragging-active');
+
+        if (hd.isDragging) {
+          suppressNextClickRef.current = true;
+          window.setTimeout(() => {
+            suppressNextClickRef.current = false;
+          }, 80);
+
+          const cur = matchStateRef.current;
+          const hc = cur.player.hand.find((h) => h.uid === hd.handUid);
+          if (!hc || cur.phase !== 'PLAYING' || cur.activeSide !== 'PLAYER') {
+            setSelection(null);
+            return;
+          }
+          const eng = createEngine(cur);
+          const check = eng.inspectPlayability('PLAYER', hc);
+          if (!check.canPlay) {
+            setSelection(null);
+            return;
+          }
+
+          const stagePt = clientToStagePoint(e.clientX, e.clientY);
+          const { height: stageH } = getStageSize();
+          const handDropFloorY = stageH * 0.78;
+
+          if (check.needsTarget && !check.hasChooseOne) {
+            const hitEl = document
+              .elementFromPoint(e.clientX, e.clientY)
+              ?.closest('[data-hs-entity]') as HTMLElement | null;
+            const targetId = hitEl?.getAttribute('data-hs-entity') || null;
+            if (targetId && check.validTargets.includes(targetId)) {
+              executePlayPlayerCardRef.current(hd.handUid, {
+                targetId,
+                insertIndex: cur.player.board.length,
+              });
+            } else if (stagePt.y > handDropFloorY) {
+              setSelection(null);
+            }
+            return;
+          }
+
+          if (stagePt.y <= handDropFloorY) {
+            const dropIdx = updateFriendlyInsertIndex(e.clientX);
+            executePlayPlayerCardRef.current(hd.handUid, {
+              insertIndex: hd.isMinion ? dropIdx : cur.player.board.length,
+            });
+          } else {
+            setSelection(null);
+          }
+          return;
+        }
+      }
+
+      // 2. Finish Attacker / Hero Power Drag
+      const ad = attackerDragRef.current;
+      if (ad) {
+        attackerDragRef.current = null;
+        document.body.classList.remove('hs-dragging-active');
+        if (ad.isDragging) {
+          suppressNextClickRef.current = true;
+          window.setTimeout(() => {
+            suppressNextClickRef.current = false;
+          }, 80);
+
+          const hitEl = document
+            .elementFromPoint(e.clientX, e.clientY)
+            ?.closest('[data-hs-entity]') as HTMLElement | null;
+          const targetId = hitEl?.getAttribute('data-hs-entity') || null;
+          const cur = matchStateRef.current;
+
+          if (targetId && targetId !== ad.sourceId && ad.validTargets.includes(targetId)) {
+            setSelection(null);
+            if (ad.sourceKind === 'ATTACKER') {
+              if (ad.sourceId === 'PLAYER_HERO') {
+                hsAudio.playHeroVo(cur.player.heroClass, 'attack');
+              }
+              triggerPhysicalAttack('PLAYER', ad.sourceId, targetId);
+            } else {
+              hsAudio.playSfx('hero_power', 0.9);
+              const eng = createEngine(cur);
+              setMatchState(eng.useHeroPower('PLAYER', targetId));
+            }
+          } else {
+            if (
+              ad.sourceKind === 'ATTACKER' &&
+              targetId &&
+              targetId !== ad.sourceId &&
+              !ad.validTargets.includes(targetId)
+            ) {
+              const enemyHasTaunt = cur.opponent.board.some(
+                (m) => !m.stealth && (m.taunt || m.auraTaunt),
+              );
+              if (enemyHasTaunt) {
+                setMatchState((s) => ({
+                  ...s,
+                  errorBanner: isKoreanLanguage()
+                    ? '도발 능력이 있는 하수인이 가로막고 있습니다!'
+                    : 'A minion with Taunt is in the way!',
+                }));
+              }
+            }
+            setSelection(null);
+          }
+        }
+      }
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelection(null);
+        setHandDrag(null);
+        handDragRef.current = null;
+        attackerDragRef.current = null;
+        document.body.classList.remove('hs-dragging-active');
+        setEmoteMenuOpen(false);
+        setSquelchMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [triggerPhysicalAttack, updateFriendlyInsertIndex]);
+
+  const isPlacingMinion =
+    selection?.kind === 'HAND_CARD' && !selection.needsTarget && selection.isMinion;
+
+  useEffect(() => {
+    if (!isPlacingMinion) return;
+    const onMove = (e: PointerEvent) => updateFriendlyInsertIndex(e.clientX);
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => window.removeEventListener('pointermove', onMove);
+  }, [isPlacingMinion, updateFriendlyInsertIndex]);
+
+  const handleHandCardPointerDown = (e: React.PointerEvent, handUid: string, cardId: string) => {
+    if (e.button !== 0 || matchState.phase !== 'PLAYING' || attackAnim) return;
+    const def = cardDb.mustGetCard(cardId);
+    const hc = matchState.player.hand.find((h) => h.uid === handUid);
+    const check = hc ? engine.inspectPlayability('PLAYER', hc) : null;
+    const stagePt = clientToStagePoint(e.clientX, e.clientY);
+    const state: HandDragState = {
+      handUid,
+      cardId,
+      startX: e.clientX,
+      startY: e.clientY,
+      stageX: stagePt.x,
+      stageY: stagePt.y,
+      isDragging: false,
+      needsTarget: Boolean(check?.needsTarget),
+      isMinion: def.type === 'MINION',
+      hasChooseOne: Boolean(check?.hasChooseOne),
+    };
+    handDragRef.current = state;
+  };
+
+  const handleFriendlyAttackerPointerDown = (e: React.PointerEvent, entityId: string) => {
+    if (
+      e.button !== 0 ||
+      matchState.phase !== 'PLAYING' ||
+      matchState.activeSide !== 'PLAYER' ||
+      attackAnim
+    ) {
+      return;
+    }
+    if (selection) return;
+    const swing = engine.canAttackerSwing('PLAYER', entityId);
+    if (!swing.ok) return;
+    const validTargets = engine.getValidAttackTargets('PLAYER', entityId);
+    if (validTargets.length === 0) return;
+    attackerDragRef.current = {
+      sourceKind: 'ATTACKER',
+      sourceId: entityId,
+      validTargets,
+      startX: e.clientX,
+      startY: e.clientY,
+      isDragging: false,
+    };
+  };
+
+  const handleHeroPowerPointerDown = (e: React.PointerEvent) => {
+    if (
+      e.button !== 0 ||
+      matchState.phase !== 'PLAYING' ||
+      matchState.activeSide !== 'PLAYER' ||
+      attackAnim
+    ) {
+      return;
+    }
+    const hpCheck = engine.inspectHeroPower('PLAYER');
+    if (!hpCheck.canUse || !hpCheck.needsTarget || hpCheck.validTargets.length === 0) return;
+    attackerDragRef.current = {
+      sourceKind: 'HERO_POWER',
+      sourceId: 'PLAYER_HERO_POWER',
+      validTargets: hpCheck.validTargets,
+      startX: e.clientX,
+      startY: e.clientY,
+      isDragging: false,
+    };
+  };
+
+  // Click a card in Player's Hand -> Select & Enlarge Card (when not dragged!)
   const handleHandCardClick = (handUid: string) => {
+    if (suppressNextClickRef.current) return;
     if (matchState.phase !== 'PLAYING' || attackAnim) return;
     const hc = matchState.player.hand.find((h) => h.uid === handUid);
     if (!hc) return;
@@ -1843,6 +2335,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   // Resolve clicking a target entity (`PLAYER_HERO`, `OPPONENT_HERO`, or minion `uid`)
   const handleEntityClick = (entityId: string, isFriendlyMinionOrHero: boolean) => {
+    if (suppressNextClickRef.current) return;
     if (matchState.phase !== 'PLAYING' || attackAnim) return;
 
     // 1. Complete active targeting selection!
@@ -1910,7 +2403,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             (m) => !m.stealth && (m.taunt || m.auraTaunt),
           );
           if (enemyHasTaunt) {
-            hsAudio.playHeroVo(matchState.player.heroClass, 'error_taunt');
             setMatchState((s) => ({
               ...s,
               errorBanner: isKo
@@ -1935,9 +2427,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
 
     // 2. When no active targeting is pending:
-    // Clicking an enemy minion enlarges it for crisp reading!
     if (!isFriendlyMinionOrHero) {
-      if (entityId !== 'OPPONENT_HERO') {
+      if (entityId === 'OPPONENT_HERO') {
+        hsAudio.playSfx('ui_click', 0.65);
+        setSquelchMenuOpen((v) => !v);
+      } else {
         const oppMinion = matchState.opponent.board.find((m) => m.uid === entityId);
         if (oppMinion) {
           hsAudio.playSfx('card_hover', 0.65);
@@ -1973,9 +2467,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ...s,
           errorBanner: swing.reason || (isKo ? '공격할 수 없습니다.' : 'Cannot attack right now.'),
         }));
-        if (swing.errorCode === 'exhausted' || swing.errorCode === 'attacked') {
-          hsAudio.playHeroVo(matchState.player.heroClass, 'error_attacked');
-        }
       }
       return;
     }
@@ -1993,6 +2484,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   // Click Player Hero Power
   const handlePlayerHeroPower = () => {
+    if (suppressNextClickRef.current) return;
     if (matchState.phase !== 'PLAYING' || matchState.activeSide !== 'PLAYER') return;
     if (selection?.kind === 'HERO_POWER') {
       setSelection(null);
@@ -2004,9 +2496,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         ...s,
         errorBanner: hpCheck.reason || (isKo ? '사용할 수 없습니다.' : 'Cannot use Hero Power.'),
       }));
-      if (hpCheck.reason?.includes('마나') || hpCheck.reason?.includes('Mana')) {
-        hsAudio.playHeroVo(matchState.player.heroClass, 'error_mana');
-      }
       return;
     }
     if (hpCheck.needsTarget) {
@@ -2023,7 +2512,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   };
 
-  // Emote Trigger + Polite Rival Reply
+  // Emote Trigger + Polite Rival Reply (Respects Opponent Squelch!)
   const triggerPlayerEmote = (
     emoteKey: 'greetings' | 'well_played' | 'thanks' | 'wow' | 'oops' | 'threaten',
   ) => {
@@ -2035,7 +2524,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     hsAudio.playHeroVo(matchState.player.heroClass, emoteKey);
     window.setTimeout(() => setPlayerEmoteText(null), 2800);
 
+    if (opponentSquelched) return;
+
     window.setTimeout(() => {
+      if (opponentSquelched) return;
       const replyKey =
         emoteKey === 'greetings'
           ? 'greetings'
@@ -2052,6 +2544,65 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       window.setTimeout(() => setOpponentEmoteText(null), 2800);
     }, 1500);
   };
+
+  // Interactive 4-Corner Board Diorama Toy Physics + Sanctuary Golden Spirit Root Easter Egg!
+  const triggerCornerToy = useCallback(
+    (toy: (typeof BOARD_CORNER_TOYS)[BoardThemeId][number]) => {
+      setActiveToyPos(toy.pos);
+      window.setTimeout(() => {
+        setActiveToyPos((prev) => (prev === toy.pos ? null : prev));
+      }, 420);
+
+      let toastMsg = isKo ? toy.reaction : toy.reactionEn;
+      let vfxLabel: string | undefined;
+      let vfxValue: number | undefined;
+      const sourceEntity = `TOY_${toy.pos}`;
+      let targetEntity = sourceEntity;
+
+      if (toy.vfxKind === 'TOY_CATAPULT') {
+        targetEntity = 'TOY_BR';
+      } else if (toy.vfxKind === 'TOY_BELL') {
+        vfxLabel = isKo ? '♪ 땡~!' : '♪ Clang!';
+      } else if (toy.vfxKind === 'TOY_RADISH') {
+        const roll = Math.random();
+        if (roll < 0.18) {
+          vfxValue = 777;
+          vfxLabel = isKo ? '★ 황금 영초!!' : '★ Golden Root!!';
+          toastMsg = isKo
+            ? '✦ 대박!! 바람 신전 텃밭에서 전설의 [황금 영초]가 뽑혔습니다!!'
+            : '✦ Jackpot!! Plucked a legendary [Golden Spirit Root]!';
+        } else if (roll < 0.3) {
+          vfxLabel = isKo ? '🥾 낡은 장화?!' : '🥾 Old Boot?!';
+          toastMsg = isKo
+            ? '엇?! 영초 대신 흙 묻은 낡은 가죽 장화가 뽑혔습니다!'
+            : 'Huh?! Pulled up a muddy old leather boot instead!';
+        } else {
+          vfxLabel = isKo ? '🌱 영초 수확!' : '🌱 Herb Plucked!';
+        }
+      }
+
+      const ev: VfxEvent = {
+        id: `toy_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        kind: toy.vfxKind,
+        sourceId: sourceEntity,
+        targetId: targetEntity,
+        value: vfxValue,
+        label: vfxLabel,
+        createdAt: Date.now(),
+      };
+      setLocalVfxQueue((prev) => [...prev.slice(-14), ev]);
+      setToyToast(toastMsg);
+      window.setTimeout(() => {
+        setToyToast((prev) => (prev === toastMsg ? null : prev));
+      }, 2400);
+    },
+    [isKo],
+  );
+
+  const combinedVfxEvents = useMemo(
+    () => [...matchState.vfxQueue, ...localVfxQueue],
+    [matchState.vfxQueue, localVfxQueue],
+  );
 
   const handleEntityClickRef = useRef(handleEntityClick);
   handleEntityClickRef.current = handleEntityClick;
@@ -2084,6 +2635,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const isPlayerTurn = matchState.phase === 'PLAYING' && matchState.activeSide === 'PLAYER';
   const noMovesLeft = isPlayerTurn && !engine.hasAnyAvailableMove('PLAYER');
   const cornerToys = BOARD_CORNER_TOYS[matchState.boardTheme] ?? BOARD_CORNER_TOYS.STORMWIND;
+  const isDraggingUntargetedMinionOverBoard =
+    Boolean(
+      handDrag?.isDragging &&
+        handDrag.isMinion &&
+        (!handDrag.needsTarget || handDrag.hasChooseOne) &&
+        handDrag.stageY <= getStageSize().height * 0.78,
+    ) || Boolean(selection?.kind === 'HAND_CARD' && !selection.needsTarget && selection.isMinion);
 
   const buildMinionStatusPills = (m: MinionInstance): string[] => {
     const pills: string[] = [];
@@ -2529,8 +3087,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
     if (zoomState.kind === 'HISTORY_ITEM') {
       const item = zoomState.item;
-      const def = cardDb.mustGetCard(item.cardId);
-      const cardHistory = matchState.history.filter((h) => Boolean(cardDb.getCard(h.cardId)));
+      if (item.isHiddenSecret) return null;
+      const def = cardDb.getCard(item.cardId);
+      if (!def) return null;
+      const cardHistory = matchState.history.filter(
+        (h) => !h.isHiddenSecret && Boolean(cardDb.getCard(h.cardId)),
+      );
       const hIdx = cardHistory.findIndex((h) => h.id === item.id);
       const historyNav =
         hIdx >= 0 && cardHistory.length > 1
@@ -2584,7 +3146,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }}
       onClick={() => {
         if (emoteMenuOpen) setEmoteMenuOpen(false);
-        if (selection) setSelection(null);
+        if (squelchMenuOpen) setSquelchMenuOpen(false);
+        if (deckTooltipSide) setDeckTooltipSide(null);
+        if (selection && !suppressNextClickRef.current) setSelection(null);
       }}
       style={
         {
@@ -2609,7 +3173,142 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       <div className="pointer-events-none absolute inset-0 bg-radial from-transparent via-black/18 to-black/68" />
 
       {/* 60fps Particle & Spell Projectile Canvas */}
-      <BoardVfxCanvas events={matchState.vfxQueue} onDamageImpact={triggerDamageImpact} />
+      <BoardVfxCanvas events={combinedVfxEvents} onDamageImpact={triggerDamageImpact} />
+
+      {/* Floating Dragged Card Under Cursor (Stage-Relative inside #hs-stage-canvas!) */}
+      {handDrag?.isDragging && (!handDrag.needsTarget || handDrag.hasChooseOne) && (
+        <div
+          style={{
+            left: handDrag.stageX,
+            top: handDrag.stageY,
+            transform: 'translate(-50%, -55%) scale(0.96) rotate(-3deg)',
+          }}
+          className="pointer-events-none absolute z-[84] drop-shadow-[0_24px_36px_rgba(0,0,0,0.92)]"
+        >
+          <HearthstoneCard
+            card={cardDb.mustGetCard(handDrag.cardId)}
+            journeyMultiplier={getPlayerCardMult(handDrag.cardId)}
+            playableGlow="GREEN"
+            size="SM"
+          />
+        </div>
+      )}
+
+      {/* Authentic Left-Side Big Card Showcase: Opponent Play, Hidden Secret, Secret Trigger, Fatigue, or Mill Burn */}
+      {playedCardShowcase && (
+        <div className="pointer-events-none absolute left-2 top-[44%] z-[81] flex -translate-y-1/2 flex-col items-center animate-[hsCardPlayedShowcase_1.45s_ease-out_forwards] sm:left-14 sm:top-1/2">
+          <div
+            className={`mb-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold shadow-lg sm:px-3 sm:text-xs ${
+              playedCardShowcase.showcaseType === 'SECRET_TRIGGER' ||
+              playedCardShowcase.showcaseType === 'SECRET_HIDDEN'
+                ? 'border-fuchsia-300 bg-fuchsia-950/95 text-fuchsia-100'
+                : playedCardShowcase.showcaseType === 'FATIGUE'
+                  ? 'border-purple-300 bg-purple-950/95 text-rose-200'
+                  : playedCardShowcase.showcaseType === 'MILL_BURN'
+                    ? 'border-orange-300 bg-red-950/95 text-orange-100'
+                    : 'border-red-300 bg-stone-950/95 text-amber-100'
+            }`}
+          >
+            {playedCardShowcase.showcaseType === 'SECRET_TRIGGER'
+              ? tr('✦ 비밀 발동!', '✦ Secret Triggered!')
+              : playedCardShowcase.showcaseType === 'SECRET_HIDDEN'
+                ? isKo
+                  ? `✦ ${playedCardShowcase.actorName} 비밀 시전!`
+                  : `✦ ${playedCardShowcase.actorName} Secret!`
+                : playedCardShowcase.showcaseType === 'FATIGUE'
+                  ? isKo
+                    ? `☠ ${playedCardShowcase.actorName} 탈진!`
+                    : `☠ ${playedCardShowcase.actorName} Fatigue!`
+                  : playedCardShowcase.showcaseType === 'MILL_BURN'
+                    ? tr('🔥 손패 초과! 카드 소각', '🔥 Hand Full! Card Burned')
+                    : isKo
+                      ? `${playedCardShowcase.actorName} 사용`
+                      : `${playedCardShowcase.actorName} Played`}
+          </div>
+
+          {playedCardShowcase.showcaseType === 'SECRET_HIDDEN' ? (
+            <div className="flex h-[156px] w-[112px] flex-col items-center justify-between rounded-2xl border-[3px] border-fuchsia-300 bg-gradient-to-b from-fuchsia-900 via-purple-950 to-stone-950 p-3 text-center shadow-[0_18px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(217,70,239,0.75)] sm:h-[246px] sm:w-[178px] sm:p-4">
+              <span className="rounded-full border border-fuchsia-300/60 bg-black/45 px-2.5 py-0.5 text-[10px] font-extrabold text-fuchsia-200 sm:text-xs">
+                {isKo
+                  ? `${CLASSIC_HEROES[playedCardShowcase.actorClass].classNameKo} 비밀`
+                  : `${getLocalizedHeroInfo(playedCardShowcase.actorClass, lang).className} Secret`}
+              </span>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-amber-200 bg-fuchsia-950 shadow-inner sm:h-24 sm:w-24">
+                <span className="hs-num text-4xl font-black text-amber-200 sm:text-6xl">?</span>
+              </div>
+              <p className="text-[9.5px] font-bold leading-tight text-fuchsia-100 sm:text-xs">
+                {tr(
+                  '숨겨진 비밀입니다. 조건이 충족되면 발동합니다!',
+                  'Hidden Secret! Triggers when its condition is met.',
+                )}
+              </p>
+            </div>
+          ) : playedCardShowcase.showcaseType === 'FATIGUE' ? (
+            <div className="flex h-[156px] w-[112px] flex-col items-center justify-between rounded-2xl border-[3px] border-rose-400 bg-gradient-to-b from-[#3b0764] via-[#450a0a] to-stone-950 p-3 text-center shadow-[0_18px_36px_rgba(0,0,0,0.95),0_0_28px_rgba(244,63,94,0.85)] sm:h-[246px] sm:w-[178px] sm:p-4">
+              <span className="hs-title hs-outline-sm text-sm font-extrabold text-rose-200 sm:text-lg">
+                {tr('탈진', 'Fatigue')}
+              </span>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-rose-300 bg-black/60 shadow-inner sm:h-24 sm:w-24">
+                <span className="text-3xl sm:text-5xl">☠</span>
+              </div>
+              <p className="rounded-lg border border-rose-400/40 bg-black/55 px-2 py-1 text-[9.5px] font-extrabold leading-tight text-amber-100 sm:text-xs">
+                {isKo ? (
+                  <>
+                    카드가 없습니다!{' '}
+                    <span className="text-rose-300">{playedCardShowcase.fatigueDamage || 1}</span>의
+                    피해를 받습니다.
+                  </>
+                ) : (
+                  <>
+                    Out of cards! Take{' '}
+                    <span className="text-rose-300">{playedCardShowcase.fatigueDamage || 1}</span>{' '}
+                    damage.
+                  </>
+                )}
+              </p>
+            </div>
+          ) : (
+            <div
+              className={
+                playedCardShowcase.showcaseType === 'MILL_BURN'
+                  ? 'relative animate-[hsCardBurnPulse_0.5s_ease-in-out_infinite]'
+                  : ''
+              }
+            >
+              <HearthstoneCard
+                card={cardDb.mustGetCard(playedCardShowcase.cardId)}
+                journeyMultiplier={
+                  playedCardShowcase.actorSide === 'PLAYER'
+                    ? getPlayerCardMult(playedCardShowcase.cardId)
+                    : 1
+                }
+                size={isCompactMobile ? 'XS' : 'MD'}
+              />
+              {playedCardShowcase.showcaseType === 'MILL_BURN' && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-gradient-to-t from-red-950/75 via-orange-600/25 to-transparent">
+                  <span className="hs-title hs-outline rounded-xl border-2 border-orange-300 bg-red-950/90 px-3 py-1 text-xs font-extrabold text-orange-200 sm:text-base">
+                    {tr('🔥 소각됨!', '🔥 Burned!')}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="mt-1 max-w-[155px] rounded-xl border border-amber-400/50 bg-stone-950/92 px-2 py-0.5 text-center text-[9.5px] font-bold text-amber-100 shadow-xl sm:max-w-[215px] sm:px-2.5 sm:py-1 sm:text-[11px]">
+            {playedCardShowcase.detail}
+          </div>
+        </div>
+      )}
+
+      {/* Second-Player "엘윈의 은화" (`GAME_005`) Mulligan Gift Showcase */}
+      {coinGiftShowcase && cardDb.getCard('GAME_005') && (
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-[86] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center animate-[hsCardPop_0.35s_ease-out]">
+          <div className="hs-title hs-outline mb-1.5 text-lg font-extrabold text-yellow-200 sm:text-2xl">
+            {tr('추가 카드 획득 — 엘윈의 은화!', 'Bonus Card — The Coin!')}
+          </div>
+          <HearthstoneCard card={cardDb.mustGetCard('GAME_005')} playableGlow="GREEN" size="MD" />
+        </div>
+      )}
 
       {/* Active Targeting / Placement Helper Bar (Cancelable & Inspectable on Mobile!) */}
       {selection && (
@@ -2862,7 +3561,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           );
         })()}
 
-      {/* 4 Interactive Battlefield Corner Toys! */}
+      {/* 4 Interactive Battlefield Corner Toys with Real Canvas Physics! */}
       {cornerToys.map((toy) => {
         const posCls =
           toy.pos === 'TL'
@@ -2872,10 +3571,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               : toy.pos === 'BL'
                 ? 'left-3 bottom-24'
                 : 'right-3 bottom-24';
+        const isBouncing = activeToyPos === toy.pos;
         return (
           <button
             key={toy.pos}
             type="button"
+            data-hs-entity={`TOY_${toy.pos}`}
             title={
               isKo
                 ? `전장 기물: ${toy.name} (클릭해 상호작용!)`
@@ -2883,15 +3584,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             }
             onClick={(e) => {
               e.stopPropagation();
-              hsAudio.playSfx('ui_click', 0.85);
-              const reactionText = isKo ? toy.reaction : toy.reactionEn;
-              setToyToast(reactionText);
-              window.setTimeout(
-                () => setToyToast((prev) => (prev === reactionText ? null : prev)),
-                2200,
-              );
+              triggerCornerToy(toy);
             }}
-            className={`absolute ${posCls} z-30 hidden h-12 w-12 items-center justify-center rounded-2xl border-2 border-amber-400/50 bg-stone-950/65 text-2xl shadow-xl transition hover:scale-115 hover:border-amber-200 active:scale-90 md:flex`}
+            className={`absolute ${posCls} z-30 hidden h-12 w-12 items-center justify-center rounded-2xl border-2 border-amber-400/50 bg-stone-950/65 text-2xl shadow-xl transition hover:scale-115 hover:border-amber-200 active:scale-90 md:flex ${
+              isBouncing ? 'animate-[hsToyBounce_0.38s_ease-out]' : ''
+            }`}
           >
             {toy.icon}
           </button>
@@ -2909,6 +3606,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               hsAudio.playSfx('card_hover', 0.65);
+              if (item.isHiddenSecret) {
+                setToyToast(
+                  tr(
+                    '상대편의 비밀입니다! 조건이 충족되어 발동될 때까지 정체가 숨겨집니다.',
+                    "Opponent's Secret! Identity stays hidden until triggered.",
+                  ),
+                );
+                window.setTimeout(() => setToyToast(null), 2200);
+                return;
+              }
+              if (item.kind === 'FATIGUE' || !cardDb.getCard(item.cardId)) {
+                setToyToast(item.detail);
+                window.setTimeout(() => setToyToast(null), 2200);
+                return;
+              }
               setZoomState({ kind: 'HISTORY_ITEM', item });
             }}
             onPointerEnter={(e) => {
@@ -2919,15 +3631,36 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               if (e.pointerType !== 'mouse') return;
               setHoveredHistoryItem((prev) => (prev?.id === item.id ? null : prev));
             }}
-            className={`relative h-9 w-9 cursor-pointer overflow-hidden rounded-lg border-2 shadow transition hover:scale-110 ${
-              item.actorSide === 'PLAYER' ? 'border-sky-400' : 'border-red-500'
+            className={`relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 shadow transition hover:scale-110 ${
+              item.kind === 'FATIGUE'
+                ? 'border-purple-400 bg-gradient-to-b from-purple-950 to-rose-950'
+                : item.kind === 'MILL_BURN'
+                  ? 'border-orange-400 ring-1 ring-orange-500/80'
+                  : item.isHiddenSecret
+                    ? 'border-fuchsia-400 bg-gradient-to-b from-fuchsia-950 to-stone-950'
+                    : item.actorSide === 'PLAYER'
+                      ? 'border-sky-400'
+                      : 'border-red-500'
             }`}
           >
-            <img
-              src={resolveHistoryIconUrl(item)}
-              alt={item.title}
-              className="h-full w-full object-cover object-top"
-            />
+            {item.isHiddenSecret ? (
+              <span className="hs-num text-base font-black text-fuchsia-200">?</span>
+            ) : item.kind === 'FATIGUE' || !cardDb.getCard(item.cardId) ? (
+              <span className="text-sm font-black text-rose-300">☠</span>
+            ) : (
+              <>
+                <img
+                  src={resolveHistoryIconUrl(item)}
+                  alt={item.title}
+                  className="h-full w-full object-cover object-top"
+                />
+                {item.kind === 'MILL_BURN' && (
+                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-orange-950/55 text-xs">
+                    🔥
+                  </span>
+                )}
+              </>
+            )}
           </div>
         ))}
         {matchState.history.length === 0 && (
@@ -2938,7 +3671,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {/* History Hover Card Tooltip */}
       {liveHoveredHistoryItem && !zoomState && (
         <div className="pointer-events-none absolute left-16 top-1/2 z-[80] hidden -translate-y-1/2 items-center gap-3 rounded-2xl border-2 border-amber-300 bg-stone-950/95 p-3 text-amber-100 shadow-2xl sm:flex">
-          <HearthstoneCard card={cardDb.mustGetCard(liveHoveredHistoryItem.cardId)} size="SM" />
+          {liveHoveredHistoryItem.isHiddenSecret ? (
+            <div className="flex h-32 w-24 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-fuchsia-300 bg-gradient-to-b from-fuchsia-900 to-stone-950 text-center">
+              <span className="hs-num text-3xl font-black text-amber-200">?</span>
+              <span className="mt-1 text-[10px] font-extrabold text-fuchsia-200">
+                {tr('비공개 비밀', 'Hidden Secret')}
+              </span>
+            </div>
+          ) : liveHoveredHistoryItem.kind === 'FATIGUE' ||
+            !cardDb.getCard(liveHoveredHistoryItem.cardId) ? (
+            <div className="flex h-32 w-24 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-rose-400 bg-gradient-to-b from-purple-950 to-rose-950 text-center">
+              <span className="text-3xl">☠</span>
+              <span className="mt-1 text-[11px] font-extrabold text-rose-200">
+                {tr('탈진 피해', 'Fatigue')}
+              </span>
+            </div>
+          ) : (
+            <HearthstoneCard card={cardDb.mustGetCard(liveHoveredHistoryItem.cardId)} size="SM" />
+          )}
           <div className="max-w-[200px]">
             <div className="text-xs font-extrabold text-yellow-300">
               {isKo
@@ -2946,9 +3696,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 : `Turn ${liveHoveredHistoryItem.turn} · ${liveHoveredHistoryItem.actorSide === 'PLAYER' ? 'Ally Action' : 'Enemy Action'}`}
             </div>
             <div className="mt-1 text-sm font-extrabold text-white">
-              {liveHoveredHistoryItem.title}
+              {liveHoveredHistoryItem.isHiddenSecret
+                ? tr('비밀 시전 (정체 숨김)', 'Secret Cast (Hidden)')
+                : liveHoveredHistoryItem.title}
             </div>
-            <p className="mt-1 text-xs text-amber-200/85">{liveHoveredHistoryItem.detail}</p>
+            <p className="mt-1 text-xs text-amber-200/85">
+              {liveHoveredHistoryItem.isHiddenSecret
+                ? tr(
+                    '발동 조건이 충족될 때까지 어떤 비밀인지 공개되지 않습니다.',
+                    'Identity remains hidden until its trigger condition is met.',
+                  )
+                : liveHoveredHistoryItem.detail}
+            </p>
           </div>
         </div>
       )}
@@ -2956,6 +3715,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {/* Board Minion Hover Full-Card Inspector (Desktop XL) */}
       {liveHoveredBoardMinion &&
         !selection &&
+        !handDrag?.isDragging &&
         !attackAnim &&
         !zoomState &&
         matchState.phase === 'PLAYING' && (
@@ -2974,20 +3734,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* Right-Middle Controls: Deck Stacks, Spinning Auto-Play Button & 3-State End Turn Button (Desktop / Tablet >= sm) */}
       <aside className="absolute right-2.5 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-3 sm:flex">
-        {/* Opponent Remaining Deck Stack */}
+        {/* Opponent Remaining Deck Stack + Hover/Click Status Popover */}
         <div
-          title={
-            matchState.opponent.deck.length > 0
-              ? isKo
-                ? `상대 남은 덱: ${matchState.opponent.deck.length}장`
-                : `Enemy Deck: ${matchState.opponent.deck.length} cards`
-              : isKo
-                ? `상대 덱 소진! (다음 탈진 피해: ${matchState.opponent.fatigueCounter + 1})`
-                : `Enemy Out of Cards! (Next Fatigue: ${matchState.opponent.fatigueCounter + 1})`
-          }
-          className="relative flex h-14 w-11 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-[#c8a158]/80 bg-stone-950/90 shadow-xl"
+          data-hs-entity="OPPONENT_DECK"
+          onMouseEnter={() => setDeckTooltipSide('OPPONENT')}
+          onMouseLeave={() => setDeckTooltipSide((prev) => (prev === 'OPPONENT' ? null : prev))}
+          onClick={(e) => {
+            e.stopPropagation();
+            setDeckTooltipSide((prev) => (prev === 'OPPONENT' ? null : 'OPPONENT'));
+          }}
+          className="relative flex h-14 w-11 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-[#c8a158]/80 bg-stone-950/90 shadow-xl transition hover:border-amber-300"
         >
-          <div className="pointer-events-none absolute inset-0 opacity-45">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[6px] opacity-45">
             <SnsCardBackArt variant={profile.selectedCardBack} />
           </div>
           <span className="hs-outline-sm relative z-10 text-[9px] font-extrabold text-red-200">
@@ -2996,6 +3754,30 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <span className="hs-num relative z-10 text-sm text-white">
             {matchState.opponent.deck.length}
           </span>
+          {deckTooltipSide === 'OPPONENT' && (
+            <div className="pointer-events-none absolute right-[calc(100%+10px)] top-1/2 z-50 w-48 -translate-y-1/2 rounded-xl border-2 border-[#c8a158] bg-stone-950/95 px-3 py-2 text-left text-[11px] text-amber-100 shadow-2xl">
+              <div className="font-extrabold text-red-300">
+                {tr('상대편 덱 상태', 'Enemy Deck Status')}
+              </div>
+              <div className="mt-0.5 font-bold">
+                {matchState.opponent.deck.length > 0
+                  ? tr(
+                      `남은 카드: ${matchState.opponent.deck.length}장`,
+                      `Cards left: ${matchState.opponent.deck.length}`,
+                    )
+                  : tr(
+                      `카드 없음! 다음 탈진 피해: ${matchState.opponent.fatigueCounter + 1}`,
+                      `Empty! Next Fatigue: ${matchState.opponent.fatigueCounter + 1}`,
+                    )}
+              </div>
+              <div className="mt-0.5 text-[10px] text-amber-200/80">
+                {tr(
+                  `현재 손패: ${matchState.opponent.hand.length} / 10장`,
+                  `Hand size: ${matchState.opponent.hand.length} / 10`,
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right-Middle Spinning Auto-Play Toggle Button */}
@@ -3066,20 +3848,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <EndTurnLeverPlate isPlayerTurn={isPlayerTurn} noMovesLeft={noMovesLeft} isKo={isKo} />
         </button>
 
-        {/* Player Remaining Deck Stack */}
+        {/* Player Remaining Deck Stack + Hover/Click Status Popover */}
         <div
-          title={
-            matchState.player.deck.length > 0
-              ? isKo
-                ? `내 남은 덱: ${matchState.player.deck.length}장`
-                : `Your Deck: ${matchState.player.deck.length} cards`
-              : isKo
-                ? `내 덱 소진! (다음 탈진 피해: ${matchState.player.fatigueCounter + 1})`
-                : `Out of Cards! (Next Fatigue: ${matchState.player.fatigueCounter + 1})`
-          }
-          className="relative flex h-14 w-11 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-[#c8a158]/80 bg-stone-950/90 shadow-xl"
+          data-hs-entity="PLAYER_DECK"
+          onMouseEnter={() => setDeckTooltipSide('PLAYER')}
+          onMouseLeave={() => setDeckTooltipSide((prev) => (prev === 'PLAYER' ? null : prev))}
+          onClick={(e) => {
+            e.stopPropagation();
+            setDeckTooltipSide((prev) => (prev === 'PLAYER' ? null : 'PLAYER'));
+          }}
+          className="relative flex h-14 w-11 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-[#c8a158]/80 bg-stone-950/90 shadow-xl transition hover:border-amber-300"
         >
-          <div className="pointer-events-none absolute inset-0 opacity-45">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[6px] opacity-45">
             <SnsCardBackArt variant={profile.selectedCardBack} />
           </div>
           <span className="hs-outline-sm relative z-10 text-[9px] font-extrabold text-sky-200">
@@ -3088,6 +3868,30 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <span className="hs-num relative z-10 text-sm text-white">
             {matchState.player.deck.length}
           </span>
+          {deckTooltipSide === 'PLAYER' && (
+            <div className="pointer-events-none absolute right-[calc(100%+10px)] top-1/2 z-50 w-48 -translate-y-1/2 rounded-xl border-2 border-[#c8a158] bg-stone-950/95 px-3 py-2 text-left text-[11px] text-amber-100 shadow-2xl">
+              <div className="font-extrabold text-sky-300">
+                {tr('내 덱 상태', 'Your Deck Status')}
+              </div>
+              <div className="mt-0.5 font-bold">
+                {matchState.player.deck.length > 0
+                  ? tr(
+                      `남은 카드: ${matchState.player.deck.length}장`,
+                      `Cards left: ${matchState.player.deck.length}`,
+                    )
+                  : tr(
+                      `카드 없음! 다음 탈진 피해: ${matchState.player.fatigueCounter + 1}`,
+                      `Empty! Next Fatigue: ${matchState.player.fatigueCounter + 1}`,
+                    )}
+              </div>
+              <div className="mt-0.5 text-[10px] text-amber-200/80">
+                {tr(
+                  `현재 손패: ${matchState.player.hand.length} / 10장`,
+                  `Hand size: ${matchState.player.hand.length} / 10`,
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -3173,9 +3977,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 const toy = cornerToys[Math.floor(Math.random() * cornerToys.length)];
-                hsAudio.playSfx('ui_click', 0.85);
-                setToyToast(`${toy.icon} ${isKo ? toy.reaction : toy.reactionEn}`);
-                window.setTimeout(() => setToyToast(null), 2200);
+                triggerCornerToy(toy);
               }}
               className="hs-brass-btn rounded-xl px-2 py-1 text-[10.5px] font-extrabold text-amber-100 md:hidden"
             >
@@ -3196,23 +3998,62 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           </div>
         </div>
 
-        {/* Opponent Hero Arch (100% Horizontally Centered on Stage Axis) */}
+        {/* Opponent Hero Arch (100% Horizontally Centered on Stage Axis + Right-Click/Tap Squelch) */}
         <div className="mt-0.5 flex w-full items-center justify-center sm:mt-1">
-          <HeroPortraitZone
-            player={matchState.opponent}
-            isFriendly={false}
-            isActiveTurn={matchState.activeSide === 'OPPONENT'}
-            canHeroAttack={false}
-            isHeroSelectedAttacker={false}
-            isHeroValidTarget={activeValidTargetSet.has('OPPONENT_HERO')}
-            isAttackingHidden={attackAnim?.attackerId === 'OPPONENT_HERO'}
-            isIncomingAttackTarget={attackAnim?.defenderId === 'OPPONENT_HERO'}
-            canUseHeroPower={false}
-            isHeroPowerSelected={false}
-            emoteBubbleText={opponentEmoteText}
-            onClickHero={handleOpponentHeroClickCb}
-            onClickHeroPower={noopHeroPowerCb}
-          />
+          <div className="relative flex items-center justify-center">
+            <HeroPortraitZone
+              player={matchState.opponent}
+              isFriendly={false}
+              isActiveTurn={matchState.activeSide === 'OPPONENT'}
+              canHeroAttack={false}
+              isHeroSelectedAttacker={false}
+              isHeroValidTarget={activeValidTargetSet.has('OPPONENT_HERO')}
+              isAttackingHidden={attackAnim?.attackerId === 'OPPONENT_HERO'}
+              isIncomingAttackTarget={attackAnim?.defenderId === 'OPPONENT_HERO'}
+              isDefeated={matchState.phase === 'GAME_OVER' && matchState.winner === 'PLAYER'}
+              isSquelched={opponentSquelched}
+              canUseHeroPower={false}
+              isHeroPowerSelected={false}
+              emoteBubbleText={opponentSquelched ? null : opponentEmoteText}
+              onClickHero={handleOpponentHeroClickCb}
+              onHeroContextMenu={() => {
+                hsAudio.playSfx('ui_click', 0.7);
+                setSquelchMenuOpen((v) => !v);
+              }}
+              onClickHeroPower={noopHeroPowerCb}
+            />
+
+            {squelchMenuOpen && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  hsAudio.playSfx('ui_click', 0.8);
+                  const next = !opponentSquelched;
+                  setOpponentSquelched(next);
+                  if (next) setOpponentEmoteText(null);
+                  setSquelchMenuOpen(false);
+                  setToyToast(
+                    next
+                      ? tr(
+                          '상대 영웅의 감정표현을 차단했습니다.',
+                          'Opponent emotes squelched.',
+                        )
+                      : tr(
+                          '상대 영웅의 감정표현 차단을 해제했습니다.',
+                          'Opponent emotes unsquelched.',
+                        ),
+                  );
+                  window.setTimeout(() => setToyToast(null), 1900);
+                }}
+                className="hs-ivory-plate absolute -right-24 top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-2xl px-3.5 py-1.5 text-xs font-extrabold text-[#2b180a] shadow-2xl sm:-right-28"
+              >
+                {opponentSquelched
+                  ? tr('🔊 차단 해제', '🔊 Unsquelch')
+                  : tr('🔇 차단', '🔇 Squelch')}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -3345,18 +4186,25 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         {/* Opponent Minion Row (Max 7) */}
         <div className="flex min-h-[70px] items-center justify-center gap-1 sm:min-h-[122px] sm:gap-3">
           {matchState.opponent.board.map((m) => (
-            <BoardMinionToken
-              key={m.uid}
-              minion={m}
-              isFriendly={false}
-              canAttack={false}
-              isSelectedAttacker={false}
-              isValidTarget={activeValidTargetSet.has(m.uid)}
-              isAttackingHidden={attackAnim?.attackerId === m.uid}
-              isIncomingAttackTarget={attackAnim?.defenderId === m.uid}
-              onSelectEntity={handleMinionSelectCb}
-              onHoverMinion={handleMinionHoverCb}
-            />
+            <div key={m.uid} className="animate-[hsMinionSummonDrop_0.34s_cubic-bezier(0.22,1,0.36,1)]">
+              <BoardMinionToken
+                minion={m}
+                isFriendly={false}
+                canAttack={false}
+                isSelectedAttacker={false}
+                isValidTarget={activeValidTargetSet.has(m.uid)}
+                isAttackingHidden={attackAnim?.attackerId === m.uid}
+                isIncomingAttackTarget={attackAnim?.defenderId === m.uid}
+                onSelectEntity={handleMinionSelectCb}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  hsAudio.playSfx('card_hover', 0.65);
+                  setZoomState({ kind: 'BOARD_MINION', minion: m, isFriendly: false });
+                }}
+                onHoverMinion={handleMinionHoverCb}
+              />
+            </div>
           ))}
           {matchState.opponent.board.length === 0 && (
             <div className="text-[11px] font-bold text-amber-100/35 sm:text-xs">
@@ -3369,10 +4217,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         <div className="relative mx-auto hidden h-2 w-[86%] rounded-full bg-amber-950/60 sm:block">
           {isPlayerTurn && matchState.turnSecondsLeft <= 15 && (
             <div className="absolute inset-0 flex items-center">
-              <div
-                style={{ width: `${(matchState.turnSecondsLeft / 15) * 100}%` }}
-                className="h-2 rounded-full bg-gradient-to-r from-amber-600 via-orange-500 to-yellow-200 transition-all duration-1000"
-              />
+              <div className="relative h-2 w-full rounded-full bg-stone-950/60">
+                <div
+                  style={{ width: `${(matchState.turnSecondsLeft / 15) * 100}%` }}
+                  className="relative h-2 rounded-full bg-gradient-to-r from-amber-600 via-orange-500 to-yellow-200 transition-all duration-1000"
+                >
+                  <div className="absolute -right-2 -top-1.5 h-5 w-5 rounded-full bg-yellow-200 shadow-[0_0_16px_#fde047,0_0_28px_#f97316] animate-[hsRopeSpark_0.22s_ease-in-out_infinite]" />
+                </div>
+              </div>
               <span className="hs-num ml-2 whitespace-nowrap rounded-full bg-red-900 px-2 py-0.5 text-xs text-yellow-200 shadow">
                 🔥 {matchState.turnSecondsLeft}{isKo ? '초!' : 's!'}
               </span>
@@ -3453,12 +4305,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 !isPlayerTurn ? 'cursor-not-allowed opacity-90' : 'active:scale-95'
               }`}
             >
-              <EndTurnLeverPlate isPlayerTurn={isPlayerTurn} noMovesLeft={noMovesLeft} compact />
+              <EndTurnLeverPlate
+                isPlayerTurn={isPlayerTurn}
+                noMovesLeft={noMovesLeft}
+                isKo={isKo}
+                compact
+              />
             </button>
           </div>
         </div>
 
-        {/* Friendly Minion Row (Max 7 + Positional Drop Slot Preview!) */}
+        {/* Friendly Minion Row (Max 7 + Positional Drop Slot Preview for Drag or Click!) */}
         <div
           ref={friendlyRowRef}
           onClick={(e) => {
@@ -3468,42 +4325,47 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             }
           }}
           className={`flex min-h-[70px] items-center justify-center gap-1 rounded-3xl transition sm:min-h-[124px] sm:gap-3 ${
-            selection?.kind === 'HAND_CARD' && !selection.needsTarget
+            isDraggingUntargetedMinionOverBoard ||
+            (selection?.kind === 'HAND_CARD' && !selection.needsTarget)
               ? 'cursor-pointer bg-emerald-500/15 ring-2 ring-emerald-400/60'
               : ''
           }`}
         >
           {matchState.player.board.map((m, idx) => (
             <React.Fragment key={m.uid}>
-              {selection?.kind === 'HAND_CARD' &&
-                !selection.needsTarget &&
-                selection.isMinion &&
-                insertPreviewIdx === idx && (
-                  <div className="flex h-[64px] w-11 items-center justify-center rounded-[50%] border-2 border-dashed border-emerald-300 bg-emerald-400/25 text-center text-[9px] font-extrabold text-emerald-100 sm:h-[102px] sm:w-14 sm:text-[10px]">
-                    {tr('여기 배치', 'Place Here')}
-                  </div>
-                )}
-              <BoardMinionToken
-                minion={m}
-                isFriendly
-                canAttack={isPlayerTurn && !attackAnim && engine.canAttackerSwing('PLAYER', m.uid).ok}
-                isSelectedAttacker={
-                  selection?.kind === 'ATTACKER' && selection.attackerId === m.uid
-                }
-                isValidTarget={activeValidTargetSet.has(m.uid)}
-                isAttackingHidden={attackAnim?.attackerId === m.uid}
-                isIncomingAttackTarget={attackAnim?.defenderId === m.uid}
-                onSelectEntity={handleMinionSelectCb}
-                onHoverMinion={handleMinionHoverCb}
-              />
+              {isDraggingUntargetedMinionOverBoard && insertPreviewIdx === idx && (
+                <div className="flex h-[64px] w-11 shrink-0 items-center justify-center rounded-[50%] border-2 border-dashed border-emerald-300 bg-emerald-400/25 text-center text-[9px] font-extrabold text-emerald-100 transition-all duration-150 sm:h-[102px] sm:w-14 sm:text-[10px]">
+                  {tr('여기 배치', 'Place Here')}
+                </div>
+              )}
+              <div className="animate-[hsMinionSummonDrop_0.34s_cubic-bezier(0.22,1,0.36,1)]">
+                <BoardMinionToken
+                  minion={m}
+                  isFriendly
+                  canAttack={isPlayerTurn && !attackAnim && engine.canAttackerSwing('PLAYER', m.uid).ok}
+                  isSelectedAttacker={
+                    selection?.kind === 'ATTACKER' && selection.attackerId === m.uid
+                  }
+                  isValidTarget={activeValidTargetSet.has(m.uid)}
+                  isAttackingHidden={attackAnim?.attackerId === m.uid}
+                  isIncomingAttackTarget={attackAnim?.defenderId === m.uid}
+                  onSelectEntity={handleMinionSelectCb}
+                  onPointerDown={(e) => handleFriendlyAttackerPointerDown(e, m.uid)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    hsAudio.playSfx('card_hover', 0.65);
+                    setZoomState({ kind: 'BOARD_MINION', minion: m, isFriendly: true });
+                  }}
+                  onHoverMinion={handleMinionHoverCb}
+                />
+              </div>
             </React.Fragment>
           ))}
 
-          {selection?.kind === 'HAND_CARD' &&
-            !selection.needsTarget &&
-            selection.isMinion &&
+          {isDraggingUntargetedMinionOverBoard &&
             insertPreviewIdx >= matchState.player.board.length && (
-              <div className="flex h-[64px] w-12 items-center justify-center rounded-[50%] border-2 border-dashed border-emerald-300 bg-emerald-400/25 text-center text-[9px] font-extrabold text-emerald-100 sm:h-[102px] sm:w-16 sm:text-[10px]">
+              <div className="flex h-[64px] w-12 shrink-0 items-center justify-center rounded-[50%] border-2 border-dashed border-emerald-300 bg-emerald-400/25 text-center text-[9px] font-extrabold text-emerald-100 transition-all duration-150 sm:h-[102px] sm:w-16 sm:text-[10px]">
                 {tr('소환 위치', 'Summon Spot')}
               </div>
             )}
@@ -3523,11 +4385,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               </button>
             )}
 
-          {matchState.player.board.length === 0 && !selection && (
-            <div className="text-[11px] font-bold text-amber-100/35 sm:text-xs">
-              {tr('내 전장', 'Friendly Board')}
-            </div>
-          )}
+          {matchState.player.board.length === 0 &&
+            !selection &&
+            !isDraggingUntargetedMinionOverBoard && (
+              <div className="text-[11px] font-bold text-amber-100/35 sm:text-xs">
+                {tr('내 전장', 'Friendly Board')}
+              </div>
+            )}
         </div>
       </main>
 
@@ -3541,6 +4405,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                hsAudio.playSfx('ui_click', 0.75);
                 setEmoteMenuOpen((v) => !v);
               }}
               className="hs-brass-btn absolute right-[calc(100%+6px)] top-1/2 z-20 -translate-y-1/2 whitespace-nowrap rounded-xl px-2 py-1 text-[10px] font-extrabold text-amber-100 sm:right-[calc(100%+12px)] sm:px-2.5 sm:text-[11px]"
@@ -3561,49 +4426,77 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               isHeroValidTarget={activeValidTargetSet.has('PLAYER_HERO')}
               isAttackingHidden={attackAnim?.attackerId === 'PLAYER_HERO'}
               isIncomingAttackTarget={attackAnim?.defenderId === 'PLAYER_HERO'}
+              isDefeated={matchState.phase === 'GAME_OVER' && matchState.winner === 'OPPONENT'}
               canUseHeroPower={isPlayerTurn && !attackAnim && engine.inspectHeroPower('PLAYER').canUse}
               isHeroPowerSelected={selection?.kind === 'HERO_POWER'}
-              emoteBubbleText={playerEmoteText}
+              emoteBubbleText={playerEmoteText || playErrorBubble}
               onClickHero={handlePlayerHeroClickCb}
               onClickHeroPower={handlePlayerHeroPowerCb}
+              onHeroPointerDown={(e) => handleFriendlyAttackerPointerDown(e, 'PLAYER_HERO')}
+              onHeroPowerPointerDown={handleHeroPowerPointerDown}
+              onHeroContextMenu={() => {
+                hsAudio.playSfx('ui_click', 0.75);
+                setEmoteMenuOpen((v) => !v);
+              }}
             />
 
-            {/* 6-Petal Korean Emote Radial Menu */}
+            {/* Authentic 6-Bubble Radial Speech-Bubble Emote Wheel Around Hero */}
             {emoteMenuOpen && (
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="hs-wood-panel absolute -top-28 left-1/2 z-50 grid w-64 -translate-x-1/2 grid-cols-3 gap-1.5 rounded-2xl p-2.5 shadow-2xl sm:-top-32"
+                className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center"
               >
-                {(
-                  [
-                    { key: 'greetings', label: tr('인사', 'Greetings') },
-                    { key: 'well_played', label: tr('칭찬', 'Well Played') },
-                    { key: 'thanks', label: tr('감사', 'Thanks') },
-                    { key: 'wow', label: tr('감탄', 'Wow') },
-                    { key: 'oops', label: tr('실수', 'Oops') },
-                    { key: 'threaten', label: tr('위협', 'Threaten') },
-                  ] as const
-                ).map((em) => (
-                  <button
-                    key={em.key}
-                    type="button"
-                    onClick={() => triggerPlayerEmote(em.key)}
-                    className="hs-ivory-plate rounded-xl py-1.5 text-xs font-extrabold text-[#2b180a]"
-                  >
-                    {em.label}
-                  </button>
-                ))}
+                {/* Left 3 Speech Bubbles */}
+                <div className="pointer-events-auto absolute -left-24 -top-16 flex flex-col gap-1.5 sm:-left-36 sm:-top-14">
+                  {(
+                    [
+                      { key: 'thanks', label: tr('감사', 'Thanks'), shift: 'translate-x-2' },
+                      { key: 'well_played', label: tr('칭찬', 'Well Played'), shift: 'translate-x-0' },
+                      { key: 'greetings', label: tr('인사', 'Greetings'), shift: 'translate-x-2' },
+                    ] as const
+                  ).map((em) => (
+                    <button
+                      key={em.key}
+                      type="button"
+                      onClick={() => triggerPlayerEmote(em.key)}
+                      className={`hs-ivory-plate w-20 rounded-2xl rounded-br-sm py-1.5 text-xs font-extrabold text-[#2b180a] shadow-xl sm:w-24 ${em.shift}`}
+                    >
+                      {em.label}
+                    </button>
+                  ))}
+                </div>
+                {/* Right 3 Speech Bubbles */}
+                <div className="pointer-events-auto absolute -right-24 -top-16 flex flex-col gap-1.5 sm:-right-36 sm:-top-14">
+                  {(
+                    [
+                      { key: 'wow', label: tr('감탄', 'Wow'), shift: '-translate-x-2' },
+                      { key: 'oops', label: tr('실수', 'Oops'), shift: 'translate-x-0' },
+                      { key: 'threaten', label: tr('위협', 'Threaten'), shift: '-translate-x-2' },
+                    ] as const
+                  ).map((em) => (
+                    <button
+                      key={em.key}
+                      type="button"
+                      onClick={() => triggerPlayerEmote(em.key)}
+                      className={`hs-ivory-plate w-20 rounded-2xl rounded-bl-sm py-1.5 text-xs font-extrabold text-[#2b180a] shadow-xl sm:w-24 ${em.shift}`}
+                    >
+                      {em.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Player Curved Hand Fan (Centered & Dynamically Spaced so Rightmost Card Never Collides with Bottom-Right Mana!) */}
+        {/* Player Curved Hand Fan (Supports Drag-to-Play, Hover Mana Preview, Draw Flight & Tap-to-Zoom!) */}
         <div className="hs-no-scrollbar mt-0.5 flex min-h-[142px] w-full items-end overflow-x-auto px-3 pb-0.5 pt-1.5 sm:min-h-[192px] sm:justify-center sm:overflow-x-visible sm:px-4 sm:pb-1 sm:pt-2">
           <div className="mx-auto flex w-max items-end">
             {matchState.player.hand.map((hc, idx) => {
               const def = cardDb.mustGetCard(hc.cardId);
               const check = engine.inspectPlayability('PLAYER', hc);
+              const isBeingDragged = handDrag?.isDragging && handDrag.handUid === hc.uid;
+              const isNewlyDrawn = newlyDrawnUids.has(hc.uid);
               const isSelectedCard =
                 (selection?.kind === 'HAND_CARD' && selection.handUid === hc.uid) ||
                 (zoomState?.kind === 'HAND_CARD' && zoomState.handUid === hc.uid);
@@ -3628,17 +4521,38 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 <div
                   key={hc.uid}
                   data-hand-uid={hc.uid}
+                  onPointerDown={(e) => handleHandCardPointerDown(e, hc.uid, hc.cardId)}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleHandCardClick(hc.uid);
                   }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    hsAudio.playSfx('card_hover', 0.7);
+                    setZoomState({ kind: 'HAND_CARD', handUid: hc.uid });
+                  }}
+                  onMouseEnter={() => {
+                    if (isPlayerTurn && check.canPlay) {
+                      setHoveredHandCost(check.cost);
+                    }
+                  }}
+                  onMouseLeave={() => setHoveredHandCost(null)}
                   style={{
                     marginLeft: idx > 0 ? (isCompactMobile ? -24 : desktopOverlapPx) : 0,
                     transform: isSelectedCard
                       ? 'translateY(-18px) scale(1.08)'
                       : `translateY(${liftY}px) rotate(${angle}deg)`,
                   }}
-                  className={`transition-transform duration-150 ${
+                  className={`touch-none transition-all duration-150 ${
+                    isBeingDragged && (!handDrag?.needsTarget || handDrag?.hasChooseOne)
+                      ? 'pointer-events-none opacity-20'
+                      : ''
+                  } ${
+                    isNewlyDrawn
+                      ? 'animate-[hsCardDrawFly_0.55s_cubic-bezier(0.2,0.9,0.25,1)_both]'
+                      : ''
+                  } ${
                     isSelectedCard
                       ? 'z-50'
                       : 'hover:z-50 sm:hover:-translate-y-7 sm:hover:rotate-0 sm:hover:scale-110'
@@ -3658,7 +4572,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                           : 'GREEN'
                     }
                     size={isCompactMobile ? 'XS' : 'SM'}
-                    className="cursor-pointer"
+                    className="cursor-grab active:cursor-grabbing"
                   />
                 </div>
               );
@@ -3666,7 +4580,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           </div>
         </div>
 
-        {/* Original Hearthstone Bottom-Right Mana Trough (우측하단: 현재/최대 마나 + 10 사파이어 마나 수정) */}
+        {/* Original Hearthstone Bottom-Right Mana Trough (우측하단: 현재/최대 마나 + 10 사파이어 마나 수정 + 소모 미리보기) */}
         <div
           data-testid="player-mana-tray"
           className="mt-0.5 flex w-full justify-end px-2.5 sm:absolute sm:bottom-2.5 sm:right-3 sm:z-40 sm:mt-0 sm:w-auto sm:px-0"
@@ -3687,40 +4601,56 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             </span>
             <div className="h-3.5 w-[1px] bg-amber-400/35 sm:h-4" />
             <div className="flex items-center gap-0.5 sm:gap-1">
-              {Array.from({ length: 10 }).map((_, idx) => {
-                const isUnlocked = idx < matchState.player.maxMana;
-                const isFilled = idx < matchState.player.mana;
-                const isOverloadedNow =
-                  isUnlocked &&
-                  idx >= matchState.player.maxMana - matchState.player.overloadedMana;
-                return (
-                  <div
-                    key={idx}
-                    title={
-                      isOverloadedNow
-                        ? tr('과부하로 잠긴 마나 수정', 'Overloaded Mana Crystal')
-                        : isFilled
-                          ? tr('사용 가능한 마나 수정', 'Available Mana Crystal')
-                          : isUnlocked
-                            ? tr('이번 턴 소모한 마나 수정', 'Spent Mana Crystal')
-                            : tr('잠긴 마나 슬롯', 'Locked Mana Slot')
-                    }
-                    style={{
-                      clipPath:
-                        'polygon(50% 4%, 94% 26%, 94% 74%, 50% 96%, 6% 74%, 6% 26%)',
-                    }}
-                    className={`h-3.5 w-3 transition sm:h-[18px] sm:w-[14px] ${
-                      isOverloadedNow
-                        ? 'bg-gradient-to-b from-red-400 to-red-800 shadow-[0_0_8px_#ef4444]'
-                        : isFilled
-                          ? 'bg-gradient-to-b from-sky-200 via-blue-500 to-indigo-900 shadow-[0_0_8px_#38bdf8]'
-                          : isUnlocked
-                            ? 'bg-sky-950/88 opacity-75'
-                            : 'bg-stone-800/45 opacity-45'
-                    }`}
-                  />
-                );
-              })}
+              {(() => {
+                const spendCount =
+                  isPlayerTurn &&
+                  hoveredHandCost !== null &&
+                  hoveredHandCost <= matchState.player.mana
+                    ? hoveredHandCost
+                    : 0;
+                const spendStartIdx = Math.max(0, matchState.player.mana - spendCount);
+
+                return Array.from({ length: 10 }).map((_, idx) => {
+                  const isUnlocked = idx < matchState.player.maxMana;
+                  const isFilled = idx < matchState.player.mana;
+                  const isSpendingPreview =
+                    spendCount > 0 && isFilled && idx >= spendStartIdx && idx < matchState.player.mana;
+                  const isOverloadedNow =
+                    isUnlocked &&
+                    idx >= matchState.player.maxMana - matchState.player.overloadedMana;
+                  return (
+                    <div
+                      key={idx}
+                      title={
+                        isOverloadedNow
+                          ? tr('과부하로 잠긴 마나 수정', 'Overloaded Mana Crystal')
+                          : isSpendingPreview
+                            ? tr('사용 시 소모될 마나 수정', 'Mana to Spend')
+                            : isFilled
+                              ? tr('사용 가능한 마나 수정', 'Available Mana Crystal')
+                              : isUnlocked
+                                ? tr('이번 턴 소모한 마나 수정', 'Spent Mana Crystal')
+                                : tr('잠긴 마나 슬롯', 'Locked Mana Slot')
+                      }
+                      style={{
+                        clipPath:
+                          'polygon(50% 4%, 94% 26%, 94% 74%, 50% 96%, 6% 74%, 6% 26%)',
+                      }}
+                      className={`h-3.5 w-3 transition sm:h-[18px] sm:w-[14px] ${
+                        isOverloadedNow
+                          ? 'bg-gradient-to-b from-red-400 to-red-800 shadow-[0_0_8px_#ef4444]'
+                          : isSpendingPreview
+                            ? 'animate-pulse bg-gradient-to-b from-white via-cyan-300 to-sky-400 shadow-[0_0_12px_#67e8f9] brightness-125'
+                            : isFilled
+                              ? 'bg-gradient-to-b from-sky-200 via-blue-500 to-indigo-900 shadow-[0_0_8px_#38bdf8]'
+                              : isUnlocked
+                                ? 'bg-sky-950/88 opacity-75'
+                                : 'bg-stone-800/45 opacity-45'
+                      }`}
+                    />
+                  );
+                });
+              })()}
             </div>
             {matchState.player.pendingOverload > 0 && (
               <span className="ml-0.5 rounded-md border border-red-400/50 bg-red-950 px-1.5 py-0.5 text-[9.5px] font-extrabold text-red-200 sm:text-[10px]">
@@ -3759,38 +4689,63 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   {tr('아직 기록된 행동이 없습니다.', 'No actions recorded yet.')}
                 </div>
               ) : (
-                matchState.history.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      hsAudio.playSfx('card_hover', 0.65);
-                      setZoomState({ kind: 'HISTORY_ITEM', item });
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-2xl border border-amber-400/35 bg-stone-950/85 p-2 text-left transition active:scale-[0.99]"
-                  >
-                    <img
-                      src={resolveHistoryIconUrl(item)}
-                      alt={item.title}
-                      className={`h-10 w-10 shrink-0 rounded-lg border-2 object-cover object-top ${
-                        item.actorSide === 'PLAYER' ? 'border-sky-400' : 'border-red-500'
-                      }`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-extrabold text-yellow-300">
-                        {isKo
-                          ? `${item.turn}턴 · ${item.actorSide === 'PLAYER' ? '아군' : '상대'} · ${item.title}`
-                          : `T${item.turn} · ${item.actorSide === 'PLAYER' ? 'Ally' : 'Enemy'} · ${item.title}`}
+                matchState.history.map((item) => {
+                  const canZoomItem = !item.isHiddenSecret && Boolean(cardDb.getCard(item.cardId));
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        if (!canZoomItem) return;
+                        hsAudio.playSfx('card_hover', 0.65);
+                        setZoomState({ kind: 'HISTORY_ITEM', item });
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-2xl border border-amber-400/35 bg-stone-950/85 p-2 text-left transition active:scale-[0.99]"
+                    >
+                      {item.isHiddenSecret ? (
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-fuchsia-400 bg-fuchsia-950 text-lg font-black text-amber-200">
+                          ?
+                        </div>
+                      ) : item.kind === 'FATIGUE' || !cardDb.getCard(item.cardId) ? (
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-rose-400 bg-rose-950 text-lg text-rose-200">
+                          ☠
+                        </div>
+                      ) : (
+                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
+                          <img
+                            src={resolveHistoryIconUrl(item)}
+                            alt={item.title}
+                            className={`h-full w-full rounded-lg border-2 object-cover object-top ${
+                              item.actorSide === 'PLAYER' ? 'border-sky-400' : 'border-red-500'
+                            }`}
+                          />
+                          {item.kind === 'MILL_BURN' && (
+                            <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-orange-950/55 text-xs">
+                              🔥
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[11px] font-extrabold text-yellow-300">
+                          {isKo
+                            ? `${item.turn}턴 · ${item.actorSide === 'PLAYER' ? '아군' : '상대'} · ${item.isHiddenSecret ? '비밀 시전' : item.title}`
+                            : `T${item.turn} · ${item.actorSide === 'PLAYER' ? 'Ally' : 'Enemy'} · ${item.isHiddenSecret ? 'Secret Cast' : item.title}`}
+                        </div>
+                        <div className="truncate text-xs font-bold text-amber-100/90">
+                          {item.isHiddenSecret
+                            ? tr('발동될 때까지 비공개', 'Hidden until triggered')
+                            : item.detail}
+                        </div>
                       </div>
-                      <div className="truncate text-xs font-bold text-amber-100/90">
-                        {item.detail}
-                      </div>
-                    </div>
-                    <span className="shrink-0 text-[10.5px] font-extrabold text-amber-300">
-                      {tr('확대 ›', 'Zoom ›')}
-                    </span>
-                  </button>
-                ))
+                      {canZoomItem && (
+                        <span className="shrink-0 text-[10.5px] font-extrabold text-amber-300">
+                          {tr('확대 ›', 'Zoom ›')}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
               )}
             </div>
           </div>
@@ -3799,12 +4754,34 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* ==================== FLOATING BANNERS & MODALS ==================== */}
 
-      {/* Turn Change Banner ("내 턴!" / "상대 턴") */}
+      {/* Sculpted Winged Heraldic Turn Change Banner ("나의 턴" / "상대 턴") */}
       {matchState.bannerMessage && !vsIntroActive && (
-        <div className="hs-wood-panel pointer-events-none absolute left-1/2 top-1/2 z-[82] -translate-x-1/2 -translate-y-1/2 animate-[hsCardPop_0.3s_ease-out] rounded-3xl px-8 py-3 sm:px-12 sm:py-4">
-          <div className="hs-title hs-outline text-2xl font-extrabold tracking-widest text-amber-200 sm:text-3xl">
-            {matchState.bannerMessage}
-          </div>
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-[82] flex -translate-x-1/2 -translate-y-1/2 items-center animate-[hsCardPop_0.3s_ease-out]">
+          {(() => {
+            const isEnemyBanner =
+              matchState.bannerMessage.includes('상대') ||
+              matchState.bannerMessage.toUpperCase().includes('ENEMY') ||
+              matchState.bannerMessage.toUpperCase().includes('OPPONENT');
+            const bannerText =
+              matchState.bannerMessage === '내 턴!'
+                ? tr('나의 턴', 'YOUR TURN')
+                : matchState.bannerMessage;
+            return (
+              <div
+                className={`relative flex min-w-[230px] items-center justify-center rounded-2xl border-[3px] border-[#e8c675] px-9 py-3 shadow-[0_18px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(250,204,21,0.45)] sm:min-w-[330px] sm:px-14 sm:py-4 ${
+                  isEnemyBanner
+                    ? 'bg-gradient-to-b from-red-900 via-rose-950 to-stone-950'
+                    : 'bg-gradient-to-b from-blue-800 via-indigo-950 to-stone-950'
+                }`}
+              >
+                <span className="pointer-events-none absolute -left-3.5 top-1/2 flex h-7 w-7 -translate-y-1/2 rotate-45 items-center justify-center border-2 border-[#f3d98b] bg-gradient-to-br from-amber-300 to-amber-800 shadow-lg" />
+                <span className="pointer-events-none absolute -right-3.5 top-1/2 flex h-7 w-7 -translate-y-1/2 rotate-45 items-center justify-center border-2 border-[#f3d98b] bg-gradient-to-br from-amber-300 to-amber-800 shadow-lg" />
+                <div className="hs-title hs-outline relative z-10 text-2xl font-extrabold tracking-widest text-amber-100 sm:text-4xl">
+                  {bannerText}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -4039,7 +5016,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           );
         })()}
 
-      {/* 2. Mulligan (시작 손패 교체) Overlay — Tap Card to Enlarge & Toggle Replace! */}
+      {/* 2. Mulligan (시작 손패 교체) Overlay — 1-Click Replace Stamp (✕) + Optional Card Zoom! */}
       {storyPhase === 'CLOSED' && !vsIntroActive && matchState.phase === 'MULLIGAN' && (
         <div className="absolute inset-0 z-[88] flex flex-col items-center justify-center overflow-y-auto bg-black/88 p-3 text-center sm:p-4">
           <h2 className="hs-title hs-outline text-xl font-extrabold text-amber-200 sm:text-3xl">
@@ -4054,8 +5031,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               ? tr('⚡ 자동 플레이가 시작 손패를 최적화하여 곧 전투를 개시합니다...',
                   '⚡ Auto-Play is optimizing your starting hand...',
                 )
-              : tr('카드를 터치해 크게 확대하고 하단 버튼으로 교체(✕) 여부를 선택한 뒤 [확인]을 누르세요.',
-                  'Tap a card to inspect and toggle replace (✕), then press Confirm.',
+              : tr('교환할 카드를 클릭해 ✕ 표시한 뒤 [확인]을 누르세요 (하단 버튼/우클릭으로 확대 확인 가능).',
+                  'Click cards to mark for replacement (✕), then press Confirm (use Zoom button or right-click to inspect).',
                 )}
           </p>
 
@@ -4072,26 +5049,55 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               return (
                 <div
                   key={hc.uid}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    hsAudio.playSfx('card_hover', 0.7);
-                    setZoomState({ kind: 'MULLIGAN_CARD', handUid: hc.uid });
-                  }}
-                  className="relative cursor-pointer transition hover:scale-105"
+                  className={`flex flex-col items-center gap-1.5 ${
+                    mulliganSwapping && marked
+                      ? 'animate-[hsMulliganSwapOut_0.42s_ease-in_forwards]'
+                      : ''
+                  }`}
                 >
-                  <HearthstoneCard
-                    card={def}
-                    journeyMultiplier={getPlayerCardMult(def.id)}
-                    size={isCompactMobile ? 'XS' : 'MD'}
-                  />
-                  {marked && (
-                    <div className="absolute inset-x-2 inset-y-2.5 z-40 flex flex-col items-center justify-center rounded-2xl border-2 border-red-400/75 bg-red-950/84">
-                      <span className="hs-outline text-4xl font-black text-red-400 sm:text-6xl">✕</span>
-                      <span className="mt-0.5 rounded-md border border-red-300/60 bg-red-900 px-2 py-0.5 text-[10px] font-extrabold text-white sm:text-xs">
-                        {tr('교체 예정', 'Replacing')}
-                      </span>
-                    </div>
-                  )}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (mulliganSwapping) return;
+                      toggleMulliganCard(hc.uid);
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (mulliganSwapping) return;
+                      hsAudio.playSfx('card_hover', 0.7);
+                      setZoomState({ kind: 'MULLIGAN_CARD', handUid: hc.uid });
+                    }}
+                    className="relative cursor-pointer transition hover:scale-105"
+                  >
+                    <HearthstoneCard
+                      card={def}
+                      journeyMultiplier={getPlayerCardMult(def.id)}
+                      size={isCompactMobile ? 'XS' : 'MD'}
+                    />
+                    {marked && (
+                      <div className="pointer-events-none absolute inset-x-2 inset-y-2.5 z-40 flex flex-col items-center justify-center rounded-2xl border-2 border-red-400/75 bg-red-950/84 animate-[hsMulliganCrossPop_0.22s_ease-out]">
+                        <span className="hs-outline text-4xl font-black text-red-400 sm:text-6xl">
+                          ✕
+                        </span>
+                        <span className="mt-0.5 rounded-md border border-red-300/60 bg-red-900 px-2 py-0.5 text-[10px] font-extrabold text-white sm:text-xs">
+                          {tr('교체 예정', 'Replacing')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={mulliganSwapping}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      hsAudio.playSfx('card_hover', 0.7);
+                      setZoomState({ kind: 'MULLIGAN_CARD', handUid: hc.uid });
+                    }}
+                    className="rounded-full border border-amber-400/50 bg-stone-950/85 px-2.5 py-0.5 text-[10px] font-bold text-amber-200/90 hover:border-amber-200 hover:text-white disabled:opacity-50"
+                  >
+                    {tr('카드 확대', 'Zoom')}
+                  </button>
                 </div>
               );
             })}
@@ -4100,10 +5106,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
+              disabled={mulliganSwapping}
               onClick={confirmMulliganNow}
-              className="hs-arcane-btn hs-title hs-outline-sm rounded-2xl px-9 py-2.5 text-lg font-extrabold tracking-wider text-white sm:px-11 sm:py-3 sm:text-xl"
+              className="hs-arcane-btn hs-title hs-outline-sm rounded-2xl px-9 py-2.5 text-lg font-extrabold tracking-wider text-white disabled:opacity-75 sm:px-11 sm:py-3 sm:text-xl"
             >
-              {tr('확인 (전투 개시)', 'Confirm (Start Duel)')}
+              {mulliganSwapping
+                ? tr('교체 중...', 'Replacing...')
+                : tr('확인 (전투 개시)', 'Confirm (Start Duel)')}
             </button>
             <button
               type="button"

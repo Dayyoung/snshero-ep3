@@ -399,12 +399,13 @@ export function createEngine(rawState: BattleMatchState) {
     const p = getPlayer(side);
     if (p.hand.length >= 10) {
       const burned = cardDb.getCard(cardId)?.name || cardId;
+      pushVfx('MILL_BURN', `${side}_HERO`, undefined, undefined, `${burned} 소멸!`);
       pushHistory({
         actorSide: side,
         cardId,
-        title: `${burned} 소멸`,
-        detail: `손패가 가득 차서 [${burned}] 카드가 불타 소멸했습니다!`,
-        kind: 'TRIGGER',
+        title: `손패 초과: ${burned} 파괴`,
+        detail: `손패가 가득 찼습니다! [${burned}] 카드가 불타 소멸했습니다!`,
+        kind: 'MILL_BURN',
       });
       return false;
     }
@@ -419,14 +420,16 @@ export function createEngine(rawState: BattleMatchState) {
       if (p.deck.length === 0) {
         p.fatigueCounter += 1;
         const fatDmg = p.fatigueCounter;
+        pushVfx('FATIGUE_HIT', `${side}_HERO`, undefined, fatDmg, `탈진 -${fatDmg}`);
         pushHistory({
           actorSide: side,
           cardId: 'GAME_005',
           title: `탈진 피해 ${fatDmg}`,
-          detail: `덱에 카드가 없어 탈진 피해를 ${fatDmg} 입습니다!`,
-          kind: 'TRIGGER',
+          detail: `카드가 없습니다! ${fatDmg}의 피해를 받습니다.`,
+          kind: 'FATIGUE',
+          fatigueDamage: fatDmg,
         });
-        dealDamage(`${side}_HERO`, fatDmg, side, 'EXPLOSION');
+        dealDamage(`${side}_HERO`, fatDmg, side);
       } else {
         const cid = p.deck.shift()!;
         if (addCardToHand(side, cid, costMod)) {
@@ -548,6 +551,8 @@ export function createEngine(rawState: BattleMatchState) {
 
     if (minion.rarity === 'LEGENDARY') {
       pushVfx('LEGENDARY_SLAM', minion.uid, undefined, undefined, minion.name);
+    } else {
+      pushVfx('MINION_SUMMON', minion.uid, undefined, undefined, minion.name);
     }
 
     recalculateAuras();
@@ -671,14 +676,17 @@ export function createEngine(rawState: BattleMatchState) {
     if (targetId === 'PLAYER_HERO') {
       state.player.frozen = true;
       state.player.freezeSkipClearedAtEndTurn = false;
+      pushVfx('FREEZE_SHARD', targetId);
     } else if (targetId === 'OPPONENT_HERO') {
       state.opponent.frozen = true;
       state.opponent.freezeSkipClearedAtEndTurn = false;
+      pushVfx('FREEZE_SHARD', targetId);
     } else {
       const f = findMinion(targetId);
       if (f) {
         f.minion.frozen = true;
         f.minion.freezeSkipClearedAtEndTurn = false;
+        pushVfx('FREEZE_SHARD', f.minion.uid);
       }
     }
   };
@@ -709,7 +717,14 @@ export function createEngine(rawState: BattleMatchState) {
     const ownerHand = getPlayer(f.side).hand;
     if (ownerHand.length >= 10) {
       // Overfull hand destroys bounced minion!
-      pushVfx('EXPLOSION', `${f.side}_HERO`, undefined, undefined, `${removed.name} 파괴!`);
+      pushVfx('MILL_BURN', `${f.side}_HERO`, undefined, undefined, `${removed.name} 파괴!`);
+      pushHistory({
+        actorSide: f.side,
+        cardId: removed.cardId,
+        title: `손패 초과: ${removed.name} 파괴`,
+        detail: `손패가 가득 차서 되돌아온 [${removed.name}] 하수인이 파괴되었습니다!`,
+        kind: 'MILL_BURN',
+      });
     } else {
       ownerHand.push({ uid: nextUid('hand'), cardId: removed.cardId, costMod });
     }
@@ -841,6 +856,7 @@ export function createEngine(rawState: BattleMatchState) {
         }
         if (srcF.minion.poisonous) {
           m.health = -999;
+          pushVfx('POISON_VENOM', m.uid, sourceId, 0, '독성!');
         }
       }
     }
@@ -926,12 +942,15 @@ export function createEngine(rawState: BattleMatchState) {
       }
       if (dying.length === 0) break;
 
-      // Remove dead minions first
+      // Remove dead minions first (emit authentic death shatter & soul VFX at cached board coordinates!)
       for (const side of ['PLAYER', 'OPPONENT'] as PlayerSide[]) {
         const p = getPlayer(side);
         const deadHere = p.board.filter((m) => getMinionHealth(m) <= 0);
         p.board = p.board.filter((m) => getMinionHealth(m) > 0);
-        for (const dm of deadHere) p.graveyard.push(dm.cardId);
+        for (const dm of deadHere) {
+          p.graveyard.push(dm.cardId);
+          pushVfx('MINION_DEATH', dm.uid, undefined, undefined, dm.name);
+        }
       }
 
       // Sort dying minions in Hearthstone play order!
@@ -1545,8 +1564,9 @@ export function createEngine(rawState: BattleMatchState) {
           actorSide: side,
           cardId: def.id,
           title: side === 'PLAYER' ? `비밀: ${def.name}` : `${p.heroNameKo}의 비밀`,
-          detail: side === 'PLAYER' ? `[${def.name}] 비밀을 설치했습니다.` : '상대편이 비밀을 설치했습니다.',
+          detail: side === 'PLAYER' ? `[${def.name}] 비밀을 설치했습니다.` : '상대편이 비밀을 설치했습니다. 조건이 충족되면 발동합니다!',
           kind: 'CAST_SPELL',
+          isHiddenSecret: side === 'OPPONENT',
         });
       } else if (spec?.chooseOne && opts?.chooseOptionIndex !== undefined) {
         const sub = spec.chooseOne[opts.chooseOptionIndex];

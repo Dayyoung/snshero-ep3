@@ -1312,6 +1312,8 @@ export interface BoardMinionTokenProps {
   isIncomingAttackTarget?: boolean;
   isFriendly?: boolean;
   onSelect?: () => void;
+  onPointerDown?: (e: React.PointerEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
   onHoverChange?: (hovering: boolean) => void;
   onSelectEntity?: (uid: string, isFriendly: boolean) => void;
   onHoverMinion?: (minion: MinionInstance, hovering: boolean) => void;
@@ -1326,6 +1328,8 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
   isIncomingAttackTarget = false,
   isFriendly = false,
   onSelect,
+  onPointerDown,
+  onContextMenu,
   onHoverChange,
   onSelectEntity,
   onHoverMinion,
@@ -1394,6 +1398,8 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
   return (
     <div
       data-hs-entity={minion.uid}
+      onPointerDown={onPointerDown}
+      onContextMenu={onContextMenu}
       onClick={(e) => {
         e.stopPropagation();
         if (onSelectEntity) onSelectEntity(minion.uid, isFriendly);
@@ -1413,7 +1419,7 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
           onHoverChange?.(false);
         }
       }}
-      className={`group relative flex h-[66px] w-[48px] shrink-0 cursor-pointer select-none items-center justify-center transition-transform duration-150 sm:h-[120px] sm:w-[96px] ${
+      className={`group relative flex h-[66px] w-[48px] shrink-0 cursor-pointer select-none touch-none items-center justify-center transition-transform duration-150 sm:h-[120px] sm:w-[96px] ${
         isAttackingHidden ? 'pointer-events-none opacity-0' : ''
       } ${
         isSelectedAttacker
@@ -1563,11 +1569,16 @@ export interface HeroZoneProps {
   isHeroValidTarget: boolean;
   isAttackingHidden?: boolean;
   isIncomingAttackTarget?: boolean;
+  isDefeated?: boolean;
+  isSquelched?: boolean;
   canUseHeroPower: boolean;
   isHeroPowerSelected: boolean;
   emoteBubbleText?: string | null;
   onClickHero: () => void;
   onClickHeroPower: () => void;
+  onHeroPointerDown?: (e: React.PointerEvent) => void;
+  onHeroPowerPointerDown?: (e: React.PointerEvent) => void;
+  onHeroContextMenu?: (e: React.MouseEvent) => void;
 }
 
 export const HeroPortraitZone = React.memo<HeroZoneProps>(({
@@ -1579,11 +1590,16 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
   isHeroValidTarget,
   isAttackingHidden = false,
   isIncomingAttackTarget = false,
+  isDefeated = false,
+  isSquelched = false,
   canUseHeroPower,
   isHeroPowerSelected,
   emoteBubbleText,
   onClickHero,
   onClickHeroPower,
+  onHeroPointerDown,
+  onHeroPowerPointerDown,
+  onHeroContextMenu,
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
@@ -1688,13 +1704,15 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
       <div
         data-hs-entity={entityId}
         title={`${heroDisplayName} — ${heroDisplayTitle}`}
+        onPointerDown={onHeroPointerDown}
+        onContextMenu={onHeroContextMenu}
         onClick={(e) => {
           e.stopPropagation();
           onClickHero();
         }}
-        className={`relative flex h-[82px] w-[74px] cursor-pointer items-center justify-center transition-transform sm:h-[120px] sm:w-[108px] ${
+        className={`relative flex h-[82px] w-[74px] cursor-pointer touch-none items-center justify-center transition-transform sm:h-[120px] sm:w-[108px] ${
           isAttackingHidden ? 'pointer-events-none opacity-0' : ''
-        } ${
+        } ${isDefeated ? 'grayscale brightness-50' : ''} ${
           isHeroSelectedAttacker
             ? '-translate-y-1.5 scale-106 sm:-translate-y-2'
             : isIncomingAttackTarget
@@ -1702,6 +1720,11 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
               : 'hover:scale-[1.03]'
         }`}
       >
+        {!isFriendly && isSquelched && (
+          <div className="pointer-events-none absolute -top-2.5 right-0 z-45 rounded-full border border-stone-400/80 bg-stone-900/95 px-1.5 py-0.5 text-[8px] font-extrabold text-stone-200 shadow">
+            🔇 {tr('차단됨', 'Squelched')}
+          </div>
+        )}
         {/* Active Secrets Crown Medallions */}
         {player.secrets.length > 0 && (
           <div className="absolute -top-3 left-1/2 z-40 flex -translate-x-1/2 gap-0.5 sm:-top-4 sm:gap-1">
@@ -1782,6 +1805,20 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
               {tr('면역', 'Immune')}
             </div>
           )}
+          {isDefeated && (
+            <svg
+              viewBox="0 0 100 120"
+              className="pointer-events-none absolute inset-0 z-20 h-full w-full drop-shadow-[0_0_8px_rgba(249,115,22,0.95)]"
+            >
+              <path
+                d="M50 56 L18 14 M50 56 L84 22 M50 56 L8 68 M50 56 L92 76 M50 56 L32 114 M50 56 L72 112"
+                stroke="#fde047"
+                strokeWidth="2.8"
+                strokeLinecap="round"
+                fill="none"
+              />
+            </svg>
+          )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/94 via-black/68 to-transparent pl-1 pr-4 pb-0.5 pt-3 text-center sm:pl-1.5 sm:pr-5 sm:pb-1 sm:pt-4">
             <div className="hs-outline-sm truncate text-[8px] font-extrabold text-amber-100 sm:text-[10px]">
               {heroDisplayName}
@@ -1831,6 +1868,8 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
       <div className="relative flex h-[56px] w-[56px] items-center justify-center sm:h-[80px] sm:w-[80px]">
         <button
           type="button"
+          data-hs-entity={isFriendly ? 'PLAYER_HERO_POWER' : 'OPPONENT_HERO_POWER'}
+          onPointerDown={onHeroPowerPointerDown}
           onClick={(e) => {
             e.stopPropagation();
             onClickHeroPower();
@@ -1843,7 +1882,7 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
                 }
               : undefined
           }
-          className={`relative flex h-[52px] w-[52px] items-center justify-center rounded-full border-[2.5px] transition-all duration-300 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
+          className={`relative flex h-[52px] w-[52px] touch-none items-center justify-center rounded-full border-[2.5px] transition-all duration-300 sm:h-[76px] sm:w-[76px] sm:border-[3.5px] ${
             player.heroPowerUsedThisTurn
               ? 'border-stone-600 bg-stone-900 opacity-85'
               : isHeroPowerSelected
