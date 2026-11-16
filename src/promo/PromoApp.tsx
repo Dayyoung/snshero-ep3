@@ -1813,7 +1813,7 @@ export const PromoApp: React.FC = () => {
                 title: tr('네이버웹툰', 'Naver Webtoon'),
                 sub: tr('네이버 도전만화 공식 연재처 바로가기', 'Official Naver Challenge Comic series'),
                 img: '/webtoon-assets/episode_01/scene_01.webp',
-                href: 'https://comic.naver.com/challenge/list?titleId=856677',
+                href: 'https://comic.naver.com/challenge/list?titleId=857363',
                 external: true,
               },
             ].map((item) => (
@@ -1856,7 +1856,7 @@ export const PromoApp: React.FC = () => {
                 {tr('네이버 웹소설', 'Naver Web Novel')}
               </a>
               <a
-                href="https://comic.naver.com/challenge/list?titleId=856677"
+                href="https://comic.naver.com/challenge/list?titleId=857363"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
@@ -2195,7 +2195,7 @@ export const PromoApp: React.FC = () => {
               <div className="flex flex-wrap gap-3 text-[11px] font-bold text-amber-200/80">
                 <a href="/book.html?ep=1" className="underline hover:text-amber-100">{tr('웹소설 전문 보기', 'Read Novel')}</a>
                 <a href="/webtoon.html?ep=1" className="underline hover:text-amber-100">{tr('웹툰 전체 보기', 'Read Webtoon')}</a>
-                <a href="https://comic.naver.com/challenge/list?titleId=856677" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-100">{tr('네이버 도전만화', 'Naver Webtoon')}</a>
+                <a href="https://comic.naver.com/challenge/list?titleId=857363" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-100">{tr('네이버 도전만화', 'Naver Webtoon')}</a>
               </div>
             </div>
           </div>

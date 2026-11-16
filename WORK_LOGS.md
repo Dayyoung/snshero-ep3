@@ -2,6 +2,15 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-16 17:24 KST] [네이버 도전만화 링크(`titleId=857363`) 단일 통일 및 `sitemap.xml` `lastmod` 최신화 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`src/promo/PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx) 및 [`src/reader/types.ts`](file:///Users/dayyoung/project/snshero/src/reader/types.ts) 내 네이버 도전만화 링크(`856677`) 4곳을 모두 사용자 지정 공식 주소(`https://comic.naver.com/challenge/list?titleId=857363`)로 단일 통일.
+  - [`public/sitemap.xml`](file:///Users/dayyoung/project/snshero/public/sitemap.xml) 내 `/book`, `/webtoon` `<lastmod>`를 `2026-11-16`으로 갱신하여 Google Search Console 재제출·재크롤링 대비.
+- **검증 및 보고**:
+  - `rg -n "856677"` 잔존 0건 확인, `npx tsc --noEmit && npm run build` 0에러 통과.
+  - 로컬 git 커밋 및 구글 폼 보고 완료.
+
 ## [2026-11-16 16:47 KST] [스토리 모드 캐릭터 대화·승리 오버레이 상반신 비율 축소(기존 ~70% 수준 · 전체 화면 50% 이하 엄격 제한) 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

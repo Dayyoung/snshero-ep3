@@ -1,7 +1,7 @@
 {
-  "version": "2.1.0-1794815333655",
-  "buildTime": "2026-11-16T07:48:53.655Z",
-  "buildTimestamp": 1794815333655,
+  "version": "2.1.0-1794817451757",
+  "buildTime": "2026-11-16T08:24:11.757Z",
+  "buildTimestamp": 1794817451757,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
   "entryScript": "/assets/game-BbOYWn_Q-v2.js"
