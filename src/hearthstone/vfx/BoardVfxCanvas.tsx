@@ -47,6 +47,19 @@ interface FloatingBadge {
   maxLife: number;
 }
 
+interface WindGust {
+  kind: 'SWEEP' | 'STREAM' | 'TARGET_RING';
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  curveOffset: number;
+  color: string;
+  accentColor: string;
+  life: number;
+  maxLife: number;
+}
+
 const lastKnownEntityCenters = new Map<string, { x: number; y: number }>();
 
 export function recordEntityStagePosition(entityId: string, pos: { x: number; y: number }): void {
@@ -69,6 +82,7 @@ function getEntityCenter(entityId?: string): { x: number; y: number } {
 
   if (entityId === 'PLAYER_HERO') return { x: w * 0.5, y: h * 0.77 };
   if (entityId === 'OPPONENT_HERO') return { x: w * 0.5, y: h * 0.17 };
+  if (entityId === 'SILIA_WIDGET') return { x: w * 0.08, y: h * 0.86 };
   if (entityId === 'PLAYER_DECK') return { x: w * 0.94, y: h * 0.62 };
   if (entityId === 'OPPONENT_DECK') return { x: w * 0.94, y: h * 0.31 };
   if (entityId === 'TOY_TL') return { x: w * 0.08, y: h * 0.12 };
@@ -105,6 +119,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
   const particlesRef = useRef<Particle[]>([]);
   const projectilesRef = useRef<Projectile[]>([]);
   const badgesRef = useRef<FloatingBadge[]>([]);
+  const windGustsRef = useRef<WindGust[]>([]);
   const impactCbRef = useRef(onDamageImpact);
   impactCbRef.current = onDamageImpact;
 
@@ -351,68 +366,195 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           break;
 
         case 'SILIA_WIND_DEFENSE': {
-          hsAudio.playSfx('whoosh', 0.95);
-          hsAudio.playProceduralVfxSound('HOLY');
-          const yBand = stageH * 0.58;
-          for (let i = 0; i < 5; i++) {
-            const px = stageW * (0.24 + i * 0.13);
-            spawnBurst(px, yBand, 9, ['#22c55e', '#4ade80', '#bbf7d0', '#fef08a'], 7.5, 6, 'STAR', -0.04);
-            spawnRing(px, yBand, '#4ade80', 110);
+          const isStageSummary = ev.targetId === 'PLAYER_HERO';
+          if (isStageSummary) {
+            hsAudio.playSfx('whoosh', 0.98);
+            hsAudio.playProceduralVfxSound('HOLY');
+            const yBand = stageH * 0.58;
+            for (let i = 0; i < 6; i++) {
+              windGustsRef.current.push({
+                kind: 'SWEEP',
+                x0: stageW * 0.06,
+                y0: stageH * 0.86,
+                x1: stageW * 0.92,
+                y1: yBand + (i - 2.5) * 26,
+                curveOffset: (i % 2 === 0 ? -1 : 1) * (35 + i * 10),
+                color: '#34d399',
+                accentColor: '#bbf7d0',
+                life: 0,
+                maxLife: 46 + i * 3,
+              });
+            }
+            for (let i = 0; i < 5; i++) {
+              const px = stageW * (0.22 + i * 0.14);
+              spawnBurst(px, yBand, 8, ['#22c55e', '#4ade80', '#bbf7d0', '#fef08a'], 7.2, 6, 'STAR', -0.04);
+              spawnRing(px, yBand, '#4ade80', 110);
+            }
+            badgesRef.current.push({
+              x: stageW * 0.5,
+              y: yBand - 42,
+              vy: -0.65,
+              text: ev.label || '🛡 바람 결계!',
+              subKind: 'BANNER',
+              life: 0,
+              maxLife: 68,
+            });
+          } else {
+            // Targeted minion highlight: wind stream from Silia -> minion + spotlight ring + tag
+            windGustsRef.current.push(
+              {
+                kind: 'STREAM',
+                x0: sourcePos.x,
+                y0: sourcePos.y,
+                x1: targetPos.x,
+                y1: targetPos.y,
+                curveOffset: -58,
+                color: '#34d399',
+                accentColor: '#fde047',
+                life: 0,
+                maxLife: 34,
+              },
+              {
+                kind: 'TARGET_RING',
+                x0: targetPos.x,
+                y0: targetPos.y,
+                x1: targetPos.x,
+                y1: targetPos.y,
+                curveOffset: 0,
+                color: '#22c55e',
+                accentColor: '#fef08a',
+                life: 0,
+                maxLife: 58,
+              },
+            );
+            spawnBurst(targetPos.x, targetPos.y, 12, ['#4ade80', '#fef08a', '#bbf7d0', '#ffffff'], 5.8, 6, 'STAR', -0.04);
+            spawnRing(targetPos.x, targetPos.y, '#34d399', 96);
+            badgesRef.current.push({
+              x: targetPos.x,
+              y: targetPos.y - 24,
+              vy: -0.75,
+              text: ev.label || '🛡 보호막!',
+              subKind: 'BUFF',
+              life: 0,
+              maxLife: 58,
+            });
           }
-          spawnRing(stageW * 0.5, yBand, '#22c55e', 340);
-          badgesRef.current.push({
-            x: stageW * 0.5,
-            y: yBand - 24,
-            vy: -0.9,
-            text: ev.label || '바람 결계!',
-            subKind: 'BUFF',
-            life: 0,
-            maxLife: 48,
-          });
           ensureLoopRef.current();
           break;
         }
 
         case 'SILIA_WIND_ATTACK': {
-          hsAudio.playSfx('whoosh', 0.95);
-          hsAudio.playSfx('big_attack', 0.78);
-          hsAudio.vibrateByDamage(3);
-          impactCbRef.current?.(3);
-          const yBand = stageH * 0.34;
-          for (let i = 0; i < 5; i++) {
-            const px = stageW * (0.24 + i * 0.13);
-            spawnBurst(px, yBand, 10, ['#10b981', '#34d399', '#6ee7b7', '#ffffff'], 9.0, 6, 'SHARD', 0);
-            spawnRing(px, yBand, '#10b981', 120);
+          const isStageSummary = ev.targetId === 'OPPONENT_HERO';
+          if (isStageSummary) {
+            hsAudio.playSfx('whoosh', 1.0);
+            hsAudio.playSfx('big_attack', 0.8);
+            hsAudio.vibrateByDamage(3);
+            impactCbRef.current?.(3);
+            const yBand = stageH * 0.34;
+            for (let i = 0; i < 6; i++) {
+              windGustsRef.current.push({
+                kind: 'SWEEP',
+                x0: stageW * 0.06,
+                y0: stageH * 0.86,
+                x1: stageW * 0.92,
+                y1: yBand + (i - 2.5) * 26,
+                curveOffset: (i % 2 === 0 ? -1 : 1) * (42 + i * 11),
+                color: '#10b981',
+                accentColor: '#6ee7b7',
+                life: 0,
+                maxLife: 46 + i * 3,
+              });
+            }
+            for (let i = 0; i < 5; i++) {
+              const px = stageW * (0.22 + i * 0.14);
+              spawnBurst(px, yBand, 9, ['#10b981', '#34d399', '#6ee7b7', '#ffffff'], 8.8, 6, 'SHARD', 0);
+              spawnRing(px, yBand, '#10b981', 120);
+            }
+            badgesRef.current.push({
+              x: stageW * 0.5,
+              y: yBand - 42,
+              vy: -0.65,
+              text: ev.label || '🌪 녹풍 바람폭풍!',
+              subKind: 'BANNER',
+              life: 0,
+              maxLife: 68,
+            });
+          } else {
+            // Targeted enemy minion windstorm slash + spotlight ring
+            windGustsRef.current.push(
+              {
+                kind: 'STREAM',
+                x0: sourcePos.x,
+                y0: sourcePos.y,
+                x1: targetPos.x,
+                y1: targetPos.y,
+                curveOffset: -64,
+                color: '#10b981',
+                accentColor: '#ffffff',
+                life: 0,
+                maxLife: 32,
+              },
+              {
+                kind: 'TARGET_RING',
+                x0: targetPos.x,
+                y0: targetPos.y,
+                x1: targetPos.x,
+                y1: targetPos.y,
+                curveOffset: 0,
+                color: '#34d399',
+                accentColor: '#f87171',
+                life: 0,
+                maxLife: 56,
+              },
+            );
+            spawnBurst(targetPos.x, targetPos.y, 12, ['#34d399', '#6ee7b7', '#ffffff'], 7.2, 6, 'SHARD', 0);
+            spawnRing(targetPos.x, targetPos.y, '#10b981', 98);
           }
-          spawnRing(stageW * 0.5, yBand, '#34d399', 360);
-          badgesRef.current.push({
-            x: stageW * 0.5,
-            y: yBand - 24,
-            vy: -0.9,
-            text: ev.label || '녹풍 참격!',
-            subKind: 'DAMAGE',
-            life: 0,
-            maxLife: 48,
-          });
           ensureLoopRef.current();
           break;
         }
 
         case 'SILIA_WIND_HEAL': {
-          hsAudio.playSfx('whoosh', 0.85);
+          hsAudio.playSfx('whoosh', 0.92);
           hsAudio.playProceduralVfxSound('HOLY');
           const heroPt = getEntityCenter('PLAYER_HERO');
-          spawnBurst(heroPt.x, heroPt.y, 18, ['#4ade80', '#86efac', '#fef08a', '#ffffff'], 7.5, 6, 'STAR', -0.05);
-          spawnRing(heroPt.x, heroPt.y, '#4ade80', 175);
+          for (let i = 0; i < 4; i++) {
+            windGustsRef.current.push({
+              kind: 'STREAM',
+              x0: sourcePos.x,
+              y0: sourcePos.y,
+              x1: heroPt.x,
+              y1: heroPt.y,
+              curveOffset: (i - 1.5) * 32,
+              color: '#84cc16',
+              accentColor: '#bbf7d0',
+              life: 0,
+              maxLife: 38 + i * 3,
+            });
+          }
+          windGustsRef.current.push({
+            kind: 'TARGET_RING',
+            x0: heroPt.x,
+            y0: heroPt.y,
+            x1: heroPt.x,
+            y1: heroPt.y,
+            curveOffset: 0,
+            color: '#4ade80',
+            accentColor: '#fef08a',
+            life: 0,
+            maxLife: 62,
+          });
+          spawnBurst(heroPt.x, heroPt.y, 20, ['#4ade80', '#86efac', '#fef08a', '#ffffff'], 7.5, 6, 'STAR', -0.05);
+          spawnRing(heroPt.x, heroPt.y, '#4ade80', 180);
           spawnRing(heroPt.x, heroPt.y, '#86efac', 240);
           badgesRef.current.push({
             x: heroPt.x,
-            y: heroPt.y - 36,
-            vy: -0.9,
-            text: ev.label || '+2 HP',
-            subKind: 'HEAL',
+            y: heroPt.y - 44,
+            vy: -0.7,
+            text: ev.label || '💚 +2 HP',
+            subKind: 'BANNER',
             life: 0,
-            maxLife: 48,
+            maxLife: 66,
           });
           ensureLoopRef.current();
           break;
@@ -865,7 +1007,8 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
       if (
         projectilesRef.current.length === 0 &&
         particlesRef.current.length === 0 &&
-        badgesRef.current.length === 0
+        badgesRef.current.length === 0 &&
+        windGustsRef.current.length === 0
       ) {
         ctx.clearRect(0, 0, width, height);
         rafIdRef.current = 0;
@@ -873,6 +1016,90 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
       }
 
       ctx.clearRect(0, 0, width, height);
+
+      // 0. Update & Draw Swirling Windstorm (`바람폭풍`) Ribbons, Target Streams & Spotlight Rings
+      const nextGusts: WindGust[] = [];
+      for (const wg of windGustsRef.current) {
+        wg.life += 1;
+        if (wg.life >= wg.maxLife) continue;
+        const prog = wg.life / wg.maxLife;
+        const alpha = prog < 0.2 ? prog / 0.2 : prog > 0.72 ? (1 - prog) / 0.28 : 1;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+        if (wg.kind === 'TARGET_RING') {
+          const pulse = 1 + Math.sin(prog * Math.PI * 5) * 0.14;
+          const rOuter = (44 + prog * 28) * pulse;
+          const rInner = Math.max(22, 34 * pulse);
+          // Soft emerald spotlight halo over the affected minion / hero
+          ctx.fillStyle = wg.color;
+          ctx.globalAlpha = Math.max(0, alpha * 0.22);
+          ctx.beginPath();
+          ctx.arc(wg.x0, wg.y0, rOuter, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.globalAlpha = Math.max(0, alpha * 0.92);
+          ctx.strokeStyle = wg.accentColor;
+          ctx.lineWidth = 3.2;
+          ctx.beginPath();
+          ctx.arc(wg.x0, wg.y0, rInner, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = wg.color;
+          ctx.lineWidth = 4;
+          ctx.setLineDash([12, 8]);
+          ctx.lineDashOffset = -wg.life * 2.8;
+          ctx.beginPath();
+          ctx.arc(wg.x0, wg.y0, rOuter, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        } else {
+          // Curved windstream or sinusoidal sweeping windstorm arc
+          const mx = (wg.x0 + wg.x1) * 0.5;
+          const my = (wg.y0 + wg.y1) * 0.5 + wg.curveOffset * Math.sin(prog * Math.PI + 0.5);
+          const headT = Math.min(1, prog * 1.45);
+          const tailT = Math.max(0, prog * 1.25 - 0.35);
+
+          const bezierPt = (t: number) => {
+            const u = 1 - t;
+            const waveY =
+              wg.kind === 'SWEEP'
+                ? Math.sin(t * Math.PI * 3.0 - prog * 6.0) * (18 + Math.abs(wg.curveOffset) * 0.25)
+                : Math.sin(t * Math.PI * 2.0) * 10;
+            return {
+              x: u * u * wg.x0 + 2 * u * t * mx + t * t * wg.x1,
+              y: u * u * wg.y0 + 2 * u * t * my + t * t * wg.y1 + waveY,
+            };
+          };
+
+          const steps = 14;
+          ctx.lineCap = 'round';
+          ctx.strokeStyle = wg.color;
+          ctx.lineWidth = wg.kind === 'SWEEP' ? 7 : 5;
+          ctx.beginPath();
+          for (let s = 0; s <= steps; s++) {
+            const t = tailT + ((headT - tailT) * s) / steps;
+            const pt = bezierPt(t);
+            if (s === 0) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
+          }
+          ctx.stroke();
+
+          ctx.strokeStyle = wg.accentColor;
+          ctx.lineWidth = wg.kind === 'SWEEP' ? 2.5 : 2;
+          ctx.beginPath();
+          for (let s = 0; s <= steps; s++) {
+            const t = tailT + ((headT - tailT) * s) / steps;
+            const pt = bezierPt(t);
+            if (s === 0) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+        nextGusts.push(wg);
+      }
+      windGustsRef.current = nextGusts;
 
       // 1. Update & Draw Projectiles (zero-allocation layered discs instead of per-frame RadialGradient)
       const nextProj: Projectile[] = [];
@@ -1054,6 +1281,22 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           ctx.strokeText(b.text, 0, 0);
           ctx.fillStyle = '#e2e8f0';
           ctx.fillText(b.text, 0, 0);
+        } else if (b.subKind === 'BANNER') {
+          ctx.font = '800 18px "Nanum Gothic", "나눔고딕", sans-serif';
+          const tw = ctx.measureText(b.text).width;
+          const pw = tw + 26;
+          const ph = 32;
+          ctx.fillStyle = 'rgba(5, 46, 22, 0.9)';
+          ctx.strokeStyle = '#6ee7b7';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(-pw / 2, -ph / 2, pw, ph, 16);
+          ctx.fill();
+          ctx.stroke();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#ecfdf5';
+          ctx.fillText(b.text, 0, 1);
         } else {
           ctx.font = '800 22px "Nanum Gothic", "나눔고딕", sans-serif';
           ctx.textAlign = 'center';

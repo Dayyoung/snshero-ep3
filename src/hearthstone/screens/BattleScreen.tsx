@@ -6435,7 +6435,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         usedThisTurn={Boolean(matchState.siliaUsedThisTurn)}
         friendlyBoardCount={matchState.player.board.length}
         enemyBoardCount={matchState.opponent.board.length}
+        friendlyNames={matchState.player.board.map((m) => m.name)}
+        enemyNames={matchState.opponent.board.map((m) => m.name)}
         onCastSkill={(skillKind: SiliaSkillKind) => {
+          // Snapshot live stage coordinates of all entities BEFORE state mutation
+          // so even minions killed immediately (e.g. 1 HP) get targeted Windstorm VFX!
+          document.querySelectorAll('[data-hs-entity]').forEach((el) => {
+            const id = el.getAttribute('data-hs-entity');
+            if (id) recordEntityStagePosition(id, elementCenterInStage(el));
+          });
+          const siliaEl = document.querySelector('[data-silia-toggle="true"]');
+          if (siliaEl) {
+            recordEntityStagePosition('SILIA_WIDGET', elementCenterInStage(siliaEl));
+          }
           const next = createEngine(latestMatchRef.current).useSiliaSkill(skillKind);
           setMatchState(next);
         }}

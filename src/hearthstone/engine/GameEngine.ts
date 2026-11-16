@@ -2448,61 +2448,114 @@ export function createEngine(rawState: BattleMatchState) {
     state.siliaLastSkillKind = skillKind;
 
     if (skillKind === 'DEFENSE') {
+      const friendlyTargets = [...state.player.board];
+      const targetNames = friendlyTargets.map((m) => m.name);
       pushVfx(
         'SILIA_WIND_DEFENSE',
         'PLAYER_HERO',
-        'SILIA',
-        undefined,
-        ko ? '실리아 · 녹풍 방어막!' : 'Silia · Wind Barrier!',
+        'SILIA_WIDGET',
+        friendlyTargets.length,
+        friendlyTargets.length > 0
+          ? ko
+            ? `🛡 바람 결계 · 아군 ${friendlyTargets.length}체 보호막!`
+            : `🛡 Wind Barrier · ${friendlyTargets.length} Ally Shielded!`
+          : ko
+            ? '🛡 바람 결계 (적용할 아군 하수인 없음)'
+            : '🛡 Wind Barrier (No Friendly Minions)',
       );
-      for (const m of state.player.board) {
+      for (const m of friendlyTargets) {
         m.divineShield = true;
-        pushVfx('BUFF_POP', m.uid, 'SILIA', undefined, ko ? '방어막!' : 'Shield!');
+        pushVfx(
+          'SILIA_WIND_DEFENSE',
+          m.uid,
+          'SILIA_WIDGET',
+          1,
+          ko ? `🛡 ${m.name} 보호막!` : `🛡 ${m.name} Shield!`,
+        );
       }
       pushHistory({
         actorSide: 'PLAYER',
         cardId: 'HERO_09bp',
         title: ko ? '실리아 방어스킬' : 'Silia Defense',
-        detail: ko
-          ? `아군 전장 하수인 ${state.player.board.length}체에 천상의 보호막 부여`
-          : `Granted Divine Shield to ${state.player.board.length} friendly minions`,
+        detail:
+          friendlyTargets.length > 0
+            ? ko
+              ? `아군 ${friendlyTargets.length}체(${targetNames.join(', ')})에 천상의 보호막 부여`
+              : `Granted Divine Shield to ${friendlyTargets.length} friendly minion(s): ${targetNames.join(', ')}`
+            : ko
+              ? '아군 전장에 하수인이 없어 보호막 대상이 없었습니다.'
+              : 'No friendly minions on board to shield.',
         kind: 'HERO_POWER',
       });
     } else if (skillKind === 'ATTACK') {
+      const enemyTargets = [...state.opponent.board];
+      const targetNames = enemyTargets.map((em) => em.name);
       pushVfx(
         'SILIA_WIND_ATTACK',
         'OPPONENT_HERO',
-        'SILIA',
-        1,
-        ko ? '실리아 · 녹풍 참격 (-1)!' : 'Silia · Gale Slash (-1)!',
+        'SILIA_WIDGET',
+        enemyTargets.length,
+        enemyTargets.length > 0
+          ? ko
+            ? `🌪 녹풍 바람폭풍 · 적 ${enemyTargets.length}체 (-1)!`
+            : `🌪 Emerald Windstorm · ${enemyTargets.length} Enemies (-1)!`
+          : ko
+            ? '🌪 녹풍 바람폭풍 (적 하수인 없음)'
+            : '🌪 Emerald Windstorm (No Enemy Minions)',
       );
-      for (const em of [...state.opponent.board]) {
+      for (const em of enemyTargets) {
+        pushVfx(
+          'SILIA_WIND_ATTACK',
+          em.uid,
+          'SILIA_WIDGET',
+          1,
+        );
         dealDamage(em.uid, 1, 'PLAYER', undefined, 'SILIA');
       }
       pushHistory({
         actorSide: 'PLAYER',
         cardId: 'HERO_08bp',
         title: ko ? '실리아 공격스킬' : 'Silia Attack',
-        detail: ko
-          ? `적 전장 하수인 ${state.opponent.board.length}체에 -1 피해`
-          : `Dealt 1 damage to ${state.opponent.board.length} enemy minions`,
+        detail:
+          enemyTargets.length > 0
+            ? ko
+              ? `적 ${enemyTargets.length}체(${targetNames.join(', ')})에 바람폭풍 -1 피해`
+              : `Dealt 1 Windstorm damage to ${enemyTargets.length} enemy minion(s): ${targetNames.join(', ')}`
+            : ko
+              ? '적 전장에 하수인이 없어 피해 대상이 없었습니다.'
+              : 'No enemy minions on board to strike.',
         kind: 'HERO_POWER',
       });
       resolveDeaths();
     } else {
+      const beforeHp = state.player.health;
+      healTarget('PLAYER_HERO', 2, 'PLAYER');
+      const actualHealed = Math.max(0, state.player.health - beforeHp);
       pushVfx(
         'SILIA_WIND_HEAL',
         'PLAYER_HERO',
-        'SILIA',
-        2,
-        ko ? '실리아 · 생명의 미풍 (+2)!' : 'Silia · Vital Breeze (+2)!',
+        'SILIA_WIDGET',
+        actualHealed,
+        actualHealed > 0
+          ? ko
+            ? `💚 생명의 미풍 · 영웅 +${actualHealed} 치유!`
+            : `💚 Vital Breeze · Hero +${actualHealed} HP!`
+          : ko
+            ? '💚 생명의 미풍 (영웅 생명력 가득 참)'
+            : '💚 Vital Breeze (Hero Already Full HP)',
       );
-      healTarget('PLAYER_HERO', 2, 'PLAYER');
       pushHistory({
         actorSide: 'PLAYER',
         cardId: 'HERO_09bp',
         title: ko ? '실리아 회복스킬' : 'Silia Heal',
-        detail: ko ? '아군 영웅 생명력 +2 회복' : 'Healed friendly hero for +2 HP',
+        detail:
+          actualHealed > 0
+            ? ko
+              ? `아군 영웅 생명력 +${actualHealed} 회복 (${beforeHp} -> ${state.player.health})`
+              : `Healed friendly hero for +${actualHealed} HP (${beforeHp} -> ${state.player.health})`
+            : ko
+              ? '아군 영웅의 생명력이 이미 최대치입니다.'
+              : 'Friendly hero is already at full Health.',
         kind: 'HERO_POWER',
       });
     }

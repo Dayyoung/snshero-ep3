@@ -11,6 +11,8 @@ interface SiliaUltimateWidgetProps {
   usedThisTurn: boolean;
   friendlyBoardCount: number;
   enemyBoardCount: number;
+  friendlyNames?: string[];
+  enemyNames?: string[];
   onCastSkill: (skillKind: SiliaSkillKind) => void;
 }
 
@@ -296,6 +298,8 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
   usedThisTurn,
   friendlyBoardCount,
   enemyBoardCount,
+  friendlyNames = [],
+  enemyNames = [],
   onCastSkill,
 }) => {
   const { lang } = useHeroLanguage();
@@ -304,6 +308,7 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [frameIdx, setFrameIdx] = useState(0);
   const [castingSkill, setCastingSkill] = useState<SiliaSkillKind | null>(null);
+  const [windstormSkill, setWindstormSkill] = useState<SiliaSkillKind | null>(null);
   const [speechText, setSpeechText] = useState<string | null>(null);
 
   // Preload all 3-head-tall chibi sprites + upper-body cutout once for zero-flicker cutscenes
@@ -321,25 +326,33 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
     });
   }, []);
 
-  // Sprite frame ticker (gentle idle vs dynamic 2-frame skill cast)
+  // Sprite frame ticker (gentle idle vs dynamic 2-frame skill cast during windstorm)
+  const activeVisualSkill = windstormSkill ?? castingSkill;
   useEffect(() => {
     if (!visible) return;
     setFrameIdx(0);
-    const intervalMs = castingSkill ? 160 : 650;
+    const intervalMs = activeVisualSkill ? 160 : 650;
     const id = window.setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
       setFrameIdx((prev) => prev + 1);
     }, intervalMs);
     return () => window.clearInterval(id);
-  }, [visible, castingSkill]);
+  }, [visible, activeVisualSkill]);
 
   useEffect(() => {
-    if (!visible && castingSkill) {
+    if (!windstormSkill) return;
+    const t = window.setTimeout(() => setWindstormSkill(null), 1850);
+    return () => window.clearTimeout(t);
+  }, [windstormSkill]);
+
+  useEffect(() => {
+    if (!visible && (castingSkill || windstormSkill)) {
       setCastingSkill(null);
+      setWindstormSkill(null);
       setMenuOpen(false);
       setSpeechText(null);
     }
-  }, [visible, castingSkill]);
+  }, [visible, castingSkill, windstormSkill]);
 
   useEffect(() => {
     if (!speechText || menuOpen || castingSkill) return;
@@ -349,14 +362,15 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
 
   if (!visible) return null;
 
-  const canCastAny = isPlayerTurn && !usedThisTurn;
+  const canCastAny = isPlayerTurn && !usedThisTurn && !castingSkill;
 
-  const activeFrames = castingSkill ? CUTSCENE_FRAMES[castingSkill] : IDLE_FRAMES;
+  const activeFrames = activeVisualSkill ? CUTSCENE_FRAMES[activeVisualSkill] : IDLE_FRAMES;
   const activeIdx = frameIdx % activeFrames.length;
   const activeSpriteUrl = activeFrames[activeIdx];
 
   const handleToggleChatbot = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (castingSkill) return;
     hsAudio.playSfx('ui_click', 0.8);
     setMenuOpen((prev) => {
       const next = !prev;
@@ -384,12 +398,64 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
     });
   };
 
+  const formatTargetSummary = (names: string[], count: number): string => {
+    if (names.length > 0) {
+      return names.length <= 2 ? names.join(', ') : `${names.slice(0, 2).join(', ')} 외 ${names.length - 2}`;
+    }
+    return isKo ? `${count}체` : `${count} unit(s)`;
+  };
+
   const triggerSkill = (skill: SiliaSkillKind) => {
     if (!canCastAny) return;
     setMenuOpen(false);
     setSpeechText(null);
     setCastingSkill(skill);
-    onCastSkill(skill);
+  };
+
+  // After Silia finishes her upper-body dialogue, close the dark overlay first
+  // so the Windstorm VFX + per-target highlights play visibly over the live board!
+  const handleDialogueComplete = () => {
+    const finishedSkill = castingSkill;
+    if (!finishedSkill) return;
+    setCastingSkill(null);
+    setWindstormSkill(finishedSkill);
+
+    if (finishedSkill === 'DEFENSE') {
+      setSpeechText(
+        friendlyBoardCount > 0
+          ? tr(
+              `🛡 바람 결계 발동! 아군 ${friendlyBoardCount}체(${formatTargetSummary(friendlyNames, friendlyBoardCount)})에게 보호막을 씌웠어요!`,
+              `🛡 Wind Barrier! Shielded ${formatTargetSummary(friendlyNames, friendlyBoardCount)}!`,
+            )
+          : tr(
+              '🛡 바람 결계 발동! (내 전장에 하수인이 없어 보호막 대상이 없어요)',
+              '🛡 Wind Barrier! (No friendly minions on board to shield)',
+            ),
+      );
+    } else if (finishedSkill === 'ATTACK') {
+      setSpeechText(
+        enemyBoardCount > 0
+          ? tr(
+              `🌪 녹풍 바람폭풍! 적 ${enemyBoardCount}체(${formatTargetSummary(enemyNames, enemyBoardCount)})에게 -1 피해!`,
+              `🌪 Emerald Windstorm! Hit ${formatTargetSummary(enemyNames, enemyBoardCount)} for -1 HP!`,
+            )
+          : tr(
+              '🌪 녹풍 바람폭풍 발동! (적 전장에 하수인이 없어요)',
+              '🌪 Emerald Windstorm! (No enemy minions on board)',
+            ),
+      );
+    } else {
+      setSpeechText(
+        tr(
+          '💚 생명의 미풍 발동! 아군 영웅(카단)의 생명력을 치유했어요!',
+          '💚 Vital Breeze! Restored Friendly Hero HP!',
+        ),
+      );
+    }
+
+    window.setTimeout(() => {
+      onCastSkill(finishedSkill);
+    }, 45);
   };
 
   return (
@@ -400,7 +466,7 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
           skillKind={castingSkill}
           chibiFrameUrl={activeSpriteUrl}
           isKo={isKo}
-          onComplete={() => setCastingSkill(null)}
+          onComplete={handleDialogueComplete}
         />
       )}
 
@@ -534,15 +600,15 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
           title={tr('실리아 클릭 — 3등신 필살기 선택 & 대사 컷신', 'Click Silia — Open Ultimate Skills & Cutscene')}
           className="pointer-events-auto group relative flex flex-col items-center focus:outline-none"
         >
-          {/* Ambient wind aura when skill is ready or casting */}
-          {(canCastAny || castingSkill) && (
+          {/* Ambient wind aura when skill is ready or casting/windstorm */}
+          {(canCastAny || activeVisualSkill) && (
             <div className="pointer-events-none absolute inset-x-1 bottom-4 top-2 rounded-full bg-emerald-400/20 blur-md animate-pulse" />
           )}
 
           {/* Stacked Transparent 3-Head-Tall Chibi Frames (zero box frame, zero decode flicker!) */}
           <div
             className={`relative flex h-[78px] w-[78px] items-center justify-center transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[98px] sm:w-[98px] ${
-              castingSkill || canCastAny
+              activeVisualSkill || canCastAny
                 ? 'drop-shadow-[0_0_10px_rgba(52,211,153,0.75)]'
                 : 'opacity-85 drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)]'
             }`}
@@ -578,7 +644,7 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
           {/* Sleek Nameplate Pill Below Silia's Boots */}
           <div
             className={`-mt-1.5 flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold shadow-[0_4px_10px_rgba(0,0,0,0.9)] transition sm:px-3 sm:text-[11px] ${
-              castingSkill
+              activeVisualSkill
                 ? 'border-emerald-200 bg-gradient-to-r from-emerald-600 to-teal-800 text-white'
                 : canCastAny
                   ? 'border-emerald-300 bg-gradient-to-r from-emerald-800 to-teal-950 text-emerald-50'
@@ -587,12 +653,14 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
           >
             <span>
               {castingSkill
-                ? tr('✦ 영창 중...', '✦ Casting...')
-                : canCastAny
-                  ? tr('실리아 · 필살기', 'Silia · Ult ▾')
-                  : usedThisTurn
-                    ? tr('실리아 (완료)', 'Silia (Used)')
-                    : tr('실리아 (대기)', 'Silia (Wait)')}
+                ? tr('✦ 대사 영창 중...', '✦ Speaking...')
+                : windstormSkill
+                  ? tr('🌪 바람폭풍 발동!', '🌪 Windstorm!')
+                  : canCastAny
+                    ? tr('실리아 · 필살기', 'Silia · Ult ▾')
+                    : usedThisTurn
+                      ? tr('실리아 (완료)', 'Silia (Used)')
+                      : tr('실리아 (대기)', 'Silia (Wait)')}
             </span>
           </div>
         </button>
