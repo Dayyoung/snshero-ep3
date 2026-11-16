@@ -22,7 +22,7 @@ const PARCHMENT_STAR_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www
  * - Click while typing -> reveals full line at once, pauses briefly (`750ms`), then advances
  * - Natural completion -> pauses (`1,150ms`) so player can read, then auto-advances
  */
-function useAnimaleseTypewriter(opts: {
+export function useAnimaleseTypewriter(opts: {
   fullText: string;
   speakerLabel: string;
   speakerSide: 'LEFT' | 'RIGHT';

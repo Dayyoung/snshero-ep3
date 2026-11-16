@@ -2,6 +2,20 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 08:23 KST] [실리아 3등신 치비 스프라이트 & 대사화면 스타일 상반신 필살기 컷신 적용 완료]
+- **요청**: 게임화면에서 실리아도 카단처럼 3등신 컷신으로 제작·적용하고, 필살기 사용 시 실리아 상반신이 나오며 대사화면처럼 필살기를 사용하도록 개선
+- **작업 내역**:
+  1. **3등신 치비 실리아 스프라이트 신규 제작 (`public/hs-assets/silia-bot/`)**:
+     - 기존 7등신 크롭 및 단색 선 이미지를 폐기하고, 카단(`kadan-bot/*.webp`)과 동일한 3등신(3-head-tall) 치비 애니메이션 10프레임(`idle_01~04.webp`, `cast_defense_01~02.webp`, `cast_attack_01~02.webp`, `cast_heal_01~02.webp`, 320×320 RGBA 투명 배경)으로 전면 교체.
+  2. **카단 스타일 대칭 하단 3등신 위젯 (`src/hearthstone/components/SiliaUltimateWidget.tsx`)**:
+     - 사각 테두리 박스를 제거하고 투명 배경 3등신 스프라이트 크로스페이드 + 상단 상태 배지(`1/1✦`) + 하단 캡슐 네임플레이트(`실리아 · 필살기`) 적용.
+  3. **대사화면 스타일 상반신 필살기 컷신 (`SiliaDialogueCutsceneOverlay`)**:
+     - `StoryEncounterOverlays.tsx`의 `useAnimaleseTypewriter` 훅을 export해 재사용.
+     - 필살기 시전 시 실리아 대형 상반신(`/hs-assets/characters/cutouts/062_Celia.webp`) + 스킬 속성 바람 오라 + 3등신 필살기 미니 컷인 + 다크 사다리꼴 네임플레이트(`실리아`)·크림 화이트 대사창(Animalese 타이핑 보이스 + `talkBob` 바운스 + 클릭 즉시 전체 표시/스킵/자동 복귀) 오버레이 구현.
+- **검증**:
+  - `npx tsc --noEmit && npm run build` 통과 (에러 0건).
+  - Playwright E2E(`game.html?mode=story&ep=1`)에서 320×320 치비 4프레임 로드, 필살기 시전 시 상반신(`732×1024`) 대사화면 컷신 표시 및 자동 복귀, 콘솔/페이지 에러 `[]` 확인 완료.
+
 ## [2026-11-17 08:06 KST] [스킬 정책 변경: `/checkIssue`, `/checkBug`, `/checkMarket` 자동 `git push` 중단 및 수동 푸시 대기 전환]
 - **요청**: `checkIssue`, `checkBug`, `checkMarket` 모두 `git push`는 실행하지 않고 사용자 확인 후 수동 푸시하도록 대기 정책 반영
 - **수정 파일**:
