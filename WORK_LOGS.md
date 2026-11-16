@@ -2,6 +2,14 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 07:25 KST] [구글 시트 브라우저 바로열기 3종 스킬(`/showIssue`, `/showMarket`, `/showBug`) 생성 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`.agents/skills/showIssue/SKILL.md`](file:///Users/dayyoung/project/snshero/.agents/skills/showIssue/SKILL.md): SNSHero 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`) 브라우저 창 오픈 및 현황 요약 스킬 생성.
+  - [`.agents/skills/showMarket/SKILL.md`](file:///Users/dayyoung/project/snshero/.agents/skills/showMarket/SKILL.md): SNSHero 마케팅문서(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`) 브라우저 창 오픈 및 현황 요약 스킬 생성.
+  - [`.agents/skills/showBug/SKILL.md`](file:///Users/dayyoung/project/snshero/.agents/skills/showBug/SKILL.md): SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`) 브라우저 창 오픈 및 현황 요약 스킬 생성.
+  - [`AGENTS.md`](file:///Users/dayyoung/project/snshero/AGENTS.md) 커스텀 스킬 목록 업데이트 및 로컬 커밋·구글 폼 보고 완료.
+
 ## [2026-11-17 07:21 KST] [`/checkIssue` 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`) 5건 전수 수정·테스트·배포 완료]
 - **작업자**: `Antigravity Assistant`
 - **처리 이슈 및 구현 내역 (`ISS-001` ~ `ISS-004`)**:

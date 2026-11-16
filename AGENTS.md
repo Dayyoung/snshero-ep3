@@ -114,6 +114,9 @@
 - **`/checkIssue`**: SNSHero 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`, `'게임 이슈 관리 로그'`)를 `gsheets` CLI로 조회해 미해결 이슈를 소스코드에 구현·수정하고, 실제 빌드 및 E2E 테스트 통과 후 원격 배포(`git push origin main`) 및 시트 최신화까지 일괄 수행하는 스킬
 - **`/checkMarket`**: SNSHero 마케팅문서(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`, `'마케팅 분석 로그'`)를 `gsheets` CLI로 조회해 미완료 항목 중 코드·저장소에서 적용 가능한 항목을 수정하고, 실제 빌드 및 테스트 통과 후 원격 배포(`git push origin main`) 및 시트 최신화까지 일괄 수행하는 스킬
 - **`/checkBug`**: SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`, `'개발개선점 분석 로그'`)를 `gsheets` CLI로 조회해 미해결 결함·개발 개선 항목을 소스코드에 패치하고, 실제 빌드 및 E2E 테스트 통과 후 원격 배포(`git push origin main`) 및 시트 최신화까지 일괄 수행하는 스킬
+- **`/showIssue`**: SNSHero 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`) Google Sheets 페이지를 브라우저 창에 즉시 열어 표시하고 현황을 요약하는 스킬
+- **`/showMarket`**: SNSHero 마케팅문서(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`) Google Sheets 페이지를 브라우저 창에 즉시 열어 표시하고 현황을 요약하는 스킬
+- **`/showBug`**: SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`) Google Sheets 페이지를 브라우저 창에 즉시 열어 표시하고 현황을 요약하는 스킬
 
 ## 110개 미션 게임 AI 카드 배틀 전면 통일 & 주사위/랜덤플레이 연동 완료
 - **AI 카드 대결 통일**: 110개 미션 게임을 각 카드 전담 AI 카드게임 플레이로 100% 통일, 상대 AI 덱은 해당 카드 5장 동일 덱으로 자동 편성.
