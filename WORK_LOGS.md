@@ -2,6 +2,14 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 10:26 KST] [스토리 모드 · 실리아 필살기 컷신 상반신 크기 현재 대비 70% 비율 축소(`h-[51%] sm:h-[55%]`) 완료]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`StoryEncounterOverlays.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/StoryEncounterOverlays.tsx) 내 `StoryDialogueOverlay`(좌·우 대화 `h-[68%] sm:h-[78%]` ➔ `h-[51%] sm:h-[55%]`) 및 `StoryVictoryItemOverlay`(`h-[70%] sm:h-[80%]` ➔ `h-[52%] sm:h-[56%]`) 상반신 크기를 현재 대비 약 70% 수준(화면 절반 이상 유지)으로 축소 조정.
+  - [`SiliaUltimateWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SiliaUltimateWidget.tsx) 내 `SiliaDialogueCutsceneOverlay` 상반신 포트레이트(`h-[68%] sm:h-[78%]` ➔ `h-[51%] sm:h-[55%]`) 및 배경 오라(`h-[78vh]` ➔ `h-[56vh]`)도 동일하게 70% 비율로 축소.
+- **검증 및 보고**:
+  - `npm run build` 성공 및 Playwright 데스크톱/모바일 스토리 대화·실리아 필살기 컷신 E2E 검수 완료, 구글 폼 보고 완료.
+
 ## [2026-11-17 09:45 KST] [`/checkAll` 후속 신규 과제 `DEV-024 · MKT-051` 일괄 구현·검증 완료 (푸시 대기)]
 - **요청**: `/checkAll` 실행 중 대시보드 검증 과정에서 추가 확인된 신규 대기 항목(`DEV-024`, `MKT-051`) 후속 구현 및 E2E 검증 완료
 - **개발문서 (`DEV-024` 완료)**:

@@ -249,7 +249,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         </button>
       </div>
 
-      {/* Left Character Upper-Body Cutout (Protagonist / Ally — Large Waist-Up `상반신` 68%~78% Viewport Height!) */}
+      {/* Left Character Upper-Body Cutout (Protagonist / Ally — 70% Scaled Waist-Up `상반신` 51%~55% Viewport Height) */}
       <div
         data-testid="story-dialogue-left-portrait"
         data-speaking={isLeftSpeaking ? 'true' : 'false'}
@@ -260,7 +260,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
             : 'translate3d(-50%, 6px, 0) scale(0.94)',
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
-        className={`pointer-events-none absolute -bottom-2.5 left-[25%] flex h-[68%] justify-center sm:left-[27%] sm:h-[78%] ${
+        className={`pointer-events-none absolute -bottom-2.5 left-[25%] flex h-[51%] justify-center sm:left-[27%] sm:h-[55%] ${
           encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
         } ${isLeftSpeaking ? 'z-20' : 'z-10'}`}
       >
@@ -284,7 +284,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         />
       </div>
 
-      {/* Right Character Upper-Body Cutout (Opponent / Boss — Large Waist-Up `상반신` 68%~78% Viewport Height!) */}
+      {/* Right Character Upper-Body Cutout (Opponent / Boss — 70% Scaled Waist-Up `상반신` 51%~55% Viewport Height) */}
       <div
         data-testid="story-dialogue-right-portrait"
         data-speaking={!isLeftSpeaking ? 'true' : 'false'}
@@ -295,7 +295,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
             : 'translate3d(-50%, 6px, 0) scale(0.94)',
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
-        className={`pointer-events-none absolute -bottom-2.5 left-[75%] flex h-[68%] justify-center sm:left-[73%] sm:h-[78%] ${
+        className={`pointer-events-none absolute -bottom-2.5 left-[75%] flex h-[51%] justify-center sm:left-[73%] sm:h-[55%] ${
           encounter.rightSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
         } ${!isLeftSpeaking ? 'z-20' : 'z-10'}`}
       >
@@ -528,7 +528,7 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
         </div>
       )}
 
-      {/* Protagonist Upper-Body Cutout (Large Waist-Up `상반신` 70%~80% Viewport Height!) */}
+      {/* Protagonist Upper-Body Cutout (70% Scaled Waist-Up `상반신` 52%~56% Viewport Height) */}
       <div
         data-testid="story-victory-portrait"
         style={{
@@ -539,7 +539,7 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
               : 'translate3d(-50%, 0, 0)',
           transition: 'transform 140ms ease',
         }}
-        className={`pointer-events-none absolute -bottom-2.5 left-1/2 flex h-[70%] justify-center sm:h-[80%] ${
+        className={`pointer-events-none absolute -bottom-2.5 left-1/2 flex h-[52%] justify-center sm:h-[56%] ${
           encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
         } ${
           step === 'ITEM_CARD' ? 'z-10 scale-98' : 'z-20 scale-100'

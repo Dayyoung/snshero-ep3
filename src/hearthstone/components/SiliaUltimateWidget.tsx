@@ -187,7 +187,7 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
       <div
         aria-hidden="true"
         style={{ background: meta.auraBg }}
-        className="pointer-events-none absolute -bottom-10 left-[26%] z-10 h-[78vh] w-[78vh] -translate-x-1/2 rounded-full blur-2xl sm:left-[30%]"
+        className="pointer-events-none absolute -bottom-10 left-[26%] z-10 h-[56vh] w-[56vh] -translate-x-1/2 rounded-full blur-2xl sm:left-[30%]"
       />
 
       {/* Right-Side Floating 3-Head-Tall Chibi Action Cut-in Card */}
@@ -207,7 +207,7 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
         </span>
       </div>
 
-      {/* Left/Center Silia Upper-Body Cutout (`상반신` 68%~78% Viewport Height — exact dialogue screen style) */}
+      {/* Left/Center Silia Upper-Body Cutout (70% Scaled Waist-Up `상반신` 51%~55% Viewport Height) */}
       <div
         data-testid="silia-cutscene-portrait"
         style={{
@@ -215,7 +215,7 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
           transform: `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.04)`,
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
-        className="pointer-events-none absolute -bottom-2.5 left-[28%] z-20 flex h-[68%] items-start justify-center sm:left-[30%] sm:h-[78%]"
+        className="pointer-events-none absolute -bottom-2.5 left-[28%] z-20 flex h-[51%] items-start justify-center sm:left-[30%] sm:h-[55%]"
       >
         <img
           src={SILIA_UPPER_CUTOUT_URL}
