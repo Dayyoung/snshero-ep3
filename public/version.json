@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0-1794894570559",
-  "buildTime": "2026-11-17T05:49:30.559Z",
-  "buildTimestamp": 1794894570559,
+  "version": "2.1.0-1794895633370",
+  "buildTime": "2026-11-17T06:07:13.370Z",
+  "buildTimestamp": 1794895633370,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
-  "entryScript": "/assets/game-Cddl5uFa-v2.js"
+  "entryScript": "/assets/game-BZO-amlf-v2.js"
 }

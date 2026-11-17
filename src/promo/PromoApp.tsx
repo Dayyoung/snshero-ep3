@@ -1699,8 +1699,8 @@ export const PromoApp: React.FC = () => {
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-amber-100/80 sm:text-base">
               {tr(
-                '40부작 성우 풀보이스 스토리모드, 실시간 도전자가 매칭되어 공식 전적에 단독 기록되는 온라인형 랭킹대전, 그리고 양측 100% 동일 미러덱으로 승부하는 보가트 도박장까지 완벽한 재미를 경험하세요!',
-                "Experience the 40-Episode voiced Story Mode, live-challenger Ranked Arena (sole Official Record), and Bogart's 100% Fair Mirror-Deck Gambling Hall!",
+                '40부작 성우 풀보이스 스토리모드, 실시간 도전자가 매칭되어 공식 전적에 단독 기록되는 온라인형 랭킹대전, 그리고 1~1,000G 슬라이드 베팅과 양측 100% 랜덤덱으로 진검승부를 펼치는 보가트 도박장까지 완벽한 재미를 경험하세요!',
+                "Experience the 40-Episode voiced Story Mode, live-challenger Ranked Arena (sole Official Record), and Bogart's 1–1,000G Slider & 100% Random-Deck Gambling Hall!",
               )}
             </p>
           </div>
@@ -1808,13 +1808,18 @@ export const PromoApp: React.FC = () => {
               </div>
             </div>
 
-            {/* Mode 3: Bogart's Gambling Hall (100% Mirror Deck + Gold Stakes) */}
+            {/* Mode 3: Bogart's Gambling Hall (Narration Warning + 1~1,000G Slider + 100% Random Deck) */}
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <div className="lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
-                    src="/hs-assets/screenshots/ingame_story_battle.png?v=20261116"
-                    alt={tr('보가트 도박장', "Bogart's Gambling Hall")}
+                    data-testid="promo-mode-bogart-img"
+                    src={
+                      isKo
+                        ? '/hs-assets/screenshots/ingame_bogart_slider_ko.webp'
+                        : '/hs-assets/screenshots/ingame_bogart_slider_en.webp'
+                    }
+                    alt={tr('보가트 도박장 1~1,000G 슬라이드 베팅', "Bogart's Gambling Hall 1–1,000G Slider Bet")}
                     loading="lazy"
                     decoding="async"
                     className="aspect-video w-full object-cover"
@@ -1823,26 +1828,26 @@ export const PromoApp: React.FC = () => {
               </div>
               <div className="lg:col-span-6">
                 <div className="text-xs font-extrabold uppercase tracking-wider text-yellow-300">
-                  {tr('100G~5,000G 골드 베팅 · 양측 100% 동일 30장 미러덱', 'Wager 100G–5,000G · 100% Identical 30-Card Mirror Deck')}
+                  {tr('보가트 위험 경고 나레이션 · 1~1,000G 슬라이드 베팅 · 100% 랜덤덱', 'Bogart Loss-Risk Narration · 1–1,000G Slider Bet · 100% Random Deck')}
                 </div>
                 <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  🎲 {tr('보가트 도박장 (미러덱 판돈전)', "Bogart's Gambling Hall (Mirror Stakes)")}
+                  🎲 {tr('보가트 도박장 (랜덤덱 판돈전)', "Bogart's Gambling Hall (Random-Deck Stakes)")}
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
                   {tr(
-                    '카드 보유량 격차 ZERO! 양 플레이어가 100% 동일한 30장 미러덱(1배수 공정 스탯)을 쥐고 오직 수싸움 실력만으로 골드 판돈(100G / 500G / 2,000G / 5,000G)을 걸어 대결합니다. 승리 즉시 판돈 2배 상금을 거머쥐고 황금 주화 교환소의 4대 명예 치장을 수집하세요!',
-                    'Zero collection gap! Both sides receive the exact same 30-card Mirror Deck at fair 1x stats. Wager 100G to 5,000G of free in-game Gold, double your pot on victory, and unlock exclusive Gold Prestige cosmetics!',
+                    '입장 즉시 고블린 도박왕 보가트가 상반신 나레이션으로 도박장 골드 손실 위험을 경고합니다! 1G부터 1,000G까지 슬라이드로 원하는 만큼 자유롭게 베팅액을 조정하고 옆의 [베팅 시작] 버튼을 누르면, 매 판 예측불허 30장 랜덤덱으로 승부가 펼쳐집니다. 승리 시 판돈 2배 상금을 획득해 인게임 스크린샷이 제공되는 4대 황금 명예 보상품을 장착하세요!',
+                    "Upon entry, Goblin Gambling King Bogart greets you in an upper-body narration scene warning of Gold loss risk! Slide freely from 1G to 1,000G, hit the adjacent [Start Bet] button, and clash with unpredictable freshly dealt 30-card Random Decks. Double your pot on victory and unlock 4 Gold Prestige cosmetics with live in-game previews!",
                   )}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-rose-400/60 bg-rose-950/80 px-3 py-1 text-[11px] font-extrabold text-rose-200">
+                    ⚠️ {tr('입장 시 보가트 손실 위험 경고', 'Bogart Loss-Risk Warning')}
+                  </span>
                   <span className="rounded-full border border-yellow-400/60 bg-amber-950/80 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
-                    {tr('양측 100% 동일 미러덱', '100% Identical Mirror Deck')}
+                    🎚 {tr('1~1,000G 슬라이드 & 즉시 베팅', '1–1,000G Slider & Instant Bet')}
                   </span>
                   <span className="rounded-full border border-emerald-400/50 bg-emerald-950/70 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
-                    {tr('승리 시 베팅 골드 2배 지급', '2x Gold Payout on Win')}
-                  </span>
-                  <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
-                    {tr('무료 구호 칩(+100G) 상시 보장', 'Free +100G Relief Chip')}
+                    🎲 {tr('양측 100% 랜덤 30장 덱 · 2배 상금', '100% Random 30-Card Decks · 2x Pot')}
                   </span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-3">
@@ -1863,7 +1868,7 @@ export const PromoApp: React.FC = () => {
       <div className="hs-promo-divider" />
 
       {/* =====================================================================
-          8-B. DEV-029: Bogart's Gambling Hall & Gold Prestige Collection Showcase (#gold-economy)
+          8-B. DEV-029 / ISS-004: Bogart's Gambling Hall & Gold Prestige Collection Showcase (#gold-economy)
       ===================================================================== */}
       <section
         id="gold-economy"
@@ -1877,22 +1882,94 @@ export const PromoApp: React.FC = () => {
               <span>BOGART&apos;S HALL &amp; GOLD PRESTIGE COLLECTION</span>
             </div>
             <h2 className="promo-outline mt-2 text-3xl font-black text-white sm:text-5xl">
-              {tr('보가트 도박장 & 황금 주화 컬렉션', "Bogart's Hall & Gold Prestige Economy")}
+              {tr('보가트 도박장 가이드 & 황금 주화 컬렉션', "Bogart's Hall Guide & Gold Prestige Economy")}
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-sky-100/90 sm:text-base">
               {tr(
-                '과금 없이 오직 인게임 골드만으로 즐기는 100% 공정 미러덱 판돈 승부! 획득한 골드로 4대 프레스티지 명예 아이템을 수집해 나만의 위엄을 뽐내세요.',
-                '100% free in-game Gold loop: win 2x pots in fair Mirror-Deck duels and collect 4 Prestige Cosmetic categories!',
+                '보가트의 손실 위험 경고 나레이션부터 1~1,000G 자유 슬라이드 베팅, 예측불허 30장 랜덤덱 진검승부, 그리고 실제 인게임 적용 스크린샷으로 확인하는 4대 황금 명예 보상품까지 한눈에 살펴보세요!',
+                "Explore Bogart's loss-risk narration scene, 1–1,000G free slider betting, unpredictable 30-card Random-Deck duels, and 4 Gold Prestige cosmetics with real in-game applied screenshots!",
               )}
             </p>
           </div>
 
-          {/* Interactive Stake Simulator Bar */}
-          <div className="mt-10 rounded-3xl border-2 border-yellow-300/65 bg-[#0f224c]/90 p-5 shadow-2xl sm:p-7">
-            <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+          {/* 3-Step Visual Guide with Real In-Game Screenshots (KO / EN Branched) */}
+          <div
+            data-testid="promo-bogart-screenshots-grid"
+            className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3"
+          >
+            {[
+              {
+                step: 'STEP 01',
+                badge: tr('⚠️ 손실 위험 경고 나레이션', '⚠️ Loss-Risk Narration'),
+                title: tr('보가트 상반신 입장 경고씬', 'Bogart Upper-Body Warning Scene'),
+                desc: tr(
+                  '도박장 입장 시 고블린 도박왕 보가트가 상반신 일러스트와 함께 등장해 패배 시 베팅 골드가 손실될 수 있음을 사전 경고합니다.',
+                  'Goblin Gambling King Bogart appears waist-up on entry to warn that losing forfeits your staked Gold.',
+                ),
+                img: isKo
+                  ? '/hs-assets/screenshots/ingame_bogart_narration_ko.webp'
+                  : '/hs-assets/screenshots/ingame_bogart_narration_en.webp',
+              },
+              {
+                step: 'STEP 02',
+                badge: tr('🎚 1~1,000G 슬라이드 & 원클릭', '🎚 1–1,000G Slider & 1-Tap Bet'),
+                title: tr('자유 슬라이드 & [베팅 시작]', '1–1,000G Slider & [Start Bet]'),
+                desc: tr(
+                  '1G부터 최대 1,000G까지 슬라이드로 세밀하게 판돈을 조절하고 바로 옆 [베팅 시작] 버튼을 누르면 즉시 승부가 시작됩니다.',
+                  'Slide smoothly from 1G to 1,000G and tap the adjacent [Start Bet] button to launch right into battle.',
+                ),
+                img: isKo
+                  ? '/hs-assets/screenshots/ingame_bogart_slider_ko.webp'
+                  : '/hs-assets/screenshots/ingame_bogart_slider_en.webp',
+              },
+              {
+                step: 'STEP 03',
+                badge: tr('🎲 미러덱 폐지 · 100% 랜덤덱', '🎲 100% Random 30-Card Decks'),
+                title: tr('예측불허 30장 랜덤덱 진검승부', 'Unpredictable Random-Deck Duel'),
+                desc: tr(
+                  '뻔한 미러덱 대신 매 판 양측 모두 완전히 새로운 30장 랜덤덱을 배분받아 임기응변 실력으로 판돈 2배 상금을 노립니다.',
+                  'Both players receive freshly drafted, independent 30-card Random Decks every match—win to claim 2x Gold!',
+                ),
+                img: isKo
+                  ? '/hs-assets/screenshots/ingame_bogart_battle_ko.webp'
+                  : '/hs-assets/screenshots/ingame_bogart_battle_en.webp',
+              },
+            ].map((guide) => (
+              <div
+                key={guide.step}
+                className="flex flex-col overflow-hidden rounded-2xl border-2 border-amber-300/55 bg-stone-950/90 shadow-2xl"
+              >
+                <div className="relative aspect-video w-full overflow-hidden bg-black">
+                  <img
+                    src={guide.img}
+                    alt={guide.title}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute left-2.5 top-2.5 rounded-full border border-yellow-300/80 bg-black/80 px-2.5 py-0.5 text-[10px] font-black tracking-wider text-yellow-300">
+                    {guide.step}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-4">
+                  <div>
+                    <div className="text-[11px] font-extrabold text-amber-300">{guide.badge}</div>
+                    <h3 className="mt-1 text-base font-black text-white sm:text-lg">{guide.title}</h3>
+                    <p className="mt-1.5 text-xs font-semibold leading-relaxed text-amber-100/85">
+                      {guide.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Interactive 1~1,000G Stake Simulator Bar */}
+          <div className="mt-8 rounded-3xl border-2 border-yellow-300/65 bg-[#0f224c]/90 p-5 shadow-2xl sm:p-7">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <div className="text-xs font-extrabold uppercase tracking-wider text-yellow-300">
-                  ⚖ {tr('양측 100% 동일 30장 미러덱 · 카드 격차 0%', '100% Identical 30-Card Mirror Deck · Zero Pay-to-Win')}
+                  🎲 {tr('1~1,000G 슬라이드 시뮬레이터 · 양측 100% 랜덤 30장 덱', '1–1,000G Slider Simulator · 100% Random 30-Card Decks')}
                 </div>
                 <div className="mt-1 text-xl font-black text-white sm:text-2xl">
                   {tr(
@@ -1900,67 +1977,103 @@ export const PromoApp: React.FC = () => {
                     `Wager ${promoPreviewStake.toLocaleString()}G → Win +${(promoPreviewStake * 2).toLocaleString()}G Instant Pot!`,
                   )}
                 </div>
+                <div className="mt-0.5 text-xs font-bold text-rose-200/90">
+                  ⚠️ {tr(`주의: 패배 시 베팅한 ${promoPreviewStake.toLocaleString()}G가 차감됩니다 (100G 미만 시 요정 샘 +150G 구호 지원)`, `Note: Losing forfeits your ${promoPreviewStake.toLocaleString()}G stake (+150G Fairy Relief available under 100G)`)}
+                </div>
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {[100, 500, 2000, 5000].map((stake) => (
-                  <button
-                    key={stake}
-                    type="button"
-                    onClick={() => setPromoPreviewStake(stake)}
-                    className={`min-h-[44px] rounded-xl border px-3 py-2 text-xs font-black transition sm:text-sm ${
-                      promoPreviewStake === stake
-                        ? 'border-yellow-200 bg-yellow-400 text-stone-950 shadow-[0_0_16px_rgba(250,204,21,0.65)]'
-                        : 'border-amber-300/40 bg-stone-950/80 text-amber-100 hover:border-yellow-300'
-                    }`}
-                  >
-                    {stake.toLocaleString()}G
-                  </button>
-                ))}
+
+              <div className="flex w-full max-w-md items-center gap-3">
+                <div className="flex-1 rounded-2xl border border-amber-300/45 bg-stone-950/85 px-3.5 py-2.5">
+                  <input
+                    type="range"
+                    min={1}
+                    max={1000}
+                    step={1}
+                    value={Math.min(1000, Math.max(1, promoPreviewStake))}
+                    onChange={(e) => setPromoPreviewStake(Number(e.target.value) || 1)}
+                    aria-label={tr('프로모션 베팅 시뮬레이터 슬라이더', 'Promo Stake Simulator Slider')}
+                    className="h-2.5 w-full cursor-pointer accent-yellow-400"
+                  />
+                  <div className="mt-1 flex justify-between text-[10px] font-extrabold text-amber-200/80">
+                    <span>1G</span>
+                    <span>250G</span>
+                    <span>500G</span>
+                    <span>750G</span>
+                    <span>1,000G</span>
+                  </div>
+                </div>
+                <a
+                  href="/game?mode=gamble&utm_source=promo_slider_bet"
+                  className="hs-promo-cta-purple inline-flex min-h-[52px] shrink-0 items-center justify-center rounded-2xl px-4 py-2 text-xs font-black sm:text-sm"
+                >
+                  🎲 {tr('베팅 시작', 'Start Bet')}
+                </a>
               </div>
             </div>
 
-            {/* 4 Gold Prestige Collectibles Grid */}
+            {/* 4 Gold Prestige Collectibles Grid with Real In-Game Applied Screenshots */}
             <div className="mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 {
                   icon: '🛡️',
                   title: tr('프로필 뱃지', 'Profile Badges'),
-                  desc: tr('엘윈 성소 사파이어 문장 · 보가트 황금 주사위 · 성검 방패 · 대평원 왕관', 'Elwin Sanctuary Crest, Golden Dice, Sacred Shield & Plain Crown'),
+                  where: tr('광장 상단 & 영웅 초상화 문장', 'Hub Top & Hero Portrait Crest'),
+                  img: isKo
+                    ? '/hs-assets/prestige/preview_badge_ko.webp'
+                    : '/hs-assets/prestige/preview_badge_en.webp',
                   price: '300G ~ 2,500G',
                 },
                 {
                   icon: '🖼️',
                   title: tr('카드 프레임 디자인', 'Card Frame Designs'),
-                  desc: tr('성소 이중 황동 림 · 현자의 사파이어 룬 · 24K 로얄 골드 프레임', 'Double-Brass Rim, Sapphire Rune & 24K Royal Gold Frames'),
+                  where: tr('손패·전장·카드첩 외곽 테두리', 'Hand, Board & Collection Card Rim'),
+                  img: isKo
+                    ? '/hs-assets/prestige/preview_frame_ko.webp'
+                    : '/hs-assets/prestige/preview_frame_en.webp',
                   price: '500G ~ 3,000G',
                 },
                 {
                   icon: '🎴',
                   title: tr('카드 뒷면 스킨', 'Card Back Skins'),
-                  desc: tr('엘윈 성소 사파이어 스킨 · 보가트 VIP 하이롤러 루비·골드 스킨', 'Elwin Sanctuary & Bogart VIP High-Roller Card Backs'),
+                  where: tr('팩 개봉 · 멀리건 · 덱 더미 스킨', 'Pack, Mulligan & Deck Stack Back'),
+                  img: isKo
+                    ? '/hs-assets/prestige/preview_cardback_ko.webp'
+                    : '/hs-assets/prestige/preview_cardback_en.webp',
                   price: '800G ~ 1,800G',
                 },
                 {
                   icon: '👑',
                   title: tr('캐릭터 호칭', 'Character Titles'),
-                  desc: tr('〈엘윈 성소의 수호자〉 · 〈보가트 도박장 승부사〉 · 〈엘윈 대평원의 전설〉', '<Guardian of Elwin>, <Bogart High-Roller> & <Legend of Elwin>'),
+                  where: tr('전장 영웅 상단 황금 〈호칭〉 리본', 'Battle Hero Overhead <Title> Ribbon'),
+                  img: isKo
+                    ? '/hs-assets/prestige/preview_title_ko.webp'
+                    : '/hs-assets/prestige/preview_title_en.webp',
                   price: '400G ~ 3,500G',
                 },
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="flex flex-col justify-between rounded-2xl border border-amber-300/40 bg-stone-950/80 p-4"
+                  className="flex flex-col justify-between overflow-hidden rounded-2xl border border-amber-300/45 bg-stone-950/90"
                 >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl">{item.icon}</span>
-                      <span className="rounded-full border border-yellow-300/50 bg-amber-950/90 px-2.5 py-0.5 text-[10.5px] font-extrabold text-yellow-300">
-                        🪙 {item.price}
-                      </span>
+                  <div className="relative h-32 w-full overflow-hidden bg-black">
+                    <img
+                      src={item.img}
+                      alt={item.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                    <span className="absolute right-2 top-2 rounded-full border border-yellow-300/60 bg-black/80 px-2 py-0.5 text-[10px] font-extrabold text-yellow-300">
+                      🪙 {item.price}
+                    </span>
+                  </div>
+                  <div className="p-3.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-lg">{item.icon}</span>
+                      <h3 className="text-sm font-black text-white sm:text-base">{item.title}</h3>
                     </div>
-                    <h3 className="mt-2.5 text-base font-black text-white">{item.title}</h3>
-                    <p className="mt-1 text-xs font-semibold leading-relaxed text-amber-100/80">
-                      {item.desc}
+                    <p className="mt-1 text-xs font-semibold text-amber-100/85">
+                      📍 {item.where}
                     </p>
                   </div>
                 </div>
@@ -1973,7 +2086,7 @@ export const PromoApp: React.FC = () => {
                 data-testid="promo-gamble-cta"
                 className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-8 py-3 text-sm font-extrabold sm:text-base"
               >
-                <span>🎲 {tr('보가트 도박장 미러덱 승부 시작하기', "Play Bogart's Mirror-Deck Duel Now")}</span>
+                <span>🎲 {tr('보가트 도박장 랜덤덱 승부 시작하기', "Play Bogart's Random-Deck Duel Now")}</span>
                 <ChevronRight className="h-4 w-4" />
               </a>
               <a

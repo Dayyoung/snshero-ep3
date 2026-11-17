@@ -57,8 +57,10 @@ import { PwaInstallGuideModal } from './PwaInstallGuideModal';
 import {
   GOLD_PACK_BUNDLES,
   GOLD_PRESTIGE_ITEMS,
+  PRESTIGE_CATEGORY_SHOWCASES,
   computeOverallStanding,
   getEquippedPrestigeSummary,
+  getPrestigeItemScreenshotUrl,
   hsStorage,
 } from '../storage';
 import {
@@ -655,6 +657,7 @@ export const TavernShopModal: React.FC<{
   const [vipAdRemoved, setVipAdRemoved] = useState<boolean>(() => isHsGameAdRemoved());
   const [shopTab, setShopTab] = useState<'PACKS' | 'PRESTIGE'>('PACKS');
   const [prestigeCat, setPrestigeCat] = useState<PrestigeCategory>('BADGE');
+  const [zoomedPrestigeImg, setZoomedPrestigeImg] = useState<{ src: string; title: string; where: string } | null>(null);
   const [step, setStep] = useState<ShopCheckoutStep>('quantity');
   const [selectedPkg, setSelectedPkg] = useState<GameShopPackage>(GAME_SHOP_PACKAGES[0]);
   const [countryCode, setCountryCode] = useState<string>(() => (isKo ? 'ko' : 'en'));
@@ -927,22 +930,25 @@ export const TavernShopModal: React.FC<{
           </div>
         )}
 
-        {/* ==================== GOLD PRESTIGE EXCHANGE (DEV-027) ==================== */}
+        {/* ==================== GOLD PRESTIGE EXCHANGE (DEV-027 / ISS-004 Visual In-Game Screenshots) ==================== */}
         {shopTab === 'PRESTIGE' && (
-          <div data-testid="gold-prestige-exchange-panel" className="space-y-3.5">
-            <div className="hs-ocarina-dialog flex flex-wrap items-center justify-between gap-2 rounded-2xl px-4 py-3 text-xs">
-              <div>
-                <div className="font-extrabold text-yellow-300 sm:text-sm">
-                  🪙 {tr('보가트 도박장 · 스토리 · 랭킹 골드 순환 교환소', 'Gold Sink Prestige Exchange (100% Free In-Game Gold)')}
-                </div>
-                <div className="mt-0.5 text-[11px] font-semibold text-sky-200/90">
-                  {tr(
-                    '획득한 골드로 프로필 뱃지 · 카드 프레임 · 뒷면 스킨 · 캐릭터 호칭을 영구 해금하고 즉시 장착하세요!',
-                    'Unlock & equip Profile Badges, Card Frames, Card Backs, and Character Titles using Gold!',
-                  )}
+          <div data-testid="gold-prestige-exchange-panel" className="space-y-3">
+            <div className="hs-ocarina-dialog flex flex-wrap items-center justify-between gap-2 rounded-2xl px-3.5 py-2.5 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🪙</span>
+                <div>
+                  <div className="font-extrabold text-yellow-300 sm:text-sm">
+                    {tr('황금 주화 명예 보상품 교환소', 'Gold Prestige Cosmetic Exchange')}
+                  </div>
+                  <div className="text-[11px] font-semibold text-sky-200/90">
+                    {tr(
+                      '아래 실제 인게임 적용 스크린샷을 확인하고 골드로 즉시 장착하세요!',
+                      'Preview real in-game applied screenshots below & equip with Gold!',
+                    )}
+                  </div>
                 </div>
               </div>
-              <span className="flex items-center gap-1.5 rounded-full border border-yellow-300 bg-black/65 px-3 py-1.5 text-sm font-black text-yellow-300">
+              <span className="flex items-center gap-1.5 rounded-full border border-yellow-300 bg-black/65 px-3 py-1 text-sm font-black text-yellow-300">
                 <HsGoldCoinIcon size={17} />
                 <span>{profile.gold.toLocaleString()}G</span>
               </span>
@@ -977,7 +983,62 @@ export const TavernShopModal: React.FC<{
               ))}
             </div>
 
-            {/* Prestige Items Grid */}
+            {/* Category Live In-Game Applied Screenshot Showcase Banner */}
+            {(() => {
+              const catSpec = PRESTIGE_CATEGORY_SHOWCASES[prestigeCat];
+              const catImgUrl = isKo ? catSpec.screenshotKo : catSpec.screenshotEn;
+              const catTitle = isKo ? catSpec.titleKo : catSpec.titleEn;
+              const catWhere = isKo ? catSpec.whereKo : catSpec.whereEn;
+              return (
+                <div
+                  data-testid="prestige-live-screenshot-banner"
+                  className="overflow-hidden rounded-2xl border-2 border-amber-300/75 bg-stone-950/95 shadow-xl"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-400/35 bg-amber-950/60 px-3.5 py-2">
+                    <div className="min-w-0">
+                      <div className="text-xs font-black text-yellow-200 sm:text-sm">
+                        📸 {catTitle}
+                      </div>
+                      <div className="text-[11px] font-bold text-amber-100/90">
+                        📍 {catWhere}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      data-testid="prestige-banner-zoom-btn"
+                      onClick={() => {
+                        hsAudio.playSfx('ui_click', 0.75);
+                        setZoomedPrestigeImg({ src: catImgUrl, title: catTitle, where: catWhere });
+                      }}
+                      className="min-h-[36px] shrink-0 rounded-lg border border-yellow-300/60 bg-black/65 px-2.5 py-1 text-[11px] font-extrabold text-yellow-200 hover:border-yellow-200"
+                    >
+                      🔍 {tr('크게 보기', 'Enlarge')}
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click', 0.75);
+                      setZoomedPrestigeImg({ src: catImgUrl, title: catTitle, where: catWhere });
+                    }}
+                    className="group relative block w-full bg-black"
+                  >
+                    <img
+                      data-testid="prestige-category-screenshot-img"
+                      src={catImgUrl}
+                      alt={catTitle}
+                      decoding="async"
+                      className="h-36 w-full object-cover object-center transition group-hover:opacity-95 sm:h-48"
+                    />
+                    <span className="pointer-events-none absolute bottom-2 right-2 rounded-full border border-amber-300/70 bg-black/80 px-2.5 py-0.5 text-[10px] font-extrabold text-yellow-200">
+                      {tr('실제 인게임 적용 화면 (탭하여 확대)', 'Real In-Game Applied View (Tap to Zoom)')}
+                    </span>
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* Prestige Items Grid — Visual In-Game Screenshot Cards Instead of Text-Only Clutter */}
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {GOLD_PRESTIGE_ITEMS.filter((i) => i.category === prestigeCat).map((item) => {
                 const isOwned =
@@ -994,39 +1055,63 @@ export const TavernShopModal: React.FC<{
                   (item.category === 'CARDBACK' && item.cardBackId === profile.selectedCardBack) ||
                   (item.category === 'TITLE' && profile.prestige?.equippedTitle === item.id);
                 const canAfford = profile.gold >= item.costGold;
+                const itemImgUrl = getPrestigeItemScreenshotUrl(item, isKo);
+                const itemTitle = isKo ? item.nameKo : item.nameEn;
+                const itemDesc = isKo ? item.descKo : item.descEn;
 
                 return (
                   <div
                     key={item.id}
-                    className={`flex flex-col justify-between rounded-2xl border-2 p-3.5 ${item.accentClass} ${
+                    className={`flex flex-col justify-between overflow-hidden rounded-2xl border-2 p-2.5 ${item.accentClass} ${
                       isEquipped ? 'ring-2 ring-yellow-300' : ''
                     }`}
                   >
-                    <div className="flex items-start gap-3">
-                      {item.category === 'CARDBACK' && item.cardBackId ? (
-                        <div className="h-16 w-12 shrink-0">
-                          <SnsCardBackArt variant={item.cardBackId} />
-                        </div>
-                      ) : (
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-amber-300/60 bg-black/55 text-2xl shadow">
-                          {item.icon}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="truncate text-sm font-black text-white">
-                            {isKo ? item.nameKo : item.nameEn}
+                    <div>
+                      {/* Visual Real In-Game Applied Crop Preview */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          hsAudio.playSfx('ui_click', 0.7);
+                          setZoomedPrestigeImg({
+                            src: itemImgUrl,
+                            title: `${item.icon} ${itemTitle}`,
+                            where: itemDesc,
+                          });
+                        }}
+                        className="group relative mb-2 block h-28 w-full overflow-hidden rounded-xl border border-amber-300/45 bg-black sm:h-32"
+                      >
+                        <img
+                          data-testid={`prestige-item-screenshot-${item.id}`}
+                          src={itemImgUrl}
+                          alt={itemTitle}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover object-center transition duration-200 group-hover:scale-[1.03]"
+                        />
+                        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/75 to-transparent px-2.5 py-1.5">
+                          <span className="rounded-md border border-white/20 bg-black/70 px-1.5 py-0.5 text-[10px] font-extrabold text-amber-200">
+                            {item.costGold === 0
+                              ? tr('기본 지급', 'Default')
+                              : `🪙 ${item.costGold.toLocaleString()}G`}
                           </span>
                           {isEquipped && (
-                            <span className="shrink-0 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-stone-950">
-                              {tr('장착 중', 'Equipped')}
+                            <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[10px] font-black text-stone-950 shadow">
+                              ✓ {tr('장착 중', 'Equipped')}
                             </span>
                           )}
                         </div>
-                        <p className="mt-1 text-[11px] font-semibold leading-snug text-amber-100/85">
-                          {isKo ? item.descKo : item.descEn}
-                        </p>
+                        <span className="pointer-events-none absolute bottom-1.5 right-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[9.5px] font-bold text-amber-100/90">
+                          🔍 {tr('인게임 적용 보기', 'Preview')}
+                        </span>
+                      </button>
+
+                      <div className="flex items-center gap-1.5 px-0.5">
+                        <span className="text-base">{item.icon}</span>
+                        <span className="truncate text-sm font-black text-white">{itemTitle}</span>
                       </div>
+                      <p className="mt-0.5 truncate px-0.5 text-[11px] font-semibold text-amber-100/85">
+                        {itemDesc}
+                      </p>
                     </div>
 
                     <button
@@ -1065,7 +1150,7 @@ export const TavernShopModal: React.FC<{
                         }
                         refresh();
                       }}
-                      className={`hs-mario-spring mt-3 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl text-xs font-extrabold transition ${
+                      className={`hs-mario-spring mt-2.5 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl text-xs font-extrabold transition ${
                         isEquipped
                           ? 'cursor-default border border-emerald-400/50 bg-emerald-950/70 text-emerald-200'
                           : isOwned
@@ -1094,6 +1179,48 @@ export const TavernShopModal: React.FC<{
                 );
               })}
             </div>
+
+            {/* Full-Resolution In-Game Applied Screenshot Zoom Lightbox */}
+            {zoomedPrestigeImg && (
+              <div
+                data-testid="prestige-screenshot-zoom-modal"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setZoomedPrestigeImg(null);
+                }}
+                className="fixed inset-0 z-[130] flex items-center justify-center bg-black/90 p-3 sm:p-6"
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full max-w-3xl overflow-hidden rounded-2xl border-2 border-yellow-300 bg-stone-950 shadow-2xl"
+                >
+                  <div className="flex items-center justify-between gap-2 border-b border-amber-400/35 bg-amber-950/75 px-4 py-2.5">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-black text-yellow-200 sm:text-base">
+                        {zoomedPrestigeImg.title}
+                      </div>
+                      <div className="truncate text-xs font-semibold text-amber-100/85">
+                        📍 {zoomedPrestigeImg.where}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setZoomedPrestigeImg(null)}
+                      className="hs-brass-btn min-h-[40px] shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-extrabold text-amber-100"
+                    >
+                      {tr('닫기 ✕', 'Close ✕')}
+                    </button>
+                  </div>
+                  <div className="bg-black p-2">
+                    <img
+                      src={zoomedPrestigeImg.src}
+                      alt={zoomedPrestigeImg.title}
+                      className="max-h-[72dvh] w-full rounded-xl object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

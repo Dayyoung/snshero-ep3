@@ -4,6 +4,7 @@ import { extractShortHeroCalloutName, hsAudio } from '../audio';
 import {
   CLASSIC_RANK_NAMES,
   CLASS_CREST_URL,
+  buildBogartRandomDeck,
   cardDb,
   encodeDeckShareCode,
   getCardArtUrl,
@@ -675,10 +676,27 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             ? nonStoryPresetCards.slice(0, 30)
             : playerDeck.cards;
       const eqPrest = getEquippedPrestigeSummary(hsStorage.getProfile(), curKo);
-      const isBogartMirror = mode === 'BOGART_GAMBLE';
+      const isBogartRandom = mode === 'BOGART_GAMBLE';
       const oppDisplayName = resolvedChallenger
         ? resolvedChallenger.nickname
         : opp.opponentName;
+      if (isBogartRandom) {
+        const playerRandom = buildBogartRandomDeck(playerDeck.heroClass);
+        const oppRandom = buildBogartRandomDeck(preferredOpponentClass || opp.opponentClass);
+        return createBattleMatch({
+          mode,
+          playerName: curKo
+            ? `${eqPrest.badgeIcon} 모험가 · 〈${eqPrest.titleText}〉`
+            : `${eqPrest.badgeIcon} Adventurer · <${eqPrest.titleText}>`,
+          playerClass: playerRandom.heroClass,
+          playerDeck: playerRandom.cards,
+          opponentName: oppDisplayName,
+          opponentClass: oppRandom.heroClass,
+          // ISS-004: Independent unpredictable 30-Card Random Decks on BOTH sides in Bogart's Gambling Hall!
+          opponentDeck: oppRandom.cards,
+          boardTheme: preferredBoardTheme,
+        });
+      }
       return createBattleMatch({
         mode,
         playerName: curKo
@@ -687,9 +705,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         playerClass: playerDeck.heroClass,
         playerDeck: finalCards,
         opponentName: oppDisplayName,
-        opponentClass: isBogartMirror ? playerDeck.heroClass : opp.opponentClass,
-        // DEV-027: 100% Identical 30-Card Mirror Deck in Bogart's Gambling Hall!
-        opponentDeck: isBogartMirror ? [...finalCards] : opp.opponentDeck,
+        opponentClass: opp.opponentClass,
+        opponentDeck: opp.opponentDeck,
         boardTheme: preferredBoardTheme,
       });
     },
@@ -721,7 +738,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           JSON.stringify({
             matchState,
             deck: playerDeck,
-            bogartStakeGold: bogartStakeGold || 100,
+            bogartStakeGold: bogartStakeGold ?? 100,
             challengerMeta: resolvedChallenger,
             savedAt: Date.now(),
           }),
@@ -4750,7 +4767,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           >
             {mode === 'BOGART_GAMBLE' ? (
               <span className="text-yellow-300">
-                🎲 {tr(`보가트 도박장 · 판돈 ${(bogartStakeGold || 100).toLocaleString()}G (승리 +${((bogartStakeGold || 100) * 2).toLocaleString()}G) · ⚖ 100% 미러덱`, `Bogart's Hall · Stake ${(bogartStakeGold || 100).toLocaleString()}G (Win +${((bogartStakeGold || 100) * 2).toLocaleString()}G) · ⚖ 100% Mirror`)}
+                🎲 {tr(`보가트 도박장 · 판돈 ${(bogartStakeGold ?? 100).toLocaleString()}G (승리 +${((bogartStakeGold ?? 100) * 2).toLocaleString()}G) · 🎲 100% 랜덤덱`, `Bogart's Hall · Stake ${(bogartStakeGold ?? 100).toLocaleString()}G (Win +${((bogartStakeGold ?? 100) * 2).toLocaleString()}G) · 🎲 100% Random Deck`)}
               </span>
             ) : (
               <span className="text-sky-200">

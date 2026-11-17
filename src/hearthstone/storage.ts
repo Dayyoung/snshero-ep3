@@ -154,11 +154,11 @@ export const MODE_REWARD_GUIDES: Record<GameMode, ModeRewardGuide> = {
   },
   BOGART_GAMBLE: {
     mode: 'BOGART_GAMBLE',
-    modeNameKo: '보가트 도박장 (미러덱 판돈전)',
-    playStyleBadge: '100G~5,000G 골드 베팅 · 양측 100% 동일 30장 미러덱 공정 승부',
-    baseWinRewardText: '승리 시 베팅 판돈 2배 즉시 지급 (최대 +10,000G 상금!)',
+    modeNameKo: '보가트 도박장 (랜덤덱 판돈전)',
+    playStyleBadge: '1G~1,000G 슬라이드 베팅 · 양측 100% 랜덤 30장 덱 진검승부',
+    baseWinRewardText: '승리 시 베팅 판돈 2배 즉시 지급 (최대 +2,000G 상금! · 패배 시 판돈 손실)',
     specialBonusText: '공식 전적 무관 · 획득 골드로 황금 주화 교환소 4대 명예 치장 수집',
-    summaryOneLine: '판돈 100G/500G/2,000G/5,000G · 승리 시 2배 상금 · 100% 동일 미러덱',
+    summaryOneLine: '1~1,000G 자유 슬라이드 베팅 · 승리 시 2배 상금 · 양측 100% 랜덤덱',
   },
   CASUAL: {
     mode: 'CASUAL',
@@ -205,11 +205,11 @@ export const MODE_REWARD_GUIDES_EN: Record<GameMode, ModeRewardGuide> = {
   },
   BOGART_GAMBLE: {
     mode: 'BOGART_GAMBLE',
-    modeNameKo: "Bogart's Gambling Hall (Mirror Deck)",
-    playStyleBadge: 'Wager 100G–5,000G · 100% Identical 30-Card Mirror Deck Fair Duel',
-    baseWinRewardText: 'Win 2x Stake Payout instantly (up to 10,000G pot!)',
+    modeNameKo: "Bogart's Gambling Hall (Random Deck)",
+    playStyleBadge: '1G–1,000G Slider Wager · 100% Random 30-Card Deck Showdown',
+    baseWinRewardText: 'Win 2x Stake Payout instantly (up to 2,000G pot! · Losing forfeits stake)',
     specialBonusText: 'Separate from Official Ranked Record · Unlock 4 Gold Prestige Cosmetics',
-    summaryOneLine: 'Stake 100G/500G/2,000G/5,000G · 2x Payout · 100% Mirror Deck',
+    summaryOneLine: '1–1,000G Slider Bet · 2x Payout · 100% Random 30-Card Decks',
   },
   CASUAL: {
     mode: 'CASUAL',
@@ -256,8 +256,64 @@ export interface OverallStandingSummary {
   topPercentLabel: string;
 }
 
-export const BOGART_STAKE_TIERS = [100, 500, 2000, 5000] as const;
-export type BogartStakeTier = (typeof BOGART_STAKE_TIERS)[number];
+export const BOGART_MIN_STAKE = 1;
+export const BOGART_MAX_STAKE = 1000;
+export const BOGART_STAKE_TIERS = [1, 100, 500, 1000] as const;
+export type BogartStakeTier = number;
+
+export interface PrestigeCategoryShowcase {
+  category: PrestigeCategory;
+  titleKo: string;
+  titleEn: string;
+  whereKo: string;
+  whereEn: string;
+  screenshotKo: string;
+  screenshotEn: string;
+}
+
+export const PRESTIGE_CATEGORY_SHOWCASES: Record<PrestigeCategory, PrestigeCategoryShowcase> = {
+  BADGE: {
+    category: 'BADGE',
+    titleKo: '프로필 뱃지 인게임 적용 화면',
+    titleEn: 'Profile Badge Live In-Game Preview',
+    whereKo: '메인 광장 상단 프로필 & 전장 내 영웅 초상화 우상단 문장에 표시됩니다.',
+    whereEn: 'Displayed on your Hub top-left profile pill & Battle Hero portrait corner.',
+    screenshotKo: '/hs-assets/prestige/preview_badge_ko.webp',
+    screenshotEn: '/hs-assets/prestige/preview_badge_en.webp',
+  },
+  FRAME: {
+    category: 'FRAME',
+    titleKo: '카드 프레임 디자인 인게임 적용 화면',
+    titleEn: 'Card Frame Design Live In-Game Preview',
+    whereKo: '전장 손패 · 소환된 하수인 · 내 카드첩의 모든 카드 외곽 테두리에 적용됩니다.',
+    whereEn: 'Applied to the outer border of every card in Hand, Battlefield & Collection.',
+    screenshotKo: '/hs-assets/prestige/preview_frame_ko.webp',
+    screenshotEn: '/hs-assets/prestige/preview_frame_en.webp',
+  },
+  CARDBACK: {
+    category: 'CARDBACK',
+    titleKo: '카드 뒷면 스킨 인게임 적용 화면',
+    titleEn: 'Card Back Skin Live In-Game Preview',
+    whereKo: '눈히어로 팩 개봉 뒷면 · 시작 멀리건 · 전장 내 덱 카드 더미에 표시됩니다.',
+    whereEn: 'Displayed on Pack Opening backs, Mulligan, and your Battle Deck stack.',
+    screenshotKo: '/hs-assets/prestige/preview_cardback_ko.webp',
+    screenshotEn: '/hs-assets/prestige/preview_cardback_en.webp',
+  },
+  TITLE: {
+    category: 'TITLE',
+    titleKo: '캐릭터 호칭 인게임 적용 화면',
+    titleEn: 'Character Title Live In-Game Preview',
+    whereKo: '전장 내 영웅 초상화 상단 황금 리본 〈호칭〉 및 광장 프로필에 상시 표시됩니다.',
+    whereEn: 'Displayed as a golden <Title> ribbon above your Hero in Battle & Hub profile.',
+    screenshotKo: '/hs-assets/prestige/preview_title_ko.webp',
+    screenshotEn: '/hs-assets/prestige/preview_title_en.webp',
+  },
+};
+
+export function getPrestigeItemScreenshotUrl(item: GoldPrestigeItemDef, isKo: boolean): string {
+  const langSuffix = isKo ? 'ko' : 'en';
+  return `/hs-assets/prestige/item_${item.id}_${langSuffix}.webp`;
+}
 
 export interface GoldPrestigeItemDef {
   id: string;
@@ -465,8 +521,8 @@ export const GOLD_PRESTIGE_ITEMS: GoldPrestigeItemDef[] = [
     icon: '🪙',
     nameKo: '보가트 도박장 승부사',
     nameEn: 'Bogart Hall High-Roller',
-    descKo: '100% 동일 미러덱 심리전을 제패한 대담한 승부사',
-    descEn: 'Master of fair 100% Mirror-Deck high-stakes duels',
+    descKo: '100% 랜덤덱 진검승부를 제패한 대담한 승부사',
+    descEn: 'Master of unpredictable 100% Random-Deck high-stakes duels',
     accentClass: 'border-amber-300/85 bg-amber-950/75 text-yellow-200',
   },
   {
@@ -1688,10 +1744,13 @@ class HearthstoneStorage {
   }
 
   /**
-   * DEV-027: Place Gold wager on entry to Bogart's Gambling Hall.
+   * DEV-027 / ISS-004: Place Gold wager (`1 ~ 1,000G`) on entry to Bogart's Gambling Hall.
    */
   placeBogartWager(stakeGold: number): { ok: boolean; remainingGold: number } {
-    const safeStake = Math.max(100, Math.floor(stakeGold || 100));
+    const safeStake = Math.max(
+      BOGART_MIN_STAKE,
+      Math.min(BOGART_MAX_STAKE, Math.floor(Number(stakeGold) || BOGART_MIN_STAKE)),
+    );
     const p = this.getProfile();
     if (p.gold < safeStake) {
       return { ok: false, remainingGold: p.gold };
@@ -1832,7 +1891,10 @@ class HearthstoneStorage {
       }
 
       if (mode === 'BOGART_GAMBLE') {
-        const stake = Math.max(100, Math.floor(bogartStakeGold || 100));
+        const stake = Math.max(
+          BOGART_MIN_STAKE,
+          Math.min(BOGART_MAX_STAKE, Math.floor(Number(bogartStakeGold) || BOGART_MIN_STAKE)),
+        );
         bogartPayoutGold = stake * 2;
         baseWinGold = stake;
         bonusGold = stake;
@@ -1972,7 +2034,10 @@ class HearthstoneStorage {
           }
         }
       } else if (mode === 'BOGART_GAMBLE') {
-        const stake = Math.max(100, Math.floor(bogartStakeGold || 100));
+        const stake = Math.max(
+          BOGART_MIN_STAKE,
+          Math.min(BOGART_MAX_STAKE, Math.floor(Number(bogartStakeGold) || BOGART_MIN_STAKE)),
+        );
         bogartPayoutGold = 0;
         p.bogartStats.totalMatches += 1;
         p.bogartStats.netGoldProfit -= stake;

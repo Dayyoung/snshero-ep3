@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { hsAudio } from '../audio';
 import { useModalDismiss } from '../useModalDismiss';
 import {
@@ -14,9 +14,16 @@ import {
   SnsRankMedallion,
   SnsSnowCompassSeal,
 } from '../components/SnsHeroArtKit';
+import { useAnimaleseTypewriter } from '../components/StoryEncounterOverlays';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { getDeckDisplayName, getLocalizedHeroInfo, getRankTitle } from '../i18nData';
-import { BOGART_STAKE_TIERS, BogartStakeTier, getModeRewardGuide, hsStorage } from '../storage';
+import {
+  BOGART_MAX_STAKE,
+  BOGART_MIN_STAKE,
+  BOGART_STAKE_TIERS,
+  getModeRewardGuide,
+  hsStorage,
+} from '../storage';
 import {
   BoardThemeId,
   CLASSIC_HEROES,
@@ -71,12 +78,12 @@ export function rollOnlineChallenger(preferredClass?: HeroClass, isBogart = fals
     return {
       opponentClass: cls,
       meta: {
-        nickname: '타짜 딜러 보가트#VIP',
-        titleKo: '황금 주사위 하우스 마스터',
-        titleEn: 'Golden Dice House Master',
+        nickname: '도박왕 보가트#VIP',
+        titleKo: '지하 도박장의 고블린 군주',
+        titleEn: 'Goblin Casino King',
         badgeIcon: '🎲',
-        tierLabelKo: '100% 동일 미러덱',
-        tierLabelEn: '100% Mirror Deck',
+        tierLabelKo: '100% 랜덤 30장 덱',
+        tierLabelEn: '100% Random Deck',
         rating: 2000,
       },
     };
@@ -126,6 +133,201 @@ const SNS_SPINNER_TITLES_EN = [
   'Elwin Arena Champion',
 ];
 
+const BOGART_NARRATION_LINES = [
+  {
+    ko: '키히힉! 어서 와라, 여긴 엘윈 지하 『보가트의 도박장』이다! 명심해라—이곳은 진짜 골드가 오가는 도박장이라 패배하면 베팅한 골드를 잃는 손실 위험이 있다!',
+    en: "Heh-heh! Welcome to Bogart's Underground Gambling Hall! Fair warning—real Gold is on the line here, so losing carries the risk of forfeiting your wagered Gold!",
+  },
+  {
+    ko: '대신 양측 모두 예측불허 『100% 랜덤 30장 덱』으로 붙고, 이기면 판돈의 2배를 즉시 챙긴다! 1~1,000G 슬라이드로 감당할 만큼만 걸고 옆의 [베팅 시작]을 눌러라!',
+    en: 'Both sides clash with unpredictable 100% Random 30-Card Decks, and winning pays 2x your stake! Adjust the 1–1,000G slider within your limits and hit [Start Bet]!',
+  },
+] as const;
+
+const BogartNarrationOverlay: React.FC<{
+  isKo: boolean;
+  ownedGold: number;
+  onConfirmEnter: () => void;
+}> = ({ isKo, ownedGold, onConfirmEnter }) => {
+  const [lineIdx, setLineIdx] = useState(0);
+  const totalLines = BOGART_NARRATION_LINES.length;
+  const safeIdx = Math.min(lineIdx, totalLines - 1);
+  const speechText = isKo ? BOGART_NARRATION_LINES[safeIdx].ko : BOGART_NARRATION_LINES[safeIdx].en;
+  const speakerLabel = isKo ? '고블린 도박왕 보가트' : 'Goblin Gambling King Bogart';
+
+  const handleAutoNext = useCallback(() => {
+    if (safeIdx + 1 < totalLines) {
+      hsAudio.playSfx('card_hover', 0.6);
+      setLineIdx((prev) => prev + 1);
+    }
+    // Stay on final warning line until user explicitly confirms or taps again!
+  }, [safeIdx, totalLines]);
+
+  const { displayedText, isTyping, talkBob, handleInteract } = useAnimaleseTypewriter({
+    fullText: speechText,
+    speakerLabel,
+    speakerSide: 'RIGHT',
+    resetKey: `bogart-narration:${safeIdx}:${isKo ? 'ko' : 'en'}`,
+    isKo,
+    enabled: true,
+    onAutoAdvance: handleAutoNext,
+  });
+
+  const handleSceneClick = () => {
+    if (isTyping) {
+      handleInteract();
+      return;
+    }
+    if (safeIdx + 1 < totalLines) {
+      hsAudio.playSfx('card_hover', 0.65);
+      setLineIdx((prev) => prev + 1);
+      return;
+    }
+    hsAudio.playSfx('gem_a_confirm', 0.85);
+    onConfirmEnter();
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        hsAudio.playSfx('ui_click', 0.75);
+        onConfirmEnter();
+      } else if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleSceneClick();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  return (
+    <div
+      data-testid="bogart-narration-scene"
+      data-narration-line={safeIdx + 1}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleSceneClick();
+      }}
+      className="fixed inset-0 z-[96] flex cursor-pointer select-none flex-col justify-between overflow-hidden bg-black/78"
+    >
+      {/* Dramatic Underground Tavern Gold & Crimson Vignette */}
+      <div
+        style={{
+          background:
+            'radial-gradient(circle at 50% 38%, rgba(245,158,11,0.22) 0%, rgba(69,10,10,0.45) 48%, rgba(8,5,3,0.92) 100%)',
+        }}
+        className="pointer-events-none absolute inset-0"
+      />
+
+      {/* Top Risk Warning Banner + 1-Tap Skip Button */}
+      <div className="relative z-30 mx-auto flex w-full max-w-4xl items-center justify-between gap-2 px-3 pt-3 sm:px-6 sm:pt-5">
+        <div
+          data-testid="bogart-loss-risk-badge"
+          className="flex items-center gap-2 rounded-full border-2 border-rose-400/85 bg-rose-950/90 px-3.5 py-1.5 shadow-[0_6px_20px_rgba(0,0,0,0.85)]"
+        >
+          <span className="text-sm sm:text-base">⚠️</span>
+          <span className="hs-title truncate text-xs font-extrabold tracking-wide text-rose-100 sm:text-sm">
+            {tr(
+              '도박장 주의 · 패배 시 베팅 골드 손실 위험!',
+              'Gambling Hall Warning · Risk of Losing Wagered Gold!',
+            )}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          data-testid="bogart-narration-skip-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            hsAudio.playSfx('ui_click', 0.75);
+            onConfirmEnter();
+          }}
+          className="min-h-[44px] shrink-0 rounded-xl border border-amber-300/50 bg-stone-950/90 px-3.5 py-1.5 text-xs font-extrabold text-amber-100 shadow-lg transition hover:border-yellow-300 hover:text-yellow-200"
+        >
+          {tr('건너뛰기 ▸▸', 'SKIP ▸▸')}
+        </button>
+      </div>
+
+      {/* Center HD Bogart Upper-Body Portrait (`>= 54%` Viewport Height, Waist-Up Above Dialogue Plate) */}
+      <div
+        data-testid="bogart-narration-portrait"
+        style={{
+          transformOrigin: 'bottom center',
+          transform: `translate3d(-50%, ${talkBob ? '-7px' : '0px'}, 0)`,
+          transition: 'transform 130ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+        className="pointer-events-none absolute bottom-[148px] left-1/2 z-20 flex h-[54%] items-end justify-center sm:bottom-[162px] sm:h-[60%]"
+      >
+        <img
+          src="/hs-assets/upper-hd/bogart_dealer.webp"
+          alt={speakerLabel}
+          decoding="async"
+          draggable={false}
+          className="h-full w-auto max-w-none select-none object-contain"
+        />
+      </div>
+
+      {/* Bottom Narration Dialogue Box + Confirm Risk & Enter CTA */}
+      <div className="relative z-30 mx-auto mb-4 w-full max-w-2xl px-3 sm:mb-7 sm:px-6">
+        {/* Top Dark Trapezoid Speaker Nameplate */}
+        <div
+          className="relative z-10 mx-auto -mb-3 flex w-fit min-w-[168px] items-center justify-center gap-1.5 px-6 py-1.5 text-center shadow-md"
+          style={{
+            backgroundColor: '#231612',
+            border: '1px solid rgba(251,191,36,0.55)',
+            clipPath: 'polygon(7% 0%, 93% 0%, 100% 100%, 0% 100%)',
+          }}
+        >
+          <span>🎲</span>
+          <span className="truncate text-xs font-extrabold tracking-wide text-yellow-200 sm:text-sm">
+            {speakerLabel}
+          </span>
+        </div>
+
+        {/* Cream-White Sanctuary Dialogue Plate */}
+        <div className="relative rounded-[14px] border-2 border-amber-400/80 bg-[#f5f1e6] px-4 pb-4 pt-5 text-left shadow-[0_20px_48px_rgba(0,0,0,0.92)] sm:px-6 sm:pb-5 sm:pt-6">
+          <p
+            data-testid="bogart-narration-text"
+            data-full-text={speechText}
+            aria-label={speechText}
+            className="relative min-h-[60px] text-[13.5px] font-extrabold leading-relaxed text-[#1e1510] sm:min-h-[56px] sm:text-[15px]"
+          >
+            <span aria-hidden="true" className="invisible block">
+              {speechText}
+            </span>
+            <span className="absolute inset-0 block">{displayedText}</span>
+          </p>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-stone-300 pt-2.5">
+            <div className="text-[11px] font-extrabold text-rose-800 sm:text-xs">
+              {safeIdx + 1} / {totalLines} ·{' '}
+              {tr(
+                `현재 보유 ${ownedGold.toLocaleString()}G · 1~1,000G 슬라이드 · 100% 랜덤덱`,
+                `Owned ${ownedGold.toLocaleString()}G · 1–1,000G Slider · 100% Random Deck`,
+              )}
+            </div>
+
+            <button
+              type="button"
+              data-testid="bogart-narration-confirm-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                hsAudio.playSfx('gem_a_confirm', 0.9);
+                onConfirmEnter();
+              }}
+              className="hs-mario-spring min-h-[44px] rounded-xl border-2 border-amber-200 bg-gradient-to-b from-yellow-300 via-amber-400 to-amber-600 px-4 py-2 text-xs font-black text-stone-950 shadow-lg sm:text-sm"
+            >
+              {tr('⚠️ 위험 확인 · 도박장 입장', '⚠️ Understand Risk · Enter Hall')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   initialMode,
   onBack,
@@ -151,7 +353,13 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const [selectedDeckId, setSelectedDeckId] = useState<string>(decks[0]?.id || 'preset_priest');
   const [practiceOpponentClass, setPracticeOpponentClass] = useState<HeroClass>('WARRIOR');
   const [boardTheme, setBoardTheme] = useState<BoardThemeId | 'RANDOM'>('RANDOM');
-  const [bogartStake, setBogartStake] = useState<BogartStakeTier>(100);
+  const [bogartStake, setBogartStake] = useState<number>(() => {
+    const initialGold = hsStorage.getProfile().gold;
+    return Math.max(BOGART_MIN_STAKE, Math.min(BOGART_MAX_STAKE, initialGold >= 100 ? 100 : Math.max(1, initialGold)));
+  });
+  const [bogartNarrationOpen, setBogartNarrationOpen] = useState<boolean>(
+    () => initialMode === 'BOGART_GAMBLE',
+  );
   const [bogartToast, setBogartToast] = useState<string | null>(null);
   const [matchedChallenger, setMatchedChallenger] = useState<{
     opponentClass: HeroClass;
@@ -219,9 +427,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             deck: selectedDeck,
             preferredOpponentClass: isPractice
               ? practiceOpponentClass
-              : isBogart
-                ? selectedDeck.heroClass
-                : challenger.opponentClass,
+              : challenger.opponentClass,
             boardTheme: boardTheme === 'RANDOM' ? undefined : boardTheme,
             bogartStakeGold: isBogart ? bogartStake : undefined,
             challengerMeta: mode === 'RANKED' || isBogart ? challenger.meta : undefined,
@@ -260,20 +466,25 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   };
 
   const handleStartClick = () => {
-    if (selectedDeck.cards.length < 30) return;
+    if (!isBogart && selectedDeck.cards.length < 30) return;
     if (isBogart) {
-      const wagerRes = hsStorage.placeBogartWager(bogartStake);
+      const clampedStake = Math.max(
+        BOGART_MIN_STAKE,
+        Math.min(BOGART_MAX_STAKE, Math.floor(bogartStake || BOGART_MIN_STAKE)),
+      );
+      const wagerRes = hsStorage.placeBogartWager(clampedStake);
       if (!wagerRes.ok) {
         hsAudio.playSfx('gem_b_back', 0.8);
         setBogartToast(
           tr(
-            `골드가 부족합니다! (선택 판돈 ${bogartStake}G / 보유 ${profile.gold}G)`,
-            `Not enough Gold! (Stake ${bogartStake}G / Owned ${profile.gold}G)`,
+            `골드가 부족합니다! (선택 판돈 ${clampedStake.toLocaleString()}G / 보유 ${profile.gold.toLocaleString()}G)`,
+            `Not enough Gold! (Stake ${clampedStake.toLocaleString()}G / Owned ${profile.gold.toLocaleString()}G)`,
           ),
         );
         window.setTimeout(() => setBogartToast(null), 2800);
         return;
       }
+      setBogartStake(clampedStake);
       setProfile(hsStorage.getProfile());
       hsAudio.playSfx('bogart_wager', 0.95);
     } else {
@@ -281,7 +492,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     }
     setMatchedChallenger(
       rollOnlineChallenger(
-        isPractice ? practiceOpponentClass : isBogart ? selectedDeck.heroClass : undefined,
+        isPractice ? practiceOpponentClass : undefined,
         isBogart,
       ),
     );
@@ -319,6 +530,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 onClick={() => {
                   hsAudio.playSfx('gem_c_select');
                   setMode('BOGART_GAMBLE');
+                  setBogartNarrationOpen(true);
                 }}
                 className={`hs-mario-spring flex min-h-[38px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:gap-1.5 sm:px-3.5 sm:text-xs ${
                   mode === 'BOGART_GAMBLE'
@@ -404,10 +616,16 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
         <section className="hs-wood-panel rounded-2xl p-3 sm:rounded-3xl sm:p-5 lg:col-span-7">
           <div className="mb-2 flex items-center justify-between border-b border-amber-500/25 pb-1.5 sm:mb-3 sm:pb-2">
             <h2 className="hs-title text-sm font-extrabold text-amber-100 sm:text-lg">
-              {tr('전투에 출전할 종족 덱 선택', 'Choose Your Faction Deck')}
+              {isBogart
+                ? tr('출전 영웅 종족 선택 (매 판 30장 랜덤덱 자동 편성)', 'Choose Hero Faction (Fresh 30-Card Random Deck)')
+                : tr('전투에 출전할 종족 덱 선택', 'Choose Your Faction Deck')}
             </h2>
             <span className="text-[11px] font-bold text-amber-300/85 sm:text-xs">
-              {isKo ? `보유 덱 ${decks.length}개 · 30장 완료 덱 출전` : `${decks.length} Decks · 30 Cards Required`}
+              {isBogart
+                ? tr('🎲 양측 100% 랜덤 30장 덱', '🎲 100% Random 30-Card Decks')
+                : isKo
+                  ? `보유 덱 ${decks.length}개 · 30장 완료 덱 출전`
+                  : `${decks.length} Decks · 30 Cards Required`}
             </span>
           </div>
 
@@ -623,19 +841,98 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 <div className="flex items-center gap-1.5">
                   <span className="text-base">🎲</span>
                   <span className="hs-title text-sm font-extrabold text-yellow-300 sm:text-base">
-                    {tr('보가트 도박장 · 판돈 선택', "Bogart's Hall · Select Wager")}
+                    {tr('보가트 도박장 · 1~1,000G 슬라이드 베팅', "Bogart's Hall · 1–1,000G Slider Bet")}
                   </span>
                 </div>
-                <span className="flex items-center gap-1 rounded-full border border-yellow-300/60 bg-black/55 px-2.5 py-0.5 text-xs font-extrabold text-yellow-200">
-                  <HsGoldCoinIcon size={14} />
-                  <span>{tr(`보유 ${profile.gold}G`, `Owned ${profile.gold}G`)}</span>
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="bogart-replay-narration-btn"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click', 0.75);
+                      setBogartNarrationOpen(true);
+                    }}
+                    className="rounded-full border border-rose-400/60 bg-rose-950/80 px-2 py-0.5 text-[10.5px] font-extrabold text-rose-200 hover:border-rose-300"
+                  >
+                    🎙 {tr('보가트 경고', 'Risk Warning')}
+                  </button>
+                  <span className="flex items-center gap-1 rounded-full border border-yellow-300/60 bg-black/55 px-2.5 py-0.5 text-xs font-extrabold text-yellow-200">
+                    <HsGoldCoinIcon size={14} />
+                    <span>{tr(`보유 ${profile.gold.toLocaleString()}G`, `Owned ${profile.gold.toLocaleString()}G`)}</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="mt-2 grid grid-cols-4 gap-1.5">
+              {/* Live Stake & Risk Summary Strip */}
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-1 rounded-xl border border-amber-400/45 bg-stone-950/90 px-3 py-1.5 text-xs">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[11px] font-bold text-amber-200">{tr('베팅액:', 'Stake:')}</span>
+                  <span
+                    data-testid="bogart-stake-value"
+                    className="hs-num text-base font-black text-yellow-300 sm:text-lg"
+                  >
+                    {bogartStake.toLocaleString()}G
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-[11px] font-extrabold">
+                  <span className="text-emerald-300">
+                    {tr(`승리 +${(bogartStake * 2).toLocaleString()}G`, `Win +${(bogartStake * 2).toLocaleString()}G`)}
+                  </span>
+                  <span className="text-stone-600">|</span>
+                  <span className="text-rose-300">
+                    ⚠️ {tr(`패배 시 -${bogartStake.toLocaleString()}G`, `Lose -${bogartStake.toLocaleString()}G`)}
+                  </span>
+                </div>
+              </div>
+
+              {/* 1 ~ 1,000G Range Slider + Side-by-Side [베팅 시작] Button */}
+              <div className="mt-2.5 flex items-center gap-2.5">
+                <div className="min-w-0 flex-1 rounded-xl border border-amber-400/45 bg-black/55 px-3 py-2">
+                  <input
+                    type="range"
+                    data-testid="bogart-bet-slider"
+                    min={BOGART_MIN_STAKE}
+                    max={BOGART_MAX_STAKE}
+                    step={1}
+                    value={bogartStake}
+                    aria-label={tr('1~1,000 골드 베팅 슬라이더', '1 to 1,000 Gold Bet Slider')}
+                    onChange={(e) => {
+                      const nextVal = Math.max(
+                        BOGART_MIN_STAKE,
+                        Math.min(BOGART_MAX_STAKE, Number(e.target.value) || BOGART_MIN_STAKE),
+                      );
+                      setBogartStake(nextVal);
+                    }}
+                    className="h-2.5 w-full cursor-pointer accent-amber-400"
+                  />
+                  <div className="mt-1 flex items-center justify-between text-[10px] font-extrabold text-amber-200/85">
+                    <span>1G</span>
+                    <span>250G</span>
+                    <span>500G</span>
+                    <span>750G</span>
+                    <span>1,000G</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  data-testid="bogart-slider-bet-btn"
+                  onClick={handleStartClick}
+                  className="hs-mario-spring flex min-h-[54px] shrink-0 flex-col items-center justify-center rounded-xl border-2 border-yellow-100 bg-gradient-to-b from-yellow-300 via-amber-400 to-amber-600 px-3.5 py-2 text-center shadow-[0_4px_18px_rgba(250,204,21,0.5)] sm:px-4"
+                >
+                  <span className="text-xs font-black tracking-tight text-stone-950 sm:text-sm">
+                    🎲 {tr('베팅 시작', 'Start Bet')}
+                  </span>
+                  <span className="mt-0.5 text-[11px] font-black text-amber-950">
+                    {bogartStake.toLocaleString()}G
+                  </span>
+                </button>
+              </div>
+
+              {/* Quick Fine-Tune Chips (1G / 100G / 500G / 1,000G / Max Affordable) */}
+              <div className="mt-2 grid grid-cols-5 gap-1">
                 {BOGART_STAKE_TIERS.map((tier) => {
                   const active = bogartStake === tier;
-                  const affordable = profile.gold >= tier;
                   return (
                     <button
                       key={tier}
@@ -645,21 +942,29 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                         hsAudio.playSfx('gem_c_select');
                         setBogartStake(tier);
                       }}
-                      className={`hs-mario-spring flex min-h-[44px] flex-col items-center justify-center rounded-xl border px-1.5 py-1 text-center transition ${
+                      className={`min-h-[34px] rounded-lg border px-1 text-[10.5px] font-extrabold transition ${
                         active
-                          ? 'border-yellow-200 bg-gradient-to-b from-yellow-400 to-amber-700 text-stone-950 shadow-[0_0_16px_rgba(250,204,21,0.55)]'
-                          : affordable
-                            ? 'border-amber-400/50 bg-stone-950/85 text-amber-100 hover:border-yellow-300'
-                            : 'border-stone-700 bg-stone-950/60 text-stone-500'
+                          ? 'border-yellow-200 bg-amber-500 text-stone-950 shadow'
+                          : 'border-amber-400/35 bg-stone-950/80 text-amber-100 hover:border-yellow-300'
                       }`}
                     >
-                      <span className="hs-num text-xs font-black sm:text-sm">{tier.toLocaleString()}G</span>
-                      <span className={`text-[9px] font-extrabold ${active ? 'text-stone-900' : 'text-emerald-300'}`}>
-                        {tr(`승리 +${(tier * 2).toLocaleString()}G`, `Win +${(tier * 2).toLocaleString()}G`)}
-                      </span>
+                      {tier.toLocaleString()}G
                     </button>
                   );
                 })}
+                <button
+                  type="button"
+                  data-testid="bogart-stake-max-affordable"
+                  onClick={() => {
+                    hsAudio.playSfx('gem_c_select');
+                    setBogartStake(
+                      Math.max(BOGART_MIN_STAKE, Math.min(BOGART_MAX_STAKE, Math.floor(profile.gold || 1))),
+                    );
+                  }}
+                  className="min-h-[34px] rounded-lg border border-emerald-400/50 bg-emerald-950/75 px-1 text-[10px] font-extrabold text-emerald-200 hover:border-emerald-300"
+                >
+                  {tr('보유최대', 'MAX')}
+                </button>
               </div>
 
               {profile.gold < 100 && (
@@ -714,7 +1019,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               )}
 
               <div className="mt-2 flex items-center justify-between rounded-xl border border-sky-300/35 bg-black/45 px-2.5 py-1.5 text-[10.5px] font-bold text-sky-200">
-                <span>⚖ {tr('100% 동일 30장 미러덱 공정 룰 적용', '100% Identical 30-Card Mirror Deck')}</span>
+                <span>🎲 {tr('양측 예측불허 100% 랜덤 30장 덱 결투', '100% Random 30-Card Deck Showdown')}</span>
                 <span className="text-yellow-300">
                   {tr(`누적 순수익 ${profile.bogartStats?.netGoldProfit >= 0 ? '+' : ''}${profile.bogartStats?.netGoldProfit || 0}G`, `Net ${profile.bogartStats?.netGoldProfit >= 0 ? '+' : ''}${profile.bogartStats?.netGoldProfit || 0}G`)}
                 </span>
@@ -802,7 +1107,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             <button
               type="button"
               data-testid="deck-select-play-btn"
-              disabled={selectedDeck.cards.length < 30}
+              disabled={!isBogart && selectedDeck.cards.length < 30}
               onClick={handleStartClick}
               className={`${
                 isBogart ? 'hs-zelda-c-btn' : 'hs-zelda-a-btn'
@@ -814,7 +1119,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               />
               <span className="hs-title hs-outline text-xl font-extrabold tracking-wider text-white sm:text-2xl">
                 {isBogart
-                  ? tr(`🎲 ${bogartStake.toLocaleString()}G 베팅 · 미러덱 승부`, `🎲 Wager ${bogartStake.toLocaleString()}G · Mirror Duel`)
+                  ? tr(`🎲 ${bogartStake.toLocaleString()}G 베팅 · 랜덤덱 승부`, `🎲 Bet ${bogartStake.toLocaleString()}G · Random Duel`)
                   : mode === 'RANKED'
                     ? tr('🏆 실시간 도전자 랭킹 매칭', '🏆 Find Ranked Challenger')
                     : tr('대전 시작', 'PLAY')}
@@ -829,7 +1134,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
         <button
           type="button"
           data-testid="deck-select-play-mobile-btn"
-          disabled={selectedDeck.cards.length < 30}
+          disabled={!isBogart && selectedDeck.cards.length < 30}
           onClick={handleStartClick}
           className={`${
             isBogart ? 'hs-zelda-c-btn' : 'hs-zelda-a-btn'
@@ -841,13 +1146,22 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           />
           <span className="hs-title hs-outline text-base font-extrabold tracking-wide text-white sm:text-lg">
             {isBogart
-              ? tr(`🎲 ${bogartStake.toLocaleString()}G 판돈 · 미러덱 시작`, `🎲 Bet ${bogartStake.toLocaleString()}G · Mirror Duel`)
+              ? tr(`🎲 ${bogartStake.toLocaleString()}G 베팅 · 랜덤덱 시작`, `🎲 Bet ${bogartStake.toLocaleString()}G · Random Duel`)
               : isKo
                 ? `🏆 도전자 매칭 (${selectedDeckLabel})`
                 : `🏆 Match Challenger (${selectedDeckLabel})`}
           </span>
         </button>
       </div>
+
+      {/* ISS-004: Bogart Upper-Body Loss-Risk Narration Scene on Entry to Bogart's Gambling Hall */}
+      {isBogart && bogartNarrationOpen && !matching && (
+        <BogartNarrationOverlay
+          isKo={isKo}
+          ownedGold={profile.gold}
+          onConfirmEnter={() => setBogartNarrationOpen(false)}
+        />
+      )}
 
       {/* Matchmaking Wheel Modal + Challenger Portrait Reveal (DEV-028) */}
       {matching && (
@@ -882,10 +1196,10 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             >
               {wheelLocked
                 ? isBogart
-                  ? tr(`🎲 ${bogartStake.toLocaleString()}G 미러덱 테이블 성사!`, `🎲 ${bogartStake.toLocaleString()}G Mirror Table Ready!`)
+                  ? tr(`🎲 ${bogartStake.toLocaleString()}G 랜덤덱 테이블 성사!`, `🎲 ${bogartStake.toLocaleString()}G Random Table Ready!`)
                   : tr('⚔ 실시간 도전자를 찾았습니다!', '⚔ Ranked Challenger Locked In!')
                 : isBogart
-                  ? tr('보가트 미러덱 셔플 & 상대 배정 중...', 'Shuffling Identical Mirror Deck...')
+                  ? tr('양측 30장 랜덤덱 즉석 편성 & 상대 배정 중...', 'Drafting Fresh 30-Card Random Decks...')
                   : tr('온라인 도전자 실시간 탐색 중...', 'Searching for Live Challenger...')}
             </div>
 
@@ -955,8 +1269,8 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             <p className="hs-outline-sm mt-2 text-xs font-bold text-amber-50/95">
               {isBogart
                 ? tr(
-                    '양 플레이어에게 100% 동일한 30장 미러덱을 공정 배분합니다...',
-                    'Dealing 100% identical 30-card Mirror Decks to both sides...',
+                    '양 플레이어에게 매 판 완전히 새로운 30장 랜덤덱을 배분합니다...',
+                    'Dealing independent, unpredictable 30-card Random Decks to both sides...',
                   )
                 : tr(
                     '엘윈마을 대결 광장에서 비슷한 MMR의 실시간 도전자를 연결합니다...',

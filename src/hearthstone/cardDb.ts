@@ -315,6 +315,75 @@ export function decodeDeckShareCode(
 }
 
 /**
+ * ISS-004: Builds a freshly shuffled, unpredictable 30-card Random Deck for Bogart's Gambling Hall
+ * strictly from the frozen 382 collectible cards (`[resolvedHeroClass, 'NEUTRAL']`, max 1 copy per Legendary,
+ * max 2 copies per non-Legendary, with balanced early/mid/late mana curve so every random duel is playable & exciting).
+ */
+export function buildBogartRandomDeck(preferredHeroClass?: HeroClass): {
+  heroClass: HeroClass;
+  cards: string[];
+} {
+  const heroClass =
+    preferredHeroClass && HERO_CLASS_ORDER.includes(preferredHeroClass)
+      ? preferredHeroClass
+      : HERO_CLASS_ORDER[Math.floor(Math.random() * HERO_CLASS_ORDER.length)];
+
+  const allCollectible = cardDb
+    .getAllCollectible()
+    .filter((c) => c.collectible && (c.cardClass === heroClass || c.cardClass === 'NEUTRAL'));
+
+  const shuffle = <T,>(arr: T[]): T[] => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = tmp;
+    }
+    return copy;
+  };
+
+  // Weight class cards slightly (include twice in candidate pool before copy-cap check) so faction flavor shines
+  const classCards = allCollectible.filter((c) => c.cardClass === heroClass);
+  const neutralCards = allCollectible.filter((c) => c.cardClass === 'NEUTRAL');
+  const pool = shuffle([...classCards, ...classCards, ...neutralCards]);
+
+  const counts = new Map<string, number>();
+  const picked: string[] = [];
+
+  const tryPickFromBucket = (predicate: (c: ClassicCardDef) => boolean, targetAdd: number) => {
+    let added = 0;
+    for (const c of shuffle(pool)) {
+      if (picked.length >= 30 || added >= targetAdd) break;
+      if (!predicate(c)) continue;
+      const maxCopies = c.rarity === 'LEGENDARY' ? 1 : 2;
+      const cur = counts.get(c.id) || 0;
+      if (cur < maxCopies) {
+        counts.set(c.id, cur + 1);
+        picked.push(c.id);
+        added += 1;
+      }
+    }
+  };
+
+  // Balanced random curve: 8 early (0-2), 11 mid (3-4), 7 mid-late (5-6), 4 heavy finishers (7+)
+  tryPickFromBucket((c) => c.cost <= 2, 8);
+  tryPickFromBucket((c) => c.cost >= 3 && c.cost <= 4, 11);
+  tryPickFromBucket((c) => c.cost >= 5 && c.cost <= 6, 7);
+  tryPickFromBucket((c) => c.cost >= 7, 4);
+
+  // Top up to 30 if any bucket had fewer candidates
+  if (picked.length < 30) {
+    tryPickFromBucket(() => true, 30 - picked.length);
+  }
+
+  return {
+    heroClass,
+    cards: shuffle(picked).slice(0, 30),
+  };
+}
+
+/**
  * Formats card ability text:
  * - `$6` -> dynamic spell damage (e.g. `*7*` when spellDamage > 0)
  * - `#8` -> dynamic heal value (e.g. `*16*` with Alexandar)

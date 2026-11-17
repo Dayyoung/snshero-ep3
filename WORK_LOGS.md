@@ -2,6 +2,26 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 15:10 KST] [`/checkIssue` ISS-004 해결 — 웹툰 31화 원작 『고블린 도박왕 보가트』 손실 위험 경고 나레이션씬 · `1~1,000G` 슬라이드 & 베팅버튼 · `100% 랜덤 30장 덱` 결투 · 골드 명예 보상품 인게임 적용 스크린샷 & 프로모션 홈페이지 업데이트 (푸시 대기)]
+- **연동 시트**: `1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4` (`'게임 이슈 관리 로그'` 13행 `ISS-004`, 우선순위 `P0`, 상태 `점검완료·실행대기` → `완료` 갱신 · `'요약 대시보드'` `12/12 100.0%` 완료)
+- **구현 및 수정 내역**:
+  1. **웹툰 제31화 원작 『고블린 도박왕 보가트』 고화질 상반신 일러스트 및 입장 손실 위험 경고 나레이션씬 구현** ([`bogart_dealer.webp`](file:///Users/dayyoung/project/snshero/public/hs-assets/upper-hd/bogart_dealer.webp), [`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx)):
+     - `webtoon.html?ep=31` 원작 설정과 일치하는 녹색 피부·뾰족한 귀·금 귀걸이·황금 주사위·보석 반지와 보라색 도박왕 망토 외형의 『고블린 도박왕 보가트』 HD 상반신 일러스트(`bogart_dealer.webp`) 생성 및 적용.
+     - 보가트 도박장 입장 시 보가트 상반신(`54%~60%` 화면 높이) 나레이션씬(`bogart-narration-scene`)이 자동 표시되어 패배 시 베팅 골드가 소멸되는 손실 위험을 한·영 타이프라이터 연출로 경고(`[⚠️ 위험 확인 · 도박장 입장]`, `[건너뛰기 ▸▸]`, `[🎙 보가트 경고]` 다시 보기 지원).
+  2. **`1 ~ 1,000` 골드 슬라이드 베팅 조절 바 + 우측 인접 `[🎲 베팅 시작]` 버튼 구현** ([`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx), [`storage.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/storage.ts)):
+     - 기존 고정 4티어 버튼을 `1G ~ 1,000G` 연속 레인지 슬라이더(`bogart-bet-slider`) + 빠른 금액 칩(`1G`/`100G`/`500G`/`1,000G`/`보유최대`)으로 개편하고, 슬라이더 바로 우측에 `[🎲 베팅 시작]` 버튼(`bogart-slider-bet-btn`)을 배치하여 원클릭 베팅 시작 지원.
+     - `placeBogartWager` 및 `recordMatchOutcome`에서 `1G ~ 1,000G` 모든 정수 판돈 차감·2배 정산 완벽 연동.
+  3. **뻔한 미러덱 폐지 → 양측 예측불허 `100% 랜덤 30장 덱` 결투 전환** ([`cardDb.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/cardDb.ts), [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx), [`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx), [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx)):
+     - 동결된 382장 수집 카드 풀 내에서 매 판 플레이어와 상대방 각각에게 서로 독립적인 30장 마나커브 균형 랜덤덱(`buildBogartRandomDeck`)을 새로 배분하도록 교체(382장 카드 동결 엄수).
+  4. **골드 명예 보상품(황금 주화 교환소) 실제 인게임 적용 한·영 스크린샷 탑재 및 텍스트 간소화** ([`Modals.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/Modals.tsx), `public/hs-assets/prestige/*_{ko,en}.webp`):
+     - 4대 카테고리(프로필 뱃지·카드 프레임·카드 뒷면·캐릭터 호칭) 상단 실제 인게임 적용 대표 배너(`prestige-live-screenshot-banner`, 탭 확대 모달 지원) 및 전 18종 개별 아이템별 실제 인게임 장착 크롭 스크린샷(한·영 분리 총 44장 WebP) 적용.
+  5. **프로모션 홈페이지(`/`) 보가트 도박장 3단계 가이드 & 실제 한·영 스크린샷 추가** ([`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx), `public/hs-assets/screenshots/ingame_bogart_{narration,slider,battle}_{ko,en}.webp`):
+     - `#modes` 및 `#gold-economy` 섹션에 고블린 도박왕 보가트 경고 나레이션씬 · `1~1,000G` 슬라이더 시뮬레이터 · 30장 랜덤덱 실전 전장 · 4대 명예 보상품 실제 인게임 스크린샷을 한국어(`ko`)·영어(`en`) 분기로 반영.
+- **검증 및 보고 결과**:
+  - `npx tsc --noEmit && npm run build` 통과 (`0` errors).
+  - Playwright 데스크톱(`1280×800` KO/EN) 및 모바일 Apple WebKit(`390×844` iOS 뷰포트) E2E 전수 통과 (커스텀 `37G` 슬라이드 차감·랜덤 30장 비미러덱 검증, 모든 한·영 스크린샷 `naturalWidth > 0`, 가로 스크롤 `0`, 터치 타깃 `>=44px`, 앱 에러 `0`건, 382장 카드 동결 확인).
+  - 로컬 커밋 완료(`git push` 보류·대기), 이슈 시트 `J13` `"완료"` 갱신 및 구글 폼 완료 보고서 제출 완료.
+
 ## [2026-11-17 14:50 KST] [홈 화면 성소 SVG 마크 제거 및 첫 화면(`TAVERN_INTRO`) 스킵 후 홈 로비(`BOX_HUB`) 단일 문열림 직행 적용 (푸시 대기)]
 - **요청**: ① 홈 화면 원판 상단 파란 마크(`<svg>` `SnsOcarinaCrestSeal`) 제거, ② 진입 시 문이 2번 열리는 느낌의 첫 화면(`TavernIntroScreen`) 제거 후 바로 홈 화면(`BoxHubScreen`)으로 한 번에 문 열리며 입장
 - **수정 내용**:
