@@ -2,6 +2,20 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 17:39 KST] [`/upload-youtube` SNSHero 영문 프로모션 본편(16:9) · 쇼츠(9:16) · 커스텀 썸네일 유튜브 자동 업로드 및 API 검증 완료]
+- **요청**: 영문 제목·내용 구성 및 `/upload-youtube` 스킬로 '모두의 기술'(`@modooskill`, `UC_xayYwKaB5TbH3eZXeREpA`) 채널에 본편·쇼츠 자동 업로드
+- **업로드 및 YouTube Data API v3 검증 결과**:
+  1. **16:9 유튜브 본편 + 로고 강조 커스텀 썸네일 (`snshero_promo_thumbnail.jpg`)**:
+     - URL: `https://www.youtube.com/watch?v=av-d3J5vuvM` (`https://youtu.be/av-d3J5vuvM`)
+     - Title: `Deceptively Simple, Insanely Fun! Play SNSHero FREE in Your Browser (382 Cards & 3x Power!)`
+     - 상태: `uploadStatus: "uploaded"`, `privacyStatus: "public"`, `madeForKids: false`
+  2. **9:16 유튜브 쇼츠 (`--shorts`)**:
+     - URL: `https://www.youtube.com/shorts/mVM29ugxIUA` (`https://youtu.be/mVM29ugxIUA`)
+     - Title: `STOP SCROLLING! Full 382-Card Fantasy RPG in Your Browser?! 🤯🔥 #Shorts #SNSHero`
+     - 상태: `uploadStatus: "uploaded"`, `privacyStatus: "public"`, `madeForKids: false`
+- **구글 폼 보고**: `submit_report.py` 제출 완료.
+
+
 ## [2026-11-17 17:11 KST] [SNSHero (`https://snshero.com`) 공식 영문 소개 동영상(16:9) · 쇼츠(9:16) · 로고 강조 썸네일 제작 완료]
 - **요청**: `https://snshero.com` 실제 플레이 화면을 웹브라우저로 녹화해 SNSHero 프로모션 소개 내용을 기준으로 시작·종료 화면 로고가 강조된 영문 소개 동영상(`16:9`), 쇼츠(`9:16`), 로고 강조 썸네일(`1920×1080`) 제작 (쾌활하고 흥분된 영문 남성 보이스오버 및 `https://snshero.com` 참여 유도 엔딩 포함)
 - **제작 내역**:
