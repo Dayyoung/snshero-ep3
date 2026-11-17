@@ -27,7 +27,6 @@ import {
 import { BoxHubScreen } from './screens/BoxHubScreen';
 import type { BattleScreenProps } from './screens/BattleScreen';
 import type { HeroDeckSelectScreenProps } from './screens/HeroDeckSelectScreen';
-import { TavernIntroScreen } from './screens/TavernIntroScreen';
 
 const hsScreenModules = import.meta.glob<Record<string, React.ComponentType<any>>>(
   './screens/{BattleScreen,CollectionScreen,HeroDeckSelectScreen,PackOpeningScreen}.tsx',
@@ -89,7 +88,7 @@ export const HearthstoneApp: React.FC = () => {
       : 'SNSHero — Elwin Village Card Battle';
   }, [isKo]);
 
-  const [screen, setScreen] = useState<ScreenName>('TAVERN_INTRO');
+  const [screen, setScreen] = useState<ScreenName>('BOX_HUB');
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
 
   const [selectedMode, setSelectedMode] = useState<GameMode>('RANKED');
@@ -495,7 +494,7 @@ export const HearthstoneApp: React.FC = () => {
                 setPendingGambleEscrow({
                   matchState: parsedEscrow.matchState,
                   deck: parsedEscrow.deck,
-                  bogartStakeGold: parsedEscrow.bogartStakeGold || 100,
+                  bogartStakeGold: parsedEscrow.bogartStakeGold ?? 100,
                   challengerMeta: parsedEscrow.challengerMeta,
                 });
               }
@@ -694,8 +693,7 @@ export const HearthstoneApp: React.FC = () => {
   }
 
   const hideAdsForFtue =
-    screen === 'TAVERN_INTRO' ||
-    (!profile.journeyGuideDone && profile.packs >= 3 && profile.totalGames === 0);
+    !profile.journeyGuideDone && profile.packs >= 3 && profile.totalGames === 0;
 
   return (
     <>
@@ -716,10 +714,6 @@ export const HearthstoneApp: React.FC = () => {
             </button>
           </div>
         )}
-        {screen === 'TAVERN_INTRO' && (
-          <TavernIntroScreen onEnterHub={() => setScreen('BOX_HUB')} />
-        )}
-
         {screen === 'BOX_HUB' && (
           <BoxHubScreen
             profile={profile}
@@ -869,7 +863,7 @@ export const HearthstoneApp: React.FC = () => {
               setGlobalAutoPlay(false);
               setBattleSnapshot(null);
               if (activeBattleParams.mode === 'BOGART_GAMBLE') {
-                const stake = activeBattleParams.bogartStakeGold || 100;
+                const stake = activeBattleParams.bogartStakeGold ?? 100;
                 const wager = hsStorage.placeBogartWager(stake);
                 if (!wager.ok) {
                   refreshProfile();
@@ -887,7 +881,7 @@ export const HearthstoneApp: React.FC = () => {
               setBattleSnapshot(null);
               setTacticalStance(nextStance);
               if (activeBattleParams.mode === 'BOGART_GAMBLE') {
-                const stake = activeBattleParams.bogartStakeGold || 100;
+                const stake = activeBattleParams.bogartStakeGold ?? 100;
                 const wager = hsStorage.placeBogartWager(stake);
                 if (!wager.ok) {
                   refreshProfile();
@@ -935,8 +929,8 @@ export const HearthstoneApp: React.FC = () => {
               </h2>
               <p className="mt-2 text-xs font-bold leading-relaxed text-sky-100/90 sm:text-sm">
                 {tr(
-                  `에스크로에 보관된 판돈 ${pendingGambleEscrow.bogartStakeGold.toLocaleString()}G 미러덱 대결(${pendingGambleEscrow.matchState.turnNumber}턴)을 이어서 진행할까요? (포기 시 에스크로 판돈이 몰수됩니다)`,
-                  `Resume your escrowed ${pendingGambleEscrow.bogartStakeGold.toLocaleString()}G Mirror-Deck match (Turn ${pendingGambleEscrow.matchState.turnNumber})? Forfeiting surrenders the staked Gold.`,
+                  `에스크로에 보관된 판돈 ${pendingGambleEscrow.bogartStakeGold.toLocaleString()}G 랜덤덱 대결(${pendingGambleEscrow.matchState.turnNumber}턴)을 이어서 진행할까요? (포기 시 에스크로 판돈이 몰수됩니다)`,
+                  `Resume your escrowed ${pendingGambleEscrow.bogartStakeGold.toLocaleString()}G Random-Deck match (Turn ${pendingGambleEscrow.matchState.turnNumber})? Forfeiting surrenders the staked Gold.`,
                 )}
               </p>
               <div className="mt-5 flex flex-col gap-2.5">

@@ -11,7 +11,6 @@ import {
   getElwinTimeOfDayTheme,
   getSnsLogoUrl,
   SnsBoosterPackArt,
-  SnsOcarinaCrestSeal,
   SnsQuestScrollIcon,
   SnsSnowCompassSeal,
 } from '../components/SnsHeroArtKit';
@@ -443,12 +442,6 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               />
             </svg>
 
-            {/* Top Sculpted Ocarina Sanctuary Crest Seal (DEV-030) */}
-            <SnsOcarinaCrestSeal
-              size={40}
-              className="relative z-10 -mt-1.5 mb-1 drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] sm:-mt-2 sm:mb-1.5 sm:h-12 sm:w-12"
-            />
-
             {/* 3 Identical-Height Beveled Ivory/Parchment Menu Plates (DEV-027/028/030) */}
             <div className="relative z-10 flex w-full max-w-[218px] flex-col gap-2 sm:max-w-[248px] sm:gap-2.5">
               {/* 1. 보가트의 도박장 (Bogart's Gambling Hall — Former Ranked Slot, 100% Mirror Deck + Gold Stake) */}
@@ -464,7 +457,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                   🎲 {tr('보가트 도박장', "Bogart's Gambling Hall")}
                 </span>
                 <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
-                  {tr('100G~5,000G 판돈 · 100% 동일 미러덱', 'Wager 100–5,000G · 100% Mirror Deck')}
+                  {tr('1~1,000G 슬라이드 베팅 · 100% 랜덤덱', '1–1,000G Slider Bet · 100% Random Deck')}
                 </span>
               </button>
 

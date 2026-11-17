@@ -2,6 +2,15 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 14:50 KST] [홈 화면 성소 SVG 마크 제거 및 첫 화면(`TAVERN_INTRO`) 스킵 후 홈 로비(`BOX_HUB`) 단일 문열림 직행 적용 (푸시 대기)]
+- **요청**: ① 홈 화면 원판 상단 파란 마크(`<svg>` `SnsOcarinaCrestSeal`) 제거, ② 진입 시 문이 2번 열리는 느낌의 첫 화면(`TavernIntroScreen`) 제거 후 바로 홈 화면(`BoxHubScreen`)으로 한 번에 문 열리며 입장
+- **수정 내용**:
+  - [`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx): 중앙 원판 위 `<SnsOcarinaCrestSeal size={40} ... />` 및 미사용 import 제거.
+  - [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx): 초기 `screen` 상태를 `'TAVERN_INTRO'` → `'BOX_HUB'`로 변경하고 `TavernIntroScreen` 초기 분기 제거로 진입 즉시 홈 보관함 문열림 연출 1회만 재생되도록 단일화.
+- **검증 및 저장 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (`0` errors) 및 Playwright 데스크톱(`1280×800`)·모바일(`390×844`) 실사 캡처에서 즉시 홈 진입 및 `#ocarinaBrass`/`#ocarinaSapphire` 마크 `0`건·앱 에러 `0`건 확인.
+  - 정책에 따라 로컬 `git commit`만 수행(`git push` 보류) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-17 14:18 KST] [라이센스 명칭(`시간의 오카리나` → `엘윈 성소의 문장`) 교체 및 `보가트 도박장` 표기 일원화 완료 (푸시 대기)]
 - **요청**: 타사 라이센스 우려가 있는 `시간의 오카리나 성소` 관련 표기를 독자 IP 표현으로 변경하고, `보가트의 도박장` / `보가트 도박장의` 표기를 **`보가트 도박장`**으로 축약·통일
 - **수정 내용**:
