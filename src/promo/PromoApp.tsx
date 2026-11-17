@@ -31,6 +31,7 @@ import {
   SnsSnowCompassSeal,
 } from '../hearthstone/components/SnsHeroArtKit';
 import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget';
+import { HowToPlayCarousel } from '../hearthstone/components/OnboardingGuideModal';
 import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
 import { hsStorage } from '../hearthstone/storage';
 import {
@@ -423,8 +424,9 @@ export const PromoApp: React.FC = () => {
           </a>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden items-center gap-6 text-sm font-extrabold tracking-wide text-amber-100/90 lg:flex">
+          <nav className="hidden items-center gap-5 text-sm font-extrabold tracking-wide text-amber-100/90 lg:flex">
             <a href="#intro" className="transition hover:text-amber-300">{tr('게임 정보', 'Overview')}</a>
+            <a href="#how-to-play" className="text-emerald-300 transition hover:text-emerald-200">{tr('게임 방법', 'How to Play')}</a>
             <a href="#latest" className="transition hover:text-amber-300">{tr('신규 콘텐츠', 'Features')}</a>
             <a href="#heroes" className="transition hover:text-amber-300">{tr('9대 영웅', '9 Heroes')}</a>
             <a href="#cards" className="transition hover:text-amber-300">{tr('카드 라이브러리', 'Card Library')}</a>
@@ -496,6 +498,7 @@ export const PromoApp: React.FC = () => {
             <div className="grid grid-cols-2 gap-2 text-sm font-extrabold text-amber-100">
               {[
                 { href: '#intro', label: tr('게임 정보', 'Overview') },
+                { href: '#how-to-play', label: tr('게임 방법', 'How to Play') },
                 { href: '#latest', label: tr('신규 콘텐츠', 'Features') },
                 { href: '#heroes', label: tr('9대 영웅', '9 Heroes') },
                 { href: '#cards', label: tr('카드 라이브러리', 'Card Library') },
@@ -662,6 +665,18 @@ export const PromoApp: React.FC = () => {
                 {tr(
                   '카드 게임이 처음이신가요? 30초 허수아비 기초 훈련(제0화) 깨고 무료 3팩 받기 →',
                   'New to Card Games? Beat 30s Tutorial (Ep.0) & Claim 3 Free Packs →',
+                )}
+              </span>
+            </a>
+            <a
+              href="#how-to-play"
+              className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/50 bg-sky-950/75 px-4 py-1.5 text-xs font-extrabold text-sky-200 transition hover:border-sky-300 hover:bg-sky-900/90"
+            >
+              <span>📖</span>
+              <span>
+                {tr(
+                  '게임 방법 · 실제 스크린샷 6단계 보기 ↓',
+                  'How to Play · 6-Step Real Screenshot Guide ↓',
                 )}
               </span>
             </a>
@@ -1104,6 +1119,49 @@ export const PromoApp: React.FC = () => {
                 className="hs-promo-cta-purple shrink-0 rounded-full px-5 py-2.5 text-xs font-extrabold"
               >
                 {tr('30초 제0화 훈련으로 바로 체험 →', 'Try Ep.0 30s Tutorial →')}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="hs-promo-divider" />
+
+      {/* =====================================================================
+          5.5. How to Play — Real Screenshot 6-Page Interactive Walkthrough
+      ===================================================================== */}
+      <section id="how-to-play" className="hs-promo-tavern py-16 sm:py-24">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6">
+          <div className="mb-8 text-center">
+            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-emerald-300">
+              HOW TO PLAY · 6-STEP VISUAL GUIDE
+            </div>
+            <h2 className="promo-outline mt-1.5 text-3xl font-black text-white sm:text-5xl">
+              {tr('실제 게임 화면으로 배우는 6단계 가이드', 'How to Play SNSHero in 6 Visual Steps')}
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-amber-100/80 sm:text-base">
+              {tr(
+                '여관 로비부터 멀리건 교체, 마나·하수인 전투, 실리아·카단 필살기, 3배 각성까지 실제 인게임 스크린샷을 넘기며 1분 만에 마스터하세요.',
+                'Flip through real in-game screenshots covering Hub, Mulligan, Mana combat, Kadan/Silia Ultimates, Free Packs, and 3x Awakening.',
+              )}
+            </p>
+          </div>
+          <div className="hs-promo-gold-frame rounded-3xl bg-[#140c06]/95 p-4 sm:p-6">
+            <HowToPlayCarousel variant="promo" playSound={false} />
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+              <a
+                href="/game.html?mode=story&ep=0&utm_source=promo_howto_ep0"
+                className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
+              >
+                <Gamepad2 className="h-4 w-4" />
+                <span>{tr('🎯 바로 30초 튜토리얼(제0화) 출격', '🎯 Launch 30s Tutorial (EP.0)')}</span>
+              </a>
+              <a
+                href="/game.html?open=pack3&utm_source=promo_howto_pack"
+                className="hs-promo-cta-teal-dark inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>{tr('🎁 무료 3팩 먼저 받기', '🎁 Open 3 Free Packs')}</span>
               </a>
             </div>
           </div>

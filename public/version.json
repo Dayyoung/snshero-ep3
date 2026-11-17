@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0-1794879214158",
-  "buildTime": "2026-11-17T01:33:34.158Z",
-  "buildTimestamp": 1794879214158,
+  "version": "2.1.0-1794879512751",
+  "buildTime": "2026-11-17T01:38:32.751Z",
+  "buildTimestamp": 1794879512751,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
-  "entryScript": "/assets/game-AZXHcxt--v2.js"
+  "entryScript": "/assets/game-CRiyc83e-v2.js"
 }

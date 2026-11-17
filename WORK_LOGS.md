@@ -2,6 +2,17 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 10:39 KST] [`/checkIssue` 이슈 Row 12 (`How to Play` 실제 게임 스크린샷 6단계 페이징 가이드 개편) 완료 (푸시 대기)]
+- **요청**: `/checkIssue` 실행 — 이슈문서 미해결 항목(Row 12, `P0`, `"How to Play 가 너무 심플해. 실제 게임 스크린샷을 캡쳐해서 페이징 처리해서 설명해 줄 수 있어."`) 해결
+- **구현 내역**:
+  - `public/hs-assets/guide/guide_01_hub.webp` ~ `guide_06_collection.webp`: 실제 `game.html` 실행 화면(여관 로비·멀리건 Keep/Swap·마나/전투 보드·실리아/카단 필살기&자동플레이·무료 3팩 개봉·내 카드첩 3배 각성&로어 브릿지)을 Playwright로 1280×760 실사 캡처 후 960×570 WebP(34~47KB)로 최적화 저장.
+  - `src/hearthstone/components/OnboardingGuideModal.tsx`: 공용 6단계 스크린샷 페이징 캐러셀(`HowToPlayCarousel`: 1~6 스텝 칩·이전/다음 버튼·도트 인디케이터·좌우 오버레이 화살표·키보드 방향키·모바일 스와이프 지원) 구현 및 `QuickRulesModal`(`게임 방법`) 전면 업그레이드.
+  - `src/promo/PromoApp.tsx`: 루트(`/`) 프로모션 랜딩에도 `#how-to-play` 전용 섹션·상단 네비게이션·모바일 메뉴·히어로 배지 링크를 추가해 실제 게임 화면 페이징 가이드를 바로 탐색할 수 있도록 연동.
+- **검증 및 저장소 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (`0` errors).
+  - Playwright E2E(`vite preview` `127.0.0.1:4183`)에서 `/` `#how-to-play` 1→6페이지 이미지 로드 및 `/game.html` `QuickRulesModal` 페이징(1/6→2/6→4/6→3/6)·키워드 드로어·0에러 검증 통과.
+  - 정책에 따라 로컬 `git commit`만 수행(`git push` 보류 · 수동 확인 대기).
+
 ## [2026-11-17 10:34 KST] [성공한 일일 퀘스트(의뢰) 개별 카드 클릭 보상 수령 불가 결함 수정]
 - **요청**: 성공한 퀘스트 카드를 클릭해도 보상이 수령되지 않는 버그 수정
 - **원인**: `Modals.tsx`의 `QuestLogModal`에서 완료된 의뢰 카드가 클릭 이벤트 없는 일반 `<div>`로 렌더링되고 `storage.ts`에 개별 의뢰 보상 수령 메서드가 부재했으며, 수령 가능 의뢰가 있어도 아코디언이 기본 접힘(`'NONE'`) 상태였음.
