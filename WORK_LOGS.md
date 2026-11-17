@@ -2,6 +2,20 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 17:11 KST] [SNSHero (`https://snshero.com`) 공식 영문 소개 동영상(16:9) · 쇼츠(9:16) · 로고 강조 썸네일 제작 완료]
+- **요청**: `https://snshero.com` 실제 플레이 화면을 웹브라우저로 녹화해 SNSHero 프로모션 소개 내용을 기준으로 시작·종료 화면 로고가 강조된 영문 소개 동영상(`16:9`), 쇼츠(`9:16`), 로고 강조 썸네일(`1920×1080`) 제작 (쾌활하고 흥분된 영문 남성 보이스오버 및 `https://snshero.com` 참여 유도 엔딩 포함)
+- **제작 내역**:
+  - **실브라우저 녹화 (`https://snshero.com/?lang=en` & `/game.html?lang=en`)**: 프로모션 쇼케이스·엘윈 성소 허브, 무료 3팩/24K 골든 포일 팩 제단, 382종 스타라이트 기록실(`3장=3배` 각성), 40화 풀보이스 스토리모드(실리아 필살기·자동플레이), 랭킹대전 & 보가트 `1~1,000G` 랜덤덱 도박장 데스크톱/모바일 녹화 및 광고 배너 여백 클린 크롭 처리.
+  - **보이스오버 & 오디오**: 쾌활한 영문 남성 성우(`en-US-RogerNeural`, `rate=+16%`, `pitch=+4Hz`, `-15 LUFS`) + SNSHero 고유 BGM(`tavern_hub`, `duel_1`) 및 효과음 믹싱.
+  - **산출물 (`brain/508197bb-ca29-4055-b945-84716b4197a6/`)**:
+    - 16:9 본편: `snshero_promo_youtube_16x9.mp4` (`1920×1080`, `30fps`, `103.2s`, `36.8 MB`)
+    - 9:16 쇼츠: `snshero_promo_shorts_9x16.mp4` (`1080×1920`, `30fps`, `43.4s`, `24.3 MB`)
+    - 로고 강조 썸네일: `snshero_promo_thumbnail.png` / `snshero_promo_thumbnail.jpg` (`441 KB`)
+    - 프로덕션 리포트(유튜브/쇼츠 제목·설명·챕터·고정댓글 포함): `snshero_promo_video_report.md`
+- **검증 결과**: `npx hyperframes check --json` (`0 errors`), `npx hyperframes audio --json` (`warnings: []`), 디코딩된 시작/중간/종료 프레임 시각 검수 통과.
+- **구글 폼 보고**: `submit_report.py` 제출 완료.
+
+
 ## [2026-11-17 17:01 KST] [보가트 도박장 영문 허브 버튼 1줄 표시 교정 및 원격 푸시 완료]
 - **요청**: 영문판에서 `🎲 Bogart's Gambling Hall`이 2줄로 줄바꿈되는 문제 해결 및 `/git-push` 반영
 - **수정 파일**:
