@@ -406,6 +406,8 @@ export const PromoApp: React.FC = () => {
   return (
     <SharedAdSenseShell pageKey="promo" theme="tavern">
       <div className="min-h-screen w-full bg-[#120b06] text-[#f8ebd2]">
+      {/* MKT-051: 20px+14px=34px safe buffer below #adsense-mobile-top to prevent mobile Ad misclicks */}
+      <div aria-hidden="true" className="h-5 w-full bg-[#120b06] sm:hidden" />
       {/* =====================================================================
           1. Sticky Tavern Wood Top Navigation (GNB)
       ===================================================================== */}
@@ -548,7 +550,7 @@ export const PromoApp: React.FC = () => {
       <section
         id="hero"
         style={{ backgroundImage: `url(${SNS_LOCATIONS.TAVERN_EXTERIOR})` }}
-        className="relative flex min-h-[580px] w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 py-16 sm:min-h-[680px] sm:py-24"
+        className="relative flex min-h-[580px] w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 pb-16 pt-20 sm:min-h-[680px] sm:py-24"
       >
         <div
           className="pointer-events-none absolute inset-0"
@@ -633,7 +635,7 @@ export const PromoApp: React.FC = () => {
               <span>{tr('🎁 무료 3팩 지금 바로 뜯기', '🎁 Open 3 Free Packs Now')}</span>
             </a>
             <a
-              href="/game?mode=story&ep=1&utm_source=promotion_ep1"
+              href="/game?mode=story&ep=1&preset=control&tactic=defensive&utm_source=promotion_ep1"
               className="hs-promo-cta-teal-dark inline-flex min-h-[52px] items-center gap-2 rounded-full px-6 py-3.5 text-sm font-extrabold sm:text-base"
             >
               <Swords className="h-4 w-4" />
@@ -1130,6 +1132,86 @@ export const PromoApp: React.FC = () => {
             </p>
           </div>
 
+          {/* MKT-051: 3-Second Tactical Style Match Widget */}
+          <div
+            data-testid="promo-3s-match-widget"
+            className="mx-auto mt-8 max-w-5xl rounded-3xl border border-amber-400/40 bg-black/55 p-4 shadow-2xl backdrop-blur-sm sm:p-6"
+          >
+            <div className="mb-4 text-center">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-amber-950/80 px-3 py-1 text-[11px] font-extrabold text-amber-200">
+                <span>⚡</span>
+                <span>{tr('3초 전술 성향 매칭', '3-Second Tactical Style Match')}</span>
+              </div>
+              <h3 className="mt-2 text-lg font-black text-white sm:text-2xl">
+                {tr(
+                  '원하는 전투 스타일을 고르면 나만의 수호자 & 30장 프리셋 덱으로 즉시 출격!',
+                  'Pick your combat style to launch immediately with a matching Guardian & 30-card Preset Deck!',
+                )}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {[
+                {
+                  id: 'match-a',
+                  heroClass: 'PRIEST' as HeroClass,
+                  badge: tr('선택 A · 🛡 철벽 방어 & 성화 역전', 'Option A · 🛡 Iron Defense'),
+                  title: tr('철벽 방어 & 성화 역전극', 'Iron Wall & Holy Turnaround'),
+                  desc: tr(
+                    '인간 카단 · 수호/치유 기반 후반 역전 덱',
+                    'Human Kadan · Taunt, Heal & Control Comeback',
+                  ),
+                  href: '/game.html?starter=human&preset=control&tactic=defensive&utm_source=promo_match_a',
+                  accent: 'border-sky-400/60 hover:border-sky-300 bg-sky-950/45',
+                },
+                {
+                  id: 'match-b',
+                  heroClass: 'WARRIOR' as HeroClass,
+                  badge: tr('선택 B · 🔥 초고속 돌진 & 화력', 'Option B · 🔥 Blitz Aggro'),
+                  title: tr('초고속 돌진 & 명치 폭격', 'Hyper Rush & Burn Blitz'),
+                  desc: tr(
+                    '불종족 이그니스 · 1~3코스트 속공 명치 압박',
+                    'Fire Ignis · Low-Cost Rush & Hero Burn Pressure',
+                  ),
+                  href: '/game.html?starter=fire&preset=aggro&tactic=aggressive&utm_source=promo_match_b',
+                  accent: 'border-rose-400/60 hover:border-rose-300 bg-rose-950/45',
+                },
+                {
+                  id: 'match-c',
+                  heroClass: 'ROGUE' as HeroClass,
+                  badge: tr('선택 C · 🌑 3배 각성 & 주문 연타', 'Option C · 🌑 3x Awakening'),
+                  title: tr('무한 부활 & 아케인 주문 연타', 'Infinite Value & Spell Chain'),
+                  desc: tr(
+                    '언데드 아르투스 · 3장=3배 각성 시너지 & 연계',
+                    'Undead Artus · 3x Awakened Cards & Tempo Combo',
+                  ),
+                  href: '/game.html?starter=undead&preset=awakening&tactic=awakening&utm_source=promo_match_c',
+                  accent: 'border-amber-400/65 hover:border-amber-300 bg-amber-950/45',
+                },
+              ].map((opt) => (
+                <div
+                  key={opt.id}
+                  onMouseEnter={() => setSelectedHeroClass(opt.heroClass)}
+                  className={`flex flex-col justify-between rounded-2xl border p-4 transition ${opt.accent}`}
+                >
+                  <div>
+                    <div className="text-[11px] font-extrabold text-amber-300">{opt.badge}</div>
+                    <div className="mt-1 text-base font-black text-white">{opt.title}</div>
+                    <p className="mt-1 text-xs font-semibold text-amber-100/80">{opt.desc}</p>
+                  </div>
+                  <a
+                    href={opt.href}
+                    data-testid={`promo-${opt.id}-cta`}
+                    onClick={() => setSelectedHeroClass(opt.heroClass)}
+                    className="hs-promo-cta-purple mt-3 inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold"
+                  >
+                    <Swords className="h-3.5 w-3.5" />
+                    <span>{tr('이 스타일로 즉시 출격 →', 'Launch This Style Now →')}</span>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-8 flex flex-wrap justify-center gap-2 sm:gap-3">
             {HERO_CLASS_ORDER.map((cls) => {
               const ui = getLocalizedHeroInfo(cls, lang);
@@ -1210,7 +1292,17 @@ export const PromoApp: React.FC = () => {
                     </div>
                   </div>
                   <a
-                    href={`/game?mode=ranked&faction=${selectedHero.heroClass}`}
+                    href={`/game.html?mode=ranked_battle&faction=${selectedHero.heroClass}&preset=${
+                      selectedHero.heroClass === 'WARRIOR' ||
+                      selectedHero.heroClass === 'HUNTER' ||
+                      selectedHero.heroClass === 'DRUID'
+                        ? 'aggro&tactic=aggressive'
+                        : selectedHero.heroClass === 'PRIEST' ||
+                            selectedHero.heroClass === 'PALADIN' ||
+                            selectedHero.heroClass === 'WARLOCK'
+                          ? 'control&tactic=defensive'
+                          : 'awakening&tactic=awakening'
+                    }`}
                     className="hs-promo-cta-purple inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold"
                   >
                     <span>{tr(`${selectedHeroUi.name} 덱 플레이`, `Play ${selectedHeroUi.name}`)}</span>

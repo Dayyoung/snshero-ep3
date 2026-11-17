@@ -76,8 +76,43 @@ import {
   VfxEvent,
   VfxKind,
 } from '../types';
-import { PreBattleDeckModal } from '../components/PreBattleDeckModal';
+import {
+  ArchetypePresetId,
+  PreBattleDeckModal,
+  buildArchetypePresets,
+} from '../components/PreBattleDeckModal';
 import { BoardVfxCanvas, recordEntityStagePosition } from '../vfx/BoardVfxCanvas';
+
+/** DEV-024: Determine Kadan's stance-aware Mulligan Keep/Swap recommendation for a starting card. */
+function getKadanMulliganAdvice(
+  def: ReturnType<typeof cardDb.mustGetCard>,
+  stance: KadanTacticalStance,
+  awakeningMult: number,
+): 'KEEP' | 'SWAP' {
+  if (stance === 'AGGRO') {
+    if (def.cost <= 2 || (def.cost === 3 && def.mechanics.includes('CHARGE'))) {
+      return 'KEEP';
+    }
+    return def.cost <= 3 && def.type === 'MINION' ? 'KEEP' : 'SWAP';
+  }
+  if (stance === 'CONTROL') {
+    if (
+      def.cost <= 3 ||
+      def.mechanics.includes('TAUNT') ||
+      (def.type === 'SPELL' && def.cost <= 4)
+    ) {
+      return 'KEEP';
+    }
+    return 'SWAP';
+  }
+  if (stance === 'AWAKENING') {
+    if (def.cost <= 3 || (awakeningMult >= 3 && def.cost <= 4)) {
+      return 'KEEP';
+    }
+    return 'SWAP';
+  }
+  return def.cost <= 3 ? 'KEEP' : 'SWAP';
+}
 
 export interface BattleScreenProps {
   mode: GameMode;
@@ -102,6 +137,8 @@ export interface BattleScreenProps {
   tacticalStance?: KadanTacticalStance;
   onTacticalStanceChange?: (stance: KadanTacticalStance) => void;
   onBattleHelpSnapshot?: (snapshot: LiveBattleHelpSnapshot) => void;
+  initialPresetId?: ArchetypePresetId;
+  openPresetModalOnStart?: boolean;
 }
 
 type PendingSelection =
@@ -423,6 +460,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   tacticalStance: externalTacticalStance,
   onTacticalStanceChange,
   onBattleHelpSnapshot,
+  initialPresetId,
+  openPresetModalOnStart = false,
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
@@ -441,10 +480,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         const playerJourney = isEp0
           ? { deckCards: buildTutorialEp0PlayerDeck(), playerCardMultipliers: {} }
           : buildJourneyPlayerDeckAndMultipliers(col);
+        let presetCards: string[] | undefined;
+        if (!overridePlayerCards && !isEp0 && initialPresetId && initialPresetId !== 'CUSTOM') {
+          presetCards = buildArchetypePresets('PRIEST', playerJourney.deckCards).find(
+            (p) => p.id === initialPresetId,
+          )?.cards;
+        }
         const finalPlayerDeckCards =
           overridePlayerCards && overridePlayerCards.length >= 30
             ? overridePlayerCards.slice(0, 30)
-            : playerJourney.deckCards;
+            : presetCards && presetCards.length >= 30
+              ? presetCards.slice(0, 30)
+              : playerJourney.deckCards;
         const bossDeck = isEp0
           ? buildTutorialEp0ScarecrowDeck()
           : buildJourneyBossDeck(epDef.bossHeroClass, ep, reinc);
@@ -478,10 +525,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }
 
       const opp = buildAiOpponentSetup(mode, preferredOpponentClass);
+      const nonStoryPresetCards =
+        !overridePlayerCards && initialPresetId && initialPresetId !== 'CUSTOM'
+          ? buildArchetypePresets(playerDeck.heroClass, playerDeck.cards).find(
+              (p) => p.id === initialPresetId,
+            )?.cards
+          : undefined;
       const finalCards =
         overridePlayerCards && overridePlayerCards.length >= 30
           ? overridePlayerCards.slice(0, 30)
-          : playerDeck.cards;
+          : nonStoryPresetCards && nonStoryPresetCards.length >= 30
+            ? nonStoryPresetCards.slice(0, 30)
+            : playerDeck.cards;
       return createBattleMatch({
         mode,
         playerName: curKo ? '엘윈마을 모험가' : 'Elwin Adventurer',
@@ -493,7 +548,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         boardTheme: preferredBoardTheme,
       });
     },
-    [mode, playerDeck, preferredOpponentClass, preferredBoardTheme, journeyEpisodeOverride],
+    [
+      mode,
+      playerDeck,
+      preferredOpponentClass,
+      preferredBoardTheme,
+      journeyEpisodeOverride,
+      initialPresetId,
+    ],
   );
 
   const [matchState, setMatchState] = useState<BattleMatchState>(() =>
@@ -519,7 +581,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     [onTacticalStanceChange],
   );
   const [focusTargetId, setFocusTargetId] = useState<string | null>(null);
-  const [preBattleModalOpen, setPreBattleModalOpen] = useState(false);
+  const [preBattleModalOpen, setPreBattleModalOpen] = useState<boolean>(() =>
+    Boolean(openPresetModalOnStart),
+  );
   const [clutchBreakEnabled, setClutchBreakEnabled] = useState(true);
   const [clutchChoice, setClutchChoice] = useState<{
     reasonKo: string;
@@ -5519,6 +5583,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             {matchState.player.hand.map((hc) => {
               const def = cardDb.mustGetCard(hc.cardId);
               const marked = matchState.mulliganSelectedUids.includes(hc.uid);
+              const advice = getKadanMulliganAdvice(
+                def,
+                activeStance,
+                getPlayerCardMult(def.id),
+              );
+              const isKeepAdvice = advice === 'KEEP';
               return (
                 <div
                   key={hc.uid}
@@ -5528,6 +5598,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       : ''
                   }`}
                 >
+                  <div
+                    data-testid={`mulligan-advice-${hc.uid}`}
+                    data-mulligan-advice={advice}
+                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold tracking-wide shadow ${
+                      isKeepAdvice
+                        ? 'border-emerald-400/80 bg-emerald-950/90 text-emerald-200'
+                        : 'border-amber-400/85 bg-amber-950/90 text-amber-200'
+                    }`}
+                  >
+                    {isKeepAdvice
+                      ? tr('유지 추천 (Keep)', 'Keep')
+                      : tr('교체 권장 (Swap)', 'Swap')}
+                  </div>
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
@@ -5586,6 +5669,32 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               {mulliganSwapping
                 ? tr('교체 중...', 'Replacing...')
                 : tr('게임 시작 (전투 개시)', 'Start Game (Confirm)')}
+            </button>
+            <button
+              type="button"
+              data-testid="mulligan-apply-kadan-btn"
+              disabled={mulliganSwapping}
+              onClick={() => {
+                if (mulliganSwapping) return;
+                hsAudio.playSfx('ui_click', 0.85);
+                const recommendedSwaps = matchState.player.hand
+                  .filter((hc) => {
+                    const def = cardDb.mustGetCard(hc.cardId);
+                    return (
+                      getKadanMulliganAdvice(def, activeStance, getPlayerCardMult(def.id)) ===
+                      'SWAP'
+                    );
+                  })
+                  .map((hc) => hc.uid);
+                setMatchState((prev) => ({
+                  ...prev,
+                  mulliganSelectedUids: recommendedSwaps,
+                }));
+              }}
+              className="flex min-h-[46px] items-center gap-1.5 rounded-2xl border-2 border-emerald-400/80 bg-emerald-950/90 px-4 py-2.5 text-xs font-extrabold text-emerald-100 shadow-xl transition hover:border-emerald-200 hover:bg-emerald-900 disabled:opacity-50 sm:text-sm"
+            >
+              <span>🪄</span>
+              <span>{tr('카단 추천대로 교체', 'Apply Kadan Swap')}</span>
             </button>
             <button
               type="button"

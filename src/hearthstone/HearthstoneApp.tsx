@@ -3,6 +3,7 @@ import LZString from 'lz-string';
 import { tr, useHeroLanguage } from '../i18n/heroLang';
 import { cardDb, decodeDeckShareCode } from './cardDb';
 import { GameAdSenseLayout } from './components/GameAdSenseLayout';
+import { ArchetypePresetId } from './components/PreBattleDeckModal';
 import {
   KadanChatbotWidget,
   LiveBattleHelpSnapshot,
@@ -70,6 +71,8 @@ export const HearthstoneApp: React.FC = () => {
     boardTheme?: BoardThemeId;
     journeyEpisodeOverride?: number;
     skipStoryIntro?: boolean;
+    initialPresetId?: ArchetypePresetId;
+    openPresetModalOnStart?: boolean;
   } | null>(null);
 
   // Popup checkout bridge state (only active inside window.open popup)
@@ -173,6 +176,9 @@ export const HearthstoneApp: React.FC = () => {
           const openParam = params.get('open')?.toLowerCase();
           const claimPromo = params.get('claim_promo') === '1';
           const factionParam = params.get('faction')?.toUpperCase() as HeroClass | undefined;
+          const starterParam = params.get('starter')?.toLowerCase();
+          const presetParamRaw = params.get('preset')?.toLowerCase();
+          const tacticParamRaw = params.get('tactic')?.toLowerCase();
           const deckParam = params.get('deck');
           const restoreParam = params.get('restore');
           const epParamRaw = params.get('ep');
@@ -181,12 +187,44 @@ export const HearthstoneApp: React.FC = () => {
               ? Math.max(0, Math.min(40, Math.floor(Number(epParamRaw))))
               : undefined;
 
+          const resolvedPresetId: ArchetypePresetId | undefined =
+            presetParamRaw === 'aggro'
+              ? 'AGGRO'
+              : presetParamRaw === 'control'
+                ? 'CONTROL'
+                : presetParamRaw === 'awakening'
+                  ? 'AWAKENING'
+                  : undefined;
+
+          const resolvedTacticStance: KadanTacticalStance | undefined =
+            tacticParamRaw === 'aggressive' || tacticParamRaw === 'aggro'
+              ? 'AGGRO'
+              : tacticParamRaw === 'defensive' || tacticParamRaw === 'control'
+                ? 'CONTROL'
+                : tacticParamRaw === 'awakening'
+                  ? 'AWAKENING'
+                  : resolvedPresetId;
+
+          if (resolvedTacticStance) {
+            setTacticalStance(resolvedTacticStance);
+          }
+
+          const starterHeroClass: HeroClass | undefined =
+            starterParam === 'human'
+              ? 'PRIEST'
+              : starterParam === 'fire'
+                ? 'WARRIOR'
+                : starterParam === 'undead'
+                  ? 'ROGUE'
+                  : undefined;
+          const effectiveFaction = factionParam || starterHeroClass;
+
           const wantAutoPlay =
             params.get('autoplay') === '1' || params.get('autoplay') === 'true';
           setGlobalAutoPlay(wantAutoPlay);
           const decks = hsStorage.getDecks();
           const chosenDeck =
-            (factionParam && decks.find((d) => d.heroClass === factionParam)) ||
+            (effectiveFaction && decks.find((d) => d.heroClass === effectiveFaction)) ||
             decks.find((d) => d.heroClass === 'PRIEST') ||
             decks[0];
 
@@ -292,6 +330,8 @@ export const HearthstoneApp: React.FC = () => {
               boardTheme: 'ELWIN_SNOW',
               journeyEpisodeOverride: epNum,
               skipStoryIntro: params.get('skipIntro') === '1' || params.get('skipIntro') === 'true',
+              initialPresetId: resolvedPresetId,
+              openPresetModalOnStart: openParam === 'preset',
             });
             setScreen('BATTLE');
           } else if (launchMode === 'story_battle') {
@@ -303,6 +343,8 @@ export const HearthstoneApp: React.FC = () => {
               boardTheme: 'ELWIN_SNOW',
               journeyEpisodeOverride: epNum,
               skipStoryIntro: true,
+              initialPresetId: resolvedPresetId,
+              openPresetModalOnStart: openParam === 'preset',
             });
             setScreen('BATTLE');
           } else if (launchMode === 'ranked_battle') {
@@ -313,16 +355,25 @@ export const HearthstoneApp: React.FC = () => {
               preferredOpponentClass: 'WARRIOR',
               boardTheme: 'CRIMSON_FORGE',
               skipStoryIntro: true,
+              initialPresetId: resolvedPresetId,
+              openPresetModalOnStart: openParam === 'preset',
             });
             setScreen('BATTLE');
-          } else if (launchMode === 'ai_battle') {
+          } else if (launchMode === 'ai_battle' || starterHeroClass || resolvedPresetId) {
             hsStorage.markJourneyGuideDone();
             setActiveBattleParams({
               mode: 'PRACTICE_NORMAL',
               deck: chosenDeck,
-              preferredOpponentClass: 'HUNTER',
-              boardTheme: 'EMERALD_WIND',
+              preferredOpponentClass: starterHeroClass === 'WARRIOR' ? 'MAGE' : 'HUNTER',
+              boardTheme:
+                starterHeroClass === 'WARRIOR'
+                  ? 'ORGRIMMAR'
+                  : starterHeroClass === 'ROGUE'
+                    ? 'PANDARIA'
+                    : 'STORMWIND',
               skipStoryIntro: true,
+              initialPresetId: resolvedPresetId,
+              openPresetModalOnStart: openParam === 'preset',
             });
             setScreen('BATTLE');
           } else if (launchMode === 'pack') {
@@ -341,7 +392,15 @@ export const HearthstoneApp: React.FC = () => {
             setScreen('BOX_HUB');
           }
 
-          if (!launchMode && !openParam && !claimPromo && !deckParam && !restoreParam) {
+          if (
+            !launchMode &&
+            !openParam &&
+            !claimPromo &&
+            !deckParam &&
+            !restoreParam &&
+            !starterHeroClass &&
+            !resolvedPresetId
+          ) {
             try {
               const lastNovelEpRaw = localStorage.getItem('hero_hs_last_novel_ep');
               const lastNovelEp = lastNovelEpRaw ? parseInt(lastNovelEpRaw, 10) : 0;
@@ -676,6 +735,8 @@ export const HearthstoneApp: React.FC = () => {
             preferredBoardTheme={activeBattleParams.boardTheme}
             journeyEpisodeOverride={activeBattleParams.journeyEpisodeOverride}
             skipStoryIntro={activeBattleParams.skipStoryIntro}
+            initialPresetId={activeBattleParams.initialPresetId}
+            openPresetModalOnStart={activeBattleParams.openPresetModalOnStart}
             externalAutoPlay={globalAutoPlay}
             onAutoPlayChange={setGlobalAutoPlay}
             tacticalStance={tacticalStance}

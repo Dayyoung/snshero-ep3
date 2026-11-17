@@ -2,6 +2,18 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 09:45 KST] [`/checkAll` 후속 신규 과제 `DEV-024 · MKT-051` 일괄 구현·검증 완료 (푸시 대기)]
+- **요청**: `/checkAll` 실행 중 대시보드 검증 과정에서 추가 확인된 신규 대기 항목(`DEV-024`, `MKT-051`) 후속 구현 및 E2E 검증 완료
+- **개발문서 (`DEV-024` 완료)**:
+  - `src/hearthstone/screens/BattleScreen.tsx`: 멀리건(Mulligan) 오버레이에 카단 전술(`AGGRO` / `CONTROL` / `AWAKENING` / `BALANCED`)별 `유지 추천 (Keep)` / `교체 권장 (Swap)` 배지(`getKadanMulliganAdvice`) 및 `'🪄 카단 추천대로 교체'` 원탭 버튼(`mulligan-apply-kadan-btn`) 구현.
+  - `src/hearthstone/HearthstoneApp.tsx` · `src/promo/PromoApp.tsx`: `?preset=aggro|control|awakening`, `?tactic=aggressive|defensive|awakening`, `?starter=human|fire|undead` 딥링크 라우팅 연동 및 `#heroes` 영웅 쇼케이스·에피소드 출격 버튼에 전술/프리셋 파라미터 연결.
+- **마케팅문서 (`MKT-051` 완료)**:
+  - `src/promo/PromoApp.tsx`: `#heroes` 상단 `'⚡ 3초 전술 성향 매칭'` 인터랙티브 3종 위젯(`promo-3s-match-widget` — 철벽 방어 카단 / 초고속 돌진 이그니스 / 3배 각성 아르투스) 탑재 및 모바일 상단 AdSense(`#adsense-mobile-top`, 52px 고정 높이) 아래 20px 버퍼 스페이서 추가(총 34px 세이프존 확보).
+- **검증 및 저장소 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (0 errors).
+  - Playwright E2E(`vite preview` 포트 4179) 실측 검증 통과: 모바일(`/promotion` 390x844) `adHeight=52px, gap=34px`, 3초 성향 매칭 CTA 링크 3종 확인, `story?ep=1&preset=aggro&tactic=aggressive` 멀리건 Keep/Swap 배지 + `AGGRO` 전술 배지, `starter=fire&preset=aggro&tactic=aggressive` 직행 출격 모두 정상 및 앱 에러 `0`건 확인.
+  - **로컬 `git commit`만 완료(`git push` 보류 · 사용자 수동 확인 대기)**.
+
 ## [2026-11-17 09:35 KST] [`/checkAll` 3대 문서 일괄 점검 및 `ISS-003 · DEV-013~023 · MKT-044/050` 구현 완료 (푸시 대기)]
 - **요청**: `/checkAll` 실행으로 SNSHero 이슈문서 · 개발문서 · 마케팅문서 미완료 항목 일괄 점검 및 구현·테스트·시트 최신화
 - **이슈문서 (`ISS-003` 완료)**:
