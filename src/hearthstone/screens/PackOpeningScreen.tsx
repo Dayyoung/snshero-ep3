@@ -472,7 +472,7 @@ export const PackOpeningScreen: React.FC<{
           }}
           className="pointer-events-none absolute z-[120] h-44 w-32 drop-shadow-[0_24px_38px_rgba(0,0,0,0.95)]"
         >
-          <SnsBoosterPackArt glowing />
+          <SnsBoosterPackArt variant={profile.selectedCardBack} glowing />
         </div>
       )}
 
@@ -541,7 +541,7 @@ export const PackOpeningScreen: React.FC<{
           }`}
         >
           <div className="h-8 w-6 shrink-0">
-            <SnsBoosterPackArt />
+            <SnsBoosterPackArt variant={profile.selectedCardBack} />
           </div>
           <span className="text-xs font-extrabold text-amber-100">
             {tr('미개봉 눈히어로 팩', 'Unopened Packs')}
@@ -592,16 +592,16 @@ export const PackOpeningScreen: React.FC<{
               {/* Stacked Pack Depth Illusion */}
               {profile.packs > 2 && (
                 <div className="pointer-events-none absolute -left-2 top-2 h-44 w-32 -rotate-3 opacity-65 brightness-75">
-                  <SnsBoosterPackArt />
+                  <SnsBoosterPackArt variant={profile.selectedCardBack} />
                 </div>
               )}
               {profile.packs > 1 && (
                 <div className="pointer-events-none absolute left-1.5 top-1 h-44 w-32 rotate-2 opacity-80 brightness-90">
-                  <SnsBoosterPackArt />
+                  <SnsBoosterPackArt variant={profile.selectedCardBack} />
                 </div>
               )}
               <div className="relative z-10 h-44 w-32">
-                <SnsBoosterPackArt glowing />
+                <SnsBoosterPackArt variant={profile.selectedCardBack} glowing />
               </div>
             </div>
           ) : (
@@ -753,7 +753,10 @@ export const PackOpeningScreen: React.FC<{
                     profile.packs > 0 ? 'opacity-98' : 'opacity-25 grayscale'
                   } ${packBursting ? 'brightness-150 saturate-150' : ''}`}
                 >
-                  <SnsBoosterPackArt glowing={profile.packs > 0} />
+                  <SnsBoosterPackArt
+                    variant={profile.selectedCardBack}
+                    glowing={profile.packs > 0}
+                  />
                 </div>
               </div>
               <span className="hs-title hs-outline-sm mt-3 text-center text-base font-extrabold text-sky-200 sm:text-lg">

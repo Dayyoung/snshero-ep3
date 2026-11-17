@@ -543,7 +543,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 </span>
               )}
               <div className="h-9 w-7 shrink-0 sm:h-10 sm:w-8">
-                <SnsBoosterPackArt />
+                <SnsBoosterPackArt variant={profile.selectedCardBack} />
               </div>
               <div className="min-w-0">
                 <div className="hs-title truncate text-xs font-extrabold text-amber-100 sm:text-sm">

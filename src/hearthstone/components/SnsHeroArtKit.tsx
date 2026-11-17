@@ -179,25 +179,29 @@ export const SnsOcarinaCrestSeal: React.FC<{ size?: number; className?: string }
   </svg>
 );
 
+function resolveCardBackKey(variant?: SnsCardBackId | string): SnsCardBackId {
+  return variant === 'silver' || variant === 'frost'
+    ? 'silver'
+    : variant === 'bronze'
+      ? 'bronze'
+      : variant === 'ocarina_crest'
+        ? 'ocarina_crest'
+        : variant === 'bogart_vip'
+          ? 'bogart_vip'
+          : 'gold';
+}
+
 export const SnsCardBackArt: React.FC<{
   variant?: SnsCardBackId | string;
   className?: string;
 }> = ({ variant = 'gold', className = 'w-full h-full' }) => {
-  const key: SnsCardBackId =
-    variant === 'silver' || variant === 'frost'
-      ? 'silver'
-      : variant === 'bronze'
-        ? 'bronze'
-        : variant === 'ocarina_crest'
-          ? 'ocarina_crest'
-          : variant === 'bogart_vip'
-            ? 'bogart_vip'
-            : 'gold';
+  const key = resolveCardBackKey(variant);
   const theme = SNS_CARD_BACK_THEMES[key];
   const label = getSnsCardBackLabel(key);
 
   return (
     <div
+      data-cardback-variant={key}
       className={`relative select-none overflow-hidden rounded-[8%] ${className}`}
       style={{
         filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.75))',
@@ -217,7 +221,7 @@ export const SnsCardBackArt: React.FC<{
               'radial-gradient(circle, rgba(56,189,248,0.45) 0%, rgba(29,78,216,0.52) 65%, rgba(15,23,42,0.72) 100%)',
           }}
         >
-          <SnsOcarinaCrestSeal size={42} />
+          <SnsSnowCompassSeal size={38} />
         </div>
       )}
       {key === 'bogart_vip' && (
@@ -246,9 +250,12 @@ export const SnsCardBackArt: React.FC<{
 };
 
 export const SnsBoosterPackArt: React.FC<{
+  variant?: SnsCardBackId | string;
   className?: string;
   glowing?: boolean;
-}> = ({ className = 'w-full h-full', glowing = false }) => {
+}> = ({ variant = 'gold', className = 'w-full h-full', glowing = false }) => {
+  const key = resolveCardBackKey(variant);
+  const theme = SNS_CARD_BACK_THEMES[key];
   const stackLayers = [
     { tx: '-9%', ty: '5%', rot: '-7deg', brightness: 0.72 },
     { tx: '-4.5%', ty: '2.5%', rot: '-3.5deg', brightness: 0.82 },
@@ -258,32 +265,34 @@ export const SnsBoosterPackArt: React.FC<{
   ];
 
   return (
-    <div className={`relative flex select-none items-center justify-center ${className}`}>
+    <div
+      data-pack-cardback={key}
+      className={`relative flex select-none items-center justify-center ${className}`}
+    >
       {glowing && (
         <div
           className="pointer-events-none absolute -inset-2 animate-pulse rounded-2xl"
           style={{
-            background: 'radial-gradient(circle, rgba(56,189,248,0.52) 0%, transparent 72%)',
+            background: `radial-gradient(circle, ${theme.glowColor} 0%, transparent 72%)`,
           }}
         />
       )}
       {stackLayers.map((layer, idx) => (
-        <img
+        <div
           key={idx}
-          src="/hs-assets/cardbacks/snshero-gold.png"
-          alt={idx === stackLayers.length - 1 ? tr('눈히어로 카드 팩 (5장)', 'SNSHero Card Pack (5 Cards)') : ''}
-          draggable={false}
-          className="absolute h-[88%] w-[84%] rounded-[8px] object-contain"
+          className="pointer-events-none absolute h-[88%] w-[84%] overflow-hidden rounded-[8px]"
           style={{
             transform: `translate(${layer.tx}, ${layer.ty}) rotate(${layer.rot})`,
             filter: `brightness(${layer.brightness})`,
             boxShadow:
               idx === stackLayers.length - 1 && glowing
-                ? '0 0 28px rgba(56,189,248,0.85), 0 12px 24px rgba(0,0,0,0.85)'
+                ? `0 0 28px ${theme.glowColor}, 0 12px 24px rgba(0,0,0,0.85)`
                 : '0 8px 18px rgba(0,0,0,0.78)',
             zIndex: idx + 1,
           }}
-        />
+        >
+          <SnsCardBackArt variant={key} className="h-full w-full" />
+        </div>
       ))}
     </div>
   );

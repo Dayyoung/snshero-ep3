@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 15:30 KST] [카드팩 개봉 전 미개봉 팩 카드 뒷면 선택 스킨 실시간 동기화 적용 (푸시 대기)]
+- **요청**: 상점에서 카드 뒷면을 변경해 선택했을 때 카드팩 뽑기 전 미개봉 카드 팩의 겹친 카드들도 변경된 카드 뒷면 스킨으로 표시되도록 수정
+- **원인**: [`SnsHeroArtKit.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SnsHeroArtKit.tsx)의 `SnsBoosterPackArt`가 `variant`를 받지 않고 `/hs-assets/cardbacks/snshero-gold.png` 이미지를 고정 렌더링하고 있었음.
+- **수정 내용**:
+  - [`SnsHeroArtKit.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SnsHeroArtKit.tsx): `resolveCardBackKey` 공통 헬퍼 추출, `SnsBoosterPackArt`가 `variant?: SnsCardBackId | string`을 받아 `SNS_CARD_BACK_THEMES[key]`의 광채(`glowColor`)와 각 겹친 카드 레이어에 `<SnsCardBackArt variant={key} />`를 렌더링하도록 개선 (또한 `ocarina_crest` 오버레이 인장도 `<SnsSnowCompassSeal size={38} />`로 통일).
+  - [`PackOpeningScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/PackOpeningScreen.tsx) & [`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx): 미개봉 카드 팩(천공 제단·좌측 대기열·모바일 바·드래그 고스트·허브 아이콘) 전수에 `variant={profile.selectedCardBack}` 전달.
+- **검증 및 저장 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (`0` errors) 및 Playwright 데스크톱(`1280×800`)·모바일(`390×844`) E2E 검증에서 상점 카드 뒷면 변경 시(`gold → silver → bronze`) 카드팩 뽑기 전 미개봉 팩 카드 뒷면이 즉시 전환됨을 확인(`0` errors).
+  - 정책에 따라 로컬 `git commit`만 수행(`git push` 보류) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-17 15:10 KST] [`/checkIssue` ISS-004 해결 — 웹툰 31화 원작 『고블린 도박왕 보가트』 손실 위험 경고 나레이션씬 · `1~1,000G` 슬라이드 & 베팅버튼 · `100% 랜덤 30장 덱` 결투 · 골드 명예 보상품 인게임 적용 스크린샷 & 프로모션 홈페이지 업데이트 (푸시 대기)]
 - **연동 시트**: `1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4` (`'게임 이슈 관리 로그'` 13행 `ISS-004`, 우선순위 `P0`, 상태 `점검완료·실행대기` → `완료` 갱신 · `'요약 대시보드'` `12/12 100.0%` 완료)
 - **구현 및 수정 내역**:
