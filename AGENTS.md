@@ -1,5 +1,15 @@
 # SNS히어로 에이전트 지침서 (AGENTS.md)
 
+## 영문 버전 고려사항 및 한·영/다국어 언어팩 작업 필수 원칙 (i18n & English Mode Governance)
+1. **기본 영어·한국어 이중 언어(`heroLang.ts`) 100% 의무 준수**:
+   - 모든 UI 텍스트·모달·버튼·배지·알림·오류 메시지·SEO/OG 메타는 반드시 `src/i18n/heroLang.ts`(`tr(ko, en)`, `useHeroLanguage()`)를 통해 한국어(`ko`)와 영어(`en`) 모두 누락 없이 제공합니다. (`?lang=en|ko`, `localStorage['hero_language']`, 브라우저 로케일 기반 한국어 외 전 세계 기본값 `'en'` 지원)
+   - 신규 화면·기능 개발 시 한국어 문자열만 하드코딩하는 것을 엄격히 금지하며, `GEMINI.md`에 명시된 12개 다국어 언어팩(`ko`, `en`/`gb`, `ja`, `zh-CN`, `zh-TW`, `de`, `es`, `fr`, `id`, `ru`, `th`, `vi`) 대상 뷰에서도 해당 언어 리소스를 누락 없이 함께 갱신합니다.
+2. **텍스트 포함 시각 자료·스크린샷·로고·에셋의 언어별 분리 필수**:
+   - **게임 가이드 스크린샷(`How to Play`)**: UI 문구가 포함된 실제 게임 캡처 이미지는 한국어용(`public/hs-assets/guide/guide_01..06.webp`)과 **영문 전용(`public/hs-assets/guide/guide_en_01..06.webp`)** 을 별도로 캡처·유지해 `lang === 'en'`일 때 반드시 영문 스크린샷이 표시되도록 분기합니다. (영문 화면에 한국어 UI 스크린샷 노출 절대 금지)
+   - **브랜드 로고·아트워크·컷신**: `getSnsLogoUrl(lang)`, 웹소설/웹툰 회차 데이터(`kadanJourneyData.ts` ↔ `kadanJourneyEnData.ts`), 카드·영웅 번역(`i18nData.ts`) 등 모든 언어별 자산을 `lang` 상태에 맞춰 동기화합니다.
+3. **한·영 양방향 E2E 검증 의무**:
+   - 기능·UI 수정 후 Playwright 등 브라우저 검증 시 한국어(`ko-KR`)뿐만 아니라 **영문(`en-US` / `?lang=en`) 환경에서도 레이아웃 깨짐, 미번역 한글 잔존, 영문 전용 스크린샷/이미지 분기**를 필수로 확인합니다.
+
 ## `/stone.html` 및 `/game.html` 이원화 아키텍처·업데이트 절대 원칙 (Dual-Track Card Game Governance)
 0. **카드 총수 382장 절대 동결 원칙 (Strict 382-Card Cap Freeze Until Expansion)**:
    - 현재 구현된 **수집 가능 카드 382장**(9개 종족 × 25장 = 225장 + 중립 157장)에서 **더 이상 카드를 임의로 추가해서는 절대 안 된다 (382장 엄격 동결)**.

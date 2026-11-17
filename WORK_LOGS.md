@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 10:45 KST] [영문 버전 전용 How to Play 스크린샷 6종 분리 적용 및 AGENTS.md 한·영/다국어 원칙 명시]
+- **요청**: 영문 버전에서는 영문 UI 스크린샷이 표시되도록 분기하고, `AGENTS.md`에 영문 버전 고려사항과 한·영/다국어 언어팩 작업 지침을 필수로 명시
+- **수정 내역**:
+  - `public/hs-assets/guide/guide_en_01_hub.webp` ~ `guide_en_06_collection.webp`: `?lang=en` (`en-US` 로케일) 환경에서 실제 영문 게임 화면 6단계 실사 캡처 후 960×570 WebP(33~47KB)로 저장.
+  - `src/hearthstone/components/OnboardingGuideModal.tsx`: `GuideStepSlide`를 `imageUrlKo` / `imageUrlEn` 이중 경로로 확장해 `lang === 'en'`일 때 영문 스크린샷만 표시되도록 실시간 언어 전환 분기 적용.
+  - `AGENTS.md`: 최상단에 **영문 버전 고려사항 및 한·영/다국어 언어팩 작업 필수 원칙** 섹션 추가(`heroLang.ts` `tr(ko, en)` 준수, 텍스트 포함 스크린샷/로고/에셋 언어별 분리 의무, 한·영 양방향 E2E 검증 의무).
+- **검증 및 저장소 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 및 Playwright 한·영 양방향 E2E 검증(`/?lang=en`, 실시간 EN↔KO 전환, `/game.html?lang=en` 모달 `0 errors`) 완료.
+  - 정책에 따라 로컬 `git commit`만 수행(`git push` 보류).
+
 ## [2026-11-17 10:39 KST] [영문 카드명 SVG 가로 압착(납작함) 현상 수정 완료 (푸시 대기)]
 - **요청**: 영문 카드 이름이 가로로 심하게 눌려 납작하게 표시되는 현상 해결
 - **원인 분석**: `src/hearthstone/components/CardVisual.tsx`의 SVG `<textPath>`에 `cardDisplayName.length >= 15`일 때 `textLength={216}` 및 `lengthAdjust="spacingAndGlyphs"`가 강제 적용되어 있어, 대부분 15자 이상인 영문 카드명의 글자(Glyph) 비율이 수평으로 비정상 압축·왜곡되는 문제가 발생함.

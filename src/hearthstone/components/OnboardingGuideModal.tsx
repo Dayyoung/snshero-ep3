@@ -33,7 +33,8 @@ interface GuideStepSlide {
   descEn: string;
   tipKo: string;
   tipEn: string;
-  imageUrl: string;
+  imageUrlKo: string;
+  imageUrlEn: string;
 }
 
 export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
@@ -51,7 +52,8 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
       'Jump straight into 40-episode Story Mode, fair 1x Ranked Play, or 9-Faction AI Battles. Open [Quest Log] anytime and click completed quests to claim bonus Gold.',
     tipKo: '초보 추천: [스토리모드] 제0화 허수아비 기초 훈련을 먼저 깨면 무료 3팩 + 기본 감각을 30초 만에 익힐 수 있습니다.',
     tipEn: 'Beginner Tip: Beat Story EP.0 Training first to learn the ropes in 30 seconds and earn rewards.',
-    imageUrl: '/hs-assets/guide/guide_01_hub.webp',
+    imageUrlKo: '/hs-assets/guide/guide_01_hub.webp',
+    imageUrlEn: '/hs-assets/guide/guide_en_01_hub.webp',
   },
   {
     step: 2,
@@ -67,7 +69,8 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
       'Kadan labels each starting card as Keep or Swap based on your tactical stance. Click cards to replace them, or tap [Apply Kadan Swap] in one touch.',
     tipKo: '프리셋 지원: [출격 덱·전술 프리셋] 버튼으로 속공 돌파·철벽 반격·3배 각성 덱을 전투 직전에 즉시 바꿀 수 있습니다.',
     tipEn: 'Deck Presets: Switch instantly between Rush Aggro, Iron Control, and 3x Awakening via [Preset Deck & Tactic].',
-    imageUrl: '/hs-assets/guide/guide_02_mulligan.webp',
+    imageUrlKo: '/hs-assets/guide/guide_02_mulligan.webp',
+    imageUrlEn: '/hs-assets/guide/guide_en_02_mulligan.webp',
   },
   {
     step: 3,
@@ -83,7 +86,8 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
       'Gain +1 Max Mana each turn (up to 10). Cards playable within your current Mana glow green. Summoned minions attack next turn—reduce the Enemy Hero’s HP at the top to 0 to win!',
     tipKo: '승리 지름길: 방패 모양 [도발] 하수인이 있으면 먼저 처치해야 하며, 할 일이 끝나면 우측 [턴 종료] 버튼을 누르세요.',
     tipEn: 'Combat Tip: Taunt (shield) minions must be attacked first. Press [End Turn] on the right when you finish your plays.',
-    imageUrl: '/hs-assets/guide/guide_03_battle_mana.webp',
+    imageUrlKo: '/hs-assets/guide/guide_03_battle_mana.webp',
+    imageUrlEn: '/hs-assets/guide/guide_en_03_battle_mana.webp',
   },
   {
     step: 4,
@@ -99,7 +103,8 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
       'Command Kadan (bottom-right) for Aggro/Control/Awakening AI & Auto-Play, tap Silia (bottom-left) for animated Windstorm Ultimates, and pin priority enemy targets with Focus Pin.',
     tipKo: '편의 기능: 자동플레이 중에도 킬각이나 위험 순간엔 [승부처 브레이크]로 직접 조종권을 넘겨받을 수 있습니다.',
     tipEn: 'Smart Assist: Kadan’s Clutch Break alerts you at lethal or critical moments even while Auto-Play runs.',
-    imageUrl: '/hs-assets/guide/guide_04_combat_ult.webp',
+    imageUrlKo: '/hs-assets/guide/guide_04_combat_ult.webp',
+    imageUrlEn: '/hs-assets/guide/guide_en_04_combat_ult.webp',
   },
   {
     step: 5,
@@ -115,7 +120,8 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
       'Claim 3 Free Packs + 250 Gold + 160 Dust on your first visit. At least 1 Legendary card is 100% guaranteed within every 10 packs!',
     tipKo: '덱 즉시 강화: 팩에서 3장 이상 모인 카드는 곧바로 [3배 각성] 배지가 붙어 스토리모드 덱에 바로 편성할 수 있습니다.',
     tipEn: 'Instant Power: Collecting 3+ copies unlocks the golden 3x Awakening badge for Story Mode!',
-    imageUrl: '/hs-assets/guide/guide_05_packs.webp',
+    imageUrlKo: '/hs-assets/guide/guide_05_packs.webp',
+    imageUrlEn: '/hs-assets/guide/guide_en_05_packs.webp',
   },
   {
     step: 6,
@@ -131,7 +137,8 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
       'Craft & organize 382 cards across 9 factions. In Story Mode, 3+ copies multiply stats 3x, and zooming any card links straight to that hero’s chapter in the 40-episode novel!',
     tipKo: '공정 경쟁: 랭킹대전은 과금 격차 없이 모든 카드가 1배수 스탯으로 공정하게 실력을 겨룹니다.',
     tipEn: 'Fair Ranked Play: Competitive Ranked battles strictly use 1x base card stats for pure skill.',
-    imageUrl: '/hs-assets/guide/guide_06_collection.webp',
+    imageUrlKo: '/hs-assets/guide/guide_06_collection.webp',
+    imageUrlEn: '/hs-assets/guide/guide_en_06_collection.webp',
   },
 ];
 
@@ -220,7 +227,7 @@ export const HowToPlayCarousel: React.FC<{
       <div className="relative overflow-hidden rounded-2xl border-2 border-[#c8a158]/70 bg-stone-950 shadow-2xl">
         <div className="relative aspect-[16/9.5] w-full overflow-hidden bg-[#0e0905]">
           <img
-            src={slide.imageUrl}
+            src={isKo ? slide.imageUrlKo : slide.imageUrlEn}
             alt={isKo ? slide.titleKo : slide.titleEn}
             className="h-full w-full object-cover object-center transition-opacity duration-200"
           />
