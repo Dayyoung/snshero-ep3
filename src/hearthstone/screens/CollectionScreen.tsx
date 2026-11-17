@@ -31,6 +31,8 @@ import { SNS_LOCATIONS } from '../components/SnsHeroArtKit';
 import { useModalDismiss } from '../useModalDismiss';
 import {
   MassDisenchantPreview,
+  getJourneyCardMultiplier,
+  hasCombatStatsForJourney,
   hsStorage,
 } from '../storage';
 import {
@@ -115,6 +117,7 @@ export const CollectionScreen: React.FC<{
   const [incompleteDeckPromptOpen, setIncompleteDeckPromptOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [dustShortageCard, setDustShortageCard] = useState<ClassicCardDef | null>(null);
+  const [starterSummaryOpen, setStarterSummaryOpen] = useState<boolean>(true);
 
   useModalDismiss(importModalOpen, () => setImportModalOpen(false));
   useModalDismiss(Boolean(disenchantModalPreview), () => setDisenchantModalPreview(null));
@@ -487,14 +490,35 @@ export const CollectionScreen: React.FC<{
   const handleCopyDeckCode = async (deck: CustomDeck) => {
     const code = encodeDeckShareCode(deck);
     const classLabel = getLocalizedHeroInfo(deck.heroClass, lang).className;
-    const shareUrl = `https://snshero.com/game?deck=${encodeURIComponent(code)}&utm_source=deck_share`;
+    let totalDustCost = 0;
+    let awakenedInDeck = 0;
+    const seenAwakened = new Set<string>();
+    for (const cid of deck.cards) {
+      const def = cardDb.getCard(cid);
+      if (!def) continue;
+      if (def.rarity !== 'FREE') {
+        totalDustCost += CRAFTING_COST[def.rarity] || 40;
+      }
+      if (!seenAwakened.has(cid) && hasCombatStatsForJourney(def)) {
+        seenAwakened.add(cid);
+        if (getJourneyCardMultiplier(def, collection[cid] || 0) >= 3) {
+          awakenedInDeck += 1;
+        }
+      }
+    }
+    const shareUrl = `https://snshero.com/game?deck=${encodeURIComponent(code)}&utm_source=community_challenge`;
     const shareText = isKo
-      ? `[눈히어로 덱 공유] ${deck.name} (${classLabel} · ${deck.cards.length}/30장)\n바로 불러오기: ${shareUrl}\n덱 코드: ${code}`
-      : `[SNSHero Deck] ${deck.name} (${classLabel} · ${deck.cards.length}/30 cards)\nPlay link: ${shareUrl}\nCode: ${code}`;
+      ? `[눈히어로 덱 공유] ${deck.name} (${classLabel} · ${deck.cards.length}/30장 · 제작 가루 ${totalDustCost.toLocaleString()} · 3배 각성 ${awakenedInDeck}종)\n1클릭 도전/불러오기: ${shareUrl}\n덱 코드: ${code}`
+      : `[SNSHero Deck] ${deck.name} (${classLabel} · ${deck.cards.length}/30 cards · ${totalDustCost.toLocaleString()} Dust · ${awakenedInDeck} Awakened)\n1-Click Play/Import: ${shareUrl}\nCode: ${code}`;
     try {
       await navigator.clipboard.writeText(shareText);
       hsAudio.playSfx('menu_select', 0.8);
-      showNotice(tr('클립보드에 덱 공유 링크 & 코드가 복사되었습니다!', 'Deck share link & code copied to clipboard!'));
+      showNotice(
+        tr(
+          `클립보드에 덱 공유 링크 & 제작 가루(${totalDustCost.toLocaleString()})가 복사되었습니다!`,
+          `Deck challenge URL & Dust cost (${totalDustCost.toLocaleString()}) copied!`,
+        ),
+      );
     } catch {
       window.prompt(tr('아래 눈히어로 덱 공유 링크를 복사하세요:', 'Copy this SNSHero deck share URL:'), shareUrl);
     }
@@ -771,6 +795,88 @@ export const CollectionScreen: React.FC<{
           />
         </div>
       )}
+
+      {/* DEV-040: Starter-First Recommendation Strip (3x Awakening Imminent x2 Cards + 1-Tap Kadan Auto-Upgrade) */}
+      <div
+        data-testid="collection-starter-summary"
+        className="relative z-20 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-amber-500/35 bg-[#120b05]/95 px-2.5 py-1.5 text-xs text-amber-100 sm:px-4"
+      >
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <span className="font-extrabold text-yellow-300">
+            ⚡ {tr('카단 핵심 요약:', 'Kadan Quick Deck:')}
+          </span>
+          <span className="rounded-lg border border-amber-400/35 bg-stone-900/90 px-2 py-0.5 text-[11px] font-bold">
+            {editingDeck
+              ? `${getDeckDisplayName(editingDeck, lang)} (${editingDeck.cards.length}/30)`
+              : decks[0]
+                ? `${getDeckDisplayName(decks[0], lang)} (${decks[0].cards.length}/30)`
+                : tr('대표 덱 30장', 'Starter 30 Cards')}
+          </span>
+          {starterSummaryOpen &&
+            (() => {
+              const nearAwake = cardDb
+                .getAllCollectible()
+                .filter(
+                  (c) =>
+                    hasCombatStatsForJourney(c) &&
+                    c.rarity !== 'FREE' &&
+                    (c.rarity === 'LEGENDARY'
+                      ? (collection[c.id] || 0) === 1
+                      : (collection[c.id] || 0) === 2),
+                )
+                .slice(0, 3);
+              return nearAwake.length > 0 ? (
+                <div className="hidden flex-wrap items-center gap-1 md:flex">
+                  <span className="text-[10.5px] font-bold text-emerald-300">
+                    {tr('3배 각성 임박(1장 남음):', '1 Copy to 3x Awaken:')}
+                  </span>
+                  {nearAwake.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => navigateToInspectCard(c)}
+                      className="rounded-md border border-emerald-400/50 bg-emerald-950/75 px-2 py-0.5 text-[10.5px] font-extrabold text-emerald-100 hover:bg-emerald-900"
+                    >
+                      {getCardName(c, lang)}
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            data-testid="collection-kadan-auto-upgrade-btn"
+            onClick={() => {
+              const targetDeck = editingDeck || decks[0];
+              if (!targetDeck) return;
+              if (!editingDeck) {
+                setEditingDeckId(targetDeck.id);
+                setActiveTab(targetDeck.heroClass);
+                showNotice(
+                  tr(
+                    `[${getDeckDisplayName(targetDeck, lang)}] 편집 모드를 열었습니다. 다시 한 번 누르면 카단 3배 각성 덱으로 자동 보강됩니다!`,
+                    `Opened [${getDeckDisplayName(targetDeck, lang)}]. Tap again to auto-upgrade with Kadan Awakening!`,
+                  ),
+                );
+                return;
+              }
+              handleAutoCompleteDeck('AWAKENING', editingDeck.cards.length === 30);
+            }}
+            className="hs-zelda-a-btn min-h-[34px] rounded-xl px-2.5 py-1 text-[11px] font-extrabold text-white"
+          >
+            ⚡ {tr('카단 1탭 자동 보강', '1-Tap Kadan Auto-Build')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setStarterSummaryOpen((v) => !v)}
+            className="min-h-[34px] rounded-lg border border-amber-400/35 bg-black/50 px-2 text-[10.5px] font-bold text-amber-200"
+          >
+            {starterSummaryOpen ? tr('요약 접기 ▲', 'Compact ▲') : tr('추천 펼치기 ▼', 'Expand ▼')}
+          </button>
+        </div>
+      </div>
 
       {/* Main Split Layout: Leather Tome (Left 9 Cols) + Deckbuilder Tray (Right 3 Cols) */}
       <div className="relative z-10 grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-12">

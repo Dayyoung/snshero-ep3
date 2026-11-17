@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0-1794902447908",
-  "buildTime": "2026-11-17T08:00:47.908Z",
-  "buildTimestamp": 1794902447908,
+  "version": "2.1.0-1794913291145",
+  "buildTime": "2026-11-17T11:01:31.145Z",
+  "buildTimestamp": 1794913291145,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
-  "entryScript": "/assets/game-DAyUXphu-v2.js"
+  "entryScript": "/assets/game--H2DGq5B-v2.js"
 }

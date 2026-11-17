@@ -57,16 +57,43 @@ const ONLINE_CHALLENGER_POOL: {
   tierLabelEn: string;
   heroClass: HeroClass;
   rating: number;
+  equippedFrameId: string;
+  equippedCardBack: 'gold' | 'silver' | 'bronze' | 'ocarina_crest' | 'bogart_vip';
+  frameNameKo: string;
+  frameNameEn: string;
+  cardBackNameKo: string;
+  cardBackNameEn: string;
 }[] = [
-  { nickname: '별빛성기사#4821', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '🎵', tierLabelKo: '골드 II', tierLabelEn: 'Gold II', heroClass: 'PALADIN', rating: 1640 },
-  { nickname: 'FrostMage_KR', titleKo: '엘윈 대평원의 전설', titleEn: 'Legend of Elwin Plain', badgeIcon: '👑', tierLabelKo: '다이아 IV', tierLabelEn: 'Diamond IV', heroClass: 'MAGE', rating: 1890 },
-  { nickname: '붉은성채타짜#777', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 I', tierLabelEn: 'Platinum I', heroClass: 'WARRIOR', rating: 1750 },
-  { nickname: 'ShadowBlade99', titleKo: '심연 정복자', titleEn: 'Abyss Conqueror', badgeIcon: '🛡️', tierLabelKo: '골드 I', tierLabelEn: 'Gold I', heroClass: 'ROGUE', rating: 1685 },
-  { nickname: '바람섬명궁#305', titleKo: '엘윈의 모험가', titleEn: 'Adventurer of Elwin', badgeIcon: '❄️', tierLabelKo: '실버 I', tierLabelEn: 'Silver I', heroClass: 'HUNTER', rating: 1520 },
-  { nickname: 'ElwinSage', titleKo: '3배 각성의 지배자', titleEn: 'Sovereign of 3x Awakening', badgeIcon: '🎵', tierLabelKo: '다이아 II', tierLabelEn: 'Diamond II', heroClass: 'PRIEST', rating: 1940 },
-  { nickname: 'DeepforgeKing', titleKo: '성검과 성소 방패', titleEn: 'Sacred Sword & Shield', badgeIcon: '🛡️', tierLabelKo: '플래티넘 III', tierLabelEn: 'Platinum III', heroClass: 'WARLOCK', rating: 1710 },
-  { nickname: '늑대왕의후예#812', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '👑', tierLabelKo: '골드 III', tierLabelEn: 'Gold III', heroClass: 'DRUID', rating: 1605 },
-  { nickname: 'StormTotem_EN', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 II', tierLabelEn: 'Platinum II', heroClass: 'SHAMAN', rating: 1735 },
+  { nickname: '별빛성기사#4821', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '🎵', tierLabelKo: '골드 II', tierLabelEn: 'Gold II', heroClass: 'PALADIN', rating: 1640, equippedFrameId: 'frame_zelda_brass', equippedCardBack: 'ocarina_crest', frameNameKo: '성소 이중 황동 프레임', frameNameEn: 'Sanctuary Brass Frame', cardBackNameKo: '엘윈 성소의 문장', cardBackNameEn: 'Elwin Sanctuary Crest' },
+  { nickname: 'FrostMage_KR', titleKo: '엘윈 대평원의 전설', titleEn: 'Legend of Elwin Plain', badgeIcon: '👑', tierLabelKo: '다이아 IV', tierLabelEn: 'Diamond IV', heroClass: 'MAGE', rating: 1890, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'gold', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: '붉은성채타짜#777', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 I', tierLabelEn: 'Platinum I', heroClass: 'WARRIOR', rating: 1750, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'bogart_vip', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '보가트 VIP 황금주화', cardBackNameEn: 'Bogart VIP Gold' },
+  { nickname: 'ShadowBlade99', titleKo: '심연 정복자', titleEn: 'Abyss Conqueror', badgeIcon: '🛡️', tierLabelKo: '골드 I', tierLabelEn: 'Gold I', heroClass: 'ROGUE', rating: 1685, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'silver', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '별빛 실버 엠블럼', cardBackNameEn: 'Starlight Silver' },
+  { nickname: '바람섬명궁#305', titleKo: '엘윈의 모험가', titleEn: 'Adventurer of Elwin', badgeIcon: '❄️', tierLabelKo: '실버 I', tierLabelEn: 'Silver I', heroClass: 'HUNTER', rating: 1520, equippedFrameId: 'frame_classic', equippedCardBack: 'bronze', frameNameKo: '참나무 클래식 프레임', frameNameEn: 'Classic Oak Frame', cardBackNameKo: '성소 브론즈 인장', cardBackNameEn: 'Sanctuary Bronze' },
+  { nickname: 'ElwinSage', titleKo: '3배 각성의 지배자', titleEn: 'Sovereign of 3x Awakening', badgeIcon: '🎵', tierLabelKo: '다이아 II', tierLabelEn: 'Diamond II', heroClass: 'PRIEST', rating: 1940, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'ocarina_crest', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '엘윈 성소의 문장', cardBackNameEn: 'Elwin Sanctuary Crest' },
+  { nickname: 'DeepforgeKing', titleKo: '성소의 연대기 학자', titleEn: 'Sanctuary Chronicler', badgeIcon: '🛡️', tierLabelKo: '플래티넘 III', tierLabelEn: 'Platinum III', heroClass: 'WARLOCK', rating: 1710, equippedFrameId: 'frame_zelda_brass', equippedCardBack: 'gold', frameNameKo: '성소 이중 황동 프레임', frameNameEn: 'Sanctuary Brass Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: '늑대왕의후예#812', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '👑', tierLabelKo: '골드 III', tierLabelEn: 'Gold III', heroClass: 'DRUID', rating: 1605, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'silver', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '별빛 실버 엠블럼', cardBackNameEn: 'Starlight Silver' },
+  { nickname: 'StormTotem_EN', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 II', tierLabelEn: 'Platinum II', heroClass: 'SHAMAN', rating: 1735, equippedFrameId: 'frame_zelda_brass', equippedCardBack: 'bogart_vip', frameNameKo: '성소 이중 황동 프레임', frameNameEn: 'Sanctuary Brass Frame', cardBackNameKo: '보가트 VIP 황금주화', cardBackNameEn: 'Bogart VIP Gold' },
+  { nickname: '은빛성검단#1024', titleKo: '운명의 오카리나 계승자', titleEn: 'Heir of the Ocarina', badgeIcon: '🎵', tierLabelKo: '다이아 III', tierLabelEn: 'Diamond III', heroClass: 'PRIEST', rating: 1910, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'ocarina_crest', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '엘윈 성소의 문장', cardBackNameEn: 'Elwin Sanctuary Crest' },
+  { nickname: 'IgnisFury_US', titleKo: '3배 각성의 지배자', titleEn: 'Sovereign of 3x Awakening', badgeIcon: '🔥', tierLabelKo: '다이아 I', tierLabelEn: 'Diamond I', heroClass: 'WARRIOR', rating: 1980, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'gold', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: '설원추적자#219', titleKo: '엘윈의 모험가', titleEn: 'Adventurer of Elwin', badgeIcon: '❄️', tierLabelKo: '실버 II', tierLabelEn: 'Silver II', heroClass: 'HUNTER', rating: 1495, equippedFrameId: 'frame_classic', equippedCardBack: 'silver', frameNameKo: '참나무 클래식 프레임', frameNameEn: 'Classic Oak Frame', cardBackNameKo: '별빛 실버 엠블럼', cardBackNameEn: 'Starlight Silver' },
+  { nickname: 'RuneWeaver77', titleKo: '성소의 연대기 학자', titleEn: 'Sanctuary Chronicler', badgeIcon: '📜', tierLabelKo: '골드 II', tierLabelEn: 'Gold II', heroClass: 'MAGE', rating: 1650, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'ocarina_crest', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '엘윈 성소의 문장', cardBackNameEn: 'Elwin Sanctuary Crest' },
+  { nickname: '아케근위대장#550', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '🛡️', tierLabelKo: '플래티넘 IV', tierLabelEn: 'Platinum IV', heroClass: 'PALADIN', rating: 1705, equippedFrameId: 'frame_zelda_brass', equippedCardBack: 'gold', frameNameKo: '성소 이중 황동 프레임', frameNameEn: 'Sanctuary Brass Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: 'Nightfang_JP', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 I', tierLabelEn: 'Platinum I', heroClass: 'ROGUE', rating: 1790, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'bogart_vip', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '보가트 VIP 황금주화', cardBackNameEn: 'Bogart VIP Gold' },
+  { nickname: '녹옥숲지기#643', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '🌿', tierLabelKo: '골드 IV', tierLabelEn: 'Gold IV', heroClass: 'DRUID', rating: 1580, equippedFrameId: 'frame_zelda_brass', equippedCardBack: 'bronze', frameNameKo: '성소 이중 황동 프레임', frameNameEn: 'Sanctuary Brass Frame', cardBackNameKo: '성소 브론즈 인장', cardBackNameEn: 'Sanctuary Bronze' },
+  { nickname: 'IronAnvil_EU', titleKo: '3배 각성의 지배자', titleEn: 'Sovereign of 3x Awakening', badgeIcon: '⚒️', tierLabelKo: '플래티넘 II', tierLabelEn: 'Platinum II', heroClass: 'WARLOCK', rating: 1745, equippedFrameId: 'frame_zelda_brass', equippedCardBack: 'gold', frameNameKo: '성소 이중 황동 프레임', frameNameEn: 'Sanctuary Brass Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: '해심비전술사#901', titleKo: '운명의 오카리나 계승자', titleEn: 'Heir of the Ocarina', badgeIcon: '🌊', tierLabelKo: '다이아 IV', tierLabelEn: 'Diamond IV', heroClass: 'MAGE', rating: 1865, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'ocarina_crest', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '엘윈 성소의 문장', cardBackNameEn: 'Elwin Sanctuary Crest' },
+  { nickname: 'GaleArcher_TW', titleKo: '엘윈 대평원의 전설', titleEn: 'Legend of Elwin Plain', badgeIcon: '👑', tierLabelKo: '다이아 II', tierLabelEn: 'Diamond II', heroClass: 'HUNTER', rating: 1930, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'gold', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: '대지정령왕#338', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '골드 I', tierLabelEn: 'Gold I', heroClass: 'SHAMAN', rating: 1675, equippedFrameId: 'frame_zelda_brass', equippedCardBack: 'bogart_vip', frameNameKo: '성소 이중 황동 프레임', frameNameEn: 'Sanctuary Brass Frame', cardBackNameKo: '보가트 VIP 황금주화', cardBackNameEn: 'Bogart VIP Gold' },
+  { nickname: 'OcarinaKnight', titleKo: '운명의 오카리나 계승자', titleEn: 'Heir of the Ocarina', badgeIcon: '🎵', tierLabelKo: '플래티넘 I', tierLabelEn: 'Platinum I', heroClass: 'PRIEST', rating: 1810, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'ocarina_crest', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '엘윈 성소의 문장', cardBackNameEn: 'Elwin Sanctuary Crest' },
+  { nickname: '검은재단암살자#411', titleKo: '성소의 연대기 학자', titleEn: 'Sanctuary Chronicler', badgeIcon: '🗡️', tierLabelKo: '골드 III', tierLabelEn: 'Gold III', heroClass: 'ROGUE', rating: 1615, equippedFrameId: 'frame_classic', equippedCardBack: 'silver', frameNameKo: '참나무 클래식 프레임', frameNameEn: 'Classic Oak Frame', cardBackNameKo: '별빛 실버 엠블럼', cardBackNameEn: 'Starlight Silver' },
+  { nickname: 'SolarPaladin_BR', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '☀️', tierLabelKo: '플래티넘 III', tierLabelEn: 'Platinum III', heroClass: 'PALADIN', rating: 1720, equippedFrameId: 'frame_zelda_brass', equippedCardBack: 'gold', frameNameKo: '성소 이중 황동 프레임', frameNameEn: 'Sanctuary Brass Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: '황금고블린VIP#888', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🪙', tierLabelKo: '다이아 III', tierLabelEn: 'Diamond III', heroClass: 'WARLOCK', rating: 1905, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'bogart_vip', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '보가트 VIP 황금주화', cardBackNameEn: 'Bogart VIP Gold' },
+  { nickname: 'SilverLeaf_CA', titleKo: '성소의 연대기 학자', titleEn: 'Sanctuary Chronicler', badgeIcon: '🍃', tierLabelKo: '골드 II', tierLabelEn: 'Gold II', heroClass: 'HUNTER', rating: 1635, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'silver', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '별빛 실버 엠블럼', cardBackNameEn: 'Starlight Silver' },
+  { nickname: '심연파괴자#709', titleKo: '3배 각성의 지배자', titleEn: 'Sovereign of 3x Awakening', badgeIcon: '⚡', tierLabelKo: '플래티넘 I', tierLabelEn: 'Platinum I', heroClass: 'WARRIOR', rating: 1785, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'gold', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: 'StarfallDruid', titleKo: '운명의 오카리나 계승자', titleEn: 'Heir of the Ocarina', badgeIcon: '🌙', tierLabelKo: '다이아 IV', tierLabelEn: 'Diamond IV', heroClass: 'DRUID', rating: 1855, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'ocarina_crest', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '엘윈 성소의 문장', cardBackNameEn: 'Elwin Sanctuary Crest' },
+  { nickname: '번개토템장인#156', titleKo: '엘윈의 모험가', titleEn: 'Adventurer of Elwin', badgeIcon: '⛈️', tierLabelKo: '실버 I', tierLabelEn: 'Silver I', heroClass: 'SHAMAN', rating: 1545, equippedFrameId: 'frame_classic', equippedCardBack: 'bronze', frameNameKo: '참나무 클래식 프레임', frameNameEn: 'Classic Oak Frame', cardBackNameKo: '성소 브론즈 인장', cardBackNameEn: 'Sanctuary Bronze' },
+  { nickname: 'SanctuaryAce_DE', titleKo: '엘윈 대평원의 전설', titleEn: 'Legend of Elwin Plain', badgeIcon: '👑', tierLabelKo: '다이아 I', tierLabelEn: 'Diamond I', heroClass: 'PRIEST', rating: 1995, equippedFrameId: 'frame_royal_24k', equippedCardBack: 'gold', frameNameKo: '24K 로얄 골드 프레임', frameNameEn: '24K Royal Gold Frame', cardBackNameKo: '눈히어로 24K 골드', cardBackNameEn: 'SNSHero 24K Gold' },
+  { nickname: '얼음왕관수호병#620', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '❄️', tierLabelKo: '플래티넘 III', tierLabelEn: 'Platinum III', heroClass: 'MAGE', rating: 1715, equippedFrameId: 'frame_sapphire_rune', equippedCardBack: 'ocarina_crest', frameNameKo: '사파이어 룬 프레임', frameNameEn: 'Sapphire Rune Frame', cardBackNameKo: '엘윈 성소의 문장', cardBackNameEn: 'Elwin Sanctuary Crest' },
 ];
 
 export function rollOnlineChallenger(preferredClass?: HeroClass, isBogart = false): {
@@ -85,6 +112,12 @@ export function rollOnlineChallenger(preferredClass?: HeroClass, isBogart = fals
         tierLabelKo: '100% 랜덤 30장 덱',
         tierLabelEn: '100% Random Deck',
         rating: 2000,
+        equippedFrameId: 'frame_royal_24k',
+        equippedCardBack: 'bogart_vip',
+        frameNameKo: '24K 로얄 골드 프레임',
+        frameNameEn: '24K Royal Gold Frame',
+        cardBackNameKo: '보가트 VIP 황금주화',
+        cardBackNameEn: 'Bogart VIP Gold',
       },
     };
   }
@@ -99,6 +132,12 @@ export function rollOnlineChallenger(preferredClass?: HeroClass, isBogart = fals
       tierLabelKo: picked.tierLabelKo,
       tierLabelEn: picked.tierLabelEn,
       rating: picked.rating,
+      equippedFrameId: picked.equippedFrameId,
+      equippedCardBack: picked.equippedCardBack,
+      frameNameKo: picked.frameNameKo,
+      frameNameEn: picked.frameNameEn,
+      cardBackNameKo: picked.cardBackNameKo,
+      cardBackNameEn: picked.cardBackNameEn,
     },
   };
 }
@@ -884,6 +923,43 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                   </span>
                 </div>
               </div>
+
+              {/* MKT-060: Bogart Daily Emergency Bailout (+100G Free Rescue when Gold < 100G) */}
+              {profile.gold < 100 && (
+                <div
+                  data-testid="bogart-bailout-strip"
+                  className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-400/65 bg-emerald-950/85 px-3 py-2 text-xs font-extrabold text-emerald-100"
+                >
+                  <span>
+                    🔥{' '}
+                    {tr(
+                      '시드머니가 부족하십니까? 보가트의 일일 긴급 구제금 +100G로 즉시 재도전하세요!',
+                      "Running low on Gold? Claim Bogart's Daily Emergency Bailout (+100G) to jump back in!",
+                    )}
+                  </span>
+                  {hsStorage.canClaimBogartDailyBailout() ? (
+                    <button
+                      type="button"
+                      data-testid="bogart-bailout-btn"
+                      onClick={() => {
+                        const res = hsStorage.claimBogartDailyBailout();
+                        if (res.granted) {
+                          hsAudio.playSfx('mario_coin', 0.95);
+                          setProfile(hsStorage.getProfile());
+                          setBogartStake(100);
+                        }
+                      }}
+                      className="hs-zelda-b-btn min-h-[38px] rounded-xl px-3 py-1 text-xs font-black text-white shadow"
+                    >
+                      {tr('🪙 오늘의 무료 구제 +100G 받기', '🪙 Claim Daily +100G Bailout')}
+                    </button>
+                  ) : (
+                    <span className="text-[11px] text-emerald-300/85">
+                      {tr('✓ 오늘 구제금 수령 완료 (내일 초기화)', '✓ Claimed today (resets tomorrow)')}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* 1 ~ 1,000G Range Slider + Side-by-Side [베팅 시작] Button */}
               <div className="mt-2.5 flex items-center gap-2.5">

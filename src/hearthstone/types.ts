@@ -699,6 +699,12 @@ export interface ChallengerMeta {
   tierLabelKo: string;
   tierLabelEn: string;
   rating: number;
+  equippedFrameId?: string;
+  equippedCardBack?: SnsCardBackId;
+  frameNameKo?: string;
+  frameNameEn?: string;
+  cardBackNameKo?: string;
+  cardBackNameEn?: string;
 }
 
 export interface MatchRewardBreakdown {

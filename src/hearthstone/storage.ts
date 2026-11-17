@@ -547,6 +547,28 @@ export const GOLD_PRESTIGE_ITEMS: GoldPrestigeItemDef[] = [
     descEn: 'Supreme honor title celebrated across all Elwin',
     accentClass: 'border-yellow-200 bg-gradient-to-r from-amber-800/85 to-yellow-900/85 text-yellow-100',
   },
+  {
+    id: 'title_sanctuary_chronicler',
+    category: 'TITLE',
+    costGold: 600,
+    icon: '📜',
+    nameKo: '성소의 연대기 학자',
+    nameEn: 'Sanctuary Chronicler',
+    descKo: '원작 웹소설·웹툰 10화 완독 또는 골드로 해금하는 연대기 호칭',
+    descEn: 'Unlocked by reading 10 Novel/Webtoon episodes or via Gold',
+    accentClass: 'border-cyan-300/80 bg-cyan-950/75 text-cyan-100',
+  },
+  {
+    id: 'title_ocarina_heir',
+    category: 'TITLE',
+    costGold: 2200,
+    icon: '🎵',
+    nameKo: '운명의 오카리나 계승자',
+    nameEn: 'Heir of the Ocarina',
+    descKo: '원작 40부작 완독 달성 또는 골드로 해금하는 성소 전승 호칭',
+    descEn: 'Unlocked by completing all 40 Novel/Webtoon episodes or via Gold',
+    accentClass: 'border-indigo-300/85 bg-indigo-950/80 text-indigo-100',
+  },
 ];
 
 export function getEquippedPrestigeSummary(
@@ -708,10 +730,37 @@ function defaultQuests(): DailyQuest[] {
     {
       id: 'q_win_3',
       title: '엘윈마을의 승부사',
-      description: '스토리모드·랭킹대전·AI대전 중 아무 모드에서 2승 달성',
+      description: '스토리모드 · 랭킹대전(도전자 매칭) · 보가트 도박장 중 2승 달성',
       progress: 0,
       goal: 2,
       rewardGold: 60,
+      completed: false,
+    },
+    {
+      id: 'q_bogart_play',
+      title: '보가트의 도박장 승부사',
+      description: '보가트의 도박장에서 골드 베팅 승부 1회 완료하기',
+      progress: 0,
+      goal: 1,
+      rewardGold: 300,
+      completed: false,
+    },
+    {
+      id: 'q_ranked_tactic_win',
+      title: '실시간 카단 전술 지휘',
+      description: '랭킹대전(도전자 매칭)에서 카단 전술 지휘로 1승 달성',
+      progress: 0,
+      goal: 1,
+      rewardGold: 250,
+      completed: false,
+    },
+    {
+      id: 'q_awakened_win',
+      title: '3배 각성의 증명',
+      description: '3배 각성(x3+) 보유 카드를 포함한 결투에서 1승 달성',
+      progress: 0,
+      goal: 1,
+      rewardGold: 200,
       completed: false,
     },
     {
@@ -1024,13 +1073,29 @@ class HearthstoneStorage {
   }
 
   getQuests(): DailyQuest[] {
+    const fresh = defaultQuests();
     try {
       const raw = localStorage.getItem(KEYS.QUESTS);
-      if (raw) return JSON.parse(raw) as DailyQuest[];
+      if (raw) {
+        const parsed = JSON.parse(raw) as DailyQuest[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const byId = new Map(parsed.map((q) => [q.id, q]));
+          return fresh.map((fq) => {
+            const old = byId.get(fq.id);
+            if (!old) return fq;
+            return {
+              ...fq,
+              progress: Math.min(fq.goal, Math.max(0, Number(old.progress) || 0)),
+              completed: Boolean(old.completed),
+              bonusClaimed: Boolean(old.bonusClaimed),
+            };
+          });
+        }
+      }
     } catch {
       // ignore
     }
-    return defaultQuests();
+    return fresh;
   }
 
   saveQuests(quests: DailyQuest[]) {
@@ -1673,10 +1738,30 @@ class HearthstoneStorage {
     emitStateChanged();
   }
 
-  recordQuestProgress(kind: 'WIN' | 'MINION' | 'SPELL', amount = 1): number {
+  recordQuestProgress(
+    kind:
+      | 'WIN'
+      | 'MINION'
+      | 'SPELL'
+      | 'BOGART_PLAY'
+      | 'RANKED_TACTIC_WIN'
+      | 'AWAKENED_WIN',
+    amount = 1,
+  ): number {
     const quests = this.getQuests();
     let goldEarned = 0;
-    const mapId = kind === 'WIN' ? 'q_win_3' : kind === 'MINION' ? 'q_play_minions' : 'q_cast_spells';
+    const mapId =
+      kind === 'WIN'
+        ? 'q_win_3'
+        : kind === 'MINION'
+          ? 'q_play_minions'
+          : kind === 'SPELL'
+            ? 'q_cast_spells'
+            : kind === 'BOGART_PLAY'
+              ? 'q_bogart_play'
+              : kind === 'RANKED_TACTIC_WIN'
+                ? 'q_ranked_tactic_win'
+                : 'q_awakened_win';
     for (const q of quests) {
       if (q.id === mapId && !q.completed) {
         q.progress = Math.min(q.goal, q.progress + amount);
@@ -2049,7 +2134,22 @@ class HearthstoneStorage {
     }
 
     this.saveProfile(p);
-    const questGold = didWin ? this.recordQuestProgress('WIN', 1) : 0;
+    let questGold = didWin ? this.recordQuestProgress('WIN', 1) : 0;
+    if (mode === 'BOGART_GAMBLE') {
+      questGold += this.recordQuestProgress('BOGART_PLAY', 1);
+    }
+    if (didWin && mode === 'RANKED') {
+      questGold += this.recordQuestProgress('RANKED_TACTIC_WIN', 1);
+    }
+    if (didWin) {
+      const col = this.getCollection();
+      const hasAwakened = cardDb
+        .getAllCollectible()
+        .some((c) => hasCombatStatsForJourney(c) && getJourneyCardMultiplier(c, col[c.id] || 0) >= 3);
+      if (hasAwakened) {
+        questGold += this.recordQuestProgress('AWAKENED_WIN', 1);
+      }
+    }
     const totalEarned = baseWinGold + bonusGold + questGold;
 
     return {
@@ -2322,6 +2422,185 @@ class HearthstoneStorage {
       }
     }
     return { count, sampleNames };
+  }
+
+  /**
+   * DEV-037: Progressive 4-Stage Hub Unlock + Veteran 1-Tap Unlock All
+   */
+  isVeteranUnlockAll(): boolean {
+    try {
+      return localStorage.getItem('hero_hs_unlock_all_modes') === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  setVeteranUnlockAll(enabled: boolean): void {
+    try {
+      if (enabled) {
+        localStorage.setItem('hero_hs_unlock_all_modes', '1');
+        const p = this.getProfile();
+        if (!p.journeyGuideDone) {
+          p.journeyGuideDone = true;
+          this.saveProfile(p);
+          return;
+        }
+      } else {
+        localStorage.removeItem('hero_hs_unlock_all_modes');
+      }
+    } catch {
+      // ignore
+    }
+    emitStateChanged();
+  }
+
+  getHubUnlockStage(profileOverride?: PlayerProfile): {
+    stage: 1 | 2 | 3 | 4;
+    veteranUnlockedAll: boolean;
+  } {
+    const p = profileOverride || this.getProfile();
+    const veteranUnlockedAll = this.isVeteranUnlockAll() || Boolean(p.masterUnlocked);
+    if (veteranUnlockedAll) {
+      return { stage: 4, veteranUnlockedAll: true };
+    }
+    const totalPlayed =
+      (p.totalGames || 0) +
+      (p.bogartStats?.totalMatches || 0) +
+      (p.journeyMaxStageCleared || 0) +
+      (p.journeyReincarnation || 0);
+    if (!p.journeyGuideDone && totalPlayed === 0) {
+      return { stage: 1, veteranUnlockedAll: false };
+    }
+    if (
+      p.gold >= 500 ||
+      totalPlayed >= 4 ||
+      (p.bogartStats?.totalMatches || 0) >= 1 ||
+      p.totalWins >= 2 ||
+      p.rankedWins >= 2
+    ) {
+      return { stage: 4, veteranUnlockedAll: false };
+    }
+    if (p.gold >= 250 || totalPlayed >= 1 || p.packs > 0) {
+      return { stage: 3, veteranUnlockedAll: false };
+    }
+    return { stage: 2, veteranUnlockedAll: false };
+  }
+
+  /**
+   * MKT-060: Bogart's Daily Emergency Bailout (+100G once per day when low on Gold)
+   */
+  canClaimBogartDailyBailout(): boolean {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      return localStorage.getItem('hero_hs_bogart_bailout_date') !== today;
+    } catch {
+      return false;
+    }
+  }
+
+  claimBogartDailyBailout(): { granted: boolean; goldAdded: number } {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      if (localStorage.getItem('hero_hs_bogart_bailout_date') === today) {
+        return { granted: false, goldAdded: 0 };
+      }
+      localStorage.setItem('hero_hs_bogart_bailout_date', today);
+      const p = this.getProfile();
+      p.gold += 100;
+      this.saveProfile(p);
+      return { granted: true, goldAdded: 100 };
+    } catch {
+      return { granted: false, goldAdded: 0 };
+    }
+  }
+}
+
+/**
+ * DEV-032: Cross-Media Reader Sync (/book.html & /webtoon.html -> snshero_media_read_eps & hero_hs_profile)
+ * - First-time completion of each episode (1..40) grants +100G seed Gold
+ * - Unlocks <성소의 연대기 학자> at 10 episodes and <운명의 오카리나 계승자> at 40 episodes
+ */
+export function recordMediaEpisodeRead(ep: number): {
+  newlyRewarded: boolean;
+  totalReadCount: number;
+  unlockedTitleId: string | null;
+} {
+  if (typeof localStorage === 'undefined') {
+    return { newlyRewarded: false, totalReadCount: 0, unlockedTitleId: null };
+  }
+  const safeEp = Math.max(1, Math.min(40, Math.floor(Number(ep) || 1)));
+  try {
+    const raw = localStorage.getItem('snshero_media_read_eps');
+    const parsed: number[] = raw ? JSON.parse(raw) : [];
+    const set = new Set<number>(
+      Array.isArray(parsed)
+        ? parsed.map((n) => Math.floor(Number(n))).filter((n) => n >= 1 && n <= 40)
+        : [],
+    );
+    const wasAlreadyRead = set.has(safeEp);
+    set.add(safeEp);
+    const updatedList = Array.from(set).sort((a, b) => a - b);
+    localStorage.setItem('snshero_media_read_eps', JSON.stringify(updatedList));
+
+    let unlockedTitleId: string | null = null;
+    const profileRaw = localStorage.getItem(KEYS.PROFILE);
+    const baseProfile: PlayerProfile = profileRaw ? JSON.parse(profileRaw) : defaultProfile();
+    let profileDirty = false;
+
+    if (!wasAlreadyRead) {
+      baseProfile.gold = (Number(baseProfile.gold) || 0) + 100;
+      profileDirty = true;
+    }
+
+    if (!baseProfile.prestige) {
+      baseProfile.prestige = defaultPrestigeState();
+    }
+    if (!Array.isArray(baseProfile.prestige.ownedTitles)) {
+      baseProfile.prestige.ownedTitles = ['title_adventurer'];
+    }
+    if (
+      updatedList.length >= 10 &&
+      !baseProfile.prestige.ownedTitles.includes('title_sanctuary_chronicler')
+    ) {
+      baseProfile.prestige.ownedTitles.push('title_sanctuary_chronicler');
+      unlockedTitleId = 'title_sanctuary_chronicler';
+      profileDirty = true;
+    }
+    if (
+      updatedList.length >= 40 &&
+      !baseProfile.prestige.ownedTitles.includes('title_ocarina_heir')
+    ) {
+      baseProfile.prestige.ownedTitles.push('title_ocarina_heir');
+      unlockedTitleId = 'title_ocarina_heir';
+      profileDirty = true;
+    }
+
+    if (profileDirty) {
+      localStorage.setItem(KEYS.PROFILE, JSON.stringify(baseProfile));
+      emitStateChanged();
+    }
+
+    return {
+      newlyRewarded: !wasAlreadyRead,
+      totalReadCount: updatedList.length,
+      unlockedTitleId,
+    };
+  } catch {
+    return { newlyRewarded: false, totalReadCount: 0, unlockedTitleId: null };
+  }
+}
+
+export function getMediaReadProgressSummary(): { readEps: number[]; totalReadCount: number } {
+  if (typeof localStorage === 'undefined') return { readEps: [], totalReadCount: 0 };
+  try {
+    const raw = localStorage.getItem('snshero_media_read_eps');
+    const parsed: number[] = raw ? JSON.parse(raw) : [];
+    const list = Array.isArray(parsed)
+      ? Array.from(new Set(parsed.map((n) => Math.floor(Number(n))).filter((n) => n >= 1 && n <= 40)))
+      : [];
+    return { readEps: list, totalReadCount: list.length };
+  } catch {
+    return { readEps: [], totalReadCount: 0 };
   }
 }
 

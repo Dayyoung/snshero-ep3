@@ -6,6 +6,8 @@ const SETTINGS_KEY = 'hero_hs_settings';
 const CALM_BGM_MIGRATION_KEY = 'hero_hs_calm_bgm_15_v1';
 const CALM_SFX_MIGRATION_KEY = 'hero_hs_calm_sfx_38_v1';
 
+export type LobbySkyTimePref = 'AUTO' | 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT';
+
 export interface AudioSettings {
   bgmVolume: number;
   sfxVolume: number;
@@ -13,6 +15,10 @@ export interface AudioSettings {
   muted: boolean;
   vibrateEnabled: boolean;
   ttsEnabled: boolean;
+  lobbySkyTime: LobbySkyTimePref;
+  emoteBubblesEnabled: boolean;
+  kadanClutchBreakEnabled: boolean;
+  compactCleanCardView: boolean;
 }
 
 export type AttackVibrationKind =
@@ -35,6 +41,10 @@ const DEFAULT_AUDIO: AudioSettings = {
   muted: false,
   vibrateEnabled: true,
   ttsEnabled: true,
+  lobbySkyTime: 'AUTO',
+  emoteBubblesEnabled: true,
+  kadanClutchBreakEnabled: true,
+  compactCleanCardView: false,
 };
 
 export interface DamageVibrationSpec {
@@ -352,6 +362,10 @@ class SnsHeroCardAudioEngine {
     this.settings = { ...this.settings, ...patch };
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('snshero:settings-changed', { detail: this.settings }));
+        window.dispatchEvent(new Event('snshero:state-changed'));
+      }
     } catch {
       // ignore
     }

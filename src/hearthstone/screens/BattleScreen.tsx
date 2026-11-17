@@ -770,7 +770,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [preBattleModalOpen, setPreBattleModalOpen] = useState<boolean>(() =>
     Boolean(openPresetModalOnStart),
   );
-  const [clutchBreakEnabled, setClutchBreakEnabled] = useState(true);
+  const [clutchBreakEnabled, setClutchBreakEnabled] = useState(
+    () => hsAudio.getSettings().kadanClutchBreakEnabled !== false,
+  );
+  const [cleanCardView, setCleanCardView] = useState(
+    () => Boolean(hsAudio.getSettings().compactCleanCardView),
+  );
+  const [challengerPrestigeOpen, setChallengerPrestigeOpen] = useState(false);
   const [clutchChoice, setClutchChoice] = useState<{
     reasonKo: string;
     reasonEn: string;
@@ -852,7 +858,23 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [hoveredHistoryItem, setHoveredHistoryItem] = useState<ActionHistoryItem | null>(null);
   const [playerEmoteText, setPlayerEmoteText] = useState<string | null>(null);
   const [opponentEmoteText, setOpponentEmoteText] = useState<string | null>(null);
-  const [opponentSquelched, setOpponentSquelched] = useState(false);
+  const [opponentSquelched, setOpponentSquelched] = useState(
+    () => hsAudio.getSettings().emoteBubblesEnabled === false,
+  );
+
+  useEffect(() => {
+    const syncPrefs = () => {
+      const s = hsAudio.getSettings();
+      setClutchBreakEnabled(s.kadanClutchBreakEnabled !== false);
+      setCleanCardView(Boolean(s.compactCleanCardView));
+      if (s.emoteBubblesEnabled === false) {
+        setOpponentSquelched(true);
+        setOpponentEmoteText(null);
+      }
+    };
+    window.addEventListener('snshero:settings-changed', syncPrefs);
+    return () => window.removeEventListener('snshero:settings-changed', syncPrefs);
+  }, []);
   const [squelchMenuOpen, setSquelchMenuOpen] = useState(false);
   const [playErrorBubble, setPlayErrorBubble] = useState<string | null>(null);
   const [toyToast, setToyToast] = useState<string | null>(null);
@@ -4678,16 +4700,41 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               {tr('기물', 'Toys')}
             </button>
 
+            {/* DEV-039: Clean Art View 1-Tap Toggle */}
             <button
               type="button"
+              data-testid="battle-clean-view-toggle"
+              onClick={(e) => {
+                e.stopPropagation();
+                hsAudio.playSfx('ui_click', 0.75);
+                const next = !cleanCardView;
+                setCleanCardView(next);
+                hsAudio.updateSettings({ compactCleanCardView: next });
+              }}
+              title={tr(
+                '전장 클린 아트 뷰 전환 (평상시 일러스트·공체만 표시)',
+                'Toggle Clean Art Card View',
+              )}
+              className={`min-h-[38px] rounded-xl border px-2 py-1 text-[10px] font-extrabold shadow transition sm:px-2.5 sm:text-xs ${
+                cleanCardView
+                  ? 'border-cyan-300 bg-cyan-950/90 text-cyan-100'
+                  : 'hs-brass-btn text-amber-100'
+              }`}
+            >
+              🎨 {cleanCardView ? tr('클린뷰 ON', 'Clean ON') : tr('클린뷰', 'Clean')}
+            </button>
+
+            <button
+              type="button"
+              data-testid="battle-top-gear-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 hsAudio.playSfx('open_menu');
                 onOpenOptions(handleConcede);
               }}
-              className="hs-brass-btn rounded-xl px-2.5 py-1 text-[10.5px] font-extrabold text-amber-100 sm:px-3 sm:text-xs"
+              className="hs-brass-btn min-h-[38px] rounded-xl px-2.5 py-1 text-[10.5px] font-extrabold text-amber-100 sm:px-3 sm:text-xs"
             >
-              {tr('메뉴 · 항복', 'Menu · Concede')}
+              ⚙ {tr('메뉴 · 항복', 'Menu · Concede')}
             </button>
           </div>
         </div>
@@ -4777,6 +4824,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 <span className="text-yellow-300">〈{isKo ? resolvedChallenger.titleKo : resolvedChallenger.titleEn}〉</span>
               </span>
             )}
+            <button
+              type="button"
+              data-testid="challenger-prestige-info-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                hsAudio.playSfx('gem_c_select', 0.7);
+                setChallengerPrestigeOpen((v) => !v);
+              }}
+              className="rounded-lg border border-yellow-300/55 bg-amber-950/85 px-2 py-0.5 text-[10px] font-extrabold text-yellow-200 hover:bg-amber-900"
+            >
+              👑 {tr('치장품 보기', 'Loadout')}
+            </button>
             <span className="text-stone-600">|</span>
             <button
               type="button"
@@ -4810,6 +4869,54 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             >
               {opponentSquelched ? tr('🔇 차단됨', '🔇 Muted') : tr('🔊 도발 허용', '🔊 Taunts ON')}
             </button>
+          </div>
+        )}
+
+        {/* DEV-035: Challenger Gold Prestige 4-Piece Loadout Popover + Shop Shortcut */}
+        {challengerPrestigeOpen && resolvedChallenger && (
+          <div
+            data-testid="challenger-prestige-popover"
+            onClick={(e) => e.stopPropagation()}
+            className="hs-ocarina-dialog mx-auto flex w-full max-w-md flex-wrap items-center justify-between gap-2 rounded-2xl px-3.5 py-2 text-[11px] font-extrabold text-amber-100 shadow-2xl"
+          >
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <div className="text-yellow-300">
+                👑 {resolvedChallenger.nickname} · {tr('장착 골드 치장품', 'Equipped Gold Cosmetics')}
+              </div>
+              <div className="text-[10.5px] text-sky-200">
+                {resolvedChallenger.badgeIcon} 〈{isKo ? resolvedChallenger.titleKo : resolvedChallenger.titleEn}〉 ·{' '}
+                {isKo
+                  ? resolvedChallenger.frameNameKo || '24K 로얄 골드 프레임'
+                  : resolvedChallenger.frameNameEn || '24K Royal Gold Frame'}{' '}
+                ·{' '}
+                {isKo
+                  ? resolvedChallenger.cardBackNameKo || '엘윈 성소의 문장'
+                  : resolvedChallenger.cardBackNameEn || 'Elwin Sanctuary Crest'}
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              {onOpenShopFromBattle && (
+                <button
+                  type="button"
+                  data-testid="challenger-open-shop-btn"
+                  onClick={() => {
+                    hsAudio.playSfx('gem_a_confirm');
+                    setChallengerPrestigeOpen(false);
+                    onOpenShopFromBattle();
+                  }}
+                  className="hs-zelda-c-btn min-h-[34px] rounded-xl px-2.5 py-1 text-[10px] font-black text-stone-950"
+                >
+                  🪙 {tr('상점 보기', 'Gold Shop')}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setChallengerPrestigeOpen(false)}
+                className="min-h-[34px] rounded-xl border border-amber-400/40 bg-black/45 px-2 text-[10px] text-amber-200"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         )}
 

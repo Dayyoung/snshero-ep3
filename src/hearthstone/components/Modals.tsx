@@ -83,7 +83,19 @@ import {
 const QUEST_EN_MAP: Record<string, { title: string; description: string }> = {
   q_win_3: {
     title: 'Champion of Elwin Village',
-    description: 'Win 2 matches in Story Mode, Ranked, or Practice AI.',
+    description: "Win 2 matches in Story Mode, Ranked Challenger Match, or Bogart's Hall.",
+  },
+  q_bogart_play: {
+    title: "Bogart's Hall High-Roller",
+    description: "Complete 1 Gold-wager match in Bogart's Gambling Hall.",
+  },
+  q_ranked_tactic_win: {
+    title: 'Live Kadan Tactical Command',
+    description: 'Win 1 Ranked Challenger Match with Kadan tactical command.',
+  },
+  q_awakened_win: {
+    title: 'Proof of 3x Awakening',
+    description: 'Win 1 duel while owning a 3x Awakened (x3+) card.',
   },
   q_play_minions: {
     title: 'Rally Hero Companions',
@@ -490,6 +502,7 @@ export const QuestLogModal: React.FC<{
                   onClick={() => {
                     const res = hsStorage.claimAllCompletedQuests();
                     if (res.claimedCount > 0) {
+                      hsAudio.playSfx('mario_coin', 0.9);
                       hsAudio.playSfx('purchase');
                       onProfileChanged();
                       setClaimBanner(
@@ -514,6 +527,32 @@ export const QuestLogModal: React.FC<{
                 {claimBanner}
               </div>
             )}
+            {/* MKT-054: Odd-Balance Gold Next-Milestone Progress Bridge */}
+            <div
+              data-testid="quest-gold-progress-bridge"
+              className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-400/50 bg-amber-950/55 px-3 py-2 text-[11px] font-extrabold text-amber-100"
+            >
+              <span>
+                🪙{' '}
+                {profile.gold < 450
+                  ? tr(
+                      `현재 보유 ${profile.gold}G · 5팩 할인 묶음(450G)까지 ${450 - profile.gold}G 남음 · 보가트 도박장 2배 베팅 즉시 가능!`,
+                      `Owned ${profile.gold}G · ${450 - profile.gold}G away from 5-Pack Bundle (450G) · Bogart 2x Bet ready!`,
+                    )
+                  : profile.gold < 850
+                    ? tr(
+                        `현재 보유 ${profile.gold}G · 10팩 대묶음(850G)까지 ${850 - profile.gold}G 남음 · 명예 호칭 즉시 해금 가능!`,
+                        `Owned ${profile.gold}G · ${850 - profile.gold}G away from 10-Pack Bundle (850G) · Prestige Titles ready!`,
+                      )
+                    : tr(
+                        `현재 보유 ${profile.gold}G · 10팩 대묶음(850G) 및 한정 골드 치장품 즉시 해금 가능!`,
+                        `Owned ${profile.gold}G · Ready to unlock 10-Pack Bundle (850G) or Gold Prestige items!`,
+                      )}
+              </span>
+              <span className="rounded-full border border-yellow-300/60 bg-black/50 px-2.5 py-0.5 text-[10px] font-black text-yellow-300">
+                {Math.min(100, Math.round((profile.gold / 850) * 100))}% / 850G
+              </span>
+            </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {quests.map((q) => {
                 const isCleared = q.completed || q.progress >= q.goal;
@@ -524,6 +563,7 @@ export const QuestLogModal: React.FC<{
                   if (isClaimable) {
                     const res = hsStorage.claimCompletedQuest(q.id);
                     if (res.claimed) {
+                      hsAudio.playSfx('mario_coin', 0.9);
                       hsAudio.playSfx('purchase');
                       onProfileChanged();
                       setClaimBanner(
@@ -658,6 +698,7 @@ export const TavernShopModal: React.FC<{
   const [shopTab, setShopTab] = useState<'PACKS' | 'PRESTIGE'>('PACKS');
   const [prestigeCat, setPrestigeCat] = useState<PrestigeCategory>('BADGE');
   const [zoomedPrestigeImg, setZoomedPrestigeImg] = useState<{ src: string; title: string; where: string } | null>(null);
+  const [prestigeBackupPromptOpen, setPrestigeBackupPromptOpen] = useState<boolean>(false);
   const [step, setStep] = useState<ShopCheckoutStep>('quantity');
   const [selectedPkg, setSelectedPkg] = useState<GameShopPackage>(GAME_SHOP_PACKAGES[0]);
   const [countryCode, setCountryCode] = useState<string>(() => (isKo ? 'ko' : 'en'));
@@ -1148,6 +1189,9 @@ export const TavernShopModal: React.FC<{
                             ),
                           );
                         }
+                        if (!hsStorage.isSafeguardBonusClaimed()) {
+                          setPrestigeBackupPromptOpen(true);
+                        }
                         refresh();
                       }}
                       className={`hs-mario-spring mt-2.5 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl text-xs font-extrabold transition ${
@@ -1179,6 +1223,61 @@ export const TavernShopModal: React.FC<{
                 );
               })}
             </div>
+
+            {/* MKT-060: Prestige Collection Backup & PWA Lock-in Prompt (+100G) */}
+            {prestigeBackupPromptOpen && (
+              <div
+                data-testid="prestige-backup-lockin-banner"
+                className="hs-ocarina-dialog flex flex-wrap items-center justify-between gap-2 rounded-2xl p-3 text-xs font-extrabold text-amber-100 shadow-lg"
+              >
+                <span className="min-w-0 flex-1">
+                  👑{' '}
+                  {tr(
+                    '신규 명예 컬렉션 장착 완료! 브라우저 캐시 삭제 시 치장품이 사라지지 않도록 지금 백업 코드를 1초 복사하고 도박장 시드머니 +100G를 받으세요!',
+                    'Prestige item equipped! Copy your backup code in 1 tap to protect your cosmetics & claim +100G seed Gold!',
+                  )}
+                </span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="prestige-backup-copy-btn"
+                    onClick={async () => {
+                      hsAudio.playSfx('mario_coin', 0.9);
+                      const { jsonString } = hsStorage.exportGameBackupData();
+                      try {
+                        await navigator.clipboard.writeText(jsonString);
+                      } catch {
+                        hsStorage.downloadGameBackupFile();
+                      }
+                      const bonus = hsStorage.claimSafeguardBackupBonus();
+                      setPrestigeBackupPromptOpen(false);
+                      refresh();
+                      showToast(
+                        bonus.granted
+                          ? tr(
+                              '👑 명예 컬렉션 백업 코드 복사 완료! 시드머니 +100G가 지급되었습니다.',
+                              '👑 Prestige backup copied! +100G seed Gold granted.',
+                            )
+                          : tr(
+                              '👑 명예 컬렉션 백업 코드가 복사되었습니다.',
+                              '👑 Prestige backup code copied.',
+                            ),
+                      );
+                    }}
+                    className="hs-zelda-a-btn min-h-[40px] rounded-xl px-3 py-1.5 text-xs font-extrabold text-white"
+                  >
+                    {tr('📲 백업 코드 복사 (+100G)', '📲 Copy Backup (+100G)')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrestigeBackupPromptOpen(false)}
+                    className="min-h-[40px] rounded-xl border border-amber-400/40 bg-black/50 px-2.5 text-xs text-amber-200"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Full-Resolution In-Game Applied Screenshot Zoom Lightbox */}
             {zoomedPrestigeImg && (
@@ -1271,6 +1370,30 @@ export const TavernShopModal: React.FC<{
           <div className="space-y-4">
             {/* A. Gold Pack Purchase Section */}
             <div className="rounded-2xl border-2 border-yellow-400/55 bg-gradient-to-b from-amber-950/45 to-black/55 p-3.5 sm:p-4">
+              {/* MKT-060: Currency Decoupling Value Guide (Gold for Bogart & Prestige vs $4 Cash Pack Bundle) */}
+              <div
+                data-testid="shop-currency-decouple-banner"
+                className="mb-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sky-400/45 bg-sky-950/65 px-3 py-2 text-[11px] font-extrabold text-sky-100"
+              >
+                <span className="min-w-0 flex-1">
+                  🎲{' '}
+                  {tr(
+                    '추천 팁: 소중한 골드는 [보가트의 도박장] 판돈과 [명예 호칭 · 24K 스킨] 해금에 아껴두고, 카드팩은 5팩 특가(5,600원/$4)로 여실 수 있습니다!',
+                    "Tip: Save your Gold for [Bogart's Hall] wagers & [Gold Prestige Titles/Skins], and open 5 Packs at the $4 (20% OFF) bundle!",
+                  )}
+                </span>
+                <button
+                  type="button"
+                  data-testid="shop-decouple-select-pack5-btn"
+                  onClick={() => {
+                    const pack5 = GAME_SHOP_PACKAGES.find((p) => p.id === 'pack_5');
+                    if (pack5) handleSelectPackageToStep2(pack5);
+                  }}
+                  className="hs-zelda-a-btn min-h-[36px] shrink-0 rounded-lg px-2.5 py-1 text-[10.5px] font-extrabold text-white"
+                >
+                  {tr('💎 5팩 특가 선택 →', '💎 5-Pack Deal →')}
+                </button>
+              </div>
               <div className="mb-2.5 flex flex-wrap items-center justify-between gap-1">
                 <div className="flex items-center gap-1.5">
                   <HsGoldCoinIcon size={18} />
@@ -2072,6 +2195,7 @@ export const GameOptionsModal: React.FC<{
   onClose: () => void;
 }> = ({ inBattle = false, onConcede, onGoHome, onClose }) => {
   const { lang, setLang } = useHeroLanguage();
+  const isKo = lang === 'ko';
   useModalDismiss(true, onClose);
 
   const [activeTab, setActiveTab] = useState<OptionsTabKey>('SYSTEM');
@@ -2478,6 +2602,124 @@ export const GameOptionsModal: React.FC<{
                     {vibSupport.supportedOnDevice ? tr('안드로이드 진동 지원', 'Device haptics ready') : tr('모바일 타격 피드백', 'Damage-scaled haptic')}
                   </span>
                 </button>
+
+                <button
+                  type="button"
+                  data-testid="toggle-emote-bubbles"
+                  onClick={() => {
+                    hsAudio.playSfx('ui_click', 0.75);
+                    update({ emoteBubblesEnabled: !(settings.emoteBubblesEnabled ?? true) });
+                  }}
+                  className={`flex min-h-[48px] flex-col justify-center rounded-xl border px-3 py-2 text-left transition ${
+                    settings.emoteBubblesEnabled !== false
+                      ? 'border-amber-300/70 bg-amber-950/60 text-amber-100 shadow'
+                      : 'border-amber-400/30 bg-black/45 text-amber-100/75'
+                  }`}
+                >
+                  <span className="text-xs font-extrabold">
+                    {settings.emoteBubblesEnabled !== false
+                      ? tr('도발 말풍선 켜짐', 'Emote Bubbles ON')
+                      : tr('도발 말풍선 꺼짐', 'Emote Bubbles OFF')}
+                  </span>
+                  <span className="text-[10px] text-amber-200/75">
+                    {tr('랭킹 도전자 실시간 대사', 'Challenger live emotes')}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="toggle-clutch-break"
+                  onClick={() => {
+                    hsAudio.playSfx('ui_click', 0.75);
+                    update({ kadanClutchBreakEnabled: !(settings.kadanClutchBreakEnabled ?? true) });
+                  }}
+                  className={`flex min-h-[48px] flex-col justify-center rounded-xl border px-3 py-2 text-left transition ${
+                    settings.kadanClutchBreakEnabled !== false
+                      ? 'border-purple-300/70 bg-purple-950/60 text-purple-100 shadow'
+                      : 'border-amber-400/30 bg-black/45 text-amber-100/75'
+                  }`}
+                >
+                  <span className="text-xs font-extrabold">
+                    {settings.kadanClutchBreakEnabled !== false
+                      ? tr('카단 승부처 ON', 'Clutch Break ON')
+                      : tr('카단 승부처 OFF', 'Clutch Break OFF')}
+                  </span>
+                  <span className="text-[10px] text-amber-200/75">
+                    {tr('자동 중 위기·킬각 5초 선택', '5s choice on lethal/crisis')}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="toggle-clean-card-view"
+                  onClick={() => {
+                    hsAudio.playSfx('ui_click', 0.75);
+                    update({ compactCleanCardView: !settings.compactCleanCardView });
+                  }}
+                  className={`col-span-2 flex min-h-[46px] items-center justify-between rounded-xl border px-3 py-2 text-left transition ${
+                    settings.compactCleanCardView
+                      ? 'border-cyan-300/75 bg-cyan-950/65 text-cyan-100 shadow'
+                      : 'border-amber-400/30 bg-black/45 text-amber-100/80'
+                  }`}
+                >
+                  <div>
+                    <div className="text-xs font-extrabold">
+                      {settings.compactCleanCardView
+                        ? tr('🎨 전장 클린 아트 뷰 켜짐', '🎨 Clean Art Card View ON')
+                        : tr('🎨 전장 기본 텍스트 뷰', '🎨 Standard Card Text View')}
+                    </div>
+                    <div className="text-[10px] text-amber-200/75">
+                      {tr('평상시 일러스트·공체만 깔끔히 표시 (터치 시 효과 확인)', 'Show clean art & stats; tap/hover for card text')}
+                    </div>
+                  </div>
+                  <span className="rounded-lg border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] font-black">
+                    {settings.compactCleanCardView ? 'CLEAN' : 'FULL'}
+                  </span>
+                </button>
+              </div>
+
+              {/* DEV-032: Lobby Sanctuary Sky Time Selector */}
+              <div className="border-b border-amber-400/25 pb-3">
+                <div className="mb-1.5 flex items-center justify-between text-xs font-extrabold text-amber-100">
+                  <span>{tr('엘윈 성소 하늘 시간대', 'Sanctuary Sky Lighting')}</span>
+                  <span className="text-[10.5px] text-sky-300">
+                    {settings.lobbySkyTime || 'AUTO'}
+                  </span>
+                </div>
+                <div
+                  data-testid="options-sky-time-selector"
+                  className="grid grid-cols-5 gap-1"
+                >
+                  {(
+                    [
+                      { id: 'AUTO', labelKo: '실시간', labelEn: 'Auto' },
+                      { id: 'DAWN', labelKo: '🌅 아침', labelEn: '🌅 Dawn' },
+                      { id: 'DAY', labelKo: '☀️ 한낮', labelEn: '☀️ Day' },
+                      { id: 'DUSK', labelKo: '🌇 황혼', labelEn: '🌇 Dusk' },
+                      { id: 'NIGHT', labelKo: '🌙 밤', labelEn: '🌙 Night' },
+                    ] as const
+                  ).map((opt) => {
+                    const active = (settings.lobbySkyTime || 'AUTO') === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        data-testid={`sky-time-${opt.id}`}
+                        onClick={() => {
+                          hsAudio.playSfx('gem_c_select', 0.7);
+                          update({ lobbySkyTime: opt.id });
+                        }}
+                        className={`min-h-[38px] rounded-lg border px-1 text-[10.5px] font-extrabold transition ${
+                          active
+                            ? 'border-yellow-200 bg-amber-400 text-stone-950 shadow'
+                            : 'border-amber-400/30 bg-black/45 text-amber-100/80 hover:text-white'
+                        }`}
+                      >
+                        {isKo ? opt.labelKo : opt.labelEn}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {canInstallPwa && (

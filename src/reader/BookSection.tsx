@@ -22,6 +22,7 @@ import { getNovelRawEpisode } from '../content/novelRawEpisodes';
 import { getNovelRawEpisodeEn } from '../content/novelRawEpisodesEn';
 import episodesSchema from '../content/episodes.json';
 import { isKoreanLanguage, tr } from './i18n';
+import { getMediaReadProgressSummary, recordMediaEpisodeRead } from '../hearthstone/storage';
 
 const EPISODES_SSOT: { ep: number; titleKo: string; titleEn: string }[] = episodesSchema;
 
@@ -646,57 +647,52 @@ export function renderBookSection(): string {
               </p>
             </div>
 
-            <div class="p-4 sm:p-5 rounded-2xl bg-[#1b1008] text-[#f8ebd2] border-2 border-[#c8a158]/70 text-left space-y-4 shadow-xl">
+            <div class="p-4 sm:p-5 rounded-2xl bg-[#1b1008] text-[#f8ebd2] border-2 border-[#c8a158]/70 text-left space-y-3 shadow-xl">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[11px] font-extrabold">
                   ${
                     ep % 10 === 0
-                      ? tr(`🔥 제${bridge.actNumber}막 완독 달성! 막 최종 보스전`, `🔥 Act ${bridge.actNumber} Finale Boss Raid!`)
+                      ? tr(`🔥 제${bridge.actNumber}막 완독 · 막 최종 보스전`, `🔥 Act ${bridge.actNumber} Finale Boss Raid`)
                       : ep % 5 === 0
-                        ? tr('🎁 보스 토벌 카드팩 +1개 확정 지급 구간!', '🎁 Milestone: +1 Boss Card Pack Reward!')
-                        : tr(`⚔ 제${ep}화 서사-전투 연동 브릿지`, `⚔ EP.${ep} Story-to-Battle Bridge`)
+                        ? tr('🎁 5화 돌파 보스팩 +1개 구간', '🎁 Milestone: +1 Boss Pack')
+                        : tr(`⚔ 제${ep}화 보스 체험 브릿지`, `⚔ EP.${ep} Boss Bridge`)
                   }
                 </span>
-                <span class="text-[11px] font-bold text-emerald-300">
-                  ${tr('3장=3배 각성 & 성우 200트랙 풀보이스', '3x Awakening & 200 Voice Tracks')}
+                <span data-testid="book-media-reward-badge" class="text-[11px] font-bold text-emerald-300">
+                  ${(() => {
+                    recordMediaEpisodeRead(ep);
+                    const sum = getMediaReadProgressSummary();
+                    return isKo
+                      ? `🪙 회차 열람 +100G 성소 연동됨 (누적 ${sum.totalReadCount}/40화 · 10/40화 호칭 해금)`
+                      : `🪙 +100G Seed Gold Synced (${sum.totalReadCount}/40 EPs · 10/40 Title Unlock)`;
+                  })()}
                 </span>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                ${bridge.featuredCards
-                  .map(
-                    (fc) => `
-                    <a
-                      href="/game?mode=story&ep=${ep}&utm_source=book_card_widget"
-                      class="flex items-center gap-2.5 p-2 rounded-xl bg-black/45 border border-amber-500/30 hover:border-amber-300 no-underline transition"
-                    >
-                      <img src="${fc.imgUrl}" alt="${escapeHtml(isKo ? fc.nameKo : fc.nameEn)}" class="h-11 w-11 rounded-lg object-cover bg-stone-900 shrink-0" />
-                      <div class="min-w-0">
-                        <div class="text-xs font-extrabold text-amber-200 truncate">${escapeHtml(isKo ? fc.nameKo : fc.nameEn)}</div>
-                        <div class="text-[10px] font-bold text-amber-100/70 truncate">${escapeHtml(fc.statsLabel)}</div>
-                      </div>
-                    </a>
-                  `,
-                  )
-                  .join('')}
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <a
-                  href="/webtoon?ep=${ep}"
-                  class="px-5 py-3 rounded-full bg-[#2f1b0c] hover:bg-[#462913] border border-[#c8a158]/70 text-amber-200 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline transition"
+              <!-- DEV-038: Simplified 1-Primary (Next Ep) + 1-Sub (Play Boss) Action Bar -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                ${
+                  ep < 40
+                    ? `<button
+                  type="button"
+                  data-action="book-next-episode"
+                  class="hs-promo-cta-purple flex-1 min-h-[48px] py-3 px-5 rounded-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>🎨 ${tr(`제${ep}화 웹툰으로 감상하기`, `Read EP.${ep} Webtoon`)}</span>
-                </a>
+                  <span>📖 ${tr(`다음 화 읽기 (제${ep + 1}화) ▶`, `Read Next Episode (EP.${ep + 1}) ▶`)}</span>
+                </button>`
+                    : `<a
+                  href="/webtoon?ep=${ep}"
+                  class="hs-promo-cta-purple flex-1 min-h-[48px] py-3 px-5 rounded-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline"
+                >
+                  <span>🎨 ${tr('제40화 웹툰으로 감상하기 ▶', 'Read EP.40 Webtoon ▶')}</span>
+                </a>`
+                }
                 <a
                   href="/game?mode=story&ep=${ep}&utm_source=book_card_widget"
-                  class="hs-promo-cta-purple py-3 px-5 rounded-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline"
+                  class="min-h-[48px] px-5 py-3 rounded-full bg-[#2f1b0c] hover:bg-[#462913] border border-[#c8a158]/70 text-amber-200 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline transition"
                 >
                   <span>
-                    ⚔ ${tr(
-                      `제${ep}화 보스전 직접 돌파하기 (무료 3팩)`,
-                      `Play EP.${ep} Boss Battle (3 Free Packs)`,
-                    )}
+                    ⚔ ${tr(`이번 화 보스전 체험`, `Try EP.${ep} Boss`)}
                   </span>
                 </a>
               </div>

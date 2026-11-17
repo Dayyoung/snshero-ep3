@@ -19,6 +19,7 @@ import { getEpisodeBridgeInfo } from './episodeBridge';
 import WEBTOON_MANIFEST_DATA from '../content/webtoonEpisodeManifest.json';
 import episodesSchema from '../content/episodes.json';
 import { isKoreanLanguage, tr } from './i18n';
+import { getMediaReadProgressSummary, recordMediaEpisodeRead } from '../hearthstone/storage';
 
 const EPISODES_SSOT: { ep: number; titleKo: string; titleEn: string }[] = episodesSchema;
 
@@ -58,6 +59,7 @@ const MANIFEST = WEBTOON_MANIFEST_DATA as unknown as Record<string, WebtoonManif
 
 let currentWebtoonEpisode: number = 1;
 let isWebtoonIndexOpen: boolean = false;
+let currentVoiceCut: number = 1;
 
 // Lightbox (Fullscreen Zoom) State
 let zoomedEpisode: number = 1;
@@ -136,6 +138,11 @@ export function handleWebtoonAction(action: string, target?: HTMLElement): void 
     }
   } else if (action === 'webtoon-toggle-index') {
     isWebtoonIndexOpen = !isWebtoonIndexOpen;
+  } else if (action === 'webtoon-select-voice-cut') {
+    const cutVal = Number(target?.getAttribute('data-cut') || '1');
+    if (cutVal >= 1 && cutVal <= 5) {
+      currentVoiceCut = cutVal;
+    }
   } else if (action === 'webtoon-zoom-image') {
     const epAttr = target?.getAttribute('data-episode');
     const sceneAttr = target?.getAttribute('data-scene-index');
@@ -549,6 +556,35 @@ export function renderWebtoonSection(): string {
               `下にスクロールしてカットとセリフを順番にお楽しみください。（全${totalPanels}カット・クリックで全画面左右ページめくり対応）`
             )}
           </p>
+
+          <!-- MKT-053: Studio Voiceover Narration Sync Bar (200 Tracks) -->
+          <div data-testid="webtoon-voice-sync-bar" class="mt-3 p-3 rounded-2xl bg-[#140b05]/95 border border-amber-500/45 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-left">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs font-extrabold text-amber-300">
+                🎧 ${tr('성우 풀보이스 오디오 모드:', 'Studio Voice Narration:')}
+              </span>
+              ${[1, 2, 3, 4, 5]
+                .map(
+                  (cNum) => `<button
+                type="button"
+                data-action="webtoon-select-voice-cut"
+                data-cut="${cNum}"
+                class="min-h-[34px] px-2.5 py-1 rounded-full text-[11px] font-extrabold border cursor-pointer transition ${
+                  currentVoiceCut === cNum
+                    ? 'bg-amber-400 text-[#1b0f05] border-yellow-200'
+                    : 'bg-[#24140a] text-amber-200 border-amber-500/40 hover:border-amber-300'
+                }"
+              >Cut ${cNum}</button>`,
+                )
+                .join('')}
+            </div>
+            <audio
+              controls
+              preload="none"
+              src="/hs-assets/snshero-audio/story/ep${String(ep).padStart(2, '0')}_cut${currentVoiceCut}.mp3"
+              class="h-9 w-full sm:w-64"
+            ></audio>
+          </div>
         </div>
       </section>
 
@@ -767,27 +803,44 @@ export function renderWebtoonSection(): string {
                   <img src="${bridge.bossImageUrl}" alt="${escapeHtml(isKo ? bridge.bossNameKo : bridge.bossNameEn)}" class="h-12 w-12 rounded-xl object-cover border border-amber-400/60 bg-black" />
                   <div>
                     <div class="text-xs font-extrabold text-amber-300">
-                      ${escapeHtml(isKo ? bridge.bossNameKo : bridge.bossNameEn)} · ${tr('인게임 382종 카드 소환 가능', 'Playable in 382-Card Web TCG')}
+                      ${escapeHtml(isKo ? bridge.bossNameKo : bridge.bossNameEn)} · ${tr('인게임 보스전 체험', 'Playable Boss Battle')}
                     </div>
-                    <div class="text-[11px] font-bold text-amber-100/75">
-                      ${tr('첫 방문 무료 3팩 + 250골드 즉시 지급 (첫 10팩 내 전설 100% 확정!)', 'Claim 3 Free Packs + 250 Gold instantly (Guaranteed 1st Legendary in 10 Packs!)')}
+                    <div data-testid="webtoon-media-reward-badge" class="text-[11px] font-bold text-emerald-300">
+                      ${(() => {
+                        recordMediaEpisodeRead(ep);
+                        const sum = getMediaReadProgressSummary();
+                        return isKo
+                          ? `🪙 회차 열람 +100G 성소 연동됨 (누적 ${sum.totalReadCount}/40화 · 10/40화 호칭 해금)`
+                          : `🪙 +100G Seed Gold Synced (${sum.totalReadCount}/40 EPs · 10/40 Title Unlock)`;
+                      })()}
                     </div>
                   </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 shrink-0">
-                  <a
-                    href="/book.html?ep=${ep}"
-                    class="px-4 py-2.5 rounded-full bg-[#2a180c] hover:bg-[#3a2211] border border-amber-500/50 text-amber-200 text-xs font-extrabold no-underline transition"
-                  >
-                    📖 ${tr(`제${ep}화 원작 소설 읽기`, `Read EP.${ep} Novel`)}
-                  </a>
-                  <a
-                    href="/game?mode=story&ep=${ep}&utm_source=webtoon_ep"
-                    class="hs-promo-cta-purple px-5 py-2.5 rounded-full text-xs font-extrabold no-underline"
-                  >
-                    ⚔ ${tr(`제${ep}화 보스전 바로 도전하기 →`, `Challenge EP.${ep} Boss →`)}
-                  </a>
-                </div>
+              </div>
+              <!-- DEV-038: Simplified 1-Primary (Next Ep) + 1-Sub (Play Boss) Action Bar -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                ${
+                  ep < 40
+                    ? `<button
+                  type="button"
+                  data-action="webtoon-next-episode"
+                  class="hs-promo-cta-purple flex-1 min-h-[48px] px-5 py-3 rounded-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>🎨 ${tr(`다음 화 읽기 (제${ep + 1}화) ▶`, `Read Next Episode (EP.${ep + 1}) ▶`)}</span>
+                </button>`
+                    : `<a
+                  href="/book.html?ep=${ep}"
+                  class="hs-promo-cta-purple flex-1 min-h-[48px] px-5 py-3 rounded-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline"
+                >
+                  <span>📖 ${tr('제40화 원작 소설 감상 ▶', 'Read EP.40 Novel ▶')}</span>
+                </a>`
+                }
+                <a
+                  href="/game?mode=story&ep=${ep}&utm_source=webtoon_ep"
+                  class="min-h-[48px] px-5 py-3 rounded-full bg-[#2a180c] hover:bg-[#3a2211] border border-amber-500/50 text-amber-200 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline transition"
+                >
+                  <span>⚔ ${tr(`이번 화 보스전 체험`, `Try EP.${ep} Boss`)}</span>
+                </a>
               </div>
             </div>
 

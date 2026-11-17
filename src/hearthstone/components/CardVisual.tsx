@@ -590,23 +590,43 @@ export interface HearthstoneCardProps {
   size?: 'XS' | 'SM' | 'MD' | 'LG';
   journeyMultiplier?: number;
   enableTilt?: boolean;
+  compactCleanMode?: boolean;
   onClick?: () => void;
   className?: string;
 }
 
 const cosmeticSubscribers = new Set<() => void>();
 let cosmeticListenerBound = false;
+let cachedCleanViewSnapshot = false;
+if (typeof window !== 'undefined') {
+  try {
+    const rawS = localStorage.getItem('hero_hs_settings');
+    if (rawS) cachedCleanViewSnapshot = Boolean(JSON.parse(rawS)?.compactCleanCardView);
+  } catch {
+    // ignore
+  }
+}
 function subscribeCosmeticState(cb: () => void): () => void {
   if (!cosmeticListenerBound && typeof window !== 'undefined') {
     cosmeticListenerBound = true;
-    window.addEventListener('snshero:state-changed', () => {
+    const syncCosmetics = () => {
       const prev = cachedFrameSnapshot;
       const next = hsStorage.getEquippedCardFrame();
-      if (next !== prev) {
+      let nextClean = false;
+      try {
+        const rawS = localStorage.getItem('hero_hs_settings');
+        if (rawS) nextClean = Boolean(JSON.parse(rawS)?.compactCleanCardView);
+      } catch {
+        // ignore
+      }
+      if (next !== prev || nextClean !== cachedCleanViewSnapshot) {
         cachedFrameSnapshot = next;
+        cachedCleanViewSnapshot = nextClean;
         cosmeticSubscribers.forEach((fn) => fn());
       }
-    });
+    };
+    window.addEventListener('snshero:state-changed', syncCosmetics);
+    window.addEventListener('snshero:settings-changed', syncCosmetics);
   }
   cosmeticSubscribers.add(cb);
   return () => {
@@ -626,6 +646,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
   size = 'MD',
   journeyMultiplier = 1,
   enableTilt = false,
+  compactCleanMode,
   onClick,
   className = '',
 }) => {
@@ -1235,15 +1256,54 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             draggable={false}
             className="pointer-events-none absolute h-20 w-20 rounded-full object-contain opacity-[0.13] grayscale-[25%]"
           />
-          {formattedHtml && (
-            <div
-              style={{ fontSize: bodyFontSize }}
-              className={`relative z-10 line-clamp-5 font-extrabold leading-[1.18] tracking-tight ${
-                isWeapon ? 'text-slate-100' : 'text-[#211307]'
-              }`}
-              dangerouslySetInnerHTML={{ __html: formattedHtml }}
-            />
-          )}
+          {(() => {
+            const useCleanArtBox =
+              size !== 'LG' &&
+              (compactCleanMode !== undefined ? compactCleanMode : cachedCleanViewSnapshot);
+            if (useCleanArtBox) {
+              const kwChips: string[] = [];
+              const mechs = card.mechanics || [];
+              if (mechs.includes('TAUNT')) kwChips.push(isKo ? '🛡도발' : '🛡Taunt');
+              if (mechs.includes('DIVINE_SHIELD')) kwChips.push(isKo ? '✨성막' : '✨Shield');
+              if (mechs.includes('CHARGE')) kwChips.push(isKo ? '⚡돌진' : '⚡Charge');
+              if (mechs.includes('BATTLECRY')) kwChips.push(isKo ? '🎺함성' : '🎺Battlecry');
+              if (mechs.includes('DEATHRATTLE')) kwChips.push(isKo ? '💀죽메' : '💀Deathrattle');
+              if (mechs.includes('WINDFURY')) kwChips.push(isKo ? '🌀질풍' : '🌀Windfury');
+              if (mechs.includes('STEALTH')) kwChips.push(isKo ? '🌙은신' : '🌙Stealth');
+              if (card.spellPower && card.spellPower > 0) {
+                kwChips.push(isKo ? `✨주문+${card.spellPower}` : `✨Spell+${card.spellPower}`);
+              }
+              return (
+                <div className="relative z-10 flex flex-wrap items-center justify-center gap-1 px-1">
+                  {kwChips.length > 0 ? (
+                    kwChips.slice(0, 3).map((kw) => (
+                      <span
+                        key={kw}
+                        className="rounded-md border border-amber-700/60 bg-amber-950/90 px-2 py-0.5 text-[14px] font-black text-amber-100 shadow"
+                      >
+                        {kw}
+                      </span>
+                    ))
+                  ) : formattedHtml ? (
+                    <span className="rounded-md border border-stone-600/50 bg-stone-900/80 px-2 py-0.5 text-[13px] font-extrabold text-amber-200">
+                      {isSpell ? (isKo ? '✨ 주문 효과' : '✨ Spell') : isKo ? '📜 특수 능력' : '📜 Ability'}
+                    </span>
+                  ) : null}
+                </div>
+              );
+            }
+            return (
+              formattedHtml && (
+                <div
+                  style={{ fontSize: bodyFontSize }}
+                  className={`relative z-10 line-clamp-5 font-extrabold leading-[1.18] tracking-tight ${
+                    isWeapon ? 'text-slate-100' : 'text-[#211307]'
+                  }`}
+                  dangerouslySetInnerHTML={{ __html: formattedHtml }}
+                />
+              )
+            );
+          })()}
         </div>
 
         {/* 4. LAYER D: Sculpted Asymmetric Hearthstone-Style Legendary Dragon Crest */}

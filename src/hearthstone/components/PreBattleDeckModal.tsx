@@ -208,6 +208,7 @@ export const PreBattleDeckModal: React.FC<PreBattleDeckModalProps> = ({
     [heroClass, currentDeck],
   );
   const [selectedId, setSelectedId] = useState<ArchetypePresetId>('AWAKENING');
+  const [showManaCurve, setShowManaCurve] = useState<boolean>(false);
 
   const bossBrief = useMemo(() => {
     if (storyEpisode === undefined) return null;
@@ -337,30 +338,42 @@ export const PreBattleDeckModal: React.FC<PreBattleDeckModalProps> = ({
             })}
           </div>
 
-          {/* Active Preset Mana Curve Histogram */}
+          {/* DEV-038: Progressive Disclosure Toggle for Mana Curve Histogram */}
           <div className="rounded-xl border border-white/10 bg-black/45 p-3">
-            <div className="mb-2 flex items-center justify-between text-[11px] font-bold text-slate-300">
-              <span>{tr('선택 덱 마나 커브 (30장)', 'Selected Deck Mana Curve (30 Cards)')}</span>
-              <span className="text-amber-300">
-                {tr('초기 카단 전술:', 'Initial Kadan Tactic:')} {isKo ? activePreset.stanceLabelKo : activePreset.stanceLabelEn}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-slate-300">
+              <span className="text-amber-200">
+                ⚡ {tr('초기 카단 전술:', 'Initial Kadan Tactic:')}{' '}
+                <b>{isKo ? activePreset.stanceLabelKo : activePreset.stanceLabelEn}</b>
               </span>
+              <button
+                type="button"
+                data-testid="pre-battle-mana-curve-toggle"
+                onClick={() => setShowManaCurve((v) => !v)}
+                className="min-h-[36px] rounded-lg border border-sky-400/40 bg-sky-950/60 px-2.5 py-1 text-[11px] font-extrabold text-sky-200 hover:bg-sky-900/80"
+              >
+                {showManaCurve
+                  ? tr('📊 마나커브 접기 ▲', '📊 Hide Mana Curve ▲')
+                  : tr('📊 상세 마나커브 보기 ▼', '📊 Show Mana Curve ▼')}
+              </button>
             </div>
-            <div className="flex h-16 items-end gap-1.5">
-              {activePreset.manaCurve.map((cnt, cost) => (
-                <div key={cost} className="flex flex-1 flex-col items-center gap-0.5">
-                  <span className="text-[9.5px] font-bold text-amber-200">{cnt}</span>
-                  <div className="flex h-9 w-full items-end rounded bg-white/5">
-                    <div
-                      style={{ height: `${Math.max(8, Math.round((cnt / maxBucket) * 100))}%` }}
-                      className="w-full rounded bg-gradient-to-t from-sky-600 to-cyan-300 transition-all"
-                    />
+            {showManaCurve && (
+              <div className="mt-2.5 flex h-16 items-end gap-1.5">
+                {activePreset.manaCurve.map((cnt, cost) => (
+                  <div key={cost} className="flex flex-1 flex-col items-center gap-0.5">
+                    <span className="text-[9.5px] font-bold text-amber-200">{cnt}</span>
+                    <div className="flex h-9 w-full items-end rounded bg-white/5">
+                      <div
+                        style={{ height: `${Math.max(8, Math.round((cnt / maxBucket) * 100))}%` }}
+                        className="w-full rounded bg-gradient-to-t from-sky-600 to-cyan-300 transition-all"
+                      />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-slate-400">
+                      {cost === 7 ? '7+' : cost}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-extrabold text-slate-400">
-                    {cost === 7 ? '7+' : cost}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

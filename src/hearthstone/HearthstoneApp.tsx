@@ -216,7 +216,20 @@ export const HearthstoneApp: React.FC = () => {
           }
           const launchMode = params.get('mode')?.toLowerCase();
           const openParam = params.get('open')?.toLowerCase();
+          const ftueParam = params.get('ftue')?.toLowerCase();
+          const coachParam = params.get('coach')?.toLowerCase();
           const claimPromo = params.get('claim_promo') === '1';
+          if (ftueParam === 'veteran') {
+            hsStorage.setVeteranUnlockAll(true);
+            hsStorage.markJourneyGuideDone();
+          }
+          if (coachParam === 'on' && typeof sessionStorage !== 'undefined') {
+            try {
+              sessionStorage.setItem('hero_hs_coach_mode', '1');
+            } catch {
+              // ignore
+            }
+          }
           const factionParam = params.get('faction')?.toUpperCase() as HeroClass | undefined;
           const starterParam = params.get('starter')?.toLowerCase();
           const presetParamRaw = params.get('preset')?.toLowerCase();
@@ -693,7 +706,7 @@ export const HearthstoneApp: React.FC = () => {
   }
 
   const hideAdsForFtue =
-    !profile.journeyGuideDone && profile.packs >= 3 && profile.totalGames === 0;
+    !profile.journeyGuideDone && profile.totalGames === 0;
 
   return (
     <>

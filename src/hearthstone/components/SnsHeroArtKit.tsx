@@ -89,47 +89,72 @@ export interface ElwinTimeOfDayTheme {
   skyOverlay: string;
 }
 
-/** DEV-030: Zelda (Ocarina of Time)-inspired dynamic Hyrule/Elwin plain sky lighting */
-export function getElwinTimeOfDayTheme(): ElwinTimeOfDayTheme {
-  const hr = typeof window !== 'undefined' ? new Date().getHours() : 12;
-  if (hr >= 5 && hr < 9) {
-    return {
-      id: 'DAWN',
-      labelKo: '새벽빛 엘윈 대평원',
-      labelEn: 'Dawn over Elwin Plain',
-      icon: '🌅',
-      skyOverlay:
-        'linear-gradient(180deg, rgba(251,191,36,0.20) 0%, rgba(56,189,248,0.14) 45%, rgba(9,16,38,0.58) 100%)',
-    };
-  }
-  if (hr >= 9 && hr < 16) {
-    return {
-      id: 'DAY',
-      labelKo: '창공의 엘윈 성소',
-      labelEn: 'Sunlit Elwin Sanctuary',
-      icon: '☀️',
-      skyOverlay:
-        'linear-gradient(180deg, rgba(56,189,248,0.24) 0%, rgba(16,185,129,0.12) 48%, rgba(12,20,44,0.52) 100%)',
-    };
-  }
-  if (hr >= 16 && hr < 20) {
-    return {
-      id: 'DUSK',
-      labelKo: '황혼의 성검 언덕',
-      labelEn: 'Golden Dusk Sanctuary',
-      icon: '🌇',
-      skyOverlay:
-        'linear-gradient(180deg, rgba(249,115,22,0.22) 0%, rgba(168,85,247,0.14) 48%, rgba(15,18,42,0.60) 100%)',
-    };
-  }
-  return {
+const ELWIN_SKY_THEMES: Record<'DAWN' | 'DAY' | 'DUSK' | 'NIGHT', ElwinTimeOfDayTheme> = {
+  DAWN: {
+    id: 'DAWN',
+    labelKo: '새벽빛 엘윈 대평원',
+    labelEn: 'Dawn over Elwin Plain',
+    icon: '🌅',
+    skyOverlay:
+      'linear-gradient(180deg, rgba(251,191,36,0.20) 0%, rgba(56,189,248,0.14) 45%, rgba(9,16,38,0.58) 100%)',
+  },
+  DAY: {
+    id: 'DAY',
+    labelKo: '창공의 엘윈 성소',
+    labelEn: 'Sunlit Elwin Sanctuary',
+    icon: '☀️',
+    skyOverlay:
+      'linear-gradient(180deg, rgba(56,189,248,0.24) 0%, rgba(16,185,129,0.12) 48%, rgba(12,20,44,0.52) 100%)',
+  },
+  DUSK: {
+    id: 'DUSK',
+    labelKo: '황혼의 성검 언덕',
+    labelEn: 'Golden Dusk Sanctuary',
+    icon: '🌇',
+    skyOverlay:
+      'linear-gradient(180deg, rgba(249,115,22,0.22) 0%, rgba(168,85,247,0.14) 48%, rgba(15,18,42,0.60) 100%)',
+  },
+  NIGHT: {
     id: 'NIGHT',
     labelKo: '별빛 시간의 성소',
     labelEn: 'Starlight Sanctuary Night',
     icon: '🌙',
     skyOverlay:
       'linear-gradient(180deg, rgba(30,64,175,0.28) 0%, rgba(14,165,233,0.12) 46%, rgba(8,13,32,0.66) 100%)',
-  };
+  },
+};
+
+/** DEV-030 & DEV-032: Zelda (Ocarina of Time)-inspired dynamic or user-pinned Elwin sky lighting */
+export function getElwinTimeOfDayTheme(
+  override?: 'AUTO' | 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT',
+): ElwinTimeOfDayTheme {
+  let pref = override;
+  if (!pref && typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('hero_hs_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw) as { lobbySkyTime?: string };
+        if (
+          parsed?.lobbySkyTime === 'DAWN' ||
+          parsed?.lobbySkyTime === 'DAY' ||
+          parsed?.lobbySkyTime === 'DUSK' ||
+          parsed?.lobbySkyTime === 'NIGHT'
+        ) {
+          pref = parsed.lobbySkyTime;
+        }
+      }
+    } catch {
+      // ignore storage error
+    }
+  }
+  if (pref && pref !== 'AUTO' && ELWIN_SKY_THEMES[pref]) {
+    return ELWIN_SKY_THEMES[pref];
+  }
+  const hr = typeof window !== 'undefined' ? new Date().getHours() : 12;
+  if (hr >= 5 && hr < 9) return ELWIN_SKY_THEMES.DAWN;
+  if (hr >= 9 && hr < 16) return ELWIN_SKY_THEMES.DAY;
+  if (hr >= 16 && hr < 20) return ELWIN_SKY_THEMES.DUSK;
+  return ELWIN_SKY_THEMES.NIGHT;
 }
 
 /** DEV-030: Forged Brass Shield + Sacred Sword + Ocarina Royal Crest Emblem */
