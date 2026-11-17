@@ -6803,6 +6803,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         }
         isPlayerTurn={matchState.activeSide === 'PLAYER'}
         usedThisTurn={Boolean(matchState.siliaUsedThisTurn)}
+        reincarnation={matchState.journeyMeta?.reincarnation ?? 0}
         friendlyBoardCount={matchState.player.board.length}
         enemyBoardCount={matchState.opponent.board.length}
         friendlyNames={matchState.player.board.map((m) => {

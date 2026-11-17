@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
+import { SiliaSkillPowerSpec, getSiliaSkillPowerSpec } from '../types';
 import { useAnimaleseTypewriter } from './StoryEncounterOverlays';
 
 export type SiliaSkillKind = 'DEFENSE' | 'ATTACK' | 'HEAL';
@@ -9,6 +10,7 @@ interface SiliaUltimateWidgetProps {
   visible: boolean;
   isPlayerTurn: boolean;
   usedThisTurn: boolean;
+  reincarnation?: number;
   friendlyBoardCount: number;
   enemyBoardCount: number;
   friendlyNames?: string[];
@@ -95,6 +97,7 @@ const SKILL_CUTSCENE_META: Record<SiliaSkillKind, SkillCutsceneMeta> = {
 
 interface SiliaDialogueCutsceneOverlayProps {
   skillKind: SiliaSkillKind;
+  power: SiliaSkillPowerSpec;
   chibiFrameUrl: string;
   isKo: boolean;
   onComplete: () => void;
@@ -108,21 +111,55 @@ interface SiliaDialogueCutsceneOverlayProps {
  */
 const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> = ({
   skillKind,
+  power,
   chibiFrameUrl,
   isKo,
   onComplete,
 }) => {
   const meta = SKILL_CUTSCENE_META[skillKind];
+  const r = power.reincarnation;
   const speakerLabel = isKo ? '실리아' : 'Silia';
-  const speechLine = isKo ? meta.lineKo : meta.lineEn;
   const skillTitle = isKo ? meta.titleKo : meta.titleEn;
-  const effectSummary = isKo ? meta.effectKo : meta.effectEn;
+
+  const speechLine =
+    r > 0
+      ? skillKind === 'DEFENSE'
+        ? isKo
+          ? `${r}환생의 바람 결계여! 동료들에게 +${power.defenseBuffAtk}/+${power.defenseBuffHp} 가호와 방어막을 내려라!`
+          : `Reborn NG+${r} Wind Barrier! Shield our allies and grant +${power.defenseBuffAtk}/+${power.defenseBuffHp}!`
+        : skillKind === 'ATTACK'
+          ? isKo
+            ? `${r}환생으로 각성한 녹풍 참격이여, 적진 전체에 -${power.attackDamage} 폭풍을 내려라!`
+            : `Awakened NG+${r} Emerald Gale, tear through every enemy for ${power.attackDamage} damage!`
+          : isKo
+            ? `${r}환생의 생명의 미풍이여, 영웅의 체력 +${power.healAmount}과 방어도 +${power.armorAmount}을 채워라!`
+            : `Reborn NG+${r} Vital Breeze, restore +${power.healAmount} Hero Health and +${power.armorAmount} Armor!`
+      : isKo
+        ? meta.lineKo
+        : meta.lineEn;
+
+  const effectSummary =
+    r > 0
+      ? skillKind === 'DEFENSE'
+        ? isKo
+          ? `아군 보드 전체 방어막 & +${power.defenseBuffAtk}/+${power.defenseBuffHp}`
+          : `Divine Shield & +${power.defenseBuffAtk}/+${power.defenseBuffHp} to all allies`
+        : skillKind === 'ATTACK'
+          ? isKo
+            ? `적 하수인 전체 피해 -${power.attackDamage}`
+            : `Deal ${power.attackDamage} damage to all enemy minions`
+          : isKo
+            ? `아군 영웅 체력 +${power.healAmount} · 방어도 +${power.armorAmount}`
+            : `Restore +${power.healAmount} Hero HP & +${power.armorAmount} Armor`
+      : isKo
+        ? meta.effectKo
+        : meta.effectEn;
 
   const { displayedText, isTyping, talkBob, handleInteract } = useAnimaleseTypewriter({
     fullText: speechLine,
     speakerLabel,
     speakerSide: 'LEFT',
-    resetKey: `silia-ult:${skillKind}`,
+    resetKey: `silia-ult:${skillKind}:r${r}`,
     isKo,
     enabled: true,
     onAutoAdvance: onComplete,
@@ -165,7 +202,8 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
         >
           <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_8px_#6ee7b7]" />
           <span className="hs-title truncate text-xs font-extrabold tracking-wide text-emerald-100 sm:text-sm">
-            {meta.icon} {tr('실리아 필살기', 'Silia Ultimate')} · {skillTitle}
+            {meta.icon} {tr('실리아 필살기', 'Silia Ultimate')}
+            {r > 0 ? ` · ${tr(`${r}환생 각성`, `NG+${r} Awakened`)}` : ''} · {skillTitle}
           </span>
         </div>
 
@@ -297,6 +335,7 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
   visible,
   isPlayerTurn,
   usedThisTurn,
+  reincarnation = 0,
   friendlyBoardCount,
   enemyBoardCount,
   friendlyNames = [],
@@ -306,6 +345,8 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
+  const power = getSiliaSkillPowerSpec(reincarnation);
+  const reinc = power.reincarnation;
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [frameIdx, setFrameIdx] = useState(0);
@@ -435,11 +476,13 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
     setWindstormSkill(finishedSkill);
 
     if (finishedSkill === 'DEFENSE') {
+      const buffNote =
+        reinc > 0 ? ` & +${power.defenseBuffAtk}/+${power.defenseBuffHp}` : '';
       setSpeechText(
         friendlyBoardCount > 0
           ? tr(
-              `🛡 바람 결계 발동! 아군 ${friendlyBoardCount}체(${formatTargetSummary(friendlyNames, friendlyBoardCount)})에게 보호막을 씌웠어요!`,
-              `🛡 Wind Barrier! Shielded ${formatTargetSummary(friendlyNames, friendlyBoardCount)}!`,
+              `🛡 바람 결계 발동! 아군 ${friendlyBoardCount}체(${formatTargetSummary(friendlyNames, friendlyBoardCount)})에게 보호막${buffNote}을 부여했어요!`,
+              `🛡 Wind Barrier! Granted Shield${buffNote} to ${formatTargetSummary(friendlyNames, friendlyBoardCount)}!`,
             )
           : tr(
               '🛡 바람 결계 발동! (내 전장에 하수인이 없어 보호막 대상이 없어요)',
@@ -450,8 +493,8 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
       setSpeechText(
         enemyBoardCount > 0
           ? tr(
-              `🌪 녹풍 바람폭풍! 적 ${enemyBoardCount}체(${formatTargetSummary(enemyNames, enemyBoardCount)})에게 -1 피해!`,
-              `🌪 Emerald Windstorm! Hit ${formatTargetSummary(enemyNames, enemyBoardCount)} for -1 HP!`,
+              `🌪 녹풍 바람폭풍! 적 ${enemyBoardCount}체(${formatTargetSummary(enemyNames, enemyBoardCount)})에게 -${power.attackDamage} 피해!`,
+              `🌪 Emerald Windstorm! Hit ${formatTargetSummary(enemyNames, enemyBoardCount)} for -${power.attackDamage} HP!`,
             )
           : tr(
               '🌪 녹풍 바람폭풍 발동! (적 전장에 하수인이 없어요)',
@@ -460,10 +503,15 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
       );
     } else {
       setSpeechText(
-        tr(
-          '💚 생명의 미풍 발동! 아군 영웅(카단)의 생명력을 치유했어요!',
-          '💚 Vital Breeze! Restored Friendly Hero HP!',
-        ),
+        reinc > 0
+          ? tr(
+              `💚 생명의 미풍 발동! 영웅 체력 +${power.healAmount} 회복 & 방어도 +${power.armorAmount} 획득!`,
+              `💚 Vital Breeze! Restored +${power.healAmount} Hero HP & +${power.armorAmount} Armor!`,
+            )
+          : tr(
+              '💚 생명의 미풍 발동! 아군 영웅(카단)의 생명력을 치유했어요!',
+              '💚 Vital Breeze! Restored Friendly Hero HP!',
+            ),
       );
     }
 
@@ -478,6 +526,7 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
       {castingSkill && (
         <SiliaDialogueCutsceneOverlay
           skillKind={castingSkill}
+          power={power}
           chibiFrameUrl={activeSpriteUrl}
           isKo={isKo}
           onComplete={handleDialogueComplete}
@@ -496,8 +545,16 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
           >
             <div className="flex items-center justify-between gap-2 border-b border-emerald-500/25 pb-1.5">
               <div>
-                <div className="text-xs font-extrabold text-emerald-200 sm:text-[13px]">
-                  🌪 {tr('실리아 필살기 (스토리 전용)', 'Silia Ultimate (Story)')}
+                <div className="flex flex-wrap items-center gap-1.5 text-xs font-extrabold text-emerald-200 sm:text-[13px]">
+                  <span>🌪 {tr('실리아 필살기 (스토리 전용)', 'Silia Ultimate (Story)')}</span>
+                  {reinc > 0 && (
+                    <span
+                      data-silia-reinc-badge={reinc}
+                      className="rounded-md border border-amber-300/70 bg-amber-950/90 px-1.5 py-0.5 text-[9.5px] font-black text-amber-200"
+                    >
+                      ★ {tr(`${reinc}환생 강화`, `NG+${reinc}`)}
+                    </span>
+                  )}
                 </div>
                 <div
                   data-silia-status={canCastAny ? 'ready' : 'locked'}
@@ -539,11 +596,16 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
                     🛡 {tr('방어스킬 · 바람 결계', 'Defense · Wind Barrier')}
                   </div>
                   <div className="truncate text-[10px] text-emerald-100/85">
-                    {tr(`내 보드 전체 방어막 (${friendlyBoardCount}체)`, `Shield all allies (${friendlyBoardCount})`)}
+                    {reinc > 0
+                      ? tr(
+                          `아군 전체 방어막 & +${power.defenseBuffAtk}/+${power.defenseBuffHp} (${friendlyBoardCount}체)`,
+                          `Shield & +${power.defenseBuffAtk}/+${power.defenseBuffHp} allies (${friendlyBoardCount})`,
+                        )
+                      : tr(`내 보드 전체 방어막 (${friendlyBoardCount}체)`, `Shield all allies (${friendlyBoardCount})`)}
                   </div>
                 </div>
                 <span className="shrink-0 rounded bg-emerald-800/85 px-1.5 py-0.5 text-[9.5px] font-bold text-emerald-100">
-                  {tr('방어막', 'Shield')}
+                  {reinc > 0 ? `+${power.defenseBuffAtk}/+${power.defenseBuffHp}` : tr('방어막', 'Shield')}
                 </span>
               </button>
 
@@ -563,11 +625,14 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
                     🌪 {tr('공격스킬 · 녹풍 참격', 'Attack · Gale Slash')}
                   </div>
                   <div className="truncate text-[10px] text-teal-100/85">
-                    {tr(`적 보드 전체 -1 체력 (${enemyBoardCount}체)`, `All enemies -1 HP (${enemyBoardCount})`)}
+                    {tr(
+                      `적 보드 전체 -${power.attackDamage} 체력 (${enemyBoardCount}체)`,
+                      `All enemies -${power.attackDamage} HP (${enemyBoardCount})`,
+                    )}
                   </div>
                 </div>
                 <span className="shrink-0 rounded bg-rose-900/90 px-1.5 py-0.5 text-[9.5px] font-bold text-rose-100">
-                  -1 HP
+                  -{power.attackDamage} HP
                 </span>
               </button>
 
@@ -587,11 +652,16 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
                     💚 {tr('회복스킬 · 생명의 미풍', 'Heal · Vital Breeze')}
                   </div>
                   <div className="truncate text-[10px] text-lime-100/85">
-                    {tr('아군 영웅 +2 체력 회복', 'Restore +2 Hero HP')}
+                    {reinc > 0
+                      ? tr(
+                          `영웅 +${power.healAmount} 회복 · 방어도 +${power.armorAmount}`,
+                          `+${power.healAmount} Hero HP · +${power.armorAmount} Armor`,
+                        )
+                      : tr('아군 영웅 +2 체력 회복', 'Restore +2 Hero HP')}
                   </div>
                 </div>
                 <span className="shrink-0 rounded bg-lime-800/85 px-1.5 py-0.5 text-[9.5px] font-bold text-lime-100">
-                  +2 HP
+                  {reinc > 0 ? `+${power.healAmount}/🛡${power.armorAmount}` : `+${power.healAmount} HP`}
                 </span>
               </button>
             </div>
@@ -671,7 +741,9 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
                 : windstormSkill
                   ? tr('🌪 바람폭풍 발동!', '🌪 Windstorm!')
                   : canCastAny
-                    ? tr('실리아 · 필살기', 'Silia · Ult ▾')
+                    ? reinc > 0
+                      ? tr(`실리아 ★${reinc} · 필살기`, `Silia ★${reinc} · Ult ▾`)
+                      : tr('실리아 · 필살기', 'Silia · Ult ▾')
                     : usedThisTurn
                       ? tr('실리아 (완료)', 'Silia (Used)')
                       : tr('실리아 (대기)', 'Silia (Wait)')}

@@ -707,3 +707,32 @@ export interface PlayerProfile {
   practiceNormalCleared: HeroClass[];
   practiceExpertCleared: HeroClass[];
 }
+
+export interface SiliaSkillPowerSpec {
+  reincarnation: number;
+  defenseBuffAtk: number;
+  defenseBuffHp: number;
+  attackDamage: number;
+  healAmount: number;
+  armorAmount: number;
+}
+
+/**
+ * Story-Mode Silia companion skill power scaling by Reincarnation count:
+ * - Reincarnation 0: Shield all friendly minions (+0/+0), -1 enemy AoE, +2 Hero HP.
+ * - Reincarnation r >= 1:
+ *   - DEFENSE (Wind Barrier): Divine Shield + +2r/+2r to all friendly minions
+ *   - ATTACK  (Emerald Gale): (1 + 2r) damage to all enemy minions
+ *   - HEAL    (Vital Breeze): +(2 + 3r) Hero HP + (2r) Hero Armor
+ */
+export function getSiliaSkillPowerSpec(reincarnation = 0): SiliaSkillPowerSpec {
+  const r = Math.max(0, Math.floor(reincarnation || 0));
+  return {
+    reincarnation: r,
+    defenseBuffAtk: r * 2,
+    defenseBuffHp: r * 2,
+    attackDamage: 1 + r * 2,
+    healAmount: 2 + r * 3,
+    armorAmount: r * 2,
+  };
+}

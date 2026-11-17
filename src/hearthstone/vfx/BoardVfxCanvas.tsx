@@ -465,10 +465,11 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
                 maxLife: 46 + i * 3,
               });
             }
+            const stormBursts = Math.min(18, 9 + Math.floor((ev.value || 1) / 2));
             for (let i = 0; i < 5; i++) {
               const px = stageW * (0.22 + i * 0.14);
-              spawnBurst(px, yBand, 9, ['#10b981', '#34d399', '#6ee7b7', '#ffffff'], 8.8, 6, 'SHARD', 0);
-              spawnRing(px, yBand, '#10b981', 120);
+              spawnBurst(px, yBand, stormBursts, ['#10b981', '#34d399', '#6ee7b7', '#ffffff'], 8.8, 6, 'SHARD', 0);
+              spawnRing(px, yBand, '#10b981', 120 + Math.min(60, (ev.value || 1) * 6));
             }
             badgesRef.current.push({
               x: stageW * 0.5,

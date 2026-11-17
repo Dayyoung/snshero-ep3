@@ -2,6 +2,23 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 10:56 KST] [실리아 필살기 환생(NG+) 누적 비례 강화 시스템 구현 완료 (푸시 대기)]
+- **요청**: 환생을 거듭할수록 실리아의 3종 필살기가 단계적으로 강해지도록 개선
+- **구현 내용**:
+  - `src/hearthstone/types.ts`: `getSiliaSkillPowerSpec(reincarnation)` 공통 스펙 함수 신설 (`r = 환생 횟수` 기준:
+    - **바람 결계(DEFENSE)**: 아군 하수인 전체 천상의 보호막 + 영구 `+(2r)/+(2r)` 스탯 강화 (0환생: 보호막, 1환생: `+2/+2`, 2환생: `+4/+4`...)
+    - **녹풍 참격(ATTACK)**: 적 하수인 전체 `-(1 + 2r)` 광역 피해 (0환생: `-1`, 1환생: `-3`, 2환생: `-5`...)
+    - **생명의 미풍(HEAL)**: 아군 영웅 `+(2 + 3r)` 생명력 회복 + `+(2r)` 방어도 추가 부여 (0환생: `+2 HP`, 1환생: `+5 HP · +2 방어도`, 2환생: `+8 HP · +4 방어도`...))
+  - `src/hearthstone/engine/GameEngine.ts`: `useSiliaSkill`에 환생 배율 버프/광역 피해/치유+방어도(`addArmor`)·VFX 배지·전투 로그 반영.
+  - `src/hearthstone/screens/BattleScreen.tsx`: `SiliaUltimateWidget`으로 `matchState.journeyMeta?.reincarnation` 전달.
+  - `src/hearthstone/components/SiliaUltimateWidget.tsx`: 환생 각성 배지(`★ N환생 강화` / `★ NG+N`), 하단 이름표(`실리아 ★N`), 스킬 버튼 수치/배지, 상반신 컷신 각성 대사·요약 및 시전 말풍선 한·영 100% 동기화.
+  - `src/hearthstone/vfx/BoardVfxCanvas.tsx`: 환생 피해/파워 값에 비례해 녹풍 바람폭풍 파티클 및 충격파 링 반경 강화.
+- **검증 결과**:
+  - `npx tsc --noEmit` (수정 5개 파일 오류 0건) 및 `npm run build` 성공.
+  - Playwright 2환생(`journeyReincarnation: 2`) 한·영 스토리 모드 검증: 한국어 메뉴/컷신/영웅 방어도 `+4` 실전 적용 확인 및 영문판 `NG+2` 메뉴/컷신 한글 노출 0건·`PAGE_ERRORS: []` 확인 완료.
+- **구글 폼 보고**: `submit_report.py` 제출 완료.
+
+
 ## [2026-11-17 10:48 KST] [영문판 실리아 필살기 발동 시 일부 한글 노출 수정 완료 (푸시 대기)]
 - **요청**: 영문판에서 실리아가 스킬(바람 결계 · 녹풍 참격 · 생명의 미풍)을 사용할 때 일부 한글이 노출되는 현상 수정
 - **원인 분석**:
