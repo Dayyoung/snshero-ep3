@@ -56,7 +56,8 @@ import { PromoCard, getPromoRaceLabel, getPromoRarityLabel } from './PromoCard';
 
 type FeatureTabId = 'story' | 'awake' | 'pack';
 
-const YOUTUBE_PLAYLIST_URL = 'https://www.youtube.com/@snshero/playlists';
+const YOUTUBE_PLAYLIST_URL_KO = 'https://www.youtube.com/playlist?list=PLVch67W9z4TA';
+const YOUTUBE_PLAYLIST_URL_EN = 'https://www.youtube.com/playlist?list=PLFvV2raCoFww';
 
 export const PromoApp: React.FC = () => {
   const { lang, setLang } = useHeroLanguage();
@@ -305,28 +306,52 @@ export const PromoApp: React.FC = () => {
     [lang],
   );
 
+  const youtubePlaylistUrl = isKo ? YOUTUBE_PLAYLIST_URL_KO : YOUTUBE_PLAYLIST_URL_EN;
+
   const trailerClips = useMemo(
-    () => [
-      {
-        id: 'ep1',
-        label: tr('제1화 · 눈보라 아래 두 서약', 'EP.1 · Two Oaths Beneath the Blizzard'),
-        youtubeId: 'KOf8IAic2QY',
-        embedUrl: 'https://www.youtube.com/embed/KOf8IAic2QY?list=PLVch67W9z4TA&rel=0&modestbranding=1',
-      },
-      {
-        id: 'ep8',
-        label: tr('제8화 · 붉은 갈기의 기수', 'EP.8 · Rider of the Crimson Mane'),
-        youtubeId: 'BIHe4MrtCIw',
-        embedUrl: 'https://www.youtube.com/embed/BIHe4MrtCIw?list=PLVch67W9z4TA&rel=0&modestbranding=1',
-      },
-      {
-        id: 'ep15',
-        label: tr('제15화 · 독사와 사자의 밤', 'EP.15 · Night of Viper and Lion'),
-        youtubeId: 'LHHngbtkJwg',
-        embedUrl: 'https://www.youtube.com/embed/LHHngbtkJwg?list=PLVch67W9z4TA&rel=0&modestbranding=1',
-      },
-    ],
-    [lang],
+    () =>
+      isKo
+        ? [
+            {
+              id: 'ep1',
+              label: '제1화 · 눈보라 아래 두 서약',
+              youtubeId: 'KOf8IAic2QY',
+              embedUrl: 'https://www.youtube.com/embed/KOf8IAic2QY?list=PLVch67W9z4TA&rel=0&modestbranding=1',
+            },
+            {
+              id: 'ep8',
+              label: '제8화 · 붉은 갈기의 기수',
+              youtubeId: 'BIHe4MrtCIw',
+              embedUrl: 'https://www.youtube.com/embed/BIHe4MrtCIw?list=PLVch67W9z4TA&rel=0&modestbranding=1',
+            },
+            {
+              id: 'ep15',
+              label: '제15화 · 독사와 사자의 밤',
+              youtubeId: 'LHHngbtkJwg',
+              embedUrl: 'https://www.youtube.com/embed/LHHngbtkJwg?list=PLVch67W9z4TA&rel=0&modestbranding=1',
+            },
+          ]
+        : [
+            {
+              id: 'ep1',
+              label: 'EP.1 · Two Vows Beneath the Blizzard',
+              youtubeId: 'q6-w_dz8Hbs',
+              embedUrl: 'https://www.youtube.com/embed/q6-w_dz8Hbs?list=PLFvV2raCoFww&rel=0&modestbranding=1',
+            },
+            {
+              id: 'ep8',
+              label: 'EP.8 · Rider of the Crimson Mane',
+              youtubeId: 'GQ3_HDM-bW8',
+              embedUrl: 'https://www.youtube.com/embed/GQ3_HDM-bW8?list=PLFvV2raCoFww&rel=0&modestbranding=1',
+            },
+            {
+              id: 'ep15',
+              label: 'EP.15 · Night of Serpent and Lion',
+              youtubeId: 'qFsQnrjnv4E',
+              embedUrl: 'https://www.youtube.com/embed/qFsQnrjnv4E?list=PLFvV2raCoFww&rel=0&modestbranding=1',
+            },
+          ],
+    [isKo],
   );
 
   const embers = useMemo(
@@ -797,7 +822,7 @@ export const PromoApp: React.FC = () => {
             <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
               <div className="relative aspect-video w-full overflow-hidden bg-black">
                 <iframe
-                  key={activeClip.youtubeId}
+                  key={`${lang}-${activeClip.youtubeId}`}
                   src={activeClip.embedUrl}
                   title={`${tr('눈히어로 공식 웹툰', 'SNSHero Official Webtoon')} - ${activeClip.label}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -808,12 +833,13 @@ export const PromoApp: React.FC = () => {
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/40 bg-[#1a0f07] px-3 py-2.5">
                 <a
-                  href={YOUTUBE_PLAYLIST_URL}
+                  href={youtubePlaylistUrl}
+                  data-testid="promo-youtube-playlist-link"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs font-extrabold text-amber-300 underline decoration-amber-400/50 underline-offset-4 hover:text-amber-200"
                 >
-                  {tr('유튜브 공식 웹툰 재생목록 ↗', 'Official YouTube Playlist ↗')}
+                  {tr('유튜브 공식 웹툰 재생목록 ↗', 'Official EN YouTube Playlist ↗')}
                 </a>
                 <div className="flex flex-wrap gap-1.5">
                   {trailerClips.map((clip, idx) => (
@@ -2286,12 +2312,13 @@ export const PromoApp: React.FC = () => {
                 {tr('문피아 웹소설', 'Munpia Novel')}
               </a>
               <a
-                href="https://www.youtube.com/@snshero"
+                href={youtubePlaylistUrl}
+                data-testid="promo-youtube-channel-link"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
               >
-                YouTube (@snshero)
+                {tr('YouTube 한국어 웹툰 (@snshero)', 'YouTube EN Webtoon (@snshero)')}
               </a>
               <a
                 href="https://github.com/Dayyoung/snshero"
