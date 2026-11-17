@@ -1,7 +1,7 @@
 {
-  "version": "2.1.0-1794897673152",
-  "buildTime": "2026-11-17T06:41:13.152Z",
-  "buildTimestamp": 1794897673152,
+  "version": "2.1.0-1794898753983",
+  "buildTime": "2026-11-17T06:59:13.983Z",
+  "buildTimestamp": 1794898753983,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
   "entryScript": "/assets/game-DcIJOYie-v2.js"
