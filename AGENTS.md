@@ -114,6 +114,7 @@
 - **`/checkIssue`**: SNSHero 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`, `'게임 이슈 관리 로그'`)를 `gsheets` CLI로 조회해 미해결 이슈를 소스코드에 구현·수정하고, 실제 빌드 및 E2E 테스트 통과 후 **로컬 커밋(`git commit`) 및 시트 최신화까지 수행하고 원격 푸시(`git push`)는 사용자 수동 확인을 위해 보류·대기**하는 스킬
 - **`/checkMarket`**: SNSHero 마케팅문서(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`, `'마케팅 분석 로그'`)를 `gsheets` CLI로 조회해 미완료 항목 중 코드·저장소에서 적용 가능한 항목을 수정하고, 실제 빌드 및 테스트 통과 후 **로컬 커밋(`git commit`) 및 시트 최신화까지 수행하고 원격 푸시(`git push`)는 사용자 수동 확인을 위해 보류·대기**하는 스킬
 - **`/checkBug`**: SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`, `'개발개선점 분석 로그'`)를 `gsheets` CLI로 조회해 미해결 결함·개발 개선 항목을 소스코드에 패치하고, 실제 빌드 및 E2E 테스트 통과 후 **로컬 커밋(`git commit`) 및 시트 최신화까지 수행하고 원격 푸시(`git push`)는 사용자 수동 확인을 위해 보류·대기**하는 스킬
+- **`/checkAll`**: 위 3대 문서(`이슈문서 · 개발문서 · 마케팅문서`)를 한 번에 조회해 모든 미해결 항목을 일괄 구현·수정하고, 통합 빌드·E2E 검증 통과 후 **로컬 커밋(`git commit` · 푸시 대기) 및 3개 시트 상태 최신화·작업 보고까지 일괄 수행**하는 통합 스킬 (`git push` 자동 실행 금지)
 - **`/showIssue`**: SNSHero 이슈문서(`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`) Google Sheets 페이지를 브라우저 창에 즉시 열어 표시하고 현황을 요약하는 스킬
 - **`/showMarket`**: SNSHero 마케팅문서(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`) Google Sheets 페이지를 브라우저 창에 즉시 열어 표시하고 현황을 요약하는 스킬
 - **`/showBug`**: SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`) Google Sheets 페이지를 브라우저 창에 즉시 열어 표시하고 현황을 요약하는 스킬
