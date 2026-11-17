@@ -2,6 +2,15 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 17:01 KST] [보가트 도박장 영문 허브 버튼 1줄 표시 교정 및 원격 푸시 완료]
+- **요청**: 영문판에서 `🎲 Bogart's Gambling Hall`이 2줄로 줄바꿈되는 문제 해결 및 `/git-push` 반영
+- **수정 파일**:
+  - `src/hearthstone/screens/BoxHubScreen.tsx` (`hub-mode-gamble` 영문 라벨을 `Bogart's Hall`로 축약하고 `whitespace-nowrap text-[14.5px] sm:text-[17px] tracking-normal sm:tracking-wide`를 `hub-mode-gamble`·`hub-mode-ranked`에 적용해 1줄 유지 보장)
+- **검증 결과**:
+  - `npx tsc --noEmit` 및 `npm run build` 통과 (`0` 에러)
+  - Playwright 영문 데스크톱(`1280×800`)·모바일(`390×844`) 검증에서 `🎲 Bogart's Hall`, `🏆 Ranked Arena`, `📖 Story Mode` 모두 `rects: 1`, `fitsWidth: true`로 단일 줄 렌더링 및 모바일 스크린샷 확인 완료
+- **상태**: 로컬 커밋 · 원격 푸시(`git push origin main`) 완료 · 구글 폼 보고 완료
+
 ## [2026-11-17 16:15 KST] [로고 방패 문장 교체(한·영) 및 영문 페이지 유튜브 재생목록·영상 분기 적용 (푸시 대기)]
 - **요청**:
   1. 리뉴얼된 고대비 황금·스노우 로고(`눈히어로`, `SNSHero`) 뒤 배경을 원형 메달리온에서 **방패 문장**으로 변경

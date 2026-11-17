@@ -469,10 +469,10 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 disabled={isFirstVisitGuide}
                 onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.55)}
                 onClick={() => triggerModeTransition('BOGART_GAMBLE')}
-                className={`hs-ivory-plate hs-mario-spring group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
+                className={`hs-ivory-plate hs-mario-spring group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-2.5 sm:h-[60px] sm:px-3.5 ${lockedBtnStyle}`}
               >
-                <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#78350f] group-hover:text-[#b45309] sm:text-lg">
-                  🎲 {tr('보가트 도박장', "Bogart's Gambling Hall")}
+                <span className="hs-title whitespace-nowrap text-[14.5px] font-extrabold leading-tight tracking-normal text-[#78350f] group-hover:text-[#b45309] sm:text-[17px] sm:tracking-wide">
+                  🎲 {tr('보가트 도박장', "Bogart's Hall")}
                 </span>
                 <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
                   {tr('1~1,000G 슬라이드 베팅 · 100% 랜덤덱', '1–1,000G Slider Bet · 100% Random Deck')}
@@ -486,9 +486,9 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 disabled={isFirstVisitGuide}
                 onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.55)}
                 onClick={() => triggerModeTransition('RANKED')}
-                className={`hs-ivory-plate hs-mario-spring group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
+                className={`hs-ivory-plate hs-mario-spring group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-2.5 sm:h-[60px] sm:px-3.5 ${lockedBtnStyle}`}
               >
-                <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#0c4a6e] group-hover:text-[#1d4ed8] sm:text-lg">
+                <span className="hs-title whitespace-nowrap text-[14.5px] font-extrabold leading-tight tracking-normal text-[#0c4a6e] group-hover:text-[#1d4ed8] sm:text-[17px] sm:tracking-wide">
                   🏆 {tr('랭킹대전', 'Ranked Arena')}
                 </span>
                 <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#475569] sm:text-[10.5px]">
