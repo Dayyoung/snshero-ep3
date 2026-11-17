@@ -4,13 +4,14 @@
  * HTML, JS 번들, CSS, JSON, API 등 모든 코드/데이터는 실시간 네트워크에서 즉시 받아옵니다.
  */
 
-const MEDIA_CACHE_NAME = 'snshero-media-v20-20261117';
+const MEDIA_CACHE_NAME = 'snshero-media-v21-20261117';
 
-// 캐싱 대상 미디어 파일 확장자 정규식
-const MEDIA_EXT_REGEX = /\.(png|jpg|jpeg|webp|gif|svg|ico|avif|mp3|wav|ogg)(\?.*)?$/i;
+// 정적 이미지 에셋만 캐싱 (iOS Safari AVPlayer의 HTTP 206 Range 오디오 스트림 충돌 원천 차단!)
+const MEDIA_EXT_REGEX = /\.(png|jpg|jpeg|webp|gif|svg|ico|avif)(\?.*)?$/i;
 
 function isValidMediaResponse(res) {
-  if (!res || !res.ok) return false;
+  if (!res || res.status !== 200) return false;
+  if (res.type !== 'basic' && res.type !== 'cors') return false;
   const ct = (res.headers.get('content-type') || '').toLowerCase();
   if (ct.includes('text/html')) return false;
   return true;
@@ -40,17 +41,25 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
 
-  // GET 요청만 처리하고, 브라우저 직접 주소 입력(navigate)은 네트워크 표준 스택으로 통과
-  if (request.method !== 'GET' || request.mode === 'navigate') {
+  // GET 요청만 처리하고, 네비게이션·Range 부분 요청·오디오/비디오 스트림은 브라우저 표준 스택으로 직접 통과
+  if (
+    request.method !== 'GET' ||
+    request.mode === 'navigate' ||
+    request.headers.has('range') ||
+    request.destination === 'audio' ||
+    request.destination === 'video'
+  ) {
     return;
   }
 
   const url = new URL(request.url);
 
-  // 1. 캐릭터 상반신(busts), 컷아웃 및 홍보 스크린샷 에셋: Network-First 전략 (업데이트된 이미지 즉시 반영)
+  // 1. 캐릭터 상반신(busts/upper-hd), 컷아웃 및 홍보 스크린샷 에셋: Network-First 전략 (업데이트된 이미지 즉시 반영)
   if (
     url.pathname.includes('/hs-assets/characters/busts/') ||
     url.pathname.includes('/hs-assets/characters/cutouts/') ||
+    url.pathname.includes('/hs-assets/upper-hd/') ||
+    url.pathname.includes('/hs-assets/bosses/') ||
     url.pathname.includes('/hs-assets/screenshots/')
   ) {
     event.respondWith(
@@ -58,9 +67,10 @@ self.addEventListener('fetch', (event) => {
         .then((networkResponse) => {
           if (isValidMediaResponse(networkResponse)) {
             const responseClone = networkResponse.clone();
-            caches.open(MEDIA_CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
+            caches
+              .open(MEDIA_CACHE_NAME)
+              .then((cache) => cache.put(request, responseClone))
+              .catch(() => {});
           }
           return networkResponse;
         })
@@ -73,7 +83,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. 그 외 이미지 및 사운드 파일: Cache-First 전략 (유효한 미디어 응답만 캐싱·반환)
+  // 2. 그 외 정적 이미지 파일: Cache-First 전략 (200 OK 정상 이미지만 안전하게 캐싱·반환)
   if (MEDIA_EXT_REGEX.test(url.pathname) || MEDIA_EXT_REGEX.test(url.href)) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
@@ -84,9 +94,10 @@ self.addEventListener('fetch', (event) => {
           .then((networkResponse) => {
             if (isValidMediaResponse(networkResponse)) {
               const responseClone = networkResponse.clone();
-              caches.open(MEDIA_CACHE_NAME).then((cache) => {
-                cache.put(request, responseClone);
-              });
+              caches
+                .open(MEDIA_CACHE_NAME)
+                .then((cache) => cache.put(request, responseClone))
+                .catch(() => {});
             }
             return networkResponse;
           })

@@ -78,11 +78,7 @@ export const HsManaGem: React.FC<{
     >
       <svg
         viewBox="0 0 72 72"
-        className={`h-full w-full ${
-          active
-            ? 'drop-shadow-[0_0_10px_rgba(56,189,248,0.95)]'
-            : 'drop-shadow-[0_4px_6px_rgba(0,0,0,0.88)]'
-        }`}
+        className="h-full w-full"
       >
         <defs>
           <linearGradient id={`manaRim_${uid}`} x1="0" y1="0" x2="1" y2="1">
@@ -155,7 +151,7 @@ export const HsAttackBadge: React.FC<{
     >
       <svg
         viewBox="0 0 76 76"
-        className="h-full w-full drop-shadow-[0_4px_7px_rgba(0,0,0,0.92)]"
+        className="h-full w-full"
       >
         <defs>
           <radialGradient id={`atkSun_${uid}`} cx="36%" cy="30%" r="68%">
@@ -247,7 +243,7 @@ export const HsHealthBadge: React.FC<{
         style={{ width: size, height: size * 1.08 }}
         className={`relative inline-flex shrink-0 select-none items-center justify-center ${className}`}
       >
-        <svg viewBox="0 0 64 70" className="h-full w-full drop-shadow-[0_4px_7px_rgba(0,0,0,0.92)]">
+        <svg viewBox="0 0 64 70" className="h-full w-full">
           <defs>
             <linearGradient id={`durShield_${uid}`} x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#e2e8f0" />
@@ -285,7 +281,7 @@ export const HsHealthBadge: React.FC<{
     >
       <svg
         viewBox="0 0 66 74"
-        className="h-full w-full drop-shadow-[0_4px_7px_rgba(0,0,0,0.92)]"
+        className="h-full w-full"
       >
         <defs>
           <radialGradient id={`hpRuby_${uid}`} cx="36%" cy="54%" r="60%">
@@ -598,6 +594,27 @@ export interface HearthstoneCardProps {
   className?: string;
 }
 
+const cosmeticSubscribers = new Set<() => void>();
+let cosmeticListenerBound = false;
+function subscribeCosmeticState(cb: () => void): () => void {
+  if (!cosmeticListenerBound && typeof window !== 'undefined') {
+    cosmeticListenerBound = true;
+    window.addEventListener('snshero:state-changed', () => {
+      const prev = cachedFrameSnapshot;
+      const next = hsStorage.getEquippedCardFrame();
+      if (next !== prev) {
+        cachedFrameSnapshot = next;
+        cosmeticSubscribers.forEach((fn) => fn());
+      }
+    });
+  }
+  cosmeticSubscribers.add(cb);
+  return () => {
+    cosmeticSubscribers.delete(cb);
+  };
+}
+let cachedFrameSnapshot = typeof window !== 'undefined' ? hsStorage.getEquippedCardFrame() : 'frame_classic';
+
 export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
   card,
   effectiveCost,
@@ -625,12 +642,8 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
   const cardDisplayName = getCardName(card, lang);
   const cardDisplayText = getCardText(card, lang);
   const [, setCosmeticTick] = useState(0);
-  useEffect(() => {
-    const onSync = () => setCosmeticTick((n) => n + 1);
-    window.addEventListener('snshero:state-changed', onSync);
-    return () => window.removeEventListener('snshero:state-changed', onSync);
-  }, []);
-  const equippedFrame = hsStorage.getProfile().prestige?.equippedFrame || 'frame_classic';
+  useEffect(() => subscribeCosmeticState(() => setCosmeticTick((n) => n + 1)), []);
+  const equippedFrame = hsStorage.getEquippedCardFrame();
   const titleTypo = getCardTitleTypography(cardDisplayName);
 
   const shownCost = effectiveCost !== undefined ? effectiveCost : card.cost;
@@ -945,21 +958,6 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
               </radialGradient>
             )}
 
-            {/* Compound Mask Cutting Out the Exact Portrait Window Inside the Sculpted Frame */}
-            <mask id={`frameCutout_${uid}`}>
-              <rect x="0" y="0" width="300" height="420" fill="white" />
-              {isSpell ? (
-                <path
-                  d="M 38 142 V 132 C 38 64 88 32 150 32 C 212 32 262 64 262 132 V 210 Q 262 222 250 222 H 50 Q 38 222 38 210 Z"
-                  fill="black"
-                />
-              ) : isWeapon ? (
-                <circle cx="150" cy="130" r="94" fill="black" />
-              ) : (
-                <ellipse cx="150" cy="131" rx="95" ry="104" fill="black" />
-              )}
-            </mask>
-
             {/* Gentle Upward Arch Path for Card Name Typography */}
             <path
               id={`titleArch_${uid}`}
@@ -968,33 +966,23 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             />
           </defs>
 
-          {/* Sculpted Outer Card Body with Cutout Window */}
-          <g mask={`url(#frameCutout_${uid})`}>
-            <path
-              d="M 40 26
-                 Q 150 8 260 26
-                 Q 282 30 282 54
-                 V 374
-                 Q 282 398 258 400
-                 H 42
-                 Q 18 398 18 374
-                 V 54
-                 Q 18 30 40 26 Z"
-              fill={`url(#bodyGrad_${uid})`}
-            />
-            <path
-              d="M 40 26
-                 Q 150 8 260 26
-                 Q 282 30 282 54
-                 V 374
-                 Q 282 398 258 400
-                 H 42
-                 Q 18 398 18 374
-                 V 54
-                 Q 18 30 40 26 Z"
-              fill={`url(#filigree_${uid})`}
-            />
-          </g>
+          {/* Sculpted Outer Card Body with Pure Geometric Even-Odd Cutout Window (Zero Offscreen SVG Mask!) */}
+          {(() => {
+            const outerCardD =
+              'M 40 26 Q 150 8 260 26 Q 282 30 282 54 V 374 Q 282 398 258 400 H 42 Q 18 398 18 374 V 54 Q 18 30 40 26 Z';
+            const windowHoleD = isSpell
+              ? 'M 38 142 V 132 C 38 64 88 32 150 32 C 212 32 262 64 262 132 V 210 Q 262 222 250 222 H 50 Q 38 222 38 210 Z'
+              : isWeapon
+                ? 'M 56 130 A 94 94 0 1 0 244 130 A 94 94 0 1 0 56 130 Z'
+                : 'M 55 131 A 95 104 0 1 0 245 131 A 95 104 0 1 0 55 131 Z';
+            const cutoutBodyD = `${outerCardD} ${windowHoleD}`;
+            return (
+              <g>
+                <path d={cutoutBodyD} fillRule="evenodd" fill={`url(#bodyGrad_${uid})`} />
+                <path d={cutoutBodyD} fillRule="evenodd" fill={`url(#filigree_${uid})`} />
+              </g>
+            );
+          })()}
 
           {/* Outer Beveled Metallic Border & Inner Decorative Filigree Rail */}
           <path

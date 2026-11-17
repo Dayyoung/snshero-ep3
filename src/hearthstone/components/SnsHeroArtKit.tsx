@@ -428,9 +428,6 @@ export const SnsLegendaryCardDragonSvg: React.FC<{
       className={`pointer-events-none select-none overflow-visible ${className}`}
     >
       <defs>
-        <filter id={`dragonRelief_${uid}`} x="-18%" y="-18%" width="142%" height="142%">
-          <feDropShadow dx="0" dy="3.5" stdDeviation="2.8" floodColor="#050302" floodOpacity="0.9" />
-        </filter>
         <linearGradient id={`metalBody_${uid}`} x1="0.1" y1="0" x2="0.85" y2="1">
           <stop offset="0%" stopColor={isGolden ? '#fffbe6' : '#f8fafc'} />
           <stop offset="24%" stopColor={metalBright} />
@@ -469,7 +466,7 @@ export const SnsLegendaryCardDragonSvg: React.FC<{
         </radialGradient>
       </defs>
 
-      <g filter={`url(#dragonRelief_${uid})`}>
+      <g>
         {/* 1. Left Coiled Tail & Sleek Secondary Pinion Hugging Upper-Left Oval Bezel (Behind Mana Gem) */}
         <path
           d="M 142 20

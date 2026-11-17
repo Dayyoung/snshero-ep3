@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import LZString from 'lz-string';
 import { tr, useHeroLanguage } from '../i18n/heroLang';
 import { cardDb, decodeDeckShareCode } from './cardDb';
 import { GameAdSenseLayout } from './components/GameAdSenseLayout';
-import { ArchetypePresetId } from './components/PreBattleDeckModal';
+import type { ArchetypePresetId } from './components/PreBattleDeckModal';
 import {
   KadanChatbotWidget,
   LiveBattleHelpSnapshot,
@@ -24,12 +24,44 @@ import {
   getPaymentPopupBridgeParams,
   launchPayAppCheckoutInCurrentWindow,
 } from './paymentGateway';
-import { BattleScreen } from './screens/BattleScreen';
 import { BoxHubScreen } from './screens/BoxHubScreen';
-import { CollectionScreen } from './screens/CollectionScreen';
-import { HeroDeckSelectScreen } from './screens/HeroDeckSelectScreen';
-import { PackOpeningScreen } from './screens/PackOpeningScreen';
+import type { BattleScreenProps } from './screens/BattleScreen';
+import type { HeroDeckSelectScreenProps } from './screens/HeroDeckSelectScreen';
 import { TavernIntroScreen } from './screens/TavernIntroScreen';
+
+const hsScreenModules = import.meta.glob<Record<string, React.ComponentType<any>>>(
+  './screens/{BattleScreen,CollectionScreen,HeroDeckSelectScreen,PackOpeningScreen}.tsx',
+);
+
+function loadHsScreenSafely<P>(fileName: string, exportName: string): React.LazyExoticComponent<React.ComponentType<P>> {
+  return React.lazy(async () => {
+    const loader = hsScreenModules[`./screens/${fileName}.tsx`];
+    if (!loader) {
+      return { default: (() => null) as React.ComponentType<P> };
+    }
+    const mod = await loader();
+    return { default: (mod[exportName] || mod.default || (() => null)) as React.ComponentType<P> };
+  });
+}
+
+const BattleScreen = loadHsScreenSafely<BattleScreenProps>('BattleScreen', 'BattleScreen');
+const CollectionScreen = loadHsScreenSafely<{
+  onBack: () => void;
+  onProfileChanged: () => void;
+  onOpenShop?: () => void;
+  onReturnToJourney?: () => void;
+}>('CollectionScreen', 'CollectionScreen');
+const HeroDeckSelectScreen = loadHsScreenSafely<HeroDeckSelectScreenProps>(
+  'HeroDeckSelectScreen',
+  'HeroDeckSelectScreen',
+);
+const PackOpeningScreen = loadHsScreenSafely<{
+  onBack: () => void;
+  onOpenShop: () => void;
+  onProfileChanged: () => void;
+  onOpenCollection?: () => void;
+  onReturnToJourney?: () => void;
+}>('PackOpeningScreen', 'PackOpeningScreen');
 import { initGamePwaFullscreen, isStandalonePwa } from './pwaFullscreen';
 import { hsStorage } from './storage';
 import {
@@ -717,6 +749,15 @@ export const HearthstoneApp: React.FC = () => {
           />
         )}
 
+        <Suspense
+          fallback={
+            <div className="flex h-full w-full flex-col items-center justify-center bg-[#090604] text-amber-100">
+              <div className="text-sm font-extrabold tracking-wider text-sky-200">
+                {tr('화면을 불러오고 있습니다...', 'Loading screen...')}
+              </div>
+            </div>
+          }
+        >
         {screen === 'HERO_SELECT' && (
           <HeroDeckSelectScreen
             initialMode={selectedMode}
@@ -879,6 +920,7 @@ export const HearthstoneApp: React.FC = () => {
             }}
           />
         )}
+        </Suspense>
 
         {/* DEV-031: Bogart Gambling Hall Escrow Resume / Forfeit Modal */}
         {pendingGambleEscrow && (

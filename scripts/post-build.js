@@ -54,6 +54,8 @@ const ensureAbsoluteAssetPaths = (html) =>
   html
     .replace(/(src|href)=["']\.\/assets\//g, '$1="/assets/')
     .replace(/(src|href)=["']assets\//g, '$1="/assets/')
+    .replace(/(src|href)=["']\.\/game-manifest\.json/g, '$1="/game-manifest.json')
+    .replace(/(src|href)=["']\.\/manifest\.json/g, '$1="/manifest.json')
     .replace(/(src|href)=["']\.\/favicon\.png/g, '$1="/favicon.png')
     .replace(/(src|href)=["']\.\/hs-assets\//g, '$1="/hs-assets/')
     .replace(/(src|href)=["']\.\/novel-assets\//g, '$1="/novel-assets/')

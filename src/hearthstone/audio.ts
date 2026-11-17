@@ -127,6 +127,7 @@ class SnsHeroCardAudioEngine {
   private settings: AudioSettings = DEFAULT_AUDIO;
   private currentBgm: HTMLAudioElement | null = null;
   private currentBgmKey: string | null = null;
+  private pendingBgmTrack: 'tavern_hub' | 'collection' | 'mulligan' | 'duel_1' | 'duel_2' | null = null;
   private currentVo: HTMLAudioElement | null = null;
   private currentVoResolve: (() => void) | null = null;
   private currentVoSequenceCancel: (() => void) | null = null;
@@ -138,6 +139,7 @@ class SnsHeroCardAudioEngine {
   private heroNameVoMapPromise: Promise<Record<string, string>> | null = null;
   private activeSfx = new Set<HTMLAudioElement>();
   private ctx: AudioContext | null = null;
+  private activeSynthNodes = 0;
   private lastAnimaleseAt = 0;
   private unlocked = false;
   private isWindowActive = true;
@@ -189,9 +191,15 @@ class SnsHeroCardAudioEngine {
       };
 
       const unlock = () => {
+        const wasUnlocked = this.unlocked;
         this.unlocked = true;
         if (typeof document === 'undefined' || !document.hidden) {
           this.resumeForFocusGain();
+          if (!wasUnlocked && this.pendingBgmTrack && !this.currentBgm) {
+            const trackToStart = this.pendingBgmTrack;
+            this.currentBgmKey = null;
+            this.playBgm(trackToStart);
+          }
         }
       };
 
@@ -203,9 +211,9 @@ class SnsHeroCardAudioEngine {
         document.addEventListener('visibilitychange', handleVisibilityChange);
       }
 
-      window.addEventListener('pointerdown', unlock, { passive: true });
-      window.addEventListener('touchstart', unlock, { passive: true });
-      window.addEventListener('keydown', unlock, { passive: true });
+      window.addEventListener('pointerdown', unlock, { passive: true, capture: true });
+      window.addEventListener('touchstart', unlock, { passive: true, capture: true });
+      window.addEventListener('keydown', unlock, { passive: true, capture: true });
     }
   }
 
@@ -453,7 +461,13 @@ class SnsHeroCardAudioEngine {
   }
 
   private getAudioCtx(): AudioContext | null {
-    if (typeof window === 'undefined' || !this.checkWindowActive()) return null;
+    if (
+      typeof window === 'undefined' ||
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
+      !this.checkWindowActive()
+    ) {
+      return null;
+    }
     if (!this.ctx) {
       const AC =
         window.AudioContext ||
@@ -467,6 +481,16 @@ class SnsHeroCardAudioEngine {
   }
 
   playBgm(track: 'tavern_hub' | 'collection' | 'mulligan' | 'duel_1' | 'duel_2') {
+    this.pendingBgmTrack = track;
+    if (!this.unlocked && !this.hasStickyUserActivation()) {
+      if (this.currentBgm) {
+        this.currentBgm.pause();
+        this.currentBgm.src = '';
+        this.currentBgm = null;
+      }
+      this.currentBgmKey = track;
+      return;
+    }
     const active = this.checkWindowActive();
     if (this.currentBgmKey === track && this.currentBgm) {
       if (
@@ -496,6 +520,7 @@ class SnsHeroCardAudioEngine {
   }
 
   stopBgm() {
+    this.pendingBgmTrack = null;
     if (this.currentBgm) {
       this.currentBgm.pause();
       this.currentBgm.src = '';
@@ -549,7 +574,14 @@ class SnsHeroCardAudioEngine {
       | 'taunt_bubble_pop',
     volumeScale = 1,
   ) {
-    if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
+    if (
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.sfxVolume <= 0
+    ) {
+      return;
+    }
     if (
       name === 'mario_coin' ||
       name === 'zelda_secret' ||
@@ -633,9 +665,16 @@ class SnsHeroCardAudioEngine {
       | 'taunt_bubble_pop',
     volumeScale = 1,
   ) {
-    if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
+    if (
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.sfxVolume <= 0
+    ) {
+      return;
+    }
     const ctx = this.getAudioCtx();
-    if (!ctx) return;
+    if (!ctx || ctx.state !== 'running' || this.activeSynthNodes >= 24) return;
     const now = ctx.currentTime;
     const master = ctx.createGain();
     master.gain.value = Math.min(0.45, this.settings.sfxVolume * 0.42 * volumeScale);
@@ -650,6 +689,14 @@ class SnsHeroCardAudioEngine {
       peak = 0.65,
       freqEnd?: number,
     ) => {
+      if (this.activeSynthNodes >= 28) return;
+      this.activeSynthNodes += 1;
+      let released = false;
+      const release = () => {
+        if (released) return;
+        released = true;
+        this.activeSynthNodes = Math.max(0, this.activeSynthNodes - 1);
+      };
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
       osc.type = type;
@@ -663,6 +710,7 @@ class SnsHeroCardAudioEngine {
       osc.connect(g);
       g.connect(master);
       osc.onended = () => {
+        release();
         try {
           osc.disconnect();
           g.disconnect();
@@ -670,6 +718,7 @@ class SnsHeroCardAudioEngine {
           // ignore
         }
       };
+      window.setTimeout(release, Math.ceil((startOffset + dur) * 1000) + 180);
       osc.start(now + startOffset);
       osc.stop(now + startOffset + dur + 0.01);
       maxEnd = Math.max(maxEnd, startOffset + dur + 0.05);
@@ -759,7 +808,14 @@ class SnsHeroCardAudioEngine {
     speakerSide: 'LEFT' | 'RIGHT' = 'LEFT',
     isQuestionTail = false,
   ) {
-    if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
+    if (
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.sfxVolume <= 0
+    ) {
+      return;
+    }
     if (!char || /[\s.,…!?"'“”‘’—\-~:;()[\]{}·/\\<>]/.test(char)) return;
 
     const perfNow = typeof performance !== 'undefined' ? performance.now() : Date.now();
@@ -767,7 +823,7 @@ class SnsHeroCardAudioEngine {
     this.lastAnimaleseAt = perfNow;
 
     const ctx = this.getAudioCtx();
-    if (!ctx) return;
+    if (!ctx || ctx.state !== 'running' || this.activeSynthNodes >= 20) return;
 
     const lowerSpeaker = speakerName.toLowerCase();
     let baseFreq = speakerSide === 'LEFT' ? 355 : 280;
@@ -917,9 +973,16 @@ class SnsHeroCardAudioEngine {
       | 'TOY_DRUM'
       | 'TOY_SPLASH',
   ) {
-    if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
+    if (
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.sfxVolume <= 0
+    ) {
+      return;
+    }
     const ctx = this.getAudioCtx();
-    if (!ctx) return;
+    if (!ctx || ctx.state !== 'running' || this.activeSynthNodes >= 20) return;
     const now = ctx.currentTime;
     const master = ctx.createGain();
     master.gain.value = this.settings.sfxVolume * 0.18;
@@ -1084,6 +1147,7 @@ class SnsHeroCardAudioEngine {
   playVoFile(voKey: string): Promise<void> {
     if (
       !isKoreanLanguage() ||
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
       !this.checkWindowActive() ||
       this.settings.muted ||
       this.settings.voVolume <= 0
@@ -1165,6 +1229,7 @@ class SnsHeroCardAudioEngine {
     if (
       !this.settings.ttsEnabled ||
       typeof window === 'undefined' ||
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
       !this.checkWindowActive() ||
       this.settings.muted ||
       this.settings.voVolume <= 0
@@ -1330,7 +1395,12 @@ class SnsHeroCardAudioEngine {
   }
 
   private playCustomVoUrl(url: string, preloaded?: HTMLAudioElement): Promise<void> {
-    if (!this.checkWindowActive() || this.settings.muted || this.settings.voVolume <= 0) {
+    if (
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.voVolume <= 0
+    ) {
       return Promise.resolve();
     }
     this.cancelActiveVo();
@@ -1653,7 +1723,14 @@ class SnsHeroCardAudioEngine {
     _isPlayerCustom = false,
     _isOpponentCustom = false,
   ) {
-    if (!this.checkWindowActive() || this.settings.muted || this.settings.voVolume <= 0) return;
+    if (
+      (!this.unlocked && !this.hasStickyUserActivation()) ||
+      !this.checkWindowActive() ||
+      this.settings.muted ||
+      this.settings.voVolume <= 0
+    ) {
+      return;
+    }
     const isKo = isKoreanLanguage();
     const pShort = extractShortHeroCalloutName(playerName, playerClass, isKo);
     const oShort = extractShortHeroCalloutName(opponentName, opponentClass, isKo);

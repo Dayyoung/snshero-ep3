@@ -889,6 +889,8 @@ export const PromoApp: React.FC = () => {
                   key={activeFeature.imageUrl}
                   src={activeFeature.imageUrl}
                   alt={activeFeature.title}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover object-center transition-transform duration-500 hover:scale-105"
                 />
                 <div
@@ -959,6 +961,8 @@ export const PromoApp: React.FC = () => {
                     <img
                       src={boss.img}
                       alt={boss.name}
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-108"
                     />
                   </div>
@@ -1315,6 +1319,7 @@ export const PromoApp: React.FC = () => {
                 <img
                   src={resolveDialogueSpriteUrl(selectedHero.heroCutoutUrl)}
                   alt={selectedHeroUi.name}
+                  loading="lazy"
                   decoding="async"
                   className="relative max-h-[340px] w-auto object-contain"
                 />
@@ -1708,6 +1713,8 @@ export const PromoApp: React.FC = () => {
                   <img
                     src="/hs-assets/screenshots/ingame_story_theater.png?v=20261116"
                     alt={tr('스토리모드 카단의 여정', "Story Mode Kadan's Journey")}
+                    loading="lazy"
+                    decoding="async"
                     className="aspect-video w-full object-cover"
                   />
                 </div>
@@ -1793,6 +1800,8 @@ export const PromoApp: React.FC = () => {
                         : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116'
                     }
                     alt={tr('온라인형 랭킹대전', 'Ranked Arena')}
+                    loading="lazy"
+                    decoding="async"
                     className="aspect-video w-full object-cover"
                   />
                 </div>
@@ -1806,6 +1815,8 @@ export const PromoApp: React.FC = () => {
                   <img
                     src="/hs-assets/screenshots/ingame_story_battle.png?v=20261116"
                     alt={tr('보가트의 도박장', "Bogart's Gambling Hall")}
+                    loading="lazy"
+                    decoding="async"
                     className="aspect-video w-full object-cover"
                   />
                 </div>
@@ -2116,6 +2127,8 @@ export const PromoApp: React.FC = () => {
                   <img
                     src={item.img}
                     alt={item.title}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
                 </div>

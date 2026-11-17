@@ -98,6 +98,8 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
   const [vipAdRemoved, setVipAdRemoved] = useState<boolean>(() => isHsGameAdRemoved());
   const [desktopWide] = useState<boolean>(() => isDesktopWideLandscape());
   const hideAllAds = vipAdRemoved || hideAdsForFtue;
+  const hideAllAdsRef = useRef<boolean>(hideAllAds);
+  hideAllAdsRef.current = hideAllAds;
   const mobileTopRef = useRef<HTMLDivElement | null>(null);
   const leftGutterRef = useRef<HTMLElement | null>(null);
   const rightGutterRef = useRef<HTMLElement | null>(null);
@@ -130,18 +132,24 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
 
   useEffect(() => {
     initAdSenseContainmentObserver();
-    syncAdSenseRatioLayout('game');
-    pushAdSenseTags('game');
+    if (!hideAllAds) {
+      syncAdSenseRatioLayout('game');
+      pushAdSenseTags('game');
+    }
     measureViewport();
 
     const handleAdRemovalChange = () => {
       setVipAdRemoved(isHsGameAdRemoved());
-      syncAdSenseRatioLayout('game');
+      if (!hideAllAdsRef.current) {
+        syncAdSenseRatioLayout('game');
+      }
       window.requestAnimationFrame(measureViewport);
     };
 
     const handleResize = () => {
-      syncAdSenseRatioLayout('game');
+      if (!hideAllAdsRef.current) {
+        syncAdSenseRatioLayout('game');
+      }
       measureViewport();
     };
 
@@ -181,10 +189,12 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
     if (rootRef.current) {
       protectLinksFromVignette(rootRef.current);
     }
-    syncAdSenseRatioLayout('game');
-    pushAdSenseTags('game');
+    if (!hideAllAds) {
+      syncAdSenseRatioLayout('game');
+      pushAdSenseTags('game');
+    }
     window.requestAnimationFrame(measureViewport);
-  }, [screenKey, vipAdRemoved, measureViewport]);
+  }, [screenKey, vipAdRemoved, hideAllAds, measureViewport]);
 
   const frameW = Math.floor(stageMetrics.stageW * stageMetrics.scale);
   const frameH = Math.floor(stageMetrics.stageH * stageMetrics.scale);
@@ -194,82 +204,78 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
       ref={rootRef}
       className="fixed inset-0 flex h-full w-full flex-col overflow-hidden bg-[#070402] text-[#f8ebd2]"
     >
-      {/* Tablet & Smartphone Top Ribbon Banner (fixed 52px frame prevents AdSense unfilled collapse CLS) */}
-      {!hideAllAds && (
+      {/* Tablet & Smartphone Top Ribbon Banner (kept stably mounted in DOM to prevent AdSense Error: no_div) */}
+      <div
+        style={{
+          display: hideAllAds || desktopWide ? 'none' : 'block',
+          height: 52,
+          minHeight: 52,
+          maxHeight: 52,
+        }}
+        className="w-full shrink-0 overflow-hidden"
+      >
         <div
+          id="adsense-mobile-top"
+          ref={mobileTopRef}
+          data-nosnippet=""
           style={{
-            display: desktopWide ? 'none' : 'block',
+            display: hideAllAds || desktopWide ? 'none' : 'block',
             height: 52,
             minHeight: 52,
             maxHeight: 52,
+            isolation: 'isolate',
           }}
-          className="w-full shrink-0 overflow-hidden"
+          className="adsense-banner-top relative z-0 w-full shrink-0 select-none overflow-hidden border-b border-[#c8a158]/30 bg-[#100a06] px-1 text-center"
+          aria-label="Google AdSense Top Banner"
         >
-          <div
-            id="adsense-mobile-top"
-            ref={mobileTopRef}
-            data-nosnippet=""
-            style={{
-              display: desktopWide ? 'none' : 'block',
-              height: 52,
-              minHeight: 52,
-              maxHeight: 52,
-              isolation: 'isolate',
-            }}
-            className="adsense-banner-top relative z-0 w-full shrink-0 select-none overflow-hidden border-b border-[#c8a158]/30 bg-[#100a06] px-1 text-center"
-            aria-label="Google AdSense Top Banner"
-          >
-            <div className="adsense-banner-inner relative mx-auto flex h-[50px] max-w-[360px] items-center justify-center gap-1.5 overflow-hidden">
+          <div className="adsense-banner-inner relative mx-auto flex h-[50px] max-w-[360px] items-center justify-center gap-1.5 overflow-hidden">
+            {onOpenAdRemovalShop ? (
+              <button
+                type="button"
+                onClick={onOpenAdRemovalShop}
+                title="광고 영구 제거 (4,000원 / $2.99)"
+                className="shrink-0 cursor-pointer rounded border border-amber-400/50 bg-amber-950/90 px-1.5 py-0.5 text-[8px] font-extrabold text-amber-200 hover:bg-amber-900"
+              >
+                ✨AD제거
+              </button>
+            ) : (
+              <span className="shrink-0 rounded border border-amber-500/35 bg-black/70 px-1 py-0.5 text-[8px] font-extrabold tracking-wider text-amber-200/75 uppercase">
+                AD
+              </span>
+            )}
+            <div className="adsense-slot-wrapper relative flex h-[50px] max-h-[50px] min-h-[50px] flex-1 items-center justify-center overflow-hidden" />
+          </div>
+        </div>
+      </div>
+
+      {/* Central Row: PC Left Gutter + Scaled/Letterboxed Game Viewport + PC Right Gutter */}
+      <div className="relative z-10 flex min-h-0 w-full flex-1 flex-row justify-center overflow-hidden">
+        <aside
+          id="adsense-desktop-left"
+          ref={leftGutterRef}
+          data-nosnippet=""
+          style={{ display: !hideAllAds && desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
+          className="adsense-gutter adsense-desktop-left relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-center overflow-hidden border-r border-[#c8a158]/25 bg-[#0c0805] px-2 py-3 text-center"
+          aria-label="Google AdSense Left Wing"
+        >
+          <div className="w-[160px] overflow-hidden rounded-xl border border-[#c8a158]/25 bg-black/55 p-1.5">
+            <div className="mb-1 flex items-center justify-between border-b border-amber-500/20 pb-1 text-[9px] font-bold tracking-wider text-amber-200/65 uppercase">
+              <span>AD</span>
               {onOpenAdRemovalShop ? (
                 <button
                   type="button"
                   onClick={onOpenAdRemovalShop}
-                  title="광고 영구 제거 (4,000원 / $2.99)"
-                  className="shrink-0 cursor-pointer rounded border border-amber-400/50 bg-amber-950/90 px-1.5 py-0.5 text-[8px] font-extrabold text-amber-200 hover:bg-amber-900"
+                  className="cursor-pointer rounded bg-amber-950/80 px-1.5 py-0.5 text-[8.5px] font-extrabold text-amber-300 hover:text-yellow-200"
                 >
-                  ✨AD제거
+                  ✨광고제거 $2.99
                 </button>
               ) : (
-                <span className="shrink-0 rounded border border-amber-500/35 bg-black/70 px-1 py-0.5 text-[8px] font-extrabold tracking-wider text-amber-200/75 uppercase">
-                  AD
-                </span>
+                <span>Google Ads</span>
               )}
-              <div className="adsense-slot-wrapper relative flex h-[50px] max-h-[50px] min-h-[50px] flex-1 items-center justify-center overflow-hidden" />
             </div>
+            <div className="adsense-slot-wrapper relative flex min-h-[600px] w-full items-center justify-center overflow-hidden" />
           </div>
-        </div>
-      )}
-
-      {/* Central Row: PC Left Gutter + Scaled/Letterboxed Game Viewport + PC Right Gutter */}
-      <div className="relative z-10 flex min-h-0 w-full flex-1 flex-row justify-center overflow-hidden">
-        {!hideAllAds && (
-          <aside
-            id="adsense-desktop-left"
-            ref={leftGutterRef}
-            data-nosnippet=""
-            style={{ display: desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
-            className="adsense-gutter adsense-desktop-left relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-center overflow-hidden border-r border-[#c8a158]/25 bg-[#0c0805] px-2 py-3 text-center"
-            aria-label="Google AdSense Left Wing"
-          >
-            <div className="w-[160px] overflow-hidden rounded-xl border border-[#c8a158]/25 bg-black/55 p-1.5">
-              <div className="mb-1 flex items-center justify-between border-b border-amber-500/20 pb-1 text-[9px] font-bold tracking-wider text-amber-200/65 uppercase">
-                <span>AD</span>
-                {onOpenAdRemovalShop ? (
-                  <button
-                    type="button"
-                    onClick={onOpenAdRemovalShop}
-                    className="cursor-pointer rounded bg-amber-950/80 px-1.5 py-0.5 text-[8.5px] font-extrabold text-amber-300 hover:text-yellow-200"
-                  >
-                    ✨광고제거 $2.99
-                  </button>
-                ) : (
-                  <span>Google Ads</span>
-                )}
-              </div>
-              <div className="adsense-slot-wrapper relative flex min-h-[600px] w-full items-center justify-center overflow-hidden" />
-            </div>
-          </aside>
-        )}
+        </aside>
 
         <main
           id="hs-game-viewport"
@@ -307,34 +313,32 @@ export const GameAdSenseLayout: React.FC<GameAdSenseLayoutProps> = ({
           </div>
         </main>
 
-        {!hideAllAds && (
-          <aside
-            id="adsense-desktop-right"
-            ref={rightGutterRef}
-            data-nosnippet=""
-            style={{ display: desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
-            className="adsense-gutter adsense-desktop-right relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-center overflow-hidden border-l border-[#c8a158]/25 bg-[#0c0805] px-2 py-3 text-center"
-            aria-label="Google AdSense Right Wing"
-          >
-            <div className="w-[160px] overflow-hidden rounded-xl border border-[#c8a158]/25 bg-black/55 p-1.5">
-              <div className="mb-1 flex items-center justify-between border-b border-amber-500/20 pb-1 text-[9px] font-bold tracking-wider text-amber-200/65 uppercase">
-                <span>AD</span>
-                {onOpenAdRemovalShop ? (
-                  <button
-                    type="button"
-                    onClick={onOpenAdRemovalShop}
-                    className="cursor-pointer rounded bg-amber-950/80 px-1.5 py-0.5 text-[8.5px] font-extrabold text-amber-300 hover:text-yellow-200"
-                  >
-                    ✨광고제거 4,000원
-                  </button>
-                ) : (
-                  <span>Google Ads</span>
-                )}
-              </div>
-              <div className="adsense-slot-wrapper relative flex min-h-[600px] w-full items-center justify-center overflow-hidden" />
+        <aside
+          id="adsense-desktop-right"
+          ref={rightGutterRef}
+          data-nosnippet=""
+          style={{ display: !hideAllAds && desktopWide ? 'flex' : 'none', isolation: 'isolate' }}
+          className="adsense-gutter adsense-desktop-right relative z-0 w-[176px] shrink-0 select-none flex-col items-center justify-center overflow-hidden border-l border-[#c8a158]/25 bg-[#0c0805] px-2 py-3 text-center"
+          aria-label="Google AdSense Right Wing"
+        >
+          <div className="w-[160px] overflow-hidden rounded-xl border border-[#c8a158]/25 bg-black/55 p-1.5">
+            <div className="mb-1 flex items-center justify-between border-b border-amber-500/20 pb-1 text-[9px] font-bold tracking-wider text-amber-200/65 uppercase">
+              <span>AD</span>
+              {onOpenAdRemovalShop ? (
+                <button
+                  type="button"
+                  onClick={onOpenAdRemovalShop}
+                  className="cursor-pointer rounded bg-amber-950/80 px-1.5 py-0.5 text-[8.5px] font-extrabold text-amber-300 hover:text-yellow-200"
+                >
+                  ✨광고제거 4,000원
+                </button>
+              ) : (
+                <span>Google Ads</span>
+              )}
             </div>
-          </aside>
-        )}
+            <div className="adsense-slot-wrapper relative flex min-h-[600px] w-full items-center justify-center overflow-hidden" />
+          </div>
+        </aside>
       </div>
     </div>
   );

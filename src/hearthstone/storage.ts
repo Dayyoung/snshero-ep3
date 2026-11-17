@@ -687,6 +687,27 @@ export interface MassDisenchantPreview {
 }
 
 class HearthstoneStorage {
+  private lastProfileRaw: string | null = null;
+  private cachedEquippedFrame = 'frame_classic';
+
+  getEquippedCardFrame(): string {
+    try {
+      const raw = localStorage.getItem(KEYS.PROFILE);
+      if (raw === this.lastProfileRaw) {
+        return this.cachedEquippedFrame;
+      }
+      this.lastProfileRaw = raw;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        this.cachedEquippedFrame = parsed?.prestige?.equippedFrame || 'frame_classic';
+        return this.cachedEquippedFrame;
+      }
+    } catch {
+      // ignore
+    }
+    this.cachedEquippedFrame = 'frame_classic';
+    return 'frame_classic';
+  }
   ensureInitialized() {
     if (!localStorage.getItem(KEYS.PROFILE)) {
       this.saveProfile(defaultProfile());

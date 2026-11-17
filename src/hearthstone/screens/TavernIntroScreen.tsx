@@ -46,18 +46,17 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
     };
   }, [clearScheduledTimers, completeEnter]);
 
-  const embers = useMemo(
-    () =>
-      Array.from({ length: 24 }).map((_, i) => ({
-        id: i,
-        left: `${8 + ((i * 37) % 84)}%`,
-        size: 3 + (i % 4) * 1.5,
-        delay: `${(i * 0.31).toFixed(2)}s`,
-        duration: `${(4.2 + (i % 5) * 0.85).toFixed(2)}s`,
-        dx: `${(i % 2 === 0 ? 1 : -1) * (14 + (i % 4) * 9)}px`,
-      })),
-    [],
-  );
+  const embers = useMemo(() => {
+    const count = typeof window !== 'undefined' && window.innerWidth < 640 ? 10 : 24;
+    return Array.from({ length: count }).map((_, i) => ({
+      id: i,
+      left: `${8 + ((i * 37) % 84)}%`,
+      size: 3 + (i % 4) * 1.5,
+      delay: `${(i * 0.31).toFixed(2)}s`,
+      duration: `${(4.2 + (i % 5) * 0.85).toFixed(2)}s`,
+      dx: `${(i % 2 === 0 ? 1 : -1) * (14 + (i % 4) * 9)}px`,
+    }));
+  }, []);
 
   const handleEnter = () => {
     if (completedRef.current || manualTriggeredRef.current) return;
@@ -89,8 +88,8 @@ export const TavernIntroScreen: React.FC<{ onEnterHub: () => void }> = ({ onEnte
       />
       <div
         style={{ backgroundImage: `url(${SNS_LOCATIONS.TAVERN_EXTERIOR})` }}
-        className={`absolute inset-0 bg-cover bg-center mix-blend-lighten transition-opacity duration-400 ${
-          opening ? 'opacity-30' : 'opacity-65'
+        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-400 sm:mix-blend-lighten ${
+          opening ? 'opacity-20 sm:opacity-30' : 'opacity-45 sm:opacity-65'
         }`}
       />
 

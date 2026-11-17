@@ -15,7 +15,7 @@ import {
   SnsQuestScrollIcon,
   SnsSnowCompassSeal,
 } from '../components/SnsHeroArtKit';
-import { getJourneyEpisodeDef } from '../kadanJourneyData';
+import { getJourneyEpisodeShortTitle } from '../journeyEpisodeTitles';
 import {
   canInstallGamePwa,
   isBrowserFullscreen,
@@ -59,7 +59,6 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   const [inAppDismissed, setInAppDismissed] = useState(false);
   const [, setPwaTick] = useState(0);
   const isFirstVisitGuide = !profile.journeyGuideDone;
-  const currentEp = getJourneyEpisodeDef(profile.journeyEpisode ?? 0, lang === 'ko');
   const quests = hsStorage.getQuests();
   const incompleteQuestsCount = quests.filter((q) => !q.completed).length;
   const remainingExpertAiCount = Math.max(0, 9 - (profile.practiceExpertCleared?.length || 0));
@@ -127,7 +126,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   const lockedBtnStyle = isFirstVisitGuide
     ? 'pointer-events-none cursor-not-allowed opacity-40 saturate-[0.35]'
     : '';
-  const epTitle = lang === 'ko' ? currentEp.titleKo : currentEp.titleEn;
+  const epTitle = getJourneyEpisodeShortTitle(profile.journeyEpisode ?? 0, lang === 'ko');
 
   return (
     <div

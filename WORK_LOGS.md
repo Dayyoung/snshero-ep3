@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 13:38 KST] [iOS Safari `/game` WebKit 프로세스 재시작(`문제가 반복적으로 발생했습니다`) 7대 원인 근본 수정 완료 (푸시 대기)]
+- **요청**: 아이폰(iOS Safari)에서 `https://snshero.com/game` 접속 시 `'https://snshero.com/game'에서 문제가 반복적으로 발생했습니다.` WebKit Jetsam / 프로세스 크래시 재발 오류 수정
+- **원인 진단 및 근본 조치**:
+  1. [`public/sw.js`](file:///Users/dayyoung/project/snshero/public/sw.js) (`snshero-media-v21-20261117`): iOS Safari `AVPlayer`의 오디오 `HTTP 206 Partial Content`(Range) 요청에 대해 SW가 `cache.put()` 예외 및 캐시된 `200` 응답을 반환하며 WebKit 미디어 디코더 충돌을 유발하던 문제를 차단 (오디오·비디오·`Range` 요청 100% 네트워크 직통 바이패스 및 `status === 200` 검증 강화).
+  2. [`src/hearthstone/audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts): 첫 터치 전 `suspended` 상태의 `AudioContext`에 `OscillatorNode`/`GainNode`/`BiquadFilterNode`가 해제되지 않고 누적되던 누수 및 자동재생 `AVPlayer` 다중 생성을 차단 (`capture: true` 사용자 제스처 언락 이후에만 `AudioContext` 및 오디오 파이프라인 구동, 동시 신디 노드 상한 캡 적용).
+  3. [`CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/CardVisual.tsx) · [`SnsHeroArtKit.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SnsHeroArtKit.tsx) · [`hearthstone.css`](file:///Users/dayyoung/project/snshero/src/hearthstone/hearthstone.css) · [`storage.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/storage.ts): 카드당 Retina 오프스크린 `IOSurface` 버퍼(~9MB/장)를 생성하던 SVG `<mask>`를 순수 벡터 `fillRule="evenodd"` 경로로 전환(`0` SVG mask)하고, `<feDropShadow>` SVG 필터 제거(`0` SVG filter), 모바일 터치 환경 `backdrop-blur` 및 카드 `filter: drop-shadow` 오프스크린 버퍼 비활성화, 카드별 중복 이벤트 리스너/`JSON.parse`를 단일 구독 캐시(`getEquippedCardFrame`)로 통합.
+  4. [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx) · [`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx) · [`journeyEpisodeTitles.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/journeyEpisodeTitles.ts): `BattleScreen`·`CollectionScreen`·`PackOpeningScreen`·`HeroDeckSelectScreen` 지연 로딩(Safe Glob Lazy) 및 40화 대본 데이터(`575KB`) 분리로 `/game` 초기 JS 엔트리 번들을 `522KB → 150KB`(`-71%`)로 경량화.
+  5. [`TavernIntroScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/TavernIntroScreen.tsx) · [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx) · [`GameAdSenseLayout.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/GameAdSenseLayout.tsx) · [`main.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/main.tsx) · [`post-build.js`](file:///Users/dayyoung/project/snshero/scripts/post-build.js): 모바일 인트로 `mix-blend-lighten` 제거, 프로모션(`/`) 하단 고해상도 이미지 `loading="lazy"` 적용(탭 내 `/`→`/game` 이동 시 PageCache 메모리 절감), AdSense `Error: no_div` 방지 DOM 고정 마운트, `GameErrorBoundary` 복구 가드 및 `/game-manifest.json` 절대경로 보정 적용.
+- **검증 및 저장 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (`0` errors).
+  - 실제 Apple WebKit(`webkit-2287`, iPhone 14 KO/EN 및 데스크톱 `1280×800`) E2E 검증 완료 (`Crashes=0, Errors=0, Pre-gesture AudioWarnings=0, masks=0, filters=0, CollectibleCards=382`).
+  - 로컬 `git commit` 완료 (`git push` 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-17 13:35 KST] [스토리 모드 · 실리아 필살기 대사 컷신 캐릭터 상반신 위치 상향 조정(`bottom-[112px] sm:bottom-[132px]`) 완료 (푸시 대기)]
 - **요청**: 스토리 모드 캐릭터 대사 시 하단 대사창에 상반신이 가려 머리만 보이는 현상을 개선해 상반신을 위로 끌어올림
 - **수정 내용**:
