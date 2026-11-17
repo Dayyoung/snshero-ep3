@@ -549,6 +549,39 @@ const RARITY_GEM_COLORS: Record<
   LEGENDARY: { hi: '#fef9c3', mid: '#f97316', lo: '#7c2d12' },
 };
 
+/**
+ * Computes undistorted card-title typography along the 214px safe arch span.
+ * Never warps glyph aspect ratio (`lengthAdjust="spacingAndGlyphs"` removed).
+ */
+function getCardTitleTypography(title: string): { fontSize: number; strokeWidth: number; letterSpacing: string } {
+  let widthUnits = 0;
+  for (const ch of title) {
+    if (ch.charCodeAt(0) > 0x2e80) {
+      widthUnits += 1.02; // Hangul / CJK full-width glyph
+    } else if ('MW@#%&'.includes(ch)) {
+      widthUnits += 0.82;
+    } else if ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(ch)) {
+      widthUnits += 0.66;
+    } else if ('mw'.includes(ch)) {
+      widthUnits += 0.72;
+    } else if ('iltjrI.,:\'"!| -'.includes(ch)) {
+      widthUnits += 0.34;
+    } else {
+      widthUnits += 0.56;
+    }
+  }
+  const safeUnits = Math.max(1, widthUnits);
+  const maxWidthPx = 212;
+  const rawSize = maxWidthPx / safeUnits;
+  const fontSize = Number(Math.max(10.8, Math.min(19, rawSize)).toFixed(2));
+  const strokeWidth = Number(Math.max(2.2, Math.min(3.6, fontSize * 0.19)).toFixed(2));
+  return {
+    fontSize,
+    strokeWidth,
+    letterSpacing: widthUnits > 13 ? '-0.1' : '-0.2',
+  };
+}
+
 export interface HearthstoneCardProps {
   card: ClassicCardDef;
   effectiveCost?: number;
@@ -590,6 +623,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
 
   const cardDisplayName = getCardName(card, lang);
   const cardDisplayText = getCardText(card, lang);
+  const titleTypo = getCardTitleTypography(cardDisplayName);
 
   const shownCost = effectiveCost !== undefined ? effectiveCost : card.cost;
   const costState: 'normal' | 'buffed' | 'nerfed' =
@@ -908,7 +942,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             {/* Gentle Upward Arch Path for Card Name Typography */}
             <path
               id={`titleArch_${uid}`}
-              d="M 40 231 Q 150 207 260 231"
+              d="M 32 233 Q 150 207 268 233"
               fill="none"
             />
           </defs>
@@ -1087,28 +1121,17 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
           <text
             fill="#ffffff"
             stroke="#1a0d04"
-            strokeWidth="3.6"
+            strokeWidth={titleTypo.strokeWidth}
             paintOrder="stroke"
-            fontFamily="'Nanum Gothic', sans-serif"
+            fontFamily="'Belwe', 'Trebuchet MS', 'Nanum Gothic', sans-serif"
             fontWeight="900"
-            fontSize={
-              cardDisplayName.length >= 18
-                ? '13.2'
-                : cardDisplayName.length >= 13
-                  ? '14.8'
-                  : cardDisplayName.length >= 10
-                    ? '16.8'
-                    : '19'
-            }
-            letterSpacing="-0.2"
+            fontSize={titleTypo.fontSize}
+            letterSpacing={titleTypo.letterSpacing}
           >
             <textPath
               href={`#titleArch_${uid}`}
               startOffset="50%"
               textAnchor="middle"
-              {...(cardDisplayName.length >= 15
-                ? { textLength: 216, lengthAdjust: 'spacingAndGlyphs' as const }
-                : {})}
             >
               {cardDisplayName}
             </textPath>

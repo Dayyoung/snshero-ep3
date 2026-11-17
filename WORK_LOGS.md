@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 10:39 KST] [영문 카드명 SVG 가로 압착(납작함) 현상 수정 완료 (푸시 대기)]
+- **요청**: 영문 카드 이름이 가로로 심하게 눌려 납작하게 표시되는 현상 해결
+- **원인 분석**: `src/hearthstone/components/CardVisual.tsx`의 SVG `<textPath>`에 `cardDisplayName.length >= 15`일 때 `textLength={216}` 및 `lengthAdjust="spacingAndGlyphs"`가 강제 적용되어 있어, 대부분 15자 이상인 영문 카드명의 글자(Glyph) 비율이 수평으로 비정상 압축·왜곡되는 문제가 발생함.
+- **수정 내용 (`src/hearthstone/components/CardVisual.tsx`)**:
+  - `lengthAdjust="spacingAndGlyphs"` 및 `textLength={216}` 제거로 글자 자체 비율 왜곡 원천 차단.
+  - 문자별 폭 가중치 기반 동적 타이포그래피 계산 헬퍼 `getCardTitleTypography(title)` 추가 (`fontSize` `10.8..19` 비례 축소, `strokeWidth` `2.2..3.6` 비례 조정, 자간 최적화).
+  - 리본 아치 경로 `#titleArch_${uid}` 폭 확장 (`M 32 233 Q 150 207 268 233`)으로 긴 영문 카드명도 리본 안에 여유 있게 안착하도록 개선.
+- **검증 결과**:
+  - `npx tsc --noEmit` (`CardVisual.tsx` 에러 0건) 및 `npm run build` 성공 (`dist/` 생성 완료).
+  - Playwright 실브라우저 검증(`/game.html?mode=collection&lang=en`, 확대 모달, `lang=ko` 대조)에서 `PAGE_ERRORS: []`, 영문/한글 카드명 모두 정상 비율·선명도 확인.
+- **구글 폼 보고**: `submit_report.py` 제출 완료.
+
+
 ## [2026-11-17 10:39 KST] [`/checkIssue` 이슈 Row 12 (`How to Play` 실제 게임 스크린샷 6단계 페이징 가이드 개편) 완료 (푸시 대기)]
 - **요청**: `/checkIssue` 실행 — 이슈문서 미해결 항목(Row 12, `P0`, `"How to Play 가 너무 심플해. 실제 게임 스크린샷을 캡쳐해서 페이징 처리해서 설명해 줄 수 있어."`) 해결
 - **구현 내역**:
