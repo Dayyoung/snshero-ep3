@@ -77,8 +77,9 @@ export const PackOpeningScreen: React.FC<{
   onBack: () => void;
   onOpenShop: () => void;
   onProfileChanged: () => void;
+  onOpenCollection?: () => void;
   onReturnToJourney?: () => void;
-}> = ({ onBack, onOpenShop, onProfileChanged, onReturnToJourney }) => {
+}> = ({ onBack, onOpenShop, onProfileChanged, onOpenCollection, onReturnToJourney }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   const [profile, setProfile] = useState(() => hsStorage.getProfile());
@@ -820,6 +821,24 @@ export const PackOpeningScreen: React.FC<{
                           : `(${profile.packs} Left)`
                         : ''}
                     </button>
+                    {onOpenCollection &&
+                      openedCards.some((c) =>
+                        c.card.rarity === 'LEGENDARY'
+                          ? c.newOwnedCount === 2
+                          : c.newOwnedCount >= 3,
+                      ) && (
+                        <button
+                          type="button"
+                          data-testid="pack-awakening-deck-shortcut"
+                          onClick={() => {
+                            hsAudio.playSfx('box_press');
+                            onOpenCollection();
+                          }}
+                          className="hs-gold-btn min-h-[44px] rounded-2xl border-yellow-200 px-4 py-2 text-xs font-extrabold sm:text-sm"
+                        >
+                          ★ {tr('내 카드첩에서 바로 편성', 'Build Deck with ×3 Awakened')}
+                        </button>
+                      )}
                     {onReturnToJourney && profile.packs === 0 && (
                       <button
                         type="button"
@@ -1035,10 +1054,18 @@ export const PackOpeningScreen: React.FC<{
                                   </span>
                                 )}
                                 {item.newJourneyMultiplier > 1 && (
-                                  <span className="hs-outline-sm pointer-events-none absolute -top-2.5 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full border border-emerald-200 bg-gradient-to-r from-emerald-600 to-teal-800 px-2 py-0.5 text-[8px] font-extrabold text-white shadow-lg md:-top-3 md:px-2.5 md:text-[10px]">
-                                    {isKo
-                                      ? `⚡스토리 ×${item.newJourneyMultiplier}배 (${item.newOwnedCount}장)`
-                                      : `⚡Story ×${item.newJourneyMultiplier} (${item.newOwnedCount})`}
+                                  <span
+                                    data-testid="pack-awakening-badge"
+                                    className="hs-outline-sm pointer-events-none absolute -top-2.5 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full border border-yellow-200 bg-gradient-to-r from-amber-500 via-yellow-500 to-emerald-600 px-2 py-0.5 text-[8px] font-black text-stone-950 shadow-[0_0_16px_rgba(251,191,36,0.9)] md:-top-3 md:px-2.5 md:text-[10px]"
+                                  >
+                                    {item.newOwnedCount >= 3 ||
+                                    (item.card.rarity === 'LEGENDARY' && item.newOwnedCount === 2)
+                                      ? isKo
+                                        ? `★ 3배 각성 달성! (공/체 ${item.newJourneyMultiplier}배)`
+                                        : `★ ×${item.newJourneyMultiplier} Awakened! (×3 Stats)`
+                                      : isKo
+                                        ? `⚡스토리 ×${item.newJourneyMultiplier}배 (${item.newOwnedCount}장)`
+                                        : `⚡Story ×${item.newJourneyMultiplier} (${item.newOwnedCount})`}
                                   </span>
                                 )}
                                 {item.isGolden && (

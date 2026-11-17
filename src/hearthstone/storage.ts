@@ -1267,6 +1267,7 @@ class HearthstoneStorage {
         q.progress = Math.min(q.goal, q.progress + amount);
         if (q.progress >= q.goal) {
           q.completed = true;
+          q.bonusClaimed = false;
           goldEarned += q.rewardGold;
         }
       }
@@ -1278,6 +1279,29 @@ class HearthstoneStorage {
       this.saveProfile(p);
     }
     return goldEarned;
+  }
+
+  /**
+   * 1-Click "Claim All" bonus for completed Daily Quests (+20G mastery chest per quest).
+   */
+  claimAllCompletedQuests(): { claimedCount: number; goldGranted: number } {
+    const quests = this.getQuests();
+    let claimedCount = 0;
+    for (const q of quests) {
+      if (q.completed && !q.bonusClaimed) {
+        q.bonusClaimed = true;
+        claimedCount += 1;
+      }
+    }
+    if (claimedCount <= 0) {
+      return { claimedCount: 0, goldGranted: 0 };
+    }
+    const goldGranted = claimedCount * 20;
+    this.saveQuests(quests);
+    const p = this.getProfile();
+    p.gold += goldGranted;
+    this.saveProfile(p);
+    return { claimedCount, goldGranted };
   }
 
   recordMatchOutcome(

@@ -7,6 +7,7 @@ import {
   GameMode,
   HERO_CLASS_ORDER,
   HeroClass,
+  KadanTacticalStance,
   MinionInstance,
   PlayerSide,
 } from '../types';
@@ -381,6 +382,7 @@ export function didHistoryAdvance(prev: BattleMatchState, next: BattleMatchState
 export function evaluateStateForAi(
   s: BattleMatchState,
   actorSide: PlayerSide = 'OPPONENT',
+  stance: KadanTacticalStance = 'BALANCED',
 ): number {
   const enemySide: PlayerSide = actorSide === 'OPPONENT' ? 'PLAYER' : 'OPPONENT';
   if (s.phase === 'GAME_OVER') {
@@ -396,14 +398,17 @@ export function evaluateStateForAi(
   // When remaining deck <= 5 cards, enter full aggro pressure mode (DEV-019)
   const lowDeckPressure =
     me.deck.length <= 5 ? 1.75 : me.deck.length <= 8 || foe.deck.length <= 8 || s.turnNumber >= 14 ? 1.38 : 1.0;
+  const stanceFaceMult = stance === 'AGGRO' ? 2.5 : stance === 'CONTROL' ? 0.8 : 1.0;
+  const stanceDefenseMult = stance === 'CONTROL' ? 1.45 : stance === 'AGGRO' ? 0.72 : 1.0;
+  const stanceEnemyBoardMult = stance === 'CONTROL' ? 1.65 : stance === 'AGGRO' ? 0.92 : 1.18;
 
   // 1. Hero Health & Armor (non-linear urgency when low!)
   const meEhp = me.health + me.armor;
   const foeEhp = foe.health + foe.armor;
-  score += meEhp * 1.85;
-  if (me.health <= 10) score -= (11 - me.health) * 4.5;
-  score -= foeEhp * (2.35 * lowDeckPressure);
-  if (foe.health <= 15) score += (16 - foe.health) * (4.6 * lowDeckPressure);
+  score += meEhp * 1.85 * stanceDefenseMult;
+  if (me.health <= 10) score -= (11 - me.health) * (4.5 * stanceDefenseMult);
+  score -= foeEhp * (2.35 * lowDeckPressure * stanceFaceMult);
+  if (foe.health <= 15) score += (16 - foe.health) * (4.6 * lowDeckPressure * stanceFaceMult);
 
   // Penalize burning into fatigue unless winning
   score -= me.fatigueCounter * 12;
@@ -412,10 +417,10 @@ export function evaluateStateForAi(
 
   // 2. Board Presence
   for (const m of me.board) {
-    score += scoreMinion(m);
+    score += scoreMinion(m) + (stance === 'CONTROL' && hasMinionTaunt(m) ? 3.5 : 0);
   }
   for (const m of foe.board) {
-    score -= scoreMinion(m) * 1.18;
+    score -= scoreMinion(m) * stanceEnemyBoardMult;
   }
 
   // 3. Diminishing-returns Hand Value (prevents hoarding 8-10 cards instead of spending mana)
@@ -451,6 +456,11 @@ const ADJACENT_MATTERS_CARDS = new Set([
   'EX1_304', // 공허의 괴물
 ]);
 
+export interface AiTacticalOptions {
+  stance?: KadanTacticalStance;
+  focusTargetId?: string | null;
+}
+
 /**
  * Computes the single best next action for `actorSide` ('OPPONENT' AI or 'PLAYER' Auto-Play).
  * Called repeatedly with animation spacing until it returns `{ kind: 'END_TURN' }`.
@@ -459,10 +469,14 @@ export function computeNextAiAction(
   rawState: BattleMatchState,
   difficulty: 'NORMAL' | 'EXPERT' = 'EXPERT',
   actorSide: PlayerSide = 'OPPONENT',
+  tacticalOpts?: AiTacticalOptions,
 ): AiAction {
   if (rawState.phase !== 'PLAYING' || rawState.activeSide !== actorSide) {
     return { kind: 'END_TURN' };
   }
+
+  const stance: KadanTacticalStance = tacticalOpts?.stance || 'BALANCED';
+  const focusTargetId = tacticalOpts?.focusTargetId || null;
 
   const enemySide: PlayerSide = actorSide === 'OPPONENT' ? 'PLAYER' : 'OPPONENT';
   const myHeroId = `${actorSide}_HERO`;
@@ -471,7 +485,7 @@ export function computeNextAiAction(
   const baseEngine = createEngine(rawState);
   const ai = actorSide === 'OPPONENT' ? rawState.opponent : rawState.player;
   const foe = actorSide === 'OPPONENT' ? rawState.player : rawState.opponent;
-  const baselineScore = evaluateStateForAi(rawState, actorSide);
+  const baselineScore = evaluateStateForAi(rawState, actorSide, stance);
 
   interface ScoredCandidate {
     action: AiAction;
@@ -548,7 +562,7 @@ export function computeNextAiAction(
           if (sim.state.errorBanner || !didHistoryAdvance(rawState, sim.state)) {
             continue;
           }
-          const sc = evaluateStateForAi(sim.state, actorSide) + 1.2;
+          const sc = evaluateStateForAi(sim.state, actorSide, stance) + 1.2 + (focusTargetId && tid === focusTargetId ? 16 : 0);
           candidates.push({
             action: {
               kind: 'PLAY_CARD',
@@ -579,11 +593,21 @@ export function computeNextAiAction(
         if (sim.state.errorBanner || !didHistoryAdvance(rawState, sim.state)) {
           continue;
         }
-        let sc = evaluateStateForAi(sim.state, actorSide);
+        let sc = evaluateStateForAi(sim.state, actorSide, stance);
         if (def.type === 'MINION') sc += 2.1 + def.cost * 0.4;
         if (def.mechanics.includes('SECRET')) sc += 2.4;
+        if (stance === 'AGGRO' && (def.mechanics.includes('CHARGE') || tid === enemyHeroId)) sc += 3.5;
+        if (stance === 'CONTROL' && def.mechanics.includes('TAUNT')) sc += 3.2;
+        if (stance === 'AWAKENING' && def.type === 'SPELL') {
+          if (rawState.turnNumber < 5 && ai.board.length < 2 && def.cost >= 3 && ai.health > 14) {
+            sc -= 3.2;
+          } else if (ai.board.length >= 2 || rawState.turnNumber >= 5) {
+            sc += 4.0;
+          }
+        }
+        if (focusTargetId && tid === focusTargetId) sc += 16.0;
         // Encourage pushing hero damage directly over hoarding cards when low-deck or behind
-        if (tid === enemyHeroId) sc += 1.1;
+        if (tid === enemyHeroId) sc += stance === 'AGGRO' ? 3.5 : 1.1;
         // Discourage self-mill draw spells when already near fatigue or holding 8+ cards
         const postMe = actorSide === 'OPPONENT' ? sim.state.opponent : sim.state.player;
         if (
@@ -632,7 +656,10 @@ export function computeNextAiAction(
       if (sim.state.errorBanner || !didHistoryAdvance(rawState, sim.state)) {
         continue;
       }
-      const sc = evaluateStateForAi(sim.state, actorSide) + 0.6;
+      const sc =
+        evaluateStateForAi(sim.state, actorSide, stance) +
+        (stance === 'CONTROL' ? 2.6 : 0.6) +
+        (focusTargetId && tid === focusTargetId ? 14 : 0);
       candidates.push({
         action: { kind: 'HERO_POWER', targetId: tid },
         score: sc,
@@ -672,14 +699,18 @@ export function computeNextAiAction(
       }
       const sim = createEngine(rawState);
       sim.performAttack(actorSide, atkId, defId);
-      let sc = evaluateStateForAi(sim.state, actorSide) + 0.9;
+      let sc = evaluateStateForAi(sim.state, actorSide, stance) + 0.9;
+      if (focusTargetId && defId === focusTargetId) {
+        sc += 18.0;
+      }
       const simMe = actorSide === 'OPPONENT' ? sim.state.opponent : sim.state.player;
       const simFoe = actorSide === 'OPPONENT' ? sim.state.player : sim.state.opponent;
       if (defId === enemyHeroId) {
         const foeBoardAtk = foe.board.reduce((sum, m) => sum + getMinionAttack(m), 0);
         const twoTurnLethal = !foeHasTaunt && totalFaceAttack * 2 >= foe.health + foe.armor;
         const lateGameFace = rawState.turnNumber >= 14 || ai.deck.length <= 10;
-        if (twoTurnLethal && ai.health + ai.armor > foeBoardAtk + 4) sc += 5.5;
+        if (stance === 'AGGRO') sc += 5.5;
+        else if (twoTurnLethal && ai.health + ai.armor > foeBoardAtk + 4) sc += 5.5;
         else if (lateGameFace) sc += 3.0;
       } else if (atkId !== myHeroId) {
         const survived = simMe.board.some((m) => m.uid === atkId && getMinionHealth(m) > 0);

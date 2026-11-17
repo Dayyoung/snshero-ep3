@@ -1,5 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import LZString from 'lz-string';
+import {
+  BookOpen,
+  ClipboardPaste,
+  Copy,
+  Database,
+  Download,
+  Flag,
+  Globe,
+  Home,
+  Maximize2,
+  QrCode,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  Tv,
+  Upload,
+  Volume2,
+  VolumeX,
+  X,
+} from 'lucide-react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { renderQrCodeSvg } from '../services/qrCodeSvg';
 import { AudioSettings, hsAudio } from '../audio';
@@ -135,7 +156,7 @@ const ALL_MODES_ORDER: GameMode[] = [
 export const QuestLogModal: React.FC<{
   onClose: () => void;
   onProfileChanged: () => void;
-}> = ({ onClose }) => {
+}> = ({ onClose, onProfileChanged }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   useModalDismiss(true, () => {
@@ -144,6 +165,7 @@ export const QuestLogModal: React.FC<{
   });
 
   const [openSection, setOpenSection] = useState<'NONE' | 'REWARDS' | 'QUESTS'>('NONE');
+  const [claimBanner, setClaimBanner] = useState<string | null>(null);
   const [, setTick] = useState(0);
   useEffect(() => {
     const sync = () => setTick((n) => n + 1);
@@ -157,6 +179,7 @@ export const QuestLogModal: React.FC<{
   const rankTitle = getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang) || tr('엘윈 마을 수습생', 'Elwin Apprentice');
   const starsNeeded = getStarsNeededForRank(profile.rank);
   const completedQuestsCount = quests.filter((q) => q.completed).length;
+  const claimableBonusCount = quests.filter((q) => q.completed && !q.bonusClaimed).length;
 
   return (
     <div
@@ -418,14 +441,46 @@ export const QuestLogModal: React.FC<{
             data-testid="quest-panel-quests"
             className="mt-3.5 rounded-2xl border-2 border-emerald-400/55 bg-black/55 p-3.5"
           >
-            <div className="mb-2.5 flex items-center justify-between px-1">
-              <h3 className="hs-title text-sm font-extrabold text-emerald-200">
-                {tr('오늘의 엘윈마을 의뢰', 'Daily Elwin Village Quests')}
-              </h3>
-              <span className="text-[11px] font-semibold text-emerald-200/80">
-                {tr('달성 시 골드 즉시 지급', 'Gold granted automatically')}
-              </span>
+            <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 px-1">
+              <div>
+                <h3 className="hs-title text-sm font-extrabold text-emerald-200">
+                  {tr('오늘의 엘윈마을 의뢰', 'Daily Elwin Village Quests')}
+                </h3>
+                <span className="text-[11px] font-semibold text-emerald-200/80">
+                  {tr('달성 시 골드 즉시 지급 + 추가 완료 보너스 일괄 수령 가능', 'Auto Gold on clear + Claim All mastery bonus')}
+                </span>
+              </div>
+              {claimableBonusCount > 0 && (
+                <button
+                  type="button"
+                  data-testid="quest-claim-all-btn"
+                  onClick={() => {
+                    const res = hsStorage.claimAllCompletedQuests();
+                    if (res.claimedCount > 0) {
+                      hsAudio.playSfx('purchase');
+                      onProfileChanged();
+                      setClaimBanner(
+                        tr(
+                          `🎁 완료 의뢰 ${res.claimedCount}건 추가 보너스 일괄 수령 완료 (+${res.goldGranted}G)!`,
+                          `🎁 Claimed mastery bonus for ${res.claimedCount} quest(s) (+${res.goldGranted}G)!`,
+                        ),
+                      );
+                    }
+                  }}
+                  className="hs-gold-btn min-h-[38px] rounded-xl px-3.5 py-1.5 text-xs font-black shadow-lg"
+                >
+                  {tr(
+                    `🎁 완료 의뢰 일괄 수령 (+${claimableBonusCount * 20}G)`,
+                    `🎁 Claim All (${claimableBonusCount} · +${claimableBonusCount * 20}G)`,
+                  )}
+                </button>
+              )}
             </div>
+            {claimBanner && (
+              <div className="mb-2.5 rounded-xl border border-emerald-300/70 bg-emerald-950/90 px-3 py-2 text-xs font-extrabold text-emerald-100">
+                {claimBanner}
+              </div>
+            )}
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {quests.map((q) => {
                 const pct = Math.min(100, Math.round((q.progress / q.goal) * 100));
@@ -1575,14 +1630,18 @@ export const PaymentSuccessModal: React.FC<{
   );
 };
 
+type OptionsTabKey = 'SYSTEM' | 'BACKUP' | 'COMMUNITY';
+
 export const GameOptionsModal: React.FC<{
   inBattle?: boolean;
   onConcede?: () => void;
+  onGoHome?: () => void;
   onClose: () => void;
-}> = ({ inBattle = false, onConcede, onClose }) => {
+}> = ({ inBattle = false, onConcede, onGoHome, onClose }) => {
   const { lang, setLang } = useHeroLanguage();
   useModalDismiss(true, onClose);
 
+  const [activeTab, setActiveTab] = useState<OptionsTabKey>('SYSTEM');
   const [settings, setSettings] = useState<AudioSettings>(() => hsAudio.getSettings());
   const [, setPwaTick] = useState(0);
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
@@ -1615,16 +1674,16 @@ export const GameOptionsModal: React.FC<{
       await navigator.clipboard.writeText(jsonString);
       setDataNotice(
         tr(
-          `✓ 눈히어로 카드배틀 백업 코드(${keyCount}개 항목)가 복사되었습니다.`,
-          `✓ SNSHero backup code (${keyCount} entries) copied to clipboard.`,
+          `눈히어로 카드배틀 백업 코드(${keyCount}개 항목)가 복사되었습니다.`,
+          `SNSHero backup code (${keyCount} entries) copied to clipboard.`,
         ),
       );
     } catch {
       hsStorage.downloadGameBackupFile();
       setDataNotice(
         tr(
-          '✓ 백업 JSON 파일이 다운로드되었습니다.',
-          '✓ Backup JSON file downloaded.',
+          '백업 JSON 파일이 다운로드되었습니다.',
+          'Backup JSON file downloaded.',
         ),
       );
     }
@@ -1652,17 +1711,31 @@ export const GameOptionsModal: React.FC<{
 
   return (
     <div
+      data-testid="game-options-modal"
       onClick={onClose}
-      className="fixed inset-0 z-[95] flex items-center justify-center bg-black/78 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[95] flex items-center justify-center bg-black/82 p-3 backdrop-blur-sm sm:p-4"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="hs-wood-panel relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl p-5 text-amber-100 sm:p-6"
+        className="relative flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#090d16] text-slate-100 shadow-[0_24px_60px_rgba(0,0,0,0.92)]"
       >
-        <div className="mb-4 flex items-center justify-between gap-2 border-b border-amber-500/30 pb-3">
-          <h2 className="hs-title text-xl font-extrabold text-amber-100 sm:text-2xl">
-            {tr('환경 설정', 'Settings')}
-          </h2>
+        {/* Modal Header */}
+        <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-400/35 bg-amber-500/10 text-amber-300">
+              <Settings className="h-4 w-4" strokeWidth={1.75} />
+            </div>
+            <div>
+              <h2 className="hs-title text-base font-extrabold tracking-wide text-amber-100 sm:text-lg">
+                {tr('게임 메뉴 · 환경 설정', 'Game Menu · Settings')}
+              </h2>
+              <p className="text-[11px] font-semibold text-slate-400">
+                {inBattle
+                  ? tr('전투 중 빠른 제어 및 시스템 관리', 'Battle controls & system settings')
+                  : tr('시스템 설정 · 세이브 백업 · 세계관 안내', 'System · Backup · Universe Links')}
+              </p>
+            </div>
+          </div>
           <button
             type="button"
             data-testid="options-close-btn"
@@ -1671,512 +1744,676 @@ export const GameOptionsModal: React.FC<{
               onClose();
             }}
             aria-label={tr('닫기', 'Close')}
-            className="hs-brass-btn flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black text-amber-100"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-slate-200 transition hover:border-amber-300/60 hover:bg-white/10"
           >
-            ✕
+            <X className="h-4 w-4" strokeWidth={1.75} />
           </button>
         </div>
 
-        {inBattle && onConcede && (
-          <button
-            type="button"
-            onClick={() => {
-              hsAudio.playSfx('menu_press');
-              onClose();
-              onConcede();
-            }}
-            className="mb-4 w-full rounded-2xl border-2 border-red-300 bg-gradient-to-b from-red-600 to-red-950 py-3 text-base font-extrabold text-white shadow-lg hover:brightness-110"
+        {/* Scrollable Body (`p-4` = 16px Padding) */}
+        <div className="flex-1 space-y-4 overflow-y-auto p-4">
+          {/* Tier 1: Top 2x2 Quick Action Vector Icon Grid (`min-h-[48px]` touch targets) */}
+          <div
+            data-testid="options-quick-grid"
+            className="grid grid-cols-2 gap-2.5"
           >
-            {tr('대결 항복하기', 'Concede Match')}
-          </button>
-        )}
-
-        <div className="space-y-3 rounded-2xl border border-[#c8a158]/40 bg-black/40 p-4">
-          {/* Language / 언어 설정 */}
-          <div className="flex items-center justify-between gap-2 border-b border-amber-500/20 pb-3">
-            <div className="min-w-0">
-              <div className="text-sm font-extrabold text-amber-100">
-                {tr('언어 설정 (Language)', 'Language')}
-              </div>
-              <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
-                {tr('한국어 또는 영어로 전환', 'Switch between English and Korean')}
-              </div>
-            </div>
-            <div
-              data-testid="options-language-selector"
-              className="flex shrink-0 overflow-hidden rounded-lg border border-amber-300/60 bg-stone-950/90 p-0.5 text-xs font-extrabold"
-            >
-              <button
-                type="button"
-                data-testid="options-lang-en"
-                onClick={() => {
-                  hsAudio.playSfx('ui_click', 0.75);
-                  setLang('en');
-                }}
-                className={`rounded-md px-2.5 py-1 transition ${
-                  lang === 'en'
-                    ? 'bg-amber-500 text-stone-950 shadow'
-                    : 'text-amber-100/80 hover:text-white'
-                }`}
-              >
-                English
-              </button>
-              <button
-                type="button"
-                data-testid="options-lang-ko"
-                onClick={() => {
-                  hsAudio.playSfx('ui_click', 0.75);
-                  setLang('ko');
-                }}
-                className={`rounded-md px-2.5 py-1 transition ${
-                  lang === 'ko'
-                    ? 'bg-amber-500 text-stone-950 shadow'
-                    : 'text-amber-100/80 hover:text-white'
-                }`}
-              >
-                한국어
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <div className="text-sm font-extrabold text-amber-100">
-                {tr('전체화면 모드 (PWA)', 'Fullscreen Mode (PWA)')}
-              </div>
-              <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
-                {standaloneApp
-                  ? tr('독립형 전체화면 PWA 앱 모드로 실행 중', 'Running in standalone PWA mode')
-                  : tr(
-                      '브라우저 주소창을 숨기고 몰입형 전체화면으로 플레이',
-                      'Hide browser bars for immersive fullscreen play',
-                    )}
-              </div>
-            </div>
-            {standaloneApp ? (
-              <span className="shrink-0 rounded-lg border border-emerald-300/60 bg-emerald-900/80 px-3 py-1.5 text-xs font-extrabold text-emerald-100">
-                {tr('PWA 전체화면 ✓', 'PWA Fullscreen ✓')}
-              </span>
-            ) : (
-              <button
-                type="button"
-                data-testid="toggle-fullscreen-mode"
-                disabled={!fullscreenSupported}
-                onClick={() => {
-                  hsAudio.playSfx('ui_click', 0.75);
-                  toggleBrowserFullscreen();
-                }}
-                className={`min-h-[38px] shrink-0 rounded-lg border px-3.5 py-1.5 text-xs font-extrabold transition ${
-                  fullscreenOn
-                    ? 'border-emerald-300/60 bg-emerald-800 text-white'
-                    : 'border-amber-300/60 bg-amber-900/80 text-amber-100 hover:brightness-110'
-                } disabled:opacity-45`}
-              >
-                {fullscreenOn ? tr('전체화면 켜짐', 'Fullscreen ON') : tr('전체화면 전환', 'Toggle Fullscreen')}
-              </button>
-            )}
-          </div>
-
-          {canInstallPwa && (
-            <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
-              <div className="min-w-0">
-                <div className="text-sm font-extrabold text-sky-200">
-                  {tr('홈 화면에 앱 설치', 'Install App to Home Screen')}
-                </div>
-                <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
-                  {tr('바탕화면 아이콘으로 언제든 즉시 전체화면 실행', 'Launch fullscreen anytime from your home icon')}
-                </div>
-              </div>
-              <button
-                type="button"
-                data-testid="options-install-pwa"
-                onClick={async () => {
-                  hsAudio.playSfx('ui_click', 0.8);
-                  if (canInstallGamePwa()) {
-                    const accepted = await promptInstallGamePwa();
-                    if (!accepted) {
-                      setInstallGuideOpen(true);
-                    }
-                  } else {
-                    setInstallGuideOpen(true);
-                  }
-                }}
-                className="hs-arcane-btn min-h-[38px] shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-extrabold text-white"
-              >
-                📲 {tr('게임설치', 'Install Game')}
-              </button>
-            </div>
-          )}
-
-          {installGuideOpen && (
-            <PwaInstallGuideModal onClose={() => setInstallGuideOpen(false)} />
-          )}
-
-          <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
-            <span className="text-sm font-extrabold">{tr('사운드 출력', 'Master Sound')}</span>
             <button
               type="button"
+              data-testid="options-quick-sound"
               onClick={() => update({ muted: !settings.muted })}
-              className={`min-h-[38px] rounded-lg border px-3.5 py-1.5 text-xs font-extrabold ${
+              className={`flex min-h-[52px] items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition ${
                 settings.muted
-                  ? 'border-red-300/60 bg-red-800 text-white'
-                  : 'border-emerald-300/60 bg-emerald-800 text-white'
+                  ? 'border-rose-400/45 bg-rose-950/35 text-rose-100'
+                  : 'border-emerald-400/45 bg-emerald-950/30 text-emerald-100 hover:bg-emerald-950/50'
               }`}
             >
-              {settings.muted ? tr('음소거 켜짐', 'Muted') : tr('사운드 켜짐', 'Sound ON')}
+              {settings.muted ? (
+                <VolumeX className="h-5 w-5 shrink-0 text-rose-300" strokeWidth={1.75} />
+              ) : (
+                <Volume2 className="h-5 w-5 shrink-0 text-emerald-300" strokeWidth={1.75} />
+              )}
+              <div className="min-w-0">
+                <div className="truncate text-xs font-extrabold">
+                  {settings.muted ? tr('음소거 중', 'Muted') : tr('사운드 켜짐', 'Sound ON')}
+                </div>
+                <div className="truncate text-[10px] text-slate-400">
+                  {tr('전체 오디오 전환', 'Toggle master sound')}
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              data-testid="options-quick-fullscreen"
+              disabled={!fullscreenSupported && !standaloneApp}
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.75);
+                if (!standaloneApp && fullscreenSupported) toggleBrowserFullscreen();
+              }}
+              className={`flex min-h-[52px] items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition ${
+                fullscreenOn
+                  ? 'border-sky-400/50 bg-sky-950/35 text-sky-100'
+                  : 'border-white/12 bg-white/[0.03] text-slate-100 hover:border-amber-300/45 hover:bg-white/[0.07]'
+              } disabled:opacity-45`}
+            >
+              <Maximize2 className="h-5 w-5 shrink-0 text-sky-300" strokeWidth={1.75} />
+              <div className="min-w-0">
+                <div className="truncate text-xs font-extrabold">
+                  {fullscreenOn ? tr('전체화면 켜짐', 'Fullscreen ON') : tr('전체화면 전환', 'Fullscreen')}
+                </div>
+                <div className="truncate text-[10px] text-slate-400">
+                  {tr('몰입형 화면 비율', 'Immersive view')}
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              data-testid="options-quick-backup"
+              onClick={() => {
+                setActiveTab('BACKUP');
+                void handleCopyBackup();
+              }}
+              className="flex min-h-[52px] items-center gap-2.5 rounded-xl border border-white/12 bg-white/[0.03] px-3 py-2 text-left text-slate-100 transition hover:border-amber-300/45 hover:bg-white/[0.07]"
+            >
+              <Database className="h-5 w-5 shrink-0 text-amber-300" strokeWidth={1.75} />
+              <div className="min-w-0">
+                <div className="truncate text-xs font-extrabold">
+                  {tr('백업 코드 복사', 'Quick Backup')}
+                </div>
+                <div className="truncate text-[10px] text-slate-400">
+                  {tr('데이터 복원·QR 이동', 'Backup / Restore')}
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              data-testid="options-quick-home"
+              onClick={() => {
+                hsAudio.playSfx('box_close');
+                if (onGoHome) onGoHome();
+                else onClose();
+              }}
+              className="flex min-h-[52px] items-center gap-2.5 rounded-xl border border-white/12 bg-white/[0.03] px-3 py-2 text-left text-slate-100 transition hover:border-amber-300/45 hover:bg-white/[0.07]"
+            >
+              <Home className="h-5 w-5 shrink-0 text-violet-300" strokeWidth={1.75} />
+              <div className="min-w-0">
+                <div className="truncate text-xs font-extrabold">
+                  {inBattle ? tr('엘윈 로비로 이동', 'Return to Hub') : tr('로비로 닫기', 'Return to Lobby')}
+                </div>
+                <div className="truncate text-[10px] text-slate-400">
+                  {inBattle ? tr('대결 종료 후 로비 복귀', 'Exit match to Hub') : tr('성소 메인 화면', 'Sanctuary Hub')}
+                </div>
+              </div>
             </button>
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
-            <div className="min-w-0">
-              <div className="text-sm font-extrabold text-amber-100">
-                {tr('스토리 낭독 & TTS 읽어주기', 'Story Narration & TTS')}
+          {/* Tier 2: 3 Category Switcher Tabs */}
+          <div
+            role="tablist"
+            className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-black/45 p-1"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'SYSTEM'}
+              data-testid="options-tab-system"
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.65);
+                setActiveTab('SYSTEM');
+              }}
+              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-extrabold transition ${
+                activeTab === 'SYSTEM'
+                  ? 'border border-amber-400/50 bg-amber-500/20 text-amber-100 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Settings className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+              <span className="truncate">{tr('전투·시스템', 'System')}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'BACKUP'}
+              data-testid="options-tab-backup"
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.65);
+                setActiveTab('BACKUP');
+              }}
+              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-extrabold transition ${
+                activeTab === 'BACKUP'
+                  ? 'border border-sky-400/50 bg-sky-500/20 text-sky-100 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+              <span className="truncate">{tr('백업·계정', 'Backup')}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'COMMUNITY'}
+              data-testid="options-tab-community"
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.65);
+                setActiveTab('COMMUNITY');
+              }}
+              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-extrabold transition ${
+                activeTab === 'COMMUNITY'
+                  ? 'border border-emerald-400/50 bg-emerald-500/20 text-emerald-100 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Globe className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+              <span className="truncate">{tr('세계관·링크', 'Universe')}</span>
+            </button>
+          </div>
+
+          {dataNotice && (
+            <div
+              data-testid="hs-data-notice"
+              className="rounded-xl border border-emerald-400/45 bg-emerald-950/70 px-3 py-2 text-xs font-bold text-emerald-200"
+            >
+              {dataNotice}
+            </div>
+          )}
+
+          {/* Tab Panel 1: 전투·시스템 설정 */}
+          {activeTab === 'SYSTEM' && (
+            <div className="space-y-4 rounded-xl border border-white/10 bg-white/[0.025] p-4">
+              {/* Language Switcher */}
+              <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-extrabold text-slate-100">
+                    {tr('언어 설정 (Language)', 'Language')}
+                  </div>
+                  <div className="mt-0.5 text-[11px] font-medium text-slate-400">
+                    {tr('한국어 또는 영어로 전환', 'Switch between Korean and English')}
+                  </div>
+                </div>
+                <div
+                  data-testid="options-language-selector"
+                  className="flex shrink-0 overflow-hidden rounded-lg border border-white/15 bg-black/60 p-0.5 text-xs font-extrabold"
+                >
+                  <button
+                    type="button"
+                    data-testid="options-lang-en"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click', 0.75);
+                      setLang('en');
+                    }}
+                    className={`min-h-[38px] rounded-md px-2.5 transition ${
+                      lang === 'en'
+                        ? 'bg-amber-400 text-stone-950 shadow'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="options-lang-ko"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click', 0.75);
+                      setLang('ko');
+                    }}
+                    className={`min-h-[38px] rounded-md px-2.5 transition ${
+                      lang === 'ko'
+                        ? 'bg-amber-400 text-stone-950 shadow'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    한국어
+                  </button>
+                </div>
               </div>
-              <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
-                {tr(
-                  '에피소드 5컷 요약 문구 및 영웅명 음성 낭독 (끄면 자막만 표시)',
-                  'Read episode summaries & hero callouts aloud (subtitles only when off)',
+
+              {/* Compact Feature Toggles */}
+              <div className="grid grid-cols-2 gap-2 border-b border-white/10 pb-3">
+                <button
+                  type="button"
+                  data-testid="toggle-tts-reading"
+                  onClick={() => {
+                    const nextEnabled = !settings.ttsEnabled;
+                    hsAudio.playSfx('ui_click', 0.75);
+                    update({ ttsEnabled: nextEnabled });
+                  }}
+                  className={`flex min-h-[48px] flex-col justify-center rounded-xl border px-3 py-2 text-left transition ${
+                    settings.ttsEnabled
+                      ? 'border-emerald-400/50 bg-emerald-950/35 text-emerald-100'
+                      : 'border-white/10 bg-black/40 text-slate-300'
+                  }`}
+                >
+                  <span className="text-xs font-extrabold">
+                    {settings.ttsEnabled ? tr('스토리 TTS 켜짐', 'Story TTS ON') : tr('스토리 TTS 꺼짐', 'Story TTS OFF')}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {tr('영웅명 · 대사 낭독', 'Narration voiceover')}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="toggle-attack-vibration"
+                  onClick={() => {
+                    const nextEnabled = !settings.vibrateEnabled;
+                    hsAudio.playSfx('ui_click', 0.75);
+                    update({ vibrateEnabled: nextEnabled });
+                    if (nextEnabled) hsAudio.previewVibration();
+                  }}
+                  className={`flex min-h-[48px] flex-col justify-center rounded-xl border px-3 py-2 text-left transition ${
+                    settings.vibrateEnabled
+                      ? 'border-sky-400/50 bg-sky-950/35 text-sky-100'
+                      : 'border-white/10 bg-black/40 text-slate-300'
+                  }`}
+                >
+                  <span className="text-xs font-extrabold">
+                    {settings.vibrateEnabled ? tr('타격 진동 켜짐', 'Haptics ON') : tr('타격 진동 꺼짐', 'Haptics OFF')}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {vibSupport.supportedOnDevice ? tr('안드로이드 진동 지원', 'Device haptics ready') : tr('모바일 타격 피드백', 'Damage-scaled haptic')}
+                  </span>
+                </button>
+              </div>
+
+              {canInstallPwa && (
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+                  <div className="min-w-0">
+                    <div className="text-xs font-extrabold text-sky-200">
+                      {tr('홈 화면에 앱 설치 (+100G)', 'Install PWA App (+100G)')}
+                    </div>
+                    <div className="text-[10.5px] text-slate-400">
+                      {tr('전체화면 앱 아이콘으로 즉시 실행', 'Fullscreen home shortcut')}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    data-testid="options-install-pwa"
+                    onClick={async () => {
+                      hsAudio.playSfx('ui_click', 0.8);
+                      if (canInstallGamePwa()) {
+                        const accepted = await promptInstallGamePwa();
+                        if (!accepted) setInstallGuideOpen(true);
+                      } else {
+                        setInstallGuideOpen(true);
+                      }
+                    }}
+                    className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl border border-sky-400/50 bg-sky-900/50 px-3 text-xs font-extrabold text-sky-100"
+                  >
+                    <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    <span>{tr('앱 설치', 'Install')}</span>
+                  </button>
+                </div>
+              )}
+
+              {installGuideOpen && (
+                <PwaInstallGuideModal onClose={() => setInstallGuideOpen(false)} />
+              )}
+
+              {/* Volume Sliders */}
+              <div className="space-y-2.5">
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-200">
+                    <span>{tr('배경음악 (BGM · 기본 15%)', 'Music Volume (BGM)')}</span>
+                    <span className="text-amber-300">{Math.round(settings.bgmVolume * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={Math.round(settings.bgmVolume * 100)}
+                    onChange={(e) => update({ bgmVolume: Number(e.target.value) / 100 })}
+                    className="mt-1 w-full accent-amber-400"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-200">
+                    <span>{tr('타격 · 원소 효과음 (SFX)', 'Combat & Spell SFX')}</span>
+                    <span className="text-amber-300">{Math.round(settings.sfxVolume * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={Math.round(settings.sfxVolume * 100)}
+                    onChange={(e) => update({ sfxVolume: Number(e.target.value) / 100 })}
+                    className="mt-1 w-full accent-amber-400"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-200">
+                    <span>{tr('영웅 성우 음성 (VO)', 'Hero Voiceovers (VO)')}</span>
+                    <span className="text-amber-300">{Math.round(settings.voVolume * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={Math.round(settings.voVolume * 100)}
+                    onChange={(e) => update({ voVolume: Number(e.target.value) / 100 })}
+                    className="mt-1 w-full accent-amber-400"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab Panel 2: 백업·계정 (hero_hs_*) */}
+          {activeTab === 'BACKUP' && (
+            <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.025] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-amber-200">
+                  {tr('데이터 백업 · 복원', 'Save Backup & Restore')}
+                </span>
+                <span className="rounded-md border border-white/15 bg-black/50 px-2 py-0.5 font-mono text-[10px] text-slate-300">
+                  hero_hs_*
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  data-testid="hs-backup-download-btn"
+                  onClick={() => {
+                    hsAudio.playSfx('ui_click', 0.8);
+                    hsStorage.downloadGameBackupFile();
+                    setDataNotice(
+                      tr(
+                        '눈히어로 카드배틀 백업 JSON 파일이 저장되었습니다.',
+                        'SNSHero backup JSON file downloaded.',
+                      ),
+                    );
+                  }}
+                  className="flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.04] px-2 text-xs font-extrabold text-slate-100 hover:border-amber-300/50"
+                >
+                  <Download className="h-4 w-4 text-amber-300" strokeWidth={1.75} />
+                  <span>{tr('파일 저장', 'Save File')}</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="hs-backup-copy-btn"
+                  onClick={handleCopyBackup}
+                  className="flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.04] px-2 text-xs font-extrabold text-slate-100 hover:border-amber-300/50"
+                >
+                  <Copy className="h-4 w-4 text-amber-300" strokeWidth={1.75} />
+                  <span>{tr('코드 복사', 'Copy Code')}</span>
+                </button>
+                <label
+                  data-testid="hs-restore-file-label"
+                  className="flex min-h-[48px] cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.04] px-2 text-xs font-extrabold text-slate-100 hover:border-sky-300/50"
+                >
+                  <Upload className="h-4 w-4 text-sky-300" strokeWidth={1.75} />
+                  <span>{tr('파일 복원', 'Load File')}</span>
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const content = String(ev.target?.result || '');
+                        const res = hsStorage.restoreGameBackupJson(content);
+                        setDataNotice(res.message);
+                      };
+                      reader.readAsText(file);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  data-testid="hs-restore-paste-btn"
+                  onClick={handlePasteRestore}
+                  className="flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.04] px-2 text-xs font-extrabold text-slate-100 hover:border-sky-300/50"
+                >
+                  <ClipboardPaste className="h-4 w-4 text-sky-300" strokeWidth={1.75} />
+                  <span>{tr('코드 입력', 'Paste Code')}</span>
+                </button>
+              </div>
+
+              {pasteModalOpen && (
+                <div
+                  data-testid="hs-restore-paste-modal"
+                  className="space-y-2 rounded-xl border border-amber-400/40 bg-black/60 p-3 text-left"
+                >
+                  <div className="text-[11px] font-bold text-amber-200">
+                    {tr(
+                      '복원할 눈히어로 카드배틀 백업 JSON 코드를 붙여넣어 주세요:',
+                      'Paste SNSHero Card Battle backup JSON code:',
+                    )}
+                  </div>
+                  <textarea
+                    data-testid="hs-restore-paste-textarea"
+                    value={pasteCodeInput}
+                    onChange={(e) => setPasteCodeInput(e.target.value)}
+                    rows={3}
+                    placeholder='{"version":1,"keys":{...}}'
+                    className="w-full rounded-lg border border-white/15 bg-[#050810] p-2 font-mono text-[11px] text-amber-100 placeholder:text-slate-500 focus:border-amber-300 focus:outline-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      data-testid="hs-restore-paste-apply-btn"
+                      onClick={applyPastedBackup}
+                      className="min-h-[44px] flex-1 rounded-xl border border-sky-400/50 bg-sky-700 text-xs font-extrabold text-white"
+                    >
+                      {tr('복원 적용', 'Apply Restore')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPasteModalOpen(false)}
+                      className="min-h-[44px] rounded-xl border border-white/15 bg-white/5 px-4 text-xs font-extrabold text-slate-200"
+                    >
+                      {tr('취소', 'Cancel')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click', 0.8);
+                  if (mobileQrUrl) {
+                    setMobileQrUrl(null);
+                    setMobileQrSvg(null);
+                    return;
+                  }
+                  const { jsonString } = hsStorage.exportGameBackupData();
+                  const compressed = LZString.compressToEncodedURIComponent(jsonString);
+                  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://snshero.com';
+                  const restoreUrl = `${origin}/game?restore=${compressed}`;
+                  setMobileQrUrl(restoreUrl);
+                  setMobileQrSvg(renderQrCodeSvg(restoreUrl, 160));
+                  const bonus = hsStorage.claimSafeguardBackupBonus();
+                  if (bonus.granted) {
+                    setDataNotice(
+                      tr(
+                        'QR 연동 생성 완료! 최초 보호 보상 +100 골드가 지급되었습니다.',
+                        'QR Sync Ready! +100 Gold safeguard bonus granted.',
+                      ),
+                    );
+                  }
+                }}
+                className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-sky-400/45 bg-sky-950/50 px-3 text-xs font-extrabold text-sky-100 hover:bg-sky-900/60"
+              >
+                <QrCode className="h-4 w-4 shrink-0 text-sky-300" strokeWidth={1.75} />
+                <span>{tr('모바일로 덱 3초 연동 (QR 스캔)', 'Move My Decks to Phone in 3s (QR)')}</span>
+              </button>
+
+              {mobileQrUrl && mobileQrSvg && (
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-sky-400/45 bg-black/60 p-3 text-center">
+                  <div
+                    className="rounded-lg bg-white p-1.5"
+                    dangerouslySetInnerHTML={{ __html: mobileQrSvg }}
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(mobileQrUrl);
+                        setDataNotice(tr('1클릭 복원 URL이 복사되었습니다.', '1-Click Restore URL copied.'));
+                      } catch {
+                        window.prompt('Restore URL:', mobileQrUrl);
+                      }
+                    }}
+                    className="min-h-[44px] w-full rounded-xl border border-amber-400/50 bg-amber-500/20 text-xs font-extrabold text-amber-100"
+                  >
+                    {tr('1클릭 복원 URL 복사하기', 'Copy 1-Click Restore URL')}
+                  </button>
+                </div>
+              )}
+
+              <div className="border-t border-white/10 pt-3">
+                {!confirmReset ? (
+                  <button
+                    type="button"
+                    data-testid="hs-reset-data-btn"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click', 0.8);
+                      setConfirmReset(true);
+                    }}
+                    className="flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-xl border border-rose-500/40 bg-rose-950/40 text-xs font-extrabold text-rose-200 hover:bg-rose-900/55"
+                  >
+                    <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                    <span>{tr('세이브 데이터 초기화 (/game 전용)', 'Reset Save Data (/game only)')}</span>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 rounded-xl border border-rose-400/60 bg-rose-950/80 p-2.5">
+                    <span className="flex-1 text-[11px] font-extrabold text-rose-100">
+                      {tr('카드배틀(hero_hs_*) 데이터만 초기화할까요?', 'Reset all Card Battle progress?')}
+                    </span>
+                    <button
+                      type="button"
+                      data-testid="hs-confirm-reset-btn"
+                      onClick={() => {
+                        hsAudio.playSfx('ui_click', 0.85);
+                        hsStorage.resetGameDataOnly();
+                        setConfirmReset(false);
+                        window.location.reload();
+                      }}
+                      className="min-h-[40px] rounded-lg bg-rose-600 px-3 text-xs font-extrabold text-white"
+                    >
+                      {tr('초기화', 'Reset')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmReset(false)}
+                      className="min-h-[40px] rounded-lg bg-slate-700 px-3 text-xs font-extrabold text-slate-200"
+                    >
+                      {tr('취소', 'Cancel')}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
-            <button
-              type="button"
-              data-testid="toggle-tts-reading"
-              onClick={() => {
-                const nextEnabled = !settings.ttsEnabled;
-                hsAudio.playSfx('ui_click', 0.75);
-                update({ ttsEnabled: nextEnabled });
-              }}
-              className={`min-h-[38px] shrink-0 rounded-lg border px-3.5 py-1.5 text-xs font-extrabold transition ${
-                settings.ttsEnabled
-                  ? 'border-emerald-300/60 bg-emerald-800 text-white'
-                  : 'border-stone-400/50 bg-stone-800 text-stone-200'
-              }`}
-            >
-              {settings.ttsEnabled ? tr('TTS 켜짐', 'TTS ON') : tr('TTS 꺼짐', 'TTS OFF')}
-            </button>
-          </div>
+          )}
 
-          <div className="flex items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
-            <div className="min-w-0">
-              <div className="text-sm font-extrabold text-amber-100">
-                {tr('공격 시 진동 (Android)', 'Impact Vibration (Android)')}
-              </div>
-              <div className="mt-0.5 text-[11px] font-semibold text-amber-200/75">
-                {vibSupport.supportedOnDevice
-                  ? tr(
-                      '주고받는 데미지에 비례해 타격 진동 강도 자동 조절',
-                      'Haptic intensity scales automatically with combat damage',
-                    )
-                  : tr(
-                      '안드로이드 웹 접속 시 데미지 비례 타격 진동 작동',
-                      'Damage-scaled haptic feedback works on Android browsers',
-                    )}
-              </div>
-            </div>
-            <button
-              type="button"
-              data-testid="toggle-attack-vibration"
-              onClick={() => {
-                const nextEnabled = !settings.vibrateEnabled;
-                hsAudio.playSfx('ui_click', 0.75);
-                update({ vibrateEnabled: nextEnabled });
-                if (nextEnabled) {
-                  hsAudio.previewVibration();
-                }
-              }}
-              className={`min-h-[38px] shrink-0 rounded-lg border px-3.5 py-1.5 text-xs font-extrabold transition ${
-                settings.vibrateEnabled
-                  ? 'border-emerald-300/60 bg-emerald-800 text-white'
-                  : 'border-stone-400/50 bg-stone-800 text-stone-200'
-              }`}
-            >
-              {settings.vibrateEnabled ? tr('진동 켜짐', 'Vibrate ON') : tr('진동 꺼짐', 'Vibrate OFF')}
-            </button>
-          </div>
-
-          <div>
-            <div className="flex justify-between text-xs font-bold text-amber-200">
-              <span>{tr('잔잔한 배경음악 (BGM · 기본 15%)', 'Background Music (BGM · Default 15%)')}</span>
-              <span>{Math.round(settings.bgmVolume * 100)}%</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(settings.bgmVolume * 100)}
-              onChange={(e) => update({ bgmVolume: Number(e.target.value) / 100 })}
-              className="mt-1 w-full accent-amber-400"
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between text-xs font-bold text-amber-200">
-              <span>{tr('타격 · 원소 효과음 (SFX)', 'Combat & Spell SFX')}</span>
-              <span>{Math.round(settings.sfxVolume * 100)}%</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(settings.sfxVolume * 100)}
-              onChange={(e) => update({ sfxVolume: Number(e.target.value) / 100 })}
-              className="mt-1 w-full accent-amber-400"
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between text-xs font-bold text-amber-200">
-              <span>{tr('영웅 성우 음성 (VO)', 'Hero Voiceovers (VO)')}</span>
-              <span>{Math.round(settings.voVolume * 100)}%</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(settings.voVolume * 100)}
-              onChange={(e) => update({ voVolume: Number(e.target.value) / 100 })}
-              className="mt-1 w-full accent-amber-400"
-            />
-          </div>
-
-          {/* /game.html 전용 (hero_hs_*) 독립 세이브 백업 · 복원 · 초기화 */}
-          <div className="space-y-2 border-t border-amber-500/25 pt-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-yellow-300">
-                {tr('데이터 백업 · 복원 (카드배틀 전용)', 'Save Backup & Restore')}
-              </span>
-              <span className="rounded bg-amber-950/80 px-2 py-0.5 text-[10px] font-bold text-amber-200/80">
-                {tr('hero_hs_* 독립 저장소', 'hero_hs_* Storage')}
-              </span>
-            </div>
-
-            {dataNotice && (
-              <div
-                data-testid="hs-data-notice"
-                className="rounded-lg border border-emerald-400/50 bg-emerald-950/80 px-2.5 py-1.5 text-[11px] font-bold text-emerald-200"
+          {/* Tab Panel 3: 세계관·커뮤니티 바로가기 */}
+          {activeTab === 'COMMUNITY' && (
+            <div className="space-y-2.5 rounded-xl border border-white/10 bg-white/[0.025] p-4">
+              <a
+                href="/book"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-[48px] items-center justify-between rounded-xl border border-white/12 bg-white/[0.03] px-3.5 py-2 transition hover:border-amber-300/55 hover:bg-white/[0.07]"
               >
-                {dataNotice}
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                data-testid="hs-backup-download-btn"
-                onClick={() => {
-                  hsAudio.playSfx('ui_click', 0.8);
-                  hsStorage.downloadGameBackupFile();
-                  setDataNotice(
-                    tr(
-                      '✓ 눈히어로 카드배틀 백업 JSON 파일이 저장되었습니다.',
-                      '✓ SNSHero backup JSON file downloaded.',
-                    ),
-                  );
-                }}
-                className="hs-brass-btn rounded-lg py-2 text-[11px] font-extrabold text-amber-100"
-              >
-                💾 {tr('백업 파일 저장', 'Download Backup')}
-              </button>
-              <button
-                type="button"
-                data-testid="hs-backup-copy-btn"
-                onClick={handleCopyBackup}
-                className="hs-brass-btn rounded-lg py-2 text-[11px] font-extrabold text-amber-100"
-              >
-                📋 {tr('백업 코드 복사', 'Copy Backup Code')}
-              </button>
-              <label
-                data-testid="hs-restore-file-label"
-                className="hs-brass-btn flex cursor-pointer items-center justify-center rounded-lg py-2 text-center text-[11px] font-extrabold text-amber-100"
-              >
-                <span>📂 {tr('파일로 복원', 'Restore File')}</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      const content = String(ev.target?.result || '');
-                      const res = hsStorage.restoreGameBackupJson(content);
-                      setDataNotice(res.message);
-                    };
-                    reader.readAsText(file);
-                    e.target.value = '';
-                  }}
-                />
-              </label>
-              <button
-                type="button"
-                data-testid="hs-restore-paste-btn"
-                onClick={handlePasteRestore}
-                className="hs-brass-btn rounded-lg py-2 text-[11px] font-extrabold text-amber-100"
-              >
-                📥 {tr('코드 붙여넣기', 'Paste Backup Code')}
-              </button>
-            </div>
-
-            {pasteModalOpen && (
-              <div
-                data-testid="hs-restore-paste-modal"
-                className="mt-1.5 space-y-2 rounded-xl border border-amber-400/50 bg-stone-950/90 p-2.5 text-left"
-              >
-                <div className="text-[11px] font-extrabold text-amber-200">
-                  {tr(
-                    '복원할 눈히어로 카드배틀(/game) 백업 JSON 코드를 붙여넣어 주세요:',
-                    'Paste SNSHero Card Battle (/game) backup JSON code to restore:',
-                  )}
+                <div className="flex items-center gap-2.5">
+                  <BookOpen className="h-4 w-4 text-amber-300" strokeWidth={1.75} />
+                  <div>
+                    <div className="text-xs font-extrabold text-slate-100">
+                      {tr('공식 웹소설 《카단의 여정》 40화', 'Official Web Novel (40 EPs)')}
+                    </div>
+                    <div className="text-[10.5px] text-slate-400">snshero.com/book</div>
+                  </div>
                 </div>
-                <textarea
-                  data-testid="hs-restore-paste-textarea"
-                  value={pasteCodeInput}
-                  onChange={(e) => setPasteCodeInput(e.target.value)}
-                  rows={3}
-                  placeholder={tr('{"version":1,"keys":{...}}', '{"version":1,"keys":{...}}')}
-                  className="w-full rounded-lg border border-amber-500/40 bg-black/70 p-2 font-mono text-[11px] text-amber-100 placeholder:text-amber-200/35 focus:border-amber-300 focus:outline-none"
-                />
-                <div className="flex gap-1.5">
-                  <button
-                    type="button"
-                    data-testid="hs-restore-paste-apply-btn"
-                    onClick={applyPastedBackup}
-                    className="hs-arcane-btn flex-1 rounded-lg py-1.5 text-[11px] font-extrabold text-white"
-                  >
-                    {tr('복원 적용', 'Apply Restore')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPasteModalOpen(false)}
-                    className="hs-brass-btn rounded-lg px-3 py-1.5 text-[11px] font-extrabold text-amber-100"
-                  >
-                    {tr('취소', 'Cancel')}
-                  </button>
-                </div>
-              </div>
-            )}
+                <span className="text-xs font-bold text-amber-300">→</span>
+              </a>
 
-            {/* MKT-018: PC <-> Mobile 3-Second QR & 1-Click Restore URL Generator */}
-            <button
-              type="button"
-              onClick={() => {
-                hsAudio.playSfx('ui_click', 0.8);
-                if (mobileQrUrl) {
-                  setMobileQrUrl(null);
-                  setMobileQrSvg(null);
-                  return;
-                }
-                const { jsonString } = hsStorage.exportGameBackupData();
-                const compressed = LZString.compressToEncodedURIComponent(jsonString);
-                const origin = typeof window !== 'undefined' ? window.location.origin : 'https://snshero.com';
-                const restoreUrl = `${origin}/game?restore=${compressed}`;
-                setMobileQrUrl(restoreUrl);
-                setMobileQrSvg(renderQrCodeSvg(restoreUrl, 160));
-                const bonus = hsStorage.claimSafeguardBackupBonus();
-                if (bonus.granted) {
-                  setDataNotice(
-                    tr(
-                      '🎉 QR 연동 생성 완료! 최초 보호 보상 +100 골드가 지급되었습니다!',
-                      '🎉 QR Sync Ready! +100 Gold safeguard bonus granted!',
-                    ),
-                  );
-                }
-              }}
-              className="hs-arcane-btn mt-1.5 w-full rounded-lg py-2 text-[11px] font-extrabold text-white"
-            >
-              📱 {tr('스마트폰으로 내 30장 덱 3초 만에 옮기기 (QR 스캔)', 'Move My Decks to Phone in 3s (QR Sync)')}
-            </button>
-
-            {mobileQrUrl && mobileQrSvg && (
-              <div className="mt-2 flex flex-col items-center gap-2 rounded-xl border border-sky-400/50 bg-stone-950/90 p-3 text-center">
-                <div
-                  className="rounded-lg bg-white p-1.5"
-                  dangerouslySetInnerHTML={{ __html: mobileQrSvg }}
-                />
-                <div className="text-[10.5px] font-bold text-sky-200">
-                  {tr(
-                    '스마트폰 카메라로 QR코드를 찍거나 아래 링크를 복사해 열면 즉시 덱이 복원됩니다!',
-                    'Scan with your phone camera or copy the 1-click restore URL below:',
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(mobileQrUrl);
-                      setDataNotice(tr('✓ 1클릭 복원 URL이 복사되었습니다!', '✓ 1-Click Restore URL copied!'));
-                    } catch {
-                      window.prompt('Restore URL:', mobileQrUrl);
-                    }
-                  }}
-                  className="hs-gold-btn w-full rounded-lg py-1.5 text-[11px] font-extrabold"
-                >
-                  🔗 {tr('1클릭 복원 URL 복사하기', 'Copy 1-Click Restore URL')}
-                </button>
-              </div>
-            )}
-
-            {!confirmReset ? (
-              <button
-                type="button"
-                data-testid="hs-reset-data-btn"
-                onClick={() => {
-                  hsAudio.playSfx('ui_click', 0.8);
-                  setConfirmReset(true);
-                }}
-                className="mt-1 w-full rounded-lg border border-red-400/50 bg-red-950/60 py-1.5 text-[11px] font-extrabold text-red-200 hover:bg-red-900/70"
+              <a
+                href="/webtoon"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-[48px] items-center justify-between rounded-xl border border-white/12 bg-white/[0.03] px-3.5 py-2 transition hover:border-emerald-300/55 hover:bg-white/[0.07]"
               >
-                🗑 {tr('카드배틀 데이터 초기화 (/game 전용)', 'Reset Game Data (/game only)')}
-              </button>
-            ) : (
-              <div className="mt-1 flex items-center gap-1.5 rounded-lg border border-red-400/70 bg-red-950/90 p-2">
-                <span className="flex-1 text-[11px] font-extrabold text-red-100">
-                  {tr(
-                    '카드배틀(hero_hs_*) 데이터만 초기화할까요?',
-                    'Reset all Card Battle (hero_hs_*) progress?',
-                  )}
-                </span>
-                <button
-                  type="button"
-                  data-testid="hs-confirm-reset-btn"
-                  onClick={() => {
-                    hsAudio.playSfx('ui_click', 0.85);
-                    hsStorage.resetGameDataOnly();
-                    setConfirmReset(false);
-                    setDataNotice(
-                      tr(
-                        '✓ 카드배틀(hero_hs_*) 데이터가 초기 상태로 리셋되었습니다. 화면을 새로고침합니다...',
-                        '✓ Card Battle data reset to default. Reloading...',
-                      ),
-                    );
-                    window.location.reload();
-                  }}
-                  className="rounded bg-red-600 px-2.5 py-1 text-[11px] font-extrabold text-white"
-                >
-                  {tr('초기화', 'Reset')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmReset(false)}
-                  className="rounded bg-stone-700 px-2.5 py-1 text-[11px] font-extrabold text-stone-200"
-                >
-                  {tr('취소', 'Cancel')}
-                </button>
-              </div>
-            )}
-          </div>
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="h-4 w-4 text-emerald-300" strokeWidth={1.75} />
+                  <div>
+                    <div className="text-xs font-extrabold text-slate-100">
+                      {tr('공식 웹툰 840컷 풀컬러 정주행', 'Official Webtoon (840+ Panels)')}
+                    </div>
+                    <div className="text-[10.5px] text-slate-400">snshero.com/webtoon</div>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-emerald-300">→</span>
+              </a>
+
+              <a
+                href="https://comic.naver.com/challenge/list?titleId=857363"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-[48px] items-center justify-between rounded-xl border border-white/12 bg-white/[0.03] px-3.5 py-2 transition hover:border-green-400/55 hover:bg-white/[0.07]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Tv className="h-4 w-4 text-green-400" strokeWidth={1.75} />
+                  <div>
+                    <div className="text-xs font-extrabold text-slate-100">
+                      {tr('네이버 도전만화 공식 연재관', 'Naver Webtoon Challenge')}
+                    </div>
+                    <div className="text-[10.5px] text-slate-400">titleId=857363</div>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-green-300">→</span>
+              </a>
+
+              <a
+                href="/promotion"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-[48px] items-center justify-between rounded-xl border border-white/12 bg-white/[0.03] px-3.5 py-2 transition hover:border-sky-300/55 hover:bg-white/[0.07]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Globe className="h-4 w-4 text-sky-300" strokeWidth={1.75} />
+                  <div>
+                    <div className="text-xs font-extrabold text-slate-100">
+                      {tr('공식 소개 & 382종 도감 허브', 'Promotion & 382-Card Codex')}
+                    </div>
+                    <div className="text-[10.5px] text-slate-400">snshero.com/promotion</div>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-sky-300">→</span>
+              </a>
+            </div>
+          )}
         </div>
 
-        <div className="mt-4">
+        {/* Bottom Separated Action Zone (Danger Concede Action Isolated at Footer) */}
+        <div className="border-t border-white/10 bg-black/50 p-4 space-y-2.5">
+          {inBattle && onConcede && (
+            <button
+              type="button"
+              data-testid="options-concede-btn"
+              onClick={() => {
+                hsAudio.playSfx('menu_press');
+                onClose();
+                onConcede();
+              }}
+              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-rose-400/60 bg-rose-950/75 text-sm font-extrabold text-rose-100 shadow transition hover:bg-rose-900"
+            >
+              <Flag className="h-4 w-4 text-rose-300" strokeWidth={1.75} />
+              <span>{tr('대결 항복하기', 'Concede Match')}</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
               hsAudio.playSfx('box_close');
               onClose();
             }}
-            className="hs-brass-btn w-full rounded-xl py-2.5 text-sm font-extrabold text-amber-100"
+            className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-amber-400/45 bg-amber-500/15 text-sm font-extrabold text-amber-100 transition hover:bg-amber-500/25"
           >
             {tr('게임으로 돌아가기', 'Return to Game')}
           </button>

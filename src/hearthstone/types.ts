@@ -657,7 +657,12 @@ export interface DailyQuest {
   rewardGold: number;
   heroClass?: HeroClass;
   completed: boolean;
+  bonusClaimed?: boolean;
 }
+
+export type KadanTacticalStance = 'BALANCED' | 'AGGRO' | 'CONTROL' | 'AWAKENING';
+
+export type ClutchChoiceOption = 'AOE_CLEAR' | 'ALL_FACE' | 'MANUAL_TURN';
 
 export type SnsCardBackId = 'gold' | 'silver' | 'bronze';
 

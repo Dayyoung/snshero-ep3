@@ -2,6 +2,23 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 09:35 KST] [`/checkAll` 3대 문서 일괄 점검 및 `ISS-003 · DEV-013~023 · MKT-044/050` 구현 완료 (푸시 대기)]
+- **요청**: `/checkAll` 실행으로 SNSHero 이슈문서 · 개발문서 · 마케팅문서 미완료 항목 일괄 점검 및 구현·테스트·시트 최신화
+- **이슈문서 (`ISS-003` 완료)**:
+  - `src/hearthstone/components/Modals.tsx` (`GameOptionsModal`): 3단 IA 리디자인 적용 — ① 상단 2×2 Zero-Emoji 벡터 아이콘 그리드(`lucide-react strokeWidth=1.75`: 사운드/전체화면/빠른백업/로비이동, 52px 터치 타깃), ② 3탭 카테고리(`전투·시스템` / `백업·계정` / `세계관·링크`), ③ `#090d16` 다크 서피스 + 16px 패딩 + 하단 분리된 위험 액션(`대결 항복하기`). `HearthstoneApp.tsx`에 `onGoHome` 연결.
+- **개발문서 (`DEV-013~019` 완료 확인 + `DEV-020~023` 신규 구현)**:
+  - `DEV-013~019`: 기존 패치 내역 검증 후 상태(`J14:J20`) `'완료'` 최신화.
+  - `DEV-020`: `PackOpeningScreen.tsx` 3장(전설 2장) 각성 달성 시 `★ 3배 각성 달성!` 골드 배지 및 `'내 카드첩에서 바로 편성'` 버튼 추가, `storage.ts` `claimAllCompletedQuests()` 구현 및 `Modals.tsx` `'완료 의뢰 일괄 수령'` 버튼 추가, `BoxHubScreen.tsx` 의뢰 일지·보급소 레드닷 배지 바인딩.
+  - `DEV-021`: `KadanChatbotWidget.tsx`, `aiController.ts`, `BattleScreen.tsx`, `HearthstoneApp.tsx` 연동 실시간 카단 전술 지휘(`AGGRO` 맹공 · `CONTROL` 수비 · `AWAKENING` 각성연계) 칩·자연어 명령 입력·실시간 AI 가중치 및 HUD 배지 구현.
+  - `DEV-022`: `PreBattleDeckModal.tsx` 신설 및 `BattleScreen.tsx` 멀리건 화면 연결 — 3대 완성형 프리셋(`속공 돌파형`, `철벽 반격형`, `3배 각성 일격형`)·마나 커브·보스 상성 브리핑·초기 카단 전술 연동.
+  - `DEV-023`: `BattleScreen.tsx` & `aiController.ts` 반자동 `집중 타격 핀(Focus Pin)` 1탭 우선 점사 및 5초 자동 복귀 `승부처 카단 브레이크(Clutch Choice)` 구현.
+- **마케팅문서 (`MKT-044 · MKT-050` 코드 반영)**:
+  - `public/manifest.json` 생성(한글 PWA 메타·`utm_source=pwa_app`), `game.html` 타이틀/메타 한국어 브랜드 키워드(`눈히어로 · 엘윈마을의 영웅들 · 카단의 여정 · 382종 무설치 웹 카드게임 TCG`) 보강 (`MKT-050` 코드 측 완료, 외부 티스토리/스토어 수동 작업 대기로 `'진행중'`).
+- **검증 및 저장소 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (에러 0건).
+  - Playwright E2E(`game.html`)에서 `manifest.json` 200 OK, `GameOptionsModal` 3탭/2×2 그리드, `PreBattleDeckModal` 3배 각성/속공 프리셋, 카단 실시간 전술 전환 및 `OPPONENT_HERO` 집중 타격 핀 동작 및 앱 에러 `[]` 확인 완료.
+  - 정책에 따라 **로컬 `git commit`만 완료(`git push` 보류 · 수동 확인 대기)**.
+
 ## [2026-11-17 09:17 KST] [신규 통합 스킬 `/checkAll` 생성 및 `AGENTS.md` 등록 완료]
 - **요청**: 3가지 문서(`이슈문서 /checkIssue`, `개발문서 /checkBug`, `마케팅문서 /checkMarket`)를 한 번에 조회하고 일괄 처리하는 `/checkAll` 스킬 생성
 - **작업 내역**:

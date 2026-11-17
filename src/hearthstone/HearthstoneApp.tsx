@@ -36,6 +36,7 @@ import {
   CustomDeck,
   GameMode,
   HeroClass,
+  KadanTacticalStance,
   PlayerProfile,
   ScreenName,
 } from './types';
@@ -60,6 +61,7 @@ export const HearthstoneApp: React.FC = () => {
   const [battleSessionKey, setBattleSessionKey] = useState(1);
   const [returnToJourneyActive, setReturnToJourneyActive] = useState(false);
   const [globalAutoPlay, setGlobalAutoPlay] = useState(false);
+  const [tacticalStance, setTacticalStance] = useState<KadanTacticalStance>('BALANCED');
   const [battleSnapshot, setBattleSnapshot] = useState<LiveBattleHelpSnapshot | null>(null);
   const [activeBattleParams, setActiveBattleParams] = useState<{
     mode: GameMode;
@@ -652,6 +654,11 @@ export const HearthstoneApp: React.FC = () => {
             }}
             onOpenShop={() => setShopOpen(true)}
             onProfileChanged={refreshProfile}
+            onOpenCollection={() => {
+              setGlobalAutoPlay(false);
+              refreshProfile();
+              setScreen('COLLECTION');
+            }}
             onReturnToJourney={
               returnToJourneyActive
                 ? () => launchJourneyBattle(undefined, false, false)
@@ -671,6 +678,8 @@ export const HearthstoneApp: React.FC = () => {
             skipStoryIntro={activeBattleParams.skipStoryIntro}
             externalAutoPlay={globalAutoPlay}
             onAutoPlayChange={setGlobalAutoPlay}
+            tacticalStance={tacticalStance}
+            onTacticalStanceChange={setTacticalStance}
             onBattleHelpSnapshot={setBattleSnapshot}
             onOpenOptions={(concedeFn) =>
               setOptionsState({ open: true, inBattle: true, concedeFn })
@@ -756,6 +765,19 @@ export const HearthstoneApp: React.FC = () => {
           <GameOptionsModal
             inBattle={optionsState.inBattle}
             onConcede={optionsState.concedeFn}
+            onGoHome={
+              optionsState.inBattle
+                ? () => {
+                    setOptionsState({ open: false, inBattle: false });
+                    setGlobalAutoPlay(false);
+                    setBattleSnapshot(null);
+                    setReturnToJourneyActive(false);
+                    refreshProfile();
+                    setActiveBattleParams(null);
+                    setScreen('BOX_HUB');
+                  }
+                : undefined
+            }
             onClose={() => setOptionsState({ open: false, inBattle: false })}
           />
         )}
@@ -785,6 +807,8 @@ export const HearthstoneApp: React.FC = () => {
         onStartJourney={() => launchJourneyBattle(undefined, false, false)}
         onOpenShop={() => setShopOpen(true)}
         onOpenQuestLog={() => setQuestLogOpen(true)}
+        tacticalStance={tacticalStance}
+        onChangeTacticalStance={setTacticalStance}
       />
     </>
   );

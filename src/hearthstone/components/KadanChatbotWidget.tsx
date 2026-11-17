@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
-import { CLASSIC_HEROES, GameMode, HeroClass, PlayerProfile, ScreenName } from '../types';
+import { CLASSIC_HEROES, GameMode, HeroClass, KadanTacticalStance, PlayerProfile, ScreenName } from '../types';
 
 export interface LiveBattleHelpSnapshot {
   mode: GameMode;
@@ -38,6 +38,8 @@ export interface KadanChatbotWidgetProps {
   onStartJourney: () => void;
   onOpenShop: () => void;
   onOpenQuestLog: () => void;
+  tacticalStance?: KadanTacticalStance;
+  onChangeTacticalStance?: (stance: KadanTacticalStance) => void;
 }
 
 interface HelpOptionItem {
@@ -74,6 +76,8 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
   onStartJourney,
   onOpenShop,
   onOpenQuestLog,
+  tacticalStance = 'BALANCED',
+  onChangeTacticalStance,
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
@@ -81,6 +85,51 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
   const [frameIdx, setFrameIdx] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [speechText, setSpeechText] = useState<string | null>(null);
+  const [tacticInput, setTacticInput] = useState('');
+
+  const applyTacticalCommand = (stance: KadanTacticalStance, customReplyKo?: string, customReplyEn?: string) => {
+    hsAudio.playSfx('ui_click', 0.8);
+    onChangeTacticalStance?.(stance);
+    const defaultKo =
+      stance === 'AGGRO'
+        ? '맹공(공격적) 전환! 적 영웅 본체 타격과 돌진 주문을 최우선으로 퍼붓겠습니다!'
+        : stance === 'CONTROL'
+          ? '수비·통제 전환! 위험한 적 하수인 제압과 도발·생명력 회복을 최우선으로 지휘할게요!'
+          : stance === 'AWAKENING'
+            ? '각성연계 전환! 3배 각성 에이스와 피니셔 콤보 타이밍까지 주문을 아껴서 한방에 몰아칠게요!'
+            : '균형 전술로 전환했습니다! 전황에 맞춰 최적의 수를 두겠습니다.';
+    const defaultEn =
+      stance === 'AGGRO'
+        ? 'Aggro Mode! Prioritizing enemy Hero face damage & rush bursts!'
+        : stance === 'CONTROL'
+          ? 'Control Mode! Clearing high-threat minions, Taunts & healing first!'
+          : stance === 'AWAKENING'
+            ? 'Awakening Combo! Saving key buffs & spells for ×3 power turns!'
+            : 'Balanced Mode! Adapting optimally to the board.';
+    setSpeechText(isKo ? customReplyKo || defaultKo : customReplyEn || defaultEn);
+  };
+
+  const handleTacticInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = tacticInput.trim().toLowerCase();
+    if (!q) return;
+    setTacticInput('');
+    if (/공격|맹공|명치|돌진|빨리|aggro|face|rush|attack/i.test(q)) {
+      applyTacticalCommand('AGGRO');
+      if (!autoPlay) onEnableAutoPlay();
+    } else if (/수비|방어|막아|살려|도발|회복|통제|control|defen|taunt|heal/i.test(q)) {
+      applyTacticalCommand('CONTROL');
+      if (!autoPlay) onEnableAutoPlay();
+    } else if (/각성|아껴|콤보|연계|존버|awak|combo|save/i.test(q)) {
+      applyTacticalCommand('AWAKENING');
+      if (!autoPlay) onEnableAutoPlay();
+    } else if (/정지|멈춰|수동|stop|manual|off/i.test(q)) {
+      onDisableAutoPlay();
+      setSpeechText(tr('자동플레이를 멈췄습니다! 직접 지휘해 주세요.', 'Auto-Play paused! Manual control active.'));
+    } else {
+      applyTacticalCommand('BALANCED');
+    }
+  };
 
   // Preload all 8 sprite frames once so frame transitions never flicker
   useEffect(() => {
@@ -626,6 +675,81 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
             </div>
           )}
 
+          {/* DEV-021: Kadan Tactical Stance Chips & Command Chat (Battle Mode) */}
+          {menuOpen && screen === 'BATTLE' && onChangeTacticalStance && (
+            <div
+              data-testid="kadan-tactical-command-box"
+              className="border-b border-amber-400/20 bg-black/55 p-2 space-y-1.5"
+            >
+              <div className="flex items-center justify-between text-[10px] font-extrabold text-amber-200/90">
+                <span>⚔ {tr('카단 실시간 전술 지휘', 'Kadan Live Tactic')}</span>
+                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9.5px]">
+                  {tacticalStance === 'AGGRO'
+                    ? tr('현재: 맹공(적색)', 'Mode: AGGRO')
+                    : tacticalStance === 'CONTROL'
+                      ? tr('현재: 수비(청색)', 'Mode: CONTROL')
+                      : tacticalStance === 'AWAKENING'
+                        ? tr('현재: 각성(금색)', 'Mode: AWAKENING')
+                        : tr('현재: 균형', 'Mode: BALANCED')}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                <button
+                  type="button"
+                  data-testid="kadan-tactic-AGGRO"
+                  onClick={() => applyTacticalCommand('AGGRO')}
+                  className={`min-h-[34px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
+                    tacticalStance === 'AGGRO'
+                      ? 'border-rose-300 bg-rose-700 text-white shadow'
+                      : 'border-rose-400/40 bg-rose-950/50 text-rose-200 hover:bg-rose-900/60'
+                  }`}
+                >
+                  ⚔ {tr('공격적·맹공', 'Aggro')}
+                </button>
+                <button
+                  type="button"
+                  data-testid="kadan-tactic-CONTROL"
+                  onClick={() => applyTacticalCommand('CONTROL')}
+                  className={`min-h-[34px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
+                    tacticalStance === 'CONTROL'
+                      ? 'border-sky-300 bg-sky-700 text-white shadow'
+                      : 'border-sky-400/40 bg-sky-950/50 text-sky-200 hover:bg-sky-900/60'
+                  }`}
+                >
+                  🛡 {tr('방어·수비', 'Control')}
+                </button>
+                <button
+                  type="button"
+                  data-testid="kadan-tactic-AWAKENING"
+                  onClick={() => applyTacticalCommand('AWAKENING')}
+                  className={`min-h-[34px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
+                    tacticalStance === 'AWAKENING'
+                      ? 'border-amber-200 bg-amber-600 text-stone-950 shadow'
+                      : 'border-amber-400/40 bg-amber-950/50 text-amber-200 hover:bg-amber-900/60'
+                  }`}
+                >
+                  ✨ {tr('각성연계', 'Awaken')}
+                </button>
+              </div>
+              <form onSubmit={handleTacticInputSubmit} className="flex gap-1">
+                <input
+                  type="text"
+                  data-testid="kadan-tactic-chat-input"
+                  value={tacticInput}
+                  onChange={(e) => setTacticInput(e.target.value)}
+                  placeholder={tr("지휘 입력 (예: '명치 쳐', '수비해', '각성 아껴')", "Command (e.g. 'aggro', 'control')")}
+                  className="min-w-0 flex-1 rounded-lg border border-amber-400/35 bg-stone-950 px-2 py-1 text-[11px] font-bold text-amber-100 placeholder:text-stone-500 focus:border-amber-300 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  className="shrink-0 rounded-lg border border-amber-300/60 bg-amber-700 px-2.5 py-1 text-[10.5px] font-extrabold text-white"
+                >
+                  {tr('명령', 'Go')}
+                </button>
+              </form>
+            </div>
+          )}
+
           {/* Context-Sensitive Help Action List */}
           {menuOpen && (
             <div
@@ -675,6 +799,49 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Live 1-Tap Tactical Switcher Strip While Auto-Playing in Battle */}
+      {screen === 'BATTLE' && autoPlay && !menuOpen && onChangeTacticalStance && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          data-testid="kadan-live-tactic-strip"
+          className="pointer-events-auto mb-1 flex items-center gap-1 rounded-full border border-amber-300/45 bg-stone-950/92 p-1 shadow-xl"
+        >
+          <button
+            type="button"
+            onClick={() => applyTacticalCommand('AGGRO')}
+            className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold transition ${
+              tacticalStance === 'AGGRO'
+                ? 'bg-rose-600 text-white shadow-[0_0_10px_rgba(244,63,94,0.85)]'
+                : 'text-rose-200/80 hover:bg-rose-950/60'
+            }`}
+          >
+            ⚔ {tr('맹공', 'Aggro')}
+          </button>
+          <button
+            type="button"
+            onClick={() => applyTacticalCommand('CONTROL')}
+            className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold transition ${
+              tacticalStance === 'CONTROL'
+                ? 'bg-sky-600 text-white shadow-[0_0_10px_rgba(56,189,248,0.85)]'
+                : 'text-sky-200/80 hover:bg-sky-950/60'
+            }`}
+          >
+            🛡 {tr('수비', 'Ctrl')}
+          </button>
+          <button
+            type="button"
+            onClick={() => applyTacticalCommand('AWAKENING')}
+            className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold transition ${
+              tacticalStance === 'AWAKENING'
+                ? 'bg-amber-400 text-stone-950 shadow-[0_0_10px_rgba(251,191,36,0.85)]'
+                : 'text-amber-200/80 hover:bg-amber-950/60'
+            }`}
+          >
+            ✨ {tr('각성', 'Awkn')}
+          </button>
         </div>
       )}
 

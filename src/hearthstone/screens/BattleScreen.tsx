@@ -68,6 +68,7 @@ import {
   CustomDeck,
   GameMode,
   HeroClass,
+  KadanTacticalStance,
   MatchRewardBreakdown,
   MinionInstance,
   PlayerBattleState,
@@ -75,6 +76,7 @@ import {
   VfxEvent,
   VfxKind,
 } from '../types';
+import { PreBattleDeckModal } from '../components/PreBattleDeckModal';
 import { BoardVfxCanvas, recordEntityStagePosition } from '../vfx/BoardVfxCanvas';
 
 export interface BattleScreenProps {
@@ -97,6 +99,8 @@ export interface BattleScreenProps {
   onRematchSameMode?: () => void;
   externalAutoPlay?: boolean;
   onAutoPlayChange?: (active: boolean) => void;
+  tacticalStance?: KadanTacticalStance;
+  onTacticalStanceChange?: (stance: KadanTacticalStance) => void;
   onBattleHelpSnapshot?: (snapshot: LiveBattleHelpSnapshot) => void;
 }
 
@@ -416,12 +420,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   onRematchSameMode,
   externalAutoPlay = false,
   onAutoPlayChange,
+  tacticalStance: externalTacticalStance,
+  onTacticalStanceChange,
   onBattleHelpSnapshot,
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   const buildBattleMatchState = useCallback(
-    (targetEpisode?: number): BattleMatchState => {
+    (targetEpisode?: number, overridePlayerCards?: string[]): BattleMatchState => {
       const curKo = isKoreanLanguage();
       if (mode === 'TUTORIAL') {
         hsStorage.markJourneyGuideDone();
@@ -435,6 +441,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         const playerJourney = isEp0
           ? { deckCards: buildTutorialEp0PlayerDeck(), playerCardMultipliers: {} }
           : buildJourneyPlayerDeckAndMultipliers(col);
+        const finalPlayerDeckCards =
+          overridePlayerCards && overridePlayerCards.length >= 30
+            ? overridePlayerCards.slice(0, 30)
+            : playerJourney.deckCards;
         const bossDeck = isEp0
           ? buildTutorialEp0ScarecrowDeck()
           : buildJourneyBossDeck(epDef.bossHeroClass, ep, reinc);
@@ -443,7 +453,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           mode: 'TUTORIAL',
           playerName: epDef.playerHeroSpec.heroNameKo,
           playerClass: 'PRIEST',
-          playerDeck: playerJourney.deckCards,
+          playerDeck: finalPlayerDeckCards,
           playerCustomHero: epDef.playerHeroSpec,
           opponentName: epDef.bossNameKo,
           opponentClass: epDef.bossHeroClass,
@@ -468,11 +478,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }
 
       const opp = buildAiOpponentSetup(mode, preferredOpponentClass);
+      const finalCards =
+        overridePlayerCards && overridePlayerCards.length >= 30
+          ? overridePlayerCards.slice(0, 30)
+          : playerDeck.cards;
       return createBattleMatch({
         mode,
         playerName: curKo ? '엘윈마을 모험가' : 'Elwin Adventurer',
         playerClass: playerDeck.heroClass,
-        playerDeck: playerDeck.cards,
+        playerDeck: finalCards,
         opponentName: opp.opponentName,
         opponentClass: opp.opponentClass,
         opponentDeck: opp.opponentDeck,
@@ -495,6 +509,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [episodeSelectorOpen, setEpisodeSelectorOpen] = useState(false);
   const [autoPlay, setAutoPlayInternal] = useState<boolean>(() => Boolean(externalAutoPlay));
   const [siliaAutoPaused, setSiliaAutoPaused] = useState(false);
+  const [internalStance, setInternalStance] = useState<KadanTacticalStance>('BALANCED');
+  const activeStance = externalTacticalStance ?? internalStance;
+  const setActiveStance = useCallback(
+    (s: KadanTacticalStance) => {
+      setInternalStance(s);
+      onTacticalStanceChange?.(s);
+    },
+    [onTacticalStanceChange],
+  );
+  const [focusTargetId, setFocusTargetId] = useState<string | null>(null);
+  const [preBattleModalOpen, setPreBattleModalOpen] = useState(false);
+  const [clutchBreakEnabled, setClutchBreakEnabled] = useState(true);
+  const [clutchChoice, setClutchChoice] = useState<{
+    reasonKo: string;
+    reasonEn: string;
+    turn: number;
+  } | null>(null);
+  const clutchPromptedTurnRef = useRef<number>(-1);
   const onAutoPlayChangeRef = useRef(onAutoPlayChange);
   onAutoPlayChangeRef.current = onAutoPlayChange;
 
@@ -1714,6 +1746,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [autoPlay]);
 
+  // Clear Focus Pin cleanly if pinned minion died/left board
+  useEffect(() => {
+    if (!focusTargetId || focusTargetId === 'OPPONENT_HERO') return;
+    if (!matchState.opponent.board.some((m) => m.uid === focusTargetId)) {
+      setFocusTargetId(null);
+    }
+  }, [focusTargetId, matchState.opponent.board]);
+
+  // Auto-dismiss Clutch Choice modal after 5 seconds so Auto-Play never stalls if AFK
+  useEffect(() => {
+    if (!clutchChoice) return;
+    const t = window.setTimeout(() => setClutchChoice(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [clutchChoice]);
+
   // ==================== PLAYER AUTO-PLAY ENGINE (카단의 여정 기본 ON, 수동 전환 즉시 해제) ====================
   useEffect(() => {
     const cur = latestMatchRef.current;
@@ -1759,13 +1806,45 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return;
     }
 
-    // Pause auto-play tick while player is inspecting an enlarged card or using Silia Ultimate
-    if (zoomState || siliaAutoPaused) return;
+    // Pause auto-play tick while inspecting a card, casting Silia, or deciding Clutch Choice
+    if (zoomState || siliaAutoPaused || clutchChoice) return;
     if (selection) setSelection(null);
+
+    // DEV-023: Clutch Choice detection once per critical turn (<=10 HP crisis, lethal range, or 7+ ace)
+    if (
+      clutchBreakEnabled &&
+      !isEp0Tutorial &&
+      cur.turnNumber >= 2 &&
+      clutchPromptedTurnRef.current !== cur.turnNumber
+    ) {
+      const clutchEng = createEngine(cur);
+      const hasAceCard = cur.player.hand.some(
+        (h) => cardDb.mustGetCard(h.cardId).cost >= 7 && clutchEng.inspectPlayability('PLAYER', h).canPlay,
+      );
+      const crisisLowHp = cur.player.health <= 10;
+      const enemyLowHp = cur.opponent.health + cur.opponent.armor <= 10;
+      if (hasAceCard || crisisLowHp || enemyLowHp) {
+        clutchPromptedTurnRef.current = cur.turnNumber;
+        setClutchChoice({
+          turn: cur.turnNumber,
+          reasonKo: enemyLowHp
+            ? '적 영웅 체력이 10 이하입니다! 킬각·마무리 전술을 지시하세요.'
+            : crisisLowHp
+              ? '아군 영웅 체력이 10 이하로 위급합니다! 대응 전술을 선택하세요.'
+              : '7코스트+ 에이스 카드 출격이 가능합니다! 이번 턴 방향을 지시하세요.',
+          reasonEn: enemyLowHp
+            ? 'Enemy Hero <= 10 HP! Choose your finishing command.'
+            : crisisLowHp
+              ? 'Critical Hero HP <= 10! Pick emergency strategy.'
+              : '7+ Cost Ace ready! Direct Kadan for this turn.',
+        });
+        return;
+      }
+    }
 
     const plannedAction: AiAction | null =
       !cur.chooseOnePrompt && !cur.trackingPrompt
-        ? computeNextAiAction(cur, 'EXPERT', 'PLAYER')
+        ? computeNextAiAction(cur, 'EXPERT', 'PLAYER', { stance: activeStance, focusTargetId })
         : null;
     const isEp0TurnSummaryPending =
       isEp0Tutorial &&
@@ -1815,7 +1894,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         return;
       }
 
-      const action: AiAction = computeNextAiAction(snap, 'EXPERT', 'PLAYER');
+      const action: AiAction = computeNextAiAction(snap, 'EXPERT', 'PLAYER', {
+        stance: activeStance,
+        focusTargetId,
+      });
       if (action.kind === 'PLAY_CARD') {
         const def = cardDb.mustGetCard(action.cardId);
         const dispName = getCardName(def, lang);
@@ -1945,6 +2027,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     selection,
     zoomState,
     siliaAutoPaused,
+    clutchChoice,
+    clutchBreakEnabled,
+    activeStance,
+    focusTargetId,
     attackAnim,
     triggerPhysicalAttack,
     isEp0Tutorial,
@@ -2596,6 +2682,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const handleEntityClick = (entityId: string, isFriendlyMinionOrHero: boolean) => {
     if (suppressNextClickRef.current) return;
     if (matchState.phase !== 'PLAYING' || attackAnim) return;
+
+    // DEV-023: Hybrid Semi-Auto Focus Pin when Auto-Play is active (tap enemy minion or hero to prioritize!)
+    if (!selection && autoPlay && !isFriendlyMinionOrHero) {
+      const isValidEnemy =
+        entityId === 'OPPONENT_HERO' ||
+        matchState.opponent.board.some((m) => m.uid === entityId);
+      if (isValidEnemy) {
+        hsAudio.playSfx('ui_click', 0.8);
+        setFocusTargetId((prev) => (prev === entityId ? null : entityId));
+        return;
+      }
+    }
 
     // 1. Complete active targeting selection!
     if (selection && matchState.activeSide === 'PLAYER') {
@@ -4278,6 +4376,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         {/* Opponent Hero Arch (100% Horizontally Centered on Stage Axis + Right-Click/Tap Squelch) */}
         <div className="mt-0.5 flex w-full items-center justify-center sm:mt-1">
           <div className="relative flex items-center justify-center">
+            {focusTargetId === 'OPPONENT_HERO' && (
+              <span
+                data-testid="focus-pin-OPPONENT_HERO"
+                className="pointer-events-none absolute -top-2 z-40 animate-pulse rounded-full border border-rose-200 bg-rose-700/95 px-2.5 py-0.5 text-[10px] font-black text-white shadow-[0_0_16px_rgba(244,63,94,0.9)]"
+              >
+                ◎ {tr('집중 타격 (FOCUS)', 'FOCUS TARGET')}
+              </span>
+            )}
             <HeroPortraitZone
               player={matchState.opponent}
               isFriendly={false}
@@ -4463,7 +4569,22 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         {/* Opponent Minion Row (Max 7) */}
         <div className="flex min-h-[70px] items-center justify-center gap-1 sm:min-h-[122px] sm:gap-3">
           {matchState.opponent.board.map((m) => (
-            <div key={m.uid} className="animate-[hsMinionSummonDrop_0.34s_cubic-bezier(0.22,1,0.36,1)]">
+            <div
+              key={m.uid}
+              className={`relative animate-[hsMinionSummonDrop_0.34s_cubic-bezier(0.22,1,0.36,1)] ${
+                focusTargetId === m.uid
+                  ? 'rounded-full ring-4 ring-rose-400 shadow-[0_0_24px_rgba(244,63,94,0.9)]'
+                  : ''
+              }`}
+            >
+              {focusTargetId === m.uid && (
+                <span
+                  data-testid={`focus-pin-${m.uid}`}
+                  className="pointer-events-none absolute -top-3 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full border border-rose-200 bg-rose-700 px-2 py-0.5 text-[9.5px] font-black text-white shadow"
+                >
+                  ◎ {tr('집중 점사', 'FOCUS')}
+                </span>
+              )}
               <BoardMinionToken
                 minion={m}
                 isFriendly={false}
@@ -5501,6 +5622,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   : tr('자동플레이 OFF (클릭 시 작동)', 'Auto-Play OFF (Click to enable)')}
               </span>
             </button>
+            <button
+              type="button"
+              data-testid="open-pre-battle-deck-btn"
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.8);
+                setPreBattleModalOpen(true);
+              }}
+              className="flex min-h-[46px] items-center gap-1.5 rounded-2xl border-2 border-amber-300/75 bg-stone-900/90 px-4 py-2.5 text-xs font-extrabold text-amber-100 shadow-xl transition hover:border-amber-200 hover:bg-stone-800 sm:text-sm"
+            >
+              <span>⚔</span>
+              <span>{tr('출격 덱·전술 프리셋', 'Preset Deck & Tactic')}</span>
+            </button>
           </div>
         </div>
       )}
@@ -6428,6 +6561,127 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           inBattle={true}
           onClose={() => setQuickRulesOpen(false)}
         />
+      )}
+
+      {/* DEV-022: Pre-Battle Archetype Preset Deck Selector & Story Boss Briefing */}
+      {preBattleModalOpen && (
+        <PreBattleDeckModal
+          heroClass={matchState.player.heroClass}
+          currentDeck={playerDeck.cards}
+          storyEpisode={mode === 'TUTORIAL' ? matchState.journeyMeta?.episode : undefined}
+          onConfirm={({ deck, initialStance }) => {
+            setPreBattleModalOpen(false);
+            setActiveStance(initialStance);
+            const rebuilt = buildBattleMatchState(
+              mode === 'TUTORIAL' ? matchState.journeyMeta?.episode : undefined,
+              deck,
+            );
+            setMatchState(rebuilt);
+          }}
+          onClose={() => setPreBattleModalOpen(false)}
+        />
+      )}
+
+      {/* DEV-021 & DEV-023: Live Stance Color Pill & Clutch Break Toggle (visible during Auto-Play) */}
+      {autoPlay && matchState.phase === 'PLAYING' && storyPhase === 'CLOSED' && !vsIntroActive && (
+        <div
+          data-testid="kadan-stance-hud-pill"
+          className={`pointer-events-auto fixed right-2.5 top-14 z-[71] flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-extrabold shadow-lg sm:right-4 sm:top-16 ${
+            activeStance === 'AGGRO'
+              ? 'border-rose-400/80 bg-rose-950/90 text-rose-100'
+              : activeStance === 'CONTROL'
+                ? 'border-sky-400/80 bg-sky-950/90 text-sky-100'
+                : activeStance === 'AWAKENING'
+                  ? 'border-amber-300/80 bg-amber-950/90 text-amber-100'
+                  : 'border-emerald-400/60 bg-stone-950/90 text-emerald-100'
+          }`}
+        >
+          <span>
+            {activeStance === 'AGGRO'
+              ? tr('⚔ 맹공 지휘 (적색)', '⚔ AGGRO')
+              : activeStance === 'CONTROL'
+                ? tr('🛡 수비 지휘 (청색)', '🛡 CONTROL')
+                : activeStance === 'AWAKENING'
+                  ? tr('✨ 각성연계 (금색)', '✨ AWAKENING')
+                  : tr('⚖ 균형 자동전투', '⚖ BALANCED')}
+          </span>
+          <button
+            type="button"
+            data-testid="clutch-break-toggle"
+            onClick={() => setClutchBreakEnabled((v) => !v)}
+            className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${
+              clutchBreakEnabled ? 'bg-amber-400 text-stone-950' : 'bg-white/10 text-slate-300'
+            }`}
+            title={tr('승부처 카단 브레이크 ON/OFF', 'Toggle Clutch Choice Break')}
+          >
+            {clutchBreakEnabled ? tr('승부처 ON', 'Clutch ON') : tr('승부처 OFF', 'Clutch OFF')}
+          </button>
+        </div>
+      )}
+
+      {/* DEV-023: 5-Second Semi-Auto Clutch Choice Break Modal */}
+      {clutchChoice && (
+        <div
+          data-testid="kadan-clutch-choice-modal"
+          onClick={(e) => e.stopPropagation()}
+          className="fixed inset-x-3 bottom-24 z-[88] mx-auto max-w-md rounded-2xl border-2 border-amber-300 bg-[#090d16]/96 p-3.5 text-amber-50 shadow-[0_20px_50px_rgba(0,0,0,0.92)] backdrop-blur-md sm:bottom-28"
+        >
+          <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+            <span className="text-xs font-extrabold text-yellow-300 sm:text-sm">
+              ⚡ {tr(`승부처 카단 지휘 (${clutchChoice.turn}턴 · 5초 자동 진행)`, `Clutch Choice (T${clutchChoice.turn} · 5s)`)}
+            </span>
+            <button
+              type="button"
+              onClick={() => setClutchChoice(null)}
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-slate-300"
+            >
+              {tr('계속 ▶', 'Skip ▶')}
+            </button>
+          </div>
+          <p className="mt-1.5 text-[11px] font-bold text-amber-100/90">
+            {isKo ? clutchChoice.reasonKo : clutchChoice.reasonEn}
+          </p>
+          <div className="mt-2.5 grid grid-cols-3 gap-1.5">
+            <button
+              type="button"
+              data-testid="clutch-choice-aoe"
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.8);
+                setActiveStance('CONTROL');
+                setFocusTargetId(null);
+                setClutchChoice(null);
+              }}
+              className="min-h-[44px] rounded-xl border border-sky-400/70 bg-sky-950/75 px-2 py-1.5 text-[10.5px] font-extrabold text-sky-100 hover:bg-sky-900"
+            >
+              🛡 {tr('A안: 필드·수비 정리', 'A: Field Control')}
+            </button>
+            <button
+              type="button"
+              data-testid="clutch-choice-face"
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.8);
+                setActiveStance('AGGRO');
+                setFocusTargetId('OPPONENT_HERO');
+                setClutchChoice(null);
+              }}
+              className="min-h-[44px] rounded-xl border border-rose-400/70 bg-rose-950/75 px-2 py-1.5 text-[10.5px] font-extrabold text-rose-100 hover:bg-rose-900"
+            >
+              ⚔ {tr('B안: 본체 총공격', 'B: All-Out Face')}
+            </button>
+            <button
+              type="button"
+              data-testid="clutch-choice-manual"
+              onClick={() => {
+                hsAudio.playSfx('ui_click', 0.85);
+                setAutoPlay(false);
+                setClutchChoice(null);
+              }}
+              className="min-h-[44px] rounded-xl border border-amber-300/70 bg-amber-950/75 px-2 py-1.5 text-[10.5px] font-extrabold text-amber-100 hover:bg-amber-900"
+            >
+              🎮 {tr('C: 직접 조작', 'C: Manual Turn')}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Story Mode Left-Side Silia Companion Ultimate Widget (1 skill per turn) */}

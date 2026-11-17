@@ -1,0 +1,37 @@
+{
+  "name": "눈히어로: 카단의 여정 — 382종 무설치 전략 웹 TCG (SNSHero)",
+  "short_name": "눈히어로",
+  "description": "9종족 382장 정통 30장 덱 빌딩 웹 TCG & 200트랙 성우 풀보이스 40화 스토리모드. 첫 방문 무료 3팩 + 250골드 즉시 지급!",
+  "categories": ["games", "entertainment", "card games", "strategy games"],
+  "lang": "ko",
+  "dir": "ltr",
+  "id": "/game",
+  "scope": "/",
+  "start_url": "/game.html?utm_source=pwa_app",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#090604",
+  "theme_color": "#1b120b",
+  "related_applications": [],
+  "icons": [
+    {
+      "src": "/hs-assets/brand/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hs-assets/brand/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hs-assets/brand/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
