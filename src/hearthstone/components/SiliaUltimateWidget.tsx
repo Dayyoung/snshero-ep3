@@ -225,7 +225,7 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
       <div
         aria-hidden="true"
         style={{ background: meta.auraBg }}
-        className="pointer-events-none absolute -bottom-10 left-[26%] z-10 h-[56vh] w-[56vh] -translate-x-1/2 rounded-full blur-2xl sm:left-[30%]"
+        className="pointer-events-none absolute bottom-10 left-[26%] z-10 h-[56vh] w-[56vh] -translate-x-1/2 rounded-full blur-2xl sm:bottom-16 sm:left-[30%]"
       />
 
       {/* Right-Side Floating 3-Head-Tall Chibi Action Cut-in Card */}
@@ -253,13 +253,19 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
           transform: `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.04)`,
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
-        className="pointer-events-none absolute -bottom-2.5 left-[28%] z-20 flex h-[51%] items-end justify-center sm:left-[30%] sm:h-[55%]"
+        className="pointer-events-none absolute bottom-[112px] left-[28%] z-20 flex h-[50%] items-end justify-center sm:bottom-[132px] sm:left-[30%] sm:h-[56%]"
       >
         <img
           src={SILIA_UPPER_CUTOUT_URL}
           alt={speakerLabel}
           decoding="async"
           draggable={false}
+          style={{
+            maskImage:
+              'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.85) 12%, #000 24%, #000 100%)',
+            WebkitMaskImage:
+              'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.85) 12%, #000 24%, #000 100%)',
+          }}
           className="h-full w-auto max-w-none select-none"
         />
       </div>
@@ -354,20 +360,23 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
   const [windstormSkill, setWindstormSkill] = useState<SiliaSkillKind | null>(null);
   const [speechText, setSpeechText] = useState<string | null>(null);
 
-  // Preload all 3-head-tall chibi sprites + upper-body cutout once for zero-flicker cutscenes
+  // Preload 3-head-tall chibi sprites lazily ONLY when Story Mode battle makes Silia visible
+  const preloadedRef = React.useRef(false);
   useEffect(() => {
+    if (!visible || preloadedRef.current) return;
+    preloadedRef.current = true;
     const all = [
       ...IDLE_FRAMES,
       ...CUTSCENE_FRAMES.DEFENSE,
       ...CUTSCENE_FRAMES.ATTACK,
       ...CUTSCENE_FRAMES.HEAL,
-      SILIA_UPPER_CUTOUT_URL,
     ];
     all.forEach((src) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = src;
     });
-  }, []);
+  }, [visible]);
 
   // Sprite frame ticker (gentle idle vs dynamic 2-frame skill cast during windstorm)
   const activeVisualSkill = windstormSkill ?? castingSkill;

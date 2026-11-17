@@ -13,6 +13,11 @@ import { MatchRewardBreakdown } from '../types';
 // Using identical `brightness(...) saturate(...)` primitive order guarantees instant, never-stuck WebKit CoreAnimation transitions!
 const ACTIVE_PORTRAIT_FILTER = 'brightness(1) saturate(1)';
 const DIMMED_PORTRAIT_FILTER = 'brightness(0.36) saturate(0.45)';
+const PORTRAIT_BOTTOM_MASK: React.CSSProperties = {
+  maskImage: 'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.85) 12%, #000 24%, #000 100%)',
+  WebkitMaskImage:
+    'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.85) 12%, #000 24%, #000 100%)',
+};
 
 const PARCHMENT_STAR_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14 6 L15.6 12.4 L22 14 L15.6 15.6 L14 22 L12.4 15.6 L6 14 L12.4 12.4 Z' fill='%23b8ad96' fill-opacity='0.34'/%3E%3C/svg%3E")`;
 
@@ -260,8 +265,8 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
             : 'translate3d(-50%, 6px, 0) scale(0.94)',
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
-        className={`pointer-events-none absolute -bottom-2.5 left-[25%] flex h-[51%] justify-center sm:left-[27%] sm:h-[55%] ${
-          encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
+        className={`pointer-events-none absolute bottom-[112px] left-[25%] flex h-[50%] justify-center sm:bottom-[132px] sm:left-[27%] sm:h-[56%] ${
+          encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start overflow-hidden' : 'items-end'
         } ${isLeftSpeaking ? 'z-20' : 'z-10'}`}
       >
         <img
@@ -270,6 +275,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
           decoding="async"
           draggable={false}
           style={{
+            ...PORTRAIT_BOTTOM_MASK,
             filter: isLeftSpeaking ? ACTIVE_PORTRAIT_FILTER : DIMMED_PORTRAIT_FILTER,
             opacity: isLeftSpeaking ? 1 : 0.72,
             transition: 'filter 160ms ease, opacity 160ms ease',
@@ -291,8 +297,8 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
             : 'translate3d(-50%, 6px, 0) scale(0.94)',
           transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
-        className={`pointer-events-none absolute -bottom-2.5 left-[75%] flex h-[51%] justify-center sm:left-[73%] sm:h-[55%] ${
-          encounter.rightSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
+        className={`pointer-events-none absolute bottom-[112px] left-[75%] flex h-[50%] justify-center sm:bottom-[132px] sm:left-[73%] sm:h-[56%] ${
+          encounter.rightSpriteUrl.includes('/characters/cutouts/') ? 'items-start overflow-hidden' : 'items-end'
         } ${!isLeftSpeaking ? 'z-20' : 'z-10'}`}
       >
         <img
@@ -301,6 +307,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
           decoding="async"
           draggable={false}
           style={{
+            ...PORTRAIT_BOTTOM_MASK,
             filter: !isLeftSpeaking ? ACTIVE_PORTRAIT_FILTER : DIMMED_PORTRAIT_FILTER,
             opacity: !isLeftSpeaking ? 1 : 0.72,
             transition: 'filter 160ms ease, opacity 160ms ease',
@@ -531,8 +538,8 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
               : 'translate3d(-50%, 0, 0)',
           transition: 'transform 140ms ease',
         }}
-        className={`pointer-events-none absolute -bottom-2.5 left-1/2 flex h-[52%] justify-center sm:h-[56%] ${
-          encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start' : 'items-end'
+        className={`pointer-events-none absolute bottom-[112px] left-1/2 flex h-[50%] justify-center sm:bottom-[132px] sm:h-[56%] ${
+          encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'items-start overflow-hidden' : 'items-end'
         } ${
           step === 'ITEM_CARD' ? 'z-10 scale-98' : 'z-20 scale-100'
         }`}
@@ -543,6 +550,7 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
           decoding="async"
           draggable={false}
           style={{
+            ...PORTRAIT_BOTTOM_MASK,
             filter: step === 'ITEM_CARD' ? 'brightness(0.28) saturate(0.5)' : ACTIVE_PORTRAIT_FILTER,
             opacity: step === 'ITEM_CARD' ? 0.45 : 1,
             transition: 'filter 240ms ease, opacity 240ms ease',

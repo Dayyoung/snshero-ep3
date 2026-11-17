@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 13:35 KST] [스토리 모드 · 실리아 필살기 대사 컷신 캐릭터 상반신 위치 상향 조정(`bottom-[112px] sm:bottom-[132px]`) 완료 (푸시 대기)]
+- **요청**: 스토리 모드 캐릭터 대사 시 하단 대사창에 상반신이 가려 머리만 보이는 현상을 개선해 상반신을 위로 끌어올림
+- **수정 내용**:
+  - [`StoryEncounterOverlays.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/StoryEncounterOverlays.tsx) (`StoryDuelDialogueOverlay` 좌/우 캐릭터 · `StoryVictorySceneOverlay`): 포트레이트 컨테이너 위치를 `-bottom-2.5 h-[51%] sm:h-[55%]` → `bottom-[112px] sm:bottom-[132px]` (`h-[50%] sm:h-[56%]`)로 상향 이동하고, `/characters/cutouts/` 폴백 시 하단 클리핑(`overflow-hidden`) 및 하단 부드러운 페이드 마스크(`PORTRAIT_BOTTOM_MASK`)를 적용해 허리·가슴·무기·팔까지 대사창 위로 온전히 드러나도록 개선.
+  - [`SiliaUltimateWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SiliaUltimateWidget.tsx) (`SiliaDialogueCutsceneOverlay`): 실리아 상반신 컷신 위치(`bottom-[112px] sm:bottom-[132px]`, `h-[50%] sm:h-[56%]`), 배경 오라 위치(`bottom-10 sm:bottom-16`), 하단 페이드 마스크를 동일 기준으로 정렬.
+- **검증 및 저장 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (`0` errors).
+  - Playwright 실측 스크린샷(`desktop 1280×800`, `mobile 390×844`)으로 대사창 위 전신 상반신(갑옷·벨트·칼자루·얼굴) 노출 및 0에러 확인 완료.
+  - 정책에 따라 로컬 `git commit`만 수행(`git push` 보류) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-17 13:03 KST] [`/checkBug` 개발개선점 전수 패치(`DEV-013~031` 31/31 완료) 및 `/git-push` 원격 배포 완료]
 - **요청**: `/checkBug /git-push` — SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`) 미해결 과제 전수 구현·검증·시트 최신화 및 `origin main` 원격 푸시 수행
 - **신규 구현 및 검증 완료 항목 (`DEV-025 ~ DEV-031` + 기존 완료분 `DEV-013 ~ DEV-024` 시트 상태 동기화)**:
