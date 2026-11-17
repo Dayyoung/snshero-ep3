@@ -858,6 +858,56 @@ export const PackOpeningScreen: React.FC<{
                 )}
               </div>
 
+              {/* MKT-072(1): 3/10 First Guaranteed Legendary Pity Gauge + 160 Dust / 5-Pack ($4) Bridge */}
+              {allRevealed && !pityState.firstTenLegendaryClaimed && (
+                <div
+                  data-testid="pity-first-legendary-bridge"
+                  className="relative z-50 mt-2 flex w-full max-w-xl flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-300/80 bg-[#1a0f08]/95 px-3.5 py-2 text-left shadow-xl"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-black text-yellow-300 sm:text-xs">
+                      🔥{' '}
+                      {tr(
+                        `첫 전설 100% 확정 게이지: ${pityState.packsSinceLegendary}/10팩 (단 ${Math.max(1, 10 - pityState.packsSinceLegendary)}팩 남음!)`,
+                        `Guaranteed 1st Legendary Gauge: ${pityState.packsSinceLegendary}/10 (Only ${Math.max(1, 10 - pityState.packsSinceLegendary)} Left!)`,
+                      )}
+                    </div>
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-stone-900">
+                      <div
+                        style={{
+                          width: `${Math.min(100, Math.round((pityState.packsSinceLegendary / 10) * 100))}%`,
+                        }}
+                        className="h-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-all duration-300"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {onOpenCollection && profile.arcaneDust >= 40 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          hsAudio.playSfx('ui_click');
+                          onOpenCollection();
+                        }}
+                        className="rounded-xl border border-sky-300/75 bg-sky-900/90 px-2.5 py-1 text-[10.5px] font-extrabold text-sky-100 hover:bg-sky-800"
+                      >
+                        ✨ {tr(`${profile.arcaneDust}가루 제작`, `Craft (${profile.arcaneDust} Dust)`)}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        hsAudio.playSfx('ui_click');
+                        onOpenShop();
+                      }}
+                      className="hs-gold-btn rounded-xl px-2.5 py-1 text-[10.5px] font-black"
+                    >
+                      💎 {tr('5팩 특가($4)', '5-Pack ($4)')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* MKT-006 / MKT-012 / MKT-024: Post-Legendary 1-Second Vault Backup & PWA Safeguard */}
               {allRevealed &&
                 openedCards.some((c) => c.card.rarity === 'LEGENDARY') &&

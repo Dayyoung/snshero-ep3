@@ -146,7 +146,7 @@ fs.writeFileSync(
       }
       if (
         p === '/reddit' || p.indexOf('/reddit/') === 0 ||
-        p === '/wiki' || p.indexOf('/wiki/') === 0 ||
+        p === '/wiki' || (p.indexOf('/wiki/') === 0 && p !== '/wiki/tip') ||
         p === '/bench' || p.indexOf('/bench/') === 0
       ) {
         window.location.replace('/' + q + h);

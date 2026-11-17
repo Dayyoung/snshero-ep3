@@ -46,6 +46,7 @@ const MPA_REWRITES: Record<string, string> = {
   '/novel': '/novel.html',
   '/webtoon': '/webtoon.html',
   '/sns': '/sns.html',
+  '/wiki/tip': '/wiki/tip/index.html',
 };
 
 const PROMO_REDIRECT_PATHS = new Set([
@@ -71,7 +72,7 @@ function mpaRewriteMiddleware(req: any, res: any, next: any) {
     cleanNormalized === '/reddit' ||
     cleanNormalized.startsWith('/reddit/') ||
     cleanNormalized === '/wiki' ||
-    cleanNormalized.startsWith('/wiki/') ||
+    (cleanNormalized.startsWith('/wiki/') && cleanNormalized !== '/wiki/tip') ||
     cleanNormalized === '/bench' ||
     cleanNormalized.startsWith('/bench/')
   ) {

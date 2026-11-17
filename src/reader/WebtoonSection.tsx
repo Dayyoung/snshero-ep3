@@ -379,7 +379,7 @@ export function renderWebtoonSection(): string {
               📖 ${tr(`제${curEp}화 원작 소설 읽기`, `Read EP.${curEp} Novel`)}
             </a>
             <a
-              href="/game?mode=story&ep=${curEp}&utm_source=webtoon_lightbox"
+              href="/game?mode=story&ep=${curEp}&rhythm=on&utm_source=webtoon_lightbox"
               class="hs-promo-cta-purple px-3.5 py-1.5 rounded-full text-[11px] font-extrabold no-underline"
             >
               ⚔ ${tr(`제${curEp}화 보스전 플레이 →`, `Play EP.${curEp} Boss →`)}
@@ -585,6 +585,52 @@ export function renderWebtoonSection(): string {
               class="h-9 w-full sm:w-64"
             ></audio>
           </div>
+
+          <!-- MKT-071(1,3) & MKT-065(1): Dynamic KO/EN YouTube Video & EP.31/EP.38 Clean Fallback Bar -->
+          <div data-testid="webtoon-youtube-companion-bar" class="mt-2 flex flex-wrap items-center justify-center gap-2 text-xs">
+            <a
+              href="${
+                ep === 38
+                  ? isKo
+                    ? 'https://www.youtube.com/shorts/Lf2ZI9KrhHY'
+                    : 'https://www.youtube.com/watch?v=qH-essuMM1w'
+                  : ep === 31
+                    ? isKo
+                      ? 'https://www.youtube.com/shorts/uEXB-kGnfPk'
+                      : 'https://www.youtube.com/shorts/4w-h1EEC2sc'
+                    : isKo
+                      ? 'https://www.youtube.com/playlist?list=PLVch67W9z4TA'
+                      : 'https://www.youtube.com/playlist?list=PLFvV2raCoFww'
+              }"
+              data-testid="webtoon-youtube-companion-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="min-h-[36px] px-3.5 py-1.5 rounded-full bg-black/55 border border-amber-400/50 text-amber-200 hover:border-yellow-200 hover:text-white font-extrabold flex items-center gap-1.5 no-underline transition"
+            >
+              <span>🎬 ${
+                ep === 38
+                  ? isKo
+                    ? '제38화 공식 클린 영상 보기 (YouTube) ↗'
+                    : 'Watch EP.38 Official EN Dub Video ↗'
+                  : ep === 31
+                    ? isKo
+                      ? '제31화 보가트 원작 쇼츠 보기 ↗'
+                      : 'Watch EP.31 Bogart Origin Shorts ↗'
+                    : isKo
+                      ? 'YouTube 국문 더빙 웹툰 재생목록 ↗'
+                      : 'Official EN YouTube Playlist ↗'
+              }</span>
+            </a>
+            ${
+              ep === 31
+                ? `<a
+                    href="/game?mode=bogart&stake=250&utm_source=webtoon_ep31"
+                    data-testid="webtoon-ep31-bogart-cta"
+                    class="hs-promo-cta-purple min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1 no-underline"
+                  >🎲 ${tr('인게임 보가트의 도박장(250G) 바로 입장 →', "Play Bogart's Hall (250G) →")}</a>`
+                : ''
+            }
+          </div>
         </div>
       </section>
 
@@ -679,7 +725,7 @@ export function renderWebtoonSection(): string {
                             ? `
                         <div class="bg-[#160d06] px-4 py-4 border-t border-amber-700/35 flex items-center justify-center">
                           <a
-                            href="/game?mode=story"
+                            href="/game?mode=story&ep=${ep}&rhythm=on"
                             class="hs-promo-cta-purple w-full sm:w-auto min-h-[44px] px-6 py-2.5 text-xs sm:text-sm font-extrabold rounded-full flex items-center justify-center gap-2 no-underline"
                           >
                             <span>▶ ${tr('웹툰 카드게임 바로 플레이 (SNSHero.com)', 'Play the Webtoon Card Game Now (SNSHero.com)', 'ウェブトゥーンカードゲームを今すぐプレイ (SNSHero.com)')}</span>
@@ -836,10 +882,10 @@ export function renderWebtoonSection(): string {
                 </a>`
                 }
                 <a
-                  href="/game?mode=story&ep=${ep}&utm_source=webtoon_ep"
+                  href="/game?mode=story&ep=${ep}&rhythm=on&utm_source=webtoon_ep"
                   class="min-h-[48px] px-5 py-3 rounded-full bg-[#2a180c] hover:bg-[#3a2211] border border-amber-500/50 text-amber-200 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline transition"
                 >
-                  <span>⚔ ${tr(`이번 화 보스전 체험`, `Try EP.${ep} Boss`)}</span>
+                  <span>⚔ ${tr(`이번 화 보스 리듬 대전`, `Play EP.${ep} Rhythm Boss`)}</span>
                 </a>
               </div>
             </div>

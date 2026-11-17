@@ -394,7 +394,27 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const [boardTheme, setBoardTheme] = useState<BoardThemeId | 'RANDOM'>('RANDOM');
   const [bogartStake, setBogartStake] = useState<number>(() => {
     const initialGold = hsStorage.getProfile().gold;
-    return Math.max(BOGART_MIN_STAKE, Math.min(BOGART_MAX_STAKE, initialGold >= 100 ? 100 : Math.max(1, initialGold)));
+    let requestedStake: number | null = null;
+    try {
+      const fromSession = sessionStorage.getItem('snshero_bogart_stake');
+      if (fromSession && !Number.isNaN(Number(fromSession))) {
+        requestedStake = Math.floor(Number(fromSession));
+        sessionStorage.removeItem('snshero_bogart_stake');
+      } else if (typeof window !== 'undefined') {
+        const qp = new URLSearchParams(window.location.search);
+        const rawStake = qp.get('stake') || qp.get('bet');
+        if (rawStake && !Number.isNaN(Number(rawStake))) {
+          requestedStake = Math.floor(Number(rawStake));
+        }
+      }
+    } catch {
+      // ignore sessionStorage error
+    }
+    if (requestedStake !== null) {
+      return Math.max(BOGART_MIN_STAKE, Math.min(BOGART_MAX_STAKE, requestedStake));
+    }
+    const defaultStake = initialGold >= 250 ? 250 : initialGold >= 100 ? 100 : Math.max(1, initialGold);
+    return Math.max(BOGART_MIN_STAKE, Math.min(BOGART_MAX_STAKE, defaultStake));
   });
   const [bogartNarrationOpen, setBogartNarrationOpen] = useState<boolean>(
     () => initialMode === 'BOGART_GAMBLE',
@@ -883,7 +903,21 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                     {tr('보가트 도박장 · 1~1,000G 슬라이드 베팅', "Bogart's Hall · 1–1,000G Slider Bet")}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <a
+                    href={
+                      isKo
+                        ? 'https://www.youtube.com/shorts/uEXB-kGnfPk'
+                        : 'https://www.youtube.com/shorts/4w-h1EEC2sc'
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    data-testid="bogart-origin-shorts-link"
+                    onClick={() => hsAudio.playSfx('ui_click', 0.7)}
+                    className="rounded-full border border-amber-300/65 bg-amber-950/80 px-2 py-0.5 text-[10.5px] font-extrabold text-amber-200 hover:border-yellow-200 hover:text-white"
+                  >
+                    🎬 {tr('31화 원작 쇼츠 ↗', 'EP.31 Origin ↗')}
+                  </a>
                   <button
                     type="button"
                     data-testid="bogart-replay-narration-btn"
@@ -1085,6 +1119,12 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                   >
                     🧚 {tr('요정 샘 +150G 즉시 수혈 받기', 'Claim +150G Fairy Relief')}
                   </button>
+                  <p className="mt-1.5 text-[10px] font-bold text-amber-200/90">
+                    {tr(
+                      '💡 구제받은 150G는 도박장·명예 칭호(300~3,500G)에 아껴두고, 정식 랭킹 아레나 주력 덱은 로비 보급소 [5팩 특가 5,600원($4) · 광고영구제거 4,000원($2.99)]로 빠르게 보강하세요!',
+                      '💡 Save your +150G Relief for Bogart & Prestige Titles (300–3,500G), and power up your Official Ranked deck in the Shop [5 Packs $4 · Ad-Free VIP $2.99]!',
+                    )}
+                  </p>
                 </div>
               )}
 

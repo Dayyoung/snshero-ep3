@@ -1119,14 +1119,8 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
               key={src}
               src={src}
               decoding="async"
-              alt={
-                idx === frameIdx
-                  ? autoPlay
-                    ? tr('달리는 2등신 카단', 'Running Chibi Kadan')
-                    : tr('살피는 2등신 카단', 'Idle Chibi Kadan')
-                  : ''
-              }
-              aria-hidden={idx !== frameIdx}
+              alt=""
+              aria-hidden="true"
               draggable={false}
               className={`absolute inset-0 h-full w-full select-none object-contain ${
                 idx === frameIdx ? 'opacity-100' : 'opacity-0'

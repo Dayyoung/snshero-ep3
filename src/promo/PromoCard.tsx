@@ -29,9 +29,10 @@ export const PromoCard: React.FC<{
   card: ClassicCardDef;
   isGolden?: boolean;
   journeyMultiplier?: number;
+  compactCleanMode?: boolean;
   onClick?: (card: ClassicCardDef) => void;
   size?: 'sm' | 'md' | 'lg';
-}> = ({ card, isGolden = false, journeyMultiplier = 1, onClick, size = 'md' }) => {
+}> = ({ card, isGolden = false, journeyMultiplier = 1, compactCleanMode, onClick, size = 'md' }) => {
   useHeroLanguage();
   const hsSize = size === 'lg' ? 'LG' : size === 'sm' ? 'SM' : 'MD';
   const rarityAura =
@@ -50,6 +51,7 @@ export const PromoCard: React.FC<{
         size={hsSize}
         isGolden={isGolden}
         journeyMultiplier={journeyMultiplier}
+        compactCleanMode={compactCleanMode ?? size !== 'lg'}
         enableTilt={Boolean(onClick)}
         rarityAura={rarityAura}
         onClick={onClick ? () => onClick(card) : undefined}

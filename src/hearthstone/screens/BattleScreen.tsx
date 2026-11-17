@@ -776,6 +776,62 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [cleanCardView, setCleanCardView] = useState(
     () => Boolean(hsAudio.getSettings().compactCleanCardView),
   );
+  // DEV-043 / 044 / 050 / 051 / 052 / 053 / 054: Ocarina BGM Rhythm Auto & Kadan Command Orb State
+  const [rhythmEnabled, setRhythmEnabled] = useState<boolean>(
+    () => hsAudio.getSettings().rhythmAutoEnabled !== false,
+  );
+  const [autoSpeed2x, setAutoSpeed2x] = useState<boolean>(false);
+  const [rhythmPhase01, setRhythmPhase01] = useState<number>(0);
+  const [rhythmSilentVisual, setRhythmSilentVisual] = useState<boolean>(
+    () => Boolean(hsAudio.getSettings().muted || hsAudio.getSettings().bgmVolume <= 0),
+  );
+  const [rhythmFlash, setRhythmFlash] = useState<{
+    mult: 1 | 1.5 | 2;
+    grade: 'NORMAL' | 'GOOD' | 'PERFECT';
+    parried?: boolean;
+  } | null>(null);
+  const [rhythmPerfectCombo, setRhythmPerfectCombo] = useState<number>(0);
+  const [rhythmSanctuaryAura, setRhythmSanctuaryAura] = useState<boolean>(false);
+  const [rhythmFeverPct, setRhythmFeverPct] = useState<number>(0);
+  const [rhythmFeverBonusGold, setRhythmFeverBonusGold] = useState<number>(0);
+  const [battleLogExpanded, setBattleLogExpanded] = useState<boolean>(false);
+  const rhythmResonanceUsedTurnRef = useRef<number>(-1);
+  const rhythmComboRef = useRef<number>(0);
+
+  const battleBpm = useMemo(() => {
+    if (mode === 'TUTORIAL') {
+      const ep = matchState.journeyMeta?.episode ?? 1;
+      return ep > 0 && ep % 5 === 0 ? 140 : 120;
+    }
+    return 128;
+  }, [mode, matchState.journeyMeta?.episode]);
+
+  const isBossParryReady =
+    mode === 'TUTORIAL' &&
+    matchState.opponent.maxMana >= 6 &&
+    rhythmResonanceUsedTurnRef.current !== matchState.turnNumber;
+
+  useEffect(() => {
+    const syncAudioOpts = () => {
+      const s = hsAudio.getSettings();
+      setRhythmEnabled(s.rhythmAutoEnabled !== false);
+      setRhythmSilentVisual(Boolean(s.muted || s.bgmVolume <= 0));
+      setCleanCardView(Boolean(s.compactCleanCardView));
+      setClutchBreakEnabled(s.kadanClutchBreakEnabled !== false);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        hsAudio.resyncBeatClockToDownbeat();
+      }
+    };
+    window.addEventListener('snshero:settings-changed', syncAudioOpts);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('snshero:settings-changed', syncAudioOpts);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
+
   const [challengerPrestigeOpen, setChallengerPrestigeOpen] = useState(false);
   const [clutchChoice, setClutchChoice] = useState<{
     reasonKo: string;
@@ -835,6 +891,108 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   }, [matchState.matchId, externalAutoPlay, setAutoPlay]);
 
   const [vsIntroActive, setVsIntroActive] = useState(() => !restoredMatchState);
+
+  // DEV-044 / 052: Live 30fps Ocarina Beat Ring Phase Tracker (paused in background tab)
+  useEffect(() => {
+    if (!autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING' || storyPhase !== 'CLOSED' || vsIntroActive) {
+      return;
+    }
+    let rafId = 0;
+    let lastUiMs = 0;
+    const tick = (nowMs: number) => {
+      if (document.visibilityState === 'visible' && nowMs - lastUiMs >= 33) {
+        lastUiMs = nowMs;
+        const info = hsAudio.getBeatPhaseInfo(battleBpm);
+        setRhythmPhase01(autoSpeed2x ? info.barPhase01 : info.phase01);
+        setRhythmSilentVisual(info.silentVisualMode);
+      }
+      rafId = window.requestAnimationFrame(tick);
+    };
+    rafId = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [autoPlay, rhythmEnabled, matchState.phase, storyPhase, vsIntroActive, battleBpm, autoSpeed2x]);
+
+  // DEV-043 / 044 / 050 / 053 / 054: Handle Ocarina Rhythm Tap (Orb Click or Spacebar)
+  const handleRhythmOrbTap = useCallback(() => {
+    if (!autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING') return;
+    const nextPotentialCombo = rhythmComboRef.current + 1;
+    const res = hsAudio.evaluateRhythmTap(battleBpm, autoSpeed2x, nextPotentialCombo);
+    const nextCombo = res.grade === 'PERFECT' ? nextPotentialCombo : 0;
+    rhythmComboRef.current = nextCombo;
+    setRhythmPerfectCombo(nextCombo);
+
+    // DEV-053(3): 3 consecutive PERFECTs -> Wordless Golden Sanctuary Aura Finale!
+    if (nextCombo >= 3 && res.grade === 'PERFECT') {
+      setRhythmSanctuaryAura(true);
+      window.setTimeout(() => setRhythmSanctuaryAura(false), 1300);
+    }
+
+    let parriedBoss = false;
+    if (mode === 'TUTORIAL') {
+      // PvE Story Track: max 1 resonance burst per turn; Boss >= 6 Mana PERFECT triggers Sanctuary Parry!
+      if (res.grade !== 'NORMAL' && rhythmResonanceUsedTurnRef.current !== matchState.turnNumber) {
+        rhythmResonanceUsedTurnRef.current = matchState.turnNumber;
+        const bossParry = matchState.opponent.maxMana >= 6 && res.grade === 'PERFECT';
+        parriedBoss = bossParry;
+        const armorGain = bossParry ? 5 : res.grade === 'PERFECT' ? 4 : 2;
+        setMatchState((prev) => {
+          if (prev.phase !== 'PLAYING') return prev;
+          const nextBoard = prev.player.board.map((m, idx) =>
+            idx === 0 && res.grade === 'PERFECT'
+              ? {
+                  ...m,
+                  permAttack: m.permAttack + 1,
+                  maxHealth: m.maxHealth + 1,
+                  health: m.health + 1,
+                }
+              : m,
+          );
+          return {
+            ...prev,
+            player: {
+              ...prev.player,
+              armor: prev.player.armor + armorGain,
+              board: nextBoard,
+            },
+          };
+        });
+      }
+    } else {
+      // Competitive Fairness Track (RANKED / BOGART / PRACTICE): 0% stat change — fills Ocarina Gold Fever Gauge!
+      const gain = res.grade === 'PERFECT' ? 35 : res.grade === 'GOOD' ? 20 : 6;
+      setRhythmFeverPct((prev) => Math.min(100, prev + gain));
+    }
+
+    setRhythmFlash({ mult: res.multiplier, grade: res.grade, parried: parriedBoss });
+    window.setTimeout(() => {
+      setRhythmFlash((cur) => (cur?.mult === res.multiplier ? null : cur));
+    }, 900);
+  }, [
+    autoPlay,
+    rhythmEnabled,
+    matchState.phase,
+    matchState.turnNumber,
+    matchState.opponent.maxMana,
+    battleBpm,
+    autoSpeed2x,
+    mode,
+  ]);
+
+  useEffect(() => {
+    if (!autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING' || storyPhase !== 'CLOSED' || vsIntroActive) {
+      return;
+    }
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.code === 'Space' && !ev.repeat) {
+        const tag = (ev.target as HTMLElement | null)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        ev.preventDefault();
+        handleRhythmOrbTap();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [autoPlay, rhythmEnabled, matchState.phase, storyPhase, vsIntroActive, handleRhythmOrbTap]);
   const [selection, setSelection] = useState<PendingSelection | null>(null);
   const [zoomState, setZoomState] = useState<BattleZoomState | null>(null);
   const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false);
@@ -1525,6 +1683,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         matchState.opponent.heroClass,
         bogartStakeGold || 0,
       );
+      // DEV-043: Competitive Fairness 2-Track — Ranked & Bogart have 0% stat change; Ocarina Rhythm Fever awards bonus Gold!
+      if ((mode === 'RANKED' || mode === 'BOGART_GAMBLE') && rhythmFeverPct >= 25) {
+        const feverGold = Math.min(30, Math.max(5, Math.round((rhythmFeverPct / 100) * 30)));
+        const prof = hsStorage.getProfile();
+        prof.gold += feverGold;
+        hsStorage.saveProfile(prof);
+        setRhythmFeverBonusGold(feverGold);
+      } else {
+        setRhythmFeverBonusGold(0);
+      }
       if (didWin && mode === 'BOGART_GAMBLE') {
         hsAudio.playSfx('zelda_chest_open', 0.9);
         hsAudio.playSfx('mario_coin', 0.95);
@@ -2198,8 +2366,26 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ? 2400
           : 950
       : 560;
-    // Give player comfortable breathing room to cast Silia Ultimates (1.5x slower Auto-Play)
-    const stepDelayMs = Math.round(baseStepDelayMs * 1.5);
+    // Give player comfortable breathing room to cast Silia Ultimates & quantize to BeatSyncScheduler!
+    let stepDelayMs = Math.round(baseStepDelayMs * (autoSpeed2x ? 0.72 : 1.5));
+    if (rhythmEnabled) {
+      const beatInfo = hsAudio.getBeatPhaseInfo(battleBpm);
+      const cycleMs = autoSpeed2x ? beatInfo.beatSec * 4000 : beatInfo.beatSec * 1000;
+      const curPhase = autoSpeed2x ? beatInfo.barPhase01 : beatInfo.phase01;
+      const msToDownbeat = Math.max(40, Math.round((1 - curPhase) * cycleMs));
+      // Snap card drop onto the upcoming BGM beat / bar downbeat
+      stepDelayMs = Math.max(autoSpeed2x ? 260 : 420, stepDelayMs - (stepDelayMs % Math.max(200, Math.round(cycleMs / 2))) + Math.min(220, msToDownbeat));
+    }
+    if (isEp0Tutorial && cur.turnNumber >= 2 && plannedAction?.kind === 'PLAY_CARD') {
+      setEp0Dialogue({
+        speaker: 'KADAN',
+        badge: isKo ? '오카리나 리듬 오토 체험' : 'Ocarina Rhythm Auto',
+        headline: isKo ? '수축하는 황금 링에 맞춰 탭/Space!' : 'Tap / Space on the Golden Beat Ring!',
+        reason: isKo
+          ? '정박에 맞추면 BGM 화음이 울리며 1.5x · 2.0x 성소 공명이 발동합니다!'
+          : 'Hit on beat to play BGM chords & trigger 1.5x · 2.0x Sanctuary Resonance!',
+      });
+    }
     const timer = window.setTimeout(() => {
       if (attackLockRef.current) return;
       const snap = latestMatchRef.current;
@@ -6717,6 +6903,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                           </span>
                         </div>
                       )}
+                      {rhythmFeverBonusGold > 0 && (
+                        <div className="flex items-center justify-between text-[11px] font-extrabold text-amber-200">
+                          <span>🎵 {tr('오카리나 리듬 피버 보너스', 'Ocarina Rhythm Fever Bonus')}</span>
+                          <span className="text-yellow-300">+{rhythmFeverBonusGold}G</span>
+                        </div>
+                      )}
                     </>
                   ) : diag ? (
                     <div className="flex items-center gap-2.5">
@@ -6736,6 +6928,118 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     </div>
                   ) : null}
                 </div>
+
+                {/* MKT-067(3): Bogart's Hall 1-Click Jackpot / Bailout Receipt Copy */}
+                {mode === 'BOGART_GAMBLE' && (
+                  <button
+                    type="button"
+                    data-testid="bogart-share-receipt-btn"
+                    onClick={async () => {
+                      const stake = bogartStakeGold || 100;
+                      const receiptText = isKo
+                        ? `🎲 [눈히어로 보가트의 도박장 영수증] 100% 랜덤 30장 덱 ${stake}G 베팅 → ${didWin ? `+${stake * 2}G 잭팟 승리!` : `-${stake}G 파산...`} | 무설치 3초 도전: https://snshero.com/game?mode=bogart&stake=${stake}`
+                        : `🎲 [SNSHero Bogart's Hall Receipt] 100% Random 30-Card Deck ${stake}G Bet → ${didWin ? `+${stake * 2}G Jackpot!` : `-${stake}G Bust...`} | Play Free: https://snshero.com/game?mode=bogart&stake=${stake}`;
+                      try {
+                        await navigator.clipboard.writeText(receiptText);
+                      } catch {
+                        // ignore clipboard fallback
+                      }
+                      hsAudio.playSfx('mario_coin', 0.85);
+                      setChallengeCopiedMsg(
+                        tr('✓ 보가트 도박장 영수증이 클립보드에 복사되었습니다!', '✓ Bogart Hall receipt copied to clipboard!'),
+                      );
+                      window.setTimeout(() => setChallengeCopiedMsg(null), 2800);
+                    }}
+                    className="hs-zelda-c-btn relative z-10 mb-2.5 flex min-h-[42px] w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black text-stone-950 shadow"
+                  >
+                    <span>🎲</span>
+                    <span>
+                      {didWin
+                        ? tr('잭팟 영수증 1클릭 복사 · 공유', 'Copy 1-Click Jackpot Receipt')
+                        : tr('도박장 결과 영수증 1클릭 복사', 'Copy Bogart Match Receipt')}
+                    </span>
+                  </button>
+                )}
+
+                {/* MKT-072(2,3): Ranked Arena Opponent MVP Card & Prestige Skin Acquire + 1st Win Backup */}
+                {mode === 'RANKED' && (
+                  <div
+                    data-testid="ranked-mvp-acquire-strip"
+                    className="relative z-10 mb-2.5 w-full space-y-1.5 rounded-2xl border border-amber-400/50 bg-stone-950/90 p-3 text-left text-[11px]"
+                  >
+                    {(() => {
+                      const oppPlayedIds = matchState.history
+                        .filter((h) => h.actorSide === 'OPPONENT' && h.cardId)
+                        .map((h) => h.cardId!);
+                      const oppMvpDef =
+                        oppPlayedIds
+                          .map((cid) => cardDb.getCard(cid))
+                          .filter((c): c is NonNullable<typeof c> => Boolean(c))
+                          .sort((a, b) => b.cost - a.cost)[0] || cardDb.getCard('EX1_350');
+                      const skinName = isKo
+                        ? resolvedChallenger?.cardBackNameKo || '엘윈 성소의 문장(800G)'
+                        : resolvedChallenger?.cardBackNameEn || 'Elwin Sanctuary Crest (800G)';
+                      return (
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-extrabold text-amber-200">
+                              ⚔ {tr('상대 핵심 카드', 'Opponent MVP')}:{' '}
+                              <span className="text-yellow-300">
+                                {oppMvpDef ? getCardName(oppMvpDef, lang) : 'Arch-Templar'}
+                              </span>
+                            </div>
+                            <div className="text-[10px] font-semibold text-sky-200/85">
+                              🎨 {tr('상대 장착 스킨', 'Equipped Skin')}: {skinName}
+                            </div>
+                          </div>
+                          {onOpenShopFromBattle && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                postGameFiredRef.current = true;
+                                hsAudio.playSfx('ui_click');
+                                onOpenShopFromBattle();
+                              }}
+                              className="hs-gold-btn shrink-0 rounded-xl px-2.5 py-1.5 text-[10.5px] font-black"
+                            >
+                              🎁 {tr('팩($1·$4)·스킨 입수', 'Get Pack / Skin')}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    {didWin && !hsStorage.isSafeguardBonusClaimed() && (
+                      <button
+                        type="button"
+                        data-testid="ranked-first-win-backup-btn"
+                        onClick={async () => {
+                          const { jsonString } = hsStorage.exportGameBackupData();
+                          try {
+                            await navigator.clipboard.writeText(jsonString);
+                          } catch {
+                            hsStorage.downloadGameBackupFile();
+                          }
+                          const bonus = hsStorage.claimSafeguardBackupBonus();
+                          setLiveProfile(hsStorage.getProfile());
+                          if (bonus.granted) hsAudio.playSfx('purchase');
+                          setChallengeCopiedMsg(
+                            tr('🏆 공식 랭킹 전적 백업 복사 완료 (+100G 지급)!', '🏆 Official Ranked Backup Copied (+100G)!'),
+                          );
+                          window.setTimeout(() => setChallengeCopiedMsg(null), 2800);
+                        }}
+                        className="flex min-h-[36px] w-full items-center justify-center rounded-xl border border-emerald-300/75 bg-emerald-950/90 px-2.5 py-1 text-[10.5px] font-extrabold text-emerald-100 hover:bg-emerald-900"
+                      >
+                        📲 {tr('공식 랭킹 승리 전적 1초 백업 코드 복사 (+100G)', '1s Backup Official Ranked Record (+100G)')}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {challengeCopiedMsg && (
+                  <div className="relative z-10 mb-2 w-full rounded-xl border border-yellow-300 bg-amber-950/95 px-3 py-1.5 text-center text-xs font-extrabold text-yellow-200">
+                    {challengeCopiedMsg}
+                  </div>
+                )}
 
                 {/* Minimal First-Screen Actions (Max 2 Buttons) */}
                 <div className="relative z-10 flex w-full flex-col gap-2.5">
@@ -7008,6 +7312,33 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   </div>
                 )}
 
+                {/* DEV-042(2): On-Demand Battle Log Disclosure (Hidden by default in Single-Focus summary) */}
+                {matchState.history.length > 0 && (
+                  <div className="rounded-xl border border-amber-400/35 bg-stone-950/85 p-2.5">
+                    <button
+                      type="button"
+                      data-testid="gameover-battle-log-toggle"
+                      onClick={() => {
+                        hsAudio.playSfx('ui_click', 0.65);
+                        setBattleLogExpanded((v) => !v);
+                      }}
+                      className="flex w-full items-center justify-between text-xs font-extrabold text-amber-200"
+                    >
+                      <span>📜 {tr('상세 전투 기록 보기', 'View Detailed Combat Log')}</span>
+                      <span>{battleLogExpanded ? '▲' : `▼ (${matchState.history.length})`}</span>
+                    </button>
+                    {battleLogExpanded && (
+                      <div className="mt-2 max-h-32 space-y-1 overflow-y-auto border-t border-white/10 pt-2 text-[10.5px] text-amber-100/85">
+                        {matchState.history.slice(-8).map((entry, idx) => (
+                          <div key={`${entry.id}_${idx}`} className="truncate">
+                            • [T{entry.turn}] {entry.text}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <button
                   type="button"
                   data-testid="gameover-hub-btn"
@@ -7070,40 +7401,148 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         />
       )}
 
-      {/* DEV-021 & DEV-023: Live Stance Color Pill & Clutch Break Toggle (visible during Auto-Play) */}
+      {/* DEV-053(3): Wordless 3-Combo PERFECT Golden Sanctuary Aura Pulse */}
+      {rhythmSanctuaryAura && (
+        <div
+          data-testid="rhythm-sanctuary-aura-finale"
+          className="pointer-events-none fixed inset-0 z-[70] animate-pulse border-4 border-yellow-300/75 bg-radial from-amber-300/20 via-sky-300/10 to-transparent"
+        />
+      )}
+
+      {/* DEV-043 / 044 / 050 / 051 / 052 / 053 / 054: Unified Kadan Rhythm Command Orb HUD */}
       {autoPlay && matchState.phase === 'PLAYING' && storyPhase === 'CLOSED' && !vsIntroActive && (
         <div
-          data-testid="kadan-stance-hud-pill"
-          className={`pointer-events-auto fixed right-2.5 top-14 z-[71] flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-extrabold shadow-lg sm:right-4 sm:top-16 ${
-            activeStance === 'AGGRO'
-              ? 'border-rose-400/80 bg-rose-950/90 text-rose-100'
-              : activeStance === 'CONTROL'
-                ? 'border-sky-400/80 bg-sky-950/90 text-sky-100'
-                : activeStance === 'AWAKENING'
-                  ? 'border-amber-300/80 bg-amber-950/90 text-amber-100'
-                  : 'border-emerald-400/60 bg-stone-950/90 text-emerald-100'
-          }`}
+          data-testid="kadan-command-orb"
+          className="pointer-events-auto fixed right-2.5 top-14 z-[72] flex items-center gap-2 rounded-2xl border border-amber-300/75 bg-[#090d16]/94 px-2.5 py-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.88)] backdrop-blur-md sm:right-4 sm:top-16"
         >
-          <span>
-            {activeStance === 'AGGRO'
-              ? tr('⚔ 맹공 지휘 (적색)', '⚔ AGGRO')
-              : activeStance === 'CONTROL'
-                ? tr('🛡 수비 지휘 (청색)', '🛡 CONTROL')
-                : activeStance === 'AWAKENING'
-                  ? tr('✨ 각성연계 (금색)', '✨ AWAKENING')
-                  : tr('⚖ 균형 자동전투', '⚖ BALANCED')}
-          </span>
-          <button
-            type="button"
-            data-testid="clutch-break-toggle"
-            onClick={() => setClutchBreakEnabled((v) => !v)}
-            className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${
-              clutchBreakEnabled ? 'bg-amber-400 text-stone-950' : 'bg-white/10 text-slate-300'
-            }`}
-            title={tr('승부처 카단 브레이크 ON/OFF', 'Toggle Clutch Choice Break')}
-          >
-            {clutchBreakEnabled ? tr('승부처 ON', 'Clutch ON') : tr('승부처 OFF', 'Clutch OFF')}
-          </button>
+          {/* Shrinking Golden Ocarina Beat Ring + Silent Visual Metronome Orb */}
+          {rhythmEnabled && (
+            <button
+              type="button"
+              data-testid="ocarina-rhythm-ring-btn"
+              onClick={handleRhythmOrbTap}
+              title={tr('수축하는 정박 링 탭 / Space (1.5x · 2.0x 화음)', 'Tap / Space on Beat Ring (1.5x · 2.0x)')}
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/85 bg-stone-950 text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)] active:scale-92"
+            >
+              {/* Shrinking Outer Ocarina Timing Ring */}
+              <span
+                style={{
+                  transform: `scale(${(1.52 - rhythmPhase01 * 0.52).toFixed(3)})`,
+                  opacity: Number((0.35 + rhythmPhase01 * 0.65).toFixed(2)),
+                }}
+                className={`pointer-events-none absolute inset-0 rounded-full border-2 ${
+                  isBossParryReady
+                    ? 'border-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.9)]'
+                    : rhythmSilentVisual
+                      ? 'border-sky-300 shadow-[0_0_16px_rgba(56,189,248,0.95)]'
+                      : 'border-yellow-300'
+                }`}
+              />
+              {/* Silent Visual Metronome Downbeat Flash */}
+              {rhythmSilentVisual && (rhythmPhase01 > 0.86 || rhythmPhase01 < 0.12) && (
+                <span className="pointer-events-none absolute inset-0 rounded-full bg-cyan-300/35" />
+              )}
+              <span className="relative z-10 text-sm font-black text-yellow-300">
+                {isBossParryReady ? '🛡' : '🎵'}
+              </span>
+              {/* Wordless 1.5x / 2.0x Multiplier Pop Badge */}
+              {rhythmFlash && (
+                <span
+                  data-testid="rhythm-multiplier-badge"
+                  className={`pointer-events-none absolute -bottom-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border px-1.5 py-0.2 text-[9.5px] font-black shadow ${
+                    rhythmFlash.parried
+                      ? 'border-cyan-200 bg-cyan-500 text-stone-950'
+                      : rhythmFlash.mult === 2
+                        ? 'border-yellow-100 bg-amber-400 text-stone-950'
+                        : rhythmFlash.mult === 1.5
+                          ? 'border-emerald-200 bg-emerald-500 text-stone-950'
+                          : 'border-stone-500 bg-stone-800 text-amber-100'
+                  }`}
+                >
+                  {rhythmFlash.parried ? '🛡-50%' : `${rhythmFlash.mult.toFixed(1)}x`}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Compact Stance + Speed + Clutch Controls */}
+          <div className="flex flex-col gap-1">
+            <div
+              data-testid="kadan-stance-hud-pill"
+              className="flex items-center gap-1"
+            >
+              {(
+                [
+                  { id: 'AGGRO', icon: '⚔', ko: '공격', en: 'ATK', cls: 'border-rose-400 bg-rose-900/90 text-rose-100' },
+                  { id: 'CONTROL', icon: '🛡', ko: '방어', en: 'DEF', cls: 'border-sky-400 bg-sky-900/90 text-sky-100' },
+                  { id: 'AWAKENING', icon: '✨', ko: '각성', en: '3X', cls: 'border-amber-300 bg-amber-900/90 text-amber-100' },
+                ] as const
+              ).map((st) => {
+                const isSel = activeStance === st.id;
+                return (
+                  <button
+                    key={st.id}
+                    type="button"
+                    data-testid={`orb-stance-${st.id.toLowerCase()}`}
+                    onClick={() => {
+                      hsAudio.playSfx('gem_c_select', 0.7);
+                      setActiveStance(st.id);
+                    }}
+                    className={`rounded-lg border px-1.5 py-0.5 text-[9.5px] font-extrabold transition ${
+                      isSel ? st.cls : 'border-white/15 bg-black/45 text-amber-100/70 hover:text-white'
+                    }`}
+                  >
+                    {st.icon} {isKo ? st.ko : st.en}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-between gap-1">
+              <button
+                type="button"
+                data-testid="rhythm-speed-2x-btn"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click', 0.65);
+                  setAutoSpeed2x((v) => !v);
+                }}
+                className={`rounded-md border px-1.5 py-0.5 text-[9px] font-black ${
+                  autoSpeed2x
+                    ? 'border-cyan-300 bg-cyan-500 text-stone-950'
+                    : 'border-white/15 bg-white/10 text-amber-200'
+                }`}
+                title={tr('2배속 시 마디 첫 강박(4박당 1회) 리듬 보정', '2x speed uses 4-beat bar downbeat')}
+              >
+                {autoSpeed2x ? '2x BAR' : '1x BEAT'}
+              </button>
+
+              {mode !== 'TUTORIAL' && rhythmEnabled && (
+                <span
+                  data-testid="rhythm-fever-gauge"
+                  className="rounded-md border border-yellow-300/45 bg-amber-950/75 px-1.5 py-0.5 text-[9px] font-extrabold text-yellow-200"
+                  title={tr('경쟁모드 공정 밸런스: 스탯 불변 · 피버 보너스 골드', 'Fair Play: 0% stat change · Bonus Gold Fever')}
+                >
+                  🪙 {rhythmFeverPct}%
+                </span>
+              )}
+
+              {rhythmPerfectCombo >= 2 && (
+                <span className="text-[9px] font-black text-yellow-300">★{rhythmPerfectCombo}</span>
+              )}
+
+              <button
+                type="button"
+                data-testid="clutch-break-toggle"
+                onClick={() => setClutchBreakEnabled((v) => !v)}
+                className={`rounded-md px-1.5 py-0.5 text-[9px] font-black ${
+                  clutchBreakEnabled ? 'bg-amber-400 text-stone-950' : 'bg-white/10 text-slate-300'
+                }`}
+                title={tr('승부처 카단 브레이크 ON/OFF', 'Toggle Clutch Choice Break')}
+              >
+                {clutchBreakEnabled ? tr('승부처', 'Clutch') : 'OFF'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

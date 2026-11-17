@@ -1,6 +1,7 @@
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import LZString from 'lz-string';
 import { tr, useHeroLanguage } from '../i18n/heroLang';
+import { hsAudio } from './audio';
 import { cardDb, decodeDeckShareCode } from './cardDb';
 import { GameAdSenseLayout } from './components/GameAdSenseLayout';
 import type { ArchetypePresetId } from './components/PreBattleDeckModal';
@@ -188,6 +189,22 @@ export const HearthstoneApp: React.FC = () => {
       .then(() => {
         if (!mounted) return;
         hsStorage.ensureInitialized();
+        try {
+          localStorage.setItem('snshero_has_played', '1');
+        } catch {
+          // ignore storage quota errors
+        }
+        // DEV-049(1): Auto-claim showcase pre-opened pack cards into permanent collection on any /game entry
+        const autoShowcaseClaim = hsStorage.claimPromoPrePack();
+        if (autoShowcaseClaim.claimed) {
+          setProfile(hsStorage.getProfile());
+          setLaunchNotice(
+            tr(
+              `🎉 쇼케이스에서 뽑은 카드 ${autoShowcaseClaim.cards.length}장이 내 카드첩에 영구 장착되었습니다!`,
+              `🎉 ${autoShowcaseClaim.cards.length} card(s) drawn on the Showcase are now permanently equipped in your Collection!`,
+            ),
+          );
+        }
         const payRes = checkAndProcessGamePaymentReturn();
         if (payRes.handled) {
           if (payRes.closedPopup) {
@@ -232,8 +249,23 @@ export const HearthstoneApp: React.FC = () => {
           }
           const factionParam = params.get('faction')?.toUpperCase() as HeroClass | undefined;
           const starterParam = params.get('starter')?.toLowerCase();
-          const presetParamRaw = params.get('preset')?.toLowerCase();
-          const tacticParamRaw = params.get('tactic')?.toLowerCase();
+          const presetParamRaw = (params.get('preset') || params.get('style'))?.toLowerCase();
+          const tacticParamRaw = (params.get('tactic') || params.get('style'))?.toLowerCase();
+          const rhythmParam = params.get('rhythm')?.toLowerCase();
+          const stakeParamRaw = params.get('stake') || params.get('bet');
+          if (stakeParamRaw !== null && !Number.isNaN(Number(stakeParamRaw))) {
+            const parsedStake = Math.max(1, Math.min(1000, Math.floor(Number(stakeParamRaw))));
+            try {
+              sessionStorage.setItem('snshero_bogart_stake', String(parsedStake));
+            } catch {
+              // ignore sessionStorage error
+            }
+          }
+          if (rhythmParam === 'on' || rhythmParam === '1' || rhythmParam === 'true') {
+            hsAudio.updateSettings({ rhythmAutoEnabled: true });
+          } else if (rhythmParam === 'off' || rhythmParam === '0' || rhythmParam === 'false') {
+            hsAudio.updateSettings({ rhythmAutoEnabled: false });
+          }
           const deckParam = params.get('deck') || params.get('challenge');
           const isChallengeLaunch = Boolean(params.get('challenge'));
           const restoreParam = params.get('restore');
@@ -244,9 +276,9 @@ export const HearthstoneApp: React.FC = () => {
               : undefined;
 
           const resolvedPresetId: ArchetypePresetId | undefined =
-            presetParamRaw === 'aggro'
+            presetParamRaw === 'aggro' || presetParamRaw === 'ignis_aggro'
               ? 'AGGRO'
-              : presetParamRaw === 'control'
+              : presetParamRaw === 'control' || presetParamRaw === 'defense' || presetParamRaw === 'paladin_aggro'
                 ? 'CONTROL'
                 : presetParamRaw === 'awakening'
                   ? 'AWAKENING'
@@ -255,7 +287,7 @@ export const HearthstoneApp: React.FC = () => {
           const resolvedTacticStance: KadanTacticalStance | undefined =
             tacticParamRaw === 'aggressive' || tacticParamRaw === 'aggro'
               ? 'AGGRO'
-              : tacticParamRaw === 'defensive' || tacticParamRaw === 'control'
+              : tacticParamRaw === 'defensive' || tacticParamRaw === 'control' || tacticParamRaw === 'defense'
                 ? 'CONTROL'
                 : tacticParamRaw === 'awakening'
                   ? 'AWAKENING'
@@ -266,17 +298,21 @@ export const HearthstoneApp: React.FC = () => {
           }
 
           const starterHeroClass: HeroClass | undefined =
-            starterParam === 'human'
+            starterParam === 'human' || presetParamRaw === 'defense'
               ? 'PRIEST'
-              : starterParam === 'fire'
+              : starterParam === 'fire' || presetParamRaw === 'aggro'
                 ? 'WARRIOR'
-                : starterParam === 'undead'
+                : starterParam === 'undead' || presetParamRaw === 'awakening'
                   ? 'ROGUE'
                   : undefined;
           const effectiveFaction = factionParam || starterHeroClass;
 
           const wantAutoPlay =
-            params.get('autoplay') === '1' || params.get('autoplay') === 'true';
+            params.get('autoplay') === '1' ||
+            params.get('autoplay') === 'true' ||
+            rhythmParam === 'on' ||
+            rhythmParam === '1' ||
+            rhythmParam === 'true';
           setGlobalAutoPlay(wantAutoPlay);
           const decks = hsStorage.getDecks();
           const chosenDeck =

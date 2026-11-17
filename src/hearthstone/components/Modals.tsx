@@ -188,6 +188,7 @@ export const QuestLogModal: React.FC<{
       ? 'QUESTS'
       : 'NONE';
   });
+  const [showAllQuests, setShowAllQuests] = useState<boolean>(false);
   const [claimBanner, setClaimBanner] = useState<string | null>(null);
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -553,8 +554,22 @@ export const QuestLogModal: React.FC<{
                 {Math.min(100, Math.round((profile.gold / 850) * 100))}% / 850G
               </span>
             </div>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              {quests.map((q) => {
+            {(() => {
+              // DEV-042(2): Single-Focus Quest View — prioritize #1 claimable or closest-to-completion quest first!
+              const sortedQuests = [...quests].sort((a, b) => {
+                const aClaimable = (a.completed || a.progress >= a.goal) && !a.bonusClaimed ? 1 : 0;
+                const bClaimable = (b.completed || b.progress >= b.goal) && !b.bonusClaimed ? 1 : 0;
+                if (aClaimable !== bClaimable) return bClaimable - aClaimable;
+                const aCleared = a.completed || a.progress >= a.goal ? 1 : 0;
+                const bCleared = b.completed || b.progress >= b.goal ? 1 : 0;
+                if (aCleared !== bCleared) return aCleared - bCleared;
+                return b.progress / Math.max(1, b.goal) - a.progress / Math.max(1, a.goal);
+              });
+              const visibleQuests = showAllQuests ? sortedQuests : sortedQuests.slice(0, 1);
+              return (
+                <>
+                  <div className={showAllQuests ? 'grid grid-cols-1 gap-3 md:grid-cols-3' : 'grid grid-cols-1 gap-3'}>
+                    {visibleQuests.map((q) => {
                 const isCleared = q.completed || q.progress >= q.goal;
                 const isClaimable = isCleared && !q.bonusClaimed;
                 const pct = Math.min(100, Math.round((q.progress / q.goal) * 100));
@@ -605,9 +620,11 @@ export const QuestLogModal: React.FC<{
                             <span>+{isClaimable ? 20 : q.rewardGold}G</span>
                           </span>
                         </div>
-                        <p className="mt-1.5 text-xs font-semibold text-emerald-200">
-                          {qText.description}
-                        </p>
+                        {showAllQuests && (
+                          <p className="mt-1.5 text-xs font-semibold text-emerald-200">
+                            {qText.description}
+                          </p>
+                        )}
                       </div>
                       <div className="mt-3 w-full">
                         <div className="h-2.5 w-full overflow-hidden rounded-full bg-stone-800/35">
@@ -643,22 +660,45 @@ export const QuestLogModal: React.FC<{
                         <span>+{q.rewardGold}G</span>
                       </span>
                     </div>
-                    <p className="mt-1.5 text-xs font-semibold text-stone-700">
-                      {qText.description}
-                    </p>
+                    {showAllQuests && (
+                      <p className="mt-1.5 text-xs font-semibold text-stone-700">
+                        {qText.description}
+                      </p>
+                    )}
                     <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-stone-800/35">
                       <div
                         style={{ width: `${pct}%` }}
                         className="h-full bg-gradient-to-r from-amber-500 to-emerald-500"
                       />
                     </div>
-                    <div className="mt-1 text-right text-[11px] font-extrabold">
-                      {`${q.progress} / ${q.goal}`}
+                    <div className="mt-1 flex items-center justify-between text-[11px] font-extrabold">
+                      <span className="text-stone-700">
+                        {!showAllQuests ? qText.description : ''}
+                      </span>
+                      <span>{`${q.progress} / ${q.goal}`}</span>
                     </div>
                   </div>
                 );
-              })}
-            </div>
+                    })}
+                  </div>
+                  {quests.length > 1 && (
+                    <button
+                      type="button"
+                      data-testid="quest-expand-others-btn"
+                      onClick={() => {
+                        hsAudio.playSfx('ui_click', 0.7);
+                        setShowAllQuests((v) => !v);
+                      }}
+                      className="mt-2.5 flex min-h-[40px] w-full items-center justify-center rounded-xl border border-amber-400/45 bg-stone-950/80 px-3 py-1.5 text-xs font-extrabold text-amber-200 hover:border-yellow-300 hover:text-white"
+                    >
+                      {showAllQuests
+                        ? tr('▲ 핵심 의뢰 1건만 간단히 보기', '▲ Show Top Priority Quest Only')
+                        : tr(`+ 다른 의뢰 보기 (${quests.length - 1}건)`, `+ View Other Quests (${quests.length - 1})`)}
+                    </button>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
@@ -2676,6 +2716,53 @@ export const GameOptionsModal: React.FC<{
                     {settings.compactCleanCardView ? 'CLEAN' : 'FULL'}
                   </span>
                 </button>
+
+                {/* DEV-044: Ocarina BGM Rhythm Auto Toggle & Latency Offset Calibration */}
+                <div className="col-span-2 rounded-xl border border-amber-300/45 bg-stone-950/75 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <div className="text-xs font-extrabold text-amber-100">
+                        🎵 {tr('오카리나 BGM 리듬 오토 (1.5x · 2.0x)', 'Ocarina BGM Rhythm Auto (1.5x · 2.0x)')}
+                      </div>
+                      <div className="text-[10px] text-amber-200/75">
+                        {tr(
+                          '정박 탭 시 화음 연주 (스토리 공명 / 랭킹·도박장 골드 피버)',
+                          'Tap on beat for harmonic chords (Story resonance / Ranked Gold Fever)',
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      data-testid="toggle-rhythm-auto"
+                      onClick={() => {
+                        hsAudio.playSfx('ui_click', 0.75);
+                        update({ rhythmAutoEnabled: !(settings.rhythmAutoEnabled ?? true) });
+                      }}
+                      className={`min-h-[38px] shrink-0 rounded-lg border px-2.5 text-xs font-black transition ${
+                        settings.rhythmAutoEnabled !== false
+                          ? 'border-yellow-200 bg-amber-400 text-stone-950 shadow'
+                          : 'border-white/20 bg-black/50 text-amber-100/75'
+                      }`}
+                    >
+                      {settings.rhythmAutoEnabled !== false ? 'ON' : 'OFF'}
+                    </button>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="shrink-0 text-[10.5px] font-bold text-sky-200">
+                      {tr('비트 싱크 보정', 'Sync Offset')}: {(settings.rhythmOffsetMs || 0) >= 0 ? `+${settings.rhythmOffsetMs || 0}` : settings.rhythmOffsetMs}ms
+                    </span>
+                    <input
+                      type="range"
+                      data-testid="rhythm-offset-slider"
+                      min={-100}
+                      max={100}
+                      step={5}
+                      value={settings.rhythmOffsetMs || 0}
+                      onChange={(e) => update({ rhythmOffsetMs: Number(e.target.value) || 0 })}
+                      className="h-2 flex-1 cursor-pointer accent-amber-400"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* DEV-032: Lobby Sanctuary Sky Time Selector */}

@@ -841,7 +841,8 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
           {/* High-Res Character Cutout or Bespoke Full-Frame Card Illustration */}
           <img
             src={portraitSrc}
-            alt={card.name}
+            alt=""
+            aria-hidden="true"
             draggable={false}
             decoding="async"
             onError={() => {

@@ -83,6 +83,11 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
     typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
 
   useEffect(() => {
+    try {
+      localStorage.setItem('snshero_has_played', '1');
+    } catch {
+      // ignore storage quota errors
+    }
     hsAudio.playBgm('tavern_hub');
     const unsub = subscribePwaFullscreen(() => setPwaTick((n) => n + 1));
     const onSettingsChanged = () => setPwaTick((n) => n + 1);
@@ -394,6 +399,48 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
             </div>
           </div>
         )}
+
+        {/* MKT-066(1): First Prestige Badge (300G) 83% Endowed Progress Coaching Strip */}
+        {!isFirstVisitGuide &&
+          profile.gold >= 200 &&
+          profile.gold < 300 &&
+          (profile.prestige?.ownedBadges?.length || 1) <= 1 && (
+            <div
+              data-testid="hub-first-badge-progress-strip"
+              className="mb-2 flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-300/75 bg-amber-950/88 px-3.5 py-1.5 text-[11px] font-extrabold text-amber-100 shadow-lg"
+            >
+              <span>
+                🛡️{' '}
+                {tr(
+                  `첫 명예 프로필 배지(300G) 해금 임박! (${profile.gold}G / 300G — ${Math.round((profile.gold / 300) * 100)}% 달성 · 단 ${300 - profile.gold}G 남음!)`,
+                  `First Prestige Badge (300G) Almost Unlocked! (${profile.gold}G / 300G — ${Math.round((profile.gold / 300) * 100)}% · Only ${300 - profile.gold}G left!)`,
+                )}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => triggerModeTransition('TUTORIAL')}
+                  className="rounded-lg border border-yellow-300/80 bg-amber-500 px-2.5 py-0.5 text-[10.5px] font-black text-stone-950 hover:bg-amber-400"
+                >
+                  {tr('⚔ 스토리 출격', '⚔ Story Clear')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    try {
+                      sessionStorage.setItem('snshero_bogart_stake', String(Math.max(50, 300 - profile.gold)));
+                    } catch {
+                      // ignore
+                    }
+                    triggerModeTransition('BOGART_GAMBLE');
+                  }}
+                  className="rounded-lg border border-sky-300/70 bg-sky-900/90 px-2.5 py-0.5 text-[10.5px] font-extrabold text-sky-100 hover:bg-sky-800"
+                >
+                  {tr(`🎲 도박장 +${Math.max(50, 300 - profile.gold)}G 도전`, `🎲 Bogart +${Math.max(50, 300 - profile.gold)}G`)}
+                </button>
+              </div>
+            </div>
+          )}
 
         {/* MKT-018: Daily Quest & Expert AI 9-Faction (+2 Packs) Quick Briefing */}
         {!isFirstVisitGuide && (incompleteQuestsCount > 0 || remainingExpertAiCount > 0) && (

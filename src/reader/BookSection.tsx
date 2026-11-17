@@ -401,6 +401,30 @@ export function renderBookSection(): string {
               ${tr('다음화', 'Next', '次話')} ▶
             </button>
           </div>
+
+          <!-- MKT-064(3): Climax Highlight Episode Quick-Jump Bar -->
+          <div data-testid="book-climax-jump-bar" class="mt-2 pt-2 border-t border-amber-700/25 flex flex-wrap items-center justify-center gap-1.5 text-[11px]">
+            <span class="text-amber-300/80 font-extrabold mr-1">★ ${tr('명장면 바로가기:', 'Climax Jump:')}</span>
+            ${[
+              { n: 10, ko: '10화 이그니스', en: 'EP.10 Ignis' },
+              { n: 18, ko: '18화 말라카이', en: 'EP.18 Malakai' },
+              { n: 31, ko: '31화 모든 것을 건 손', en: 'EP.31 Bogart Gamble' },
+              { n: 40, ko: '40화 루시안 결전', en: 'EP.40 Finale' },
+            ]
+              .map(
+                (cl) => `<button
+              type="button"
+              data-action="book-jump-episode"
+              data-episode="${cl.n}"
+              class="min-h-[32px] px-2.5 py-0.5 rounded-full border text-[11px] font-extrabold cursor-pointer transition ${
+                ep === cl.n
+                  ? 'bg-amber-400 text-[#1b0f05] border-yellow-200'
+                  : 'bg-black/45 text-amber-200 border-amber-500/35 hover:border-amber-300'
+              }"
+            >${isKo ? cl.ko : cl.en}</button>`,
+              )
+              .join('')}
+          </div>
         </div>
 
         <!-- 40-Episode TOC Modal with Backdrop & ESC Dismiss (BLD-2709) -->
@@ -495,7 +519,7 @@ export function renderBookSection(): string {
                     ⚔ ${tr(`제${selectedTocAct}막 최종 보스 (${selectedTocAct * 10}화) 인게임 직접 도전`, `Battle Act ${selectedTocAct} Final Boss (EP.${selectedTocAct * 10})`)}
                   </span>
                   <a
-                    href="/game?mode=story&ep=${selectedTocAct * 10}&utm_source=book_toc_act"
+                    href="/game?mode=story&ep=${selectedTocAct * 10}&rhythm=on&utm_source=book_toc_act"
                     class="hs-promo-cta-purple px-4 py-1.5 rounded-full text-[11px] font-extrabold no-underline"
                   >
                     ${tr(`제${selectedTocAct * 10}화 보스 레이드 →`, `Play EP.${selectedTocAct * 10} Boss →`)}
@@ -542,7 +566,7 @@ export function renderBookSection(): string {
                 </div>
               </div>
               <a
-                href="/game?mode=story&ep=${ep}&utm_source=book_header_boss"
+                href="/game?mode=story&ep=${ep}&rhythm=on&utm_source=book_header_boss"
                 class="hs-promo-cta-purple px-4 py-2 rounded-full text-xs font-extrabold no-underline"
               >
                 ⚔ ${tr(`제${ep}화 보스전 직접 격파하기 (무료 3팩)`, `Challenge EP.${ep} Boss (3 Free Packs)`)}
@@ -669,7 +693,44 @@ export function renderBookSection(): string {
                 </span>
               </div>
 
-              <!-- DEV-038: Simplified 1-Primary (Next Ep) + 1-Sub (Play Boss) Action Bar -->
+              <!-- MKT-070(1): Interactive 2-Option CYOA Tactical Branch Choice -->
+              <div data-testid="book-cyoa-choice-box" class="p-3.5 rounded-xl bg-black/55 border border-amber-500/40 space-y-2.5">
+                <div class="text-xs font-extrabold text-amber-200">
+                  ⚔ ${tr('전술 선택 분기점 — 당신이 카단이라면 이 순간 어떤 카드를 내겠습니까?', 'Tactical Choice — If you were Kadan right now, which strategy would you play?')}
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <a
+                    href="/game?mode=story&ep=${ep}&style=defense&rhythm=on&utm_source=novel_cyoa"
+                    data-testid="book-cyoa-option-a"
+                    class="min-h-[44px] px-3.5 py-2 rounded-xl bg-sky-950/80 hover:bg-sky-900 border border-sky-400/60 text-sky-100 text-xs font-extrabold flex items-center justify-center text-center no-underline transition"
+                  >
+                    🛡 ${tr('선택 A: 아케 헤르쿨 생포 · 철벽 수비 전술', 'Option A: Iron Defense & Capture Preset')}
+                  </a>
+                  <a
+                    href="/game?mode=story&ep=${ep}&style=awakening&rhythm=on&utm_source=novel_cyoa"
+                    data-testid="book-cyoa-option-b"
+                    class="min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-950/80 hover:bg-amber-900 border border-amber-400/70 text-yellow-200 text-xs font-extrabold flex items-center justify-center text-center no-underline transition"
+                  >
+                    ⚡ ${tr('선택 B: 3장=3배 각성 괴수 · 정면 격파 전술', 'Option B: 3-Copy = 3x Awakening Crush')}
+                  </a>
+                </div>
+              </div>
+
+              ${
+                ep === 31
+                  ? `<div data-testid="book-ep31-bogart-bridge" class="p-3 rounded-xl bg-amber-950/75 border border-yellow-300/65 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <span class="font-extrabold text-yellow-200">🎲 ${tr("제31화 '모든 것을 건 손' 특별 연동 — 100% 랜덤 30장 덱 보가트 도박장!", "EP.31 Special — Play Bogart's 100% Random-Deck Gambling Hall!")}</span>
+                      <a href="/game?mode=bogart&stake=250&utm_source=novel_ep31" class="hs-promo-cta-purple px-3.5 py-1.5 rounded-full text-[11px] font-extrabold no-underline">${tr('250G 걸고 도박장 입장 →', "Enter Bogart's Hall (250G) →")}</a>
+                    </div>`
+                  : ep === 40
+                    ? `<div data-testid="book-ep40-reincarnation-bridge" class="p-3 rounded-xl bg-purple-950/75 border border-purple-300/65 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span class="font-extrabold text-purple-200">👑 ${tr('40화 완독 엔드게임 초대장 — 루시안 토벌 시 +300G·3팩 & 무한 환생 개방!', 'EP.40 Endgame — Defeat Lucian for +300G, 3 Packs & Infinite Reincarnation!')}</span>
+                        <a href="/game?mode=story&ep=40&rhythm=on&utm_source=novel_ep40" class="hs-promo-cta-purple px-3.5 py-1.5 rounded-full text-[11px] font-extrabold no-underline">${tr('최종 보스 루시안 토벌 →', 'Challenge Final Boss Lucian →')}</a>
+                      </div>`
+                    : ''
+              }
+
+              <!-- DEV-038 & DEV-054(2): Simplified 1-Primary (Next Ep) + 1-Sub (Play Boss Rhythm Auto) Action Bar -->
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                 ${
                   ep < 40
@@ -688,11 +749,11 @@ export function renderBookSection(): string {
                 </a>`
                 }
                 <a
-                  href="/game?mode=story&ep=${ep}&utm_source=book_card_widget"
+                  href="/game?mode=story&ep=${ep}&rhythm=on&utm_source=book_card_widget"
                   class="min-h-[48px] px-5 py-3 rounded-full bg-[#2f1b0c] hover:bg-[#462913] border border-[#c8a158]/70 text-amber-200 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 no-underline transition"
                 >
                   <span>
-                    ⚔ ${tr(`이번 화 보스전 체험`, `Try EP.${ep} Boss`)}
+                    ⚔ ${tr(`이번 화 보스 리듬 대전`, `Play EP.${ep} Rhythm Boss`)}
                   </span>
                 </a>
               </div>

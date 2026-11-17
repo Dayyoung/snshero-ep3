@@ -10,6 +10,7 @@ Allow: /game
 Allow: /book
 Allow: /webtoon
 Allow: /sns
+Allow: /wiki/tip
 Allow: /llms.txt
 Allow: /llms-full.txt
 Disallow: /game.html
@@ -22,7 +23,6 @@ Disallow: /promo.html
 Disallow: /promotion
 Disallow: /promotion.html
 Disallow: /reddit
-Disallow: /wiki
 Disallow: /shop
 Disallow: /bench
 Disallow: /setting
@@ -35,6 +35,7 @@ Allow: /game
 Allow: /book
 Allow: /webtoon
 Allow: /sns
+Allow: /wiki/tip
 Disallow: /game.html
 Disallow: /stone
 Disallow: /stone.html
@@ -45,7 +46,6 @@ Disallow: /promo.html
 Disallow: /promotion
 Disallow: /promotion.html
 Disallow: /reddit
-Disallow: /wiki
 Disallow: /shop
 Disallow: /bench
 

@@ -2,6 +2,22 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 08:32 KST] [`/checkAll` 3대 관리 문서 야간 신규 항목(`DEV-042`~`054` · `MKT-062`~`073`) 전수 통합 구현 · E2E 통과 · 로컬 커밋 완료 (푸시 대기)]
+- **대상 문서**:
+  1. **이슈문서 (`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`)**: 미해결 이슈 `0`건 (`12/12건` 전원 완료 유지 확인)
+  2. **개발문서 (`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`)**: 기완료 `DEV-013`~`DEV-041` 상태 `"완료"` 복원 + 신규 **`DEV-042`~`DEV-054`(13건, P0 3건 · P1 10건)** 전수 구현 완료 (`54/54건 100.0% 완료`)
+  3. **마케팅문서 (`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`)**: 웹 코드 단독 해결 항목(`MKT-062`, `MKT-063`, `MKT-066`, `MKT-068`, `MKT-069`, `MKT-072`) `"완료"` 및 하이브리드 코드 반영·외부 채널 수동 발행 대기 항목(`MKT-064`, `MKT-065`, `MKT-067`, `MKT-070`, `MKT-071`, `MKT-073`) `"진행중"` 최신화
+- **핵심 코드 구현 내역 (`382장 카드 동결` & `/stone.html` 격리 보존)**:
+  - **P0 (`DEV-043`, `DEV-044`, `DEV-045`, `MKT-062`, `MKT-068`, `MKT-069`, `MKT-071`)**:
+    - `audio.ts` & `BattleScreen.tsx` & `design.md` (v3.2): `AudioContext.currentTime` 하드웨어 클럭 `BeatSyncScheduler(120/128/140 BPM)` 양자화, `C–G–Am–F` 실시간 오카리나 화음 합성(`Harmonic Chord-Locked SFX`), 모드별 2트랙 밸런스 보호(`PvE 스토리` 턴당 최대 1회 성소 공명·보스 리듬 패링 vs `공식 랭킹·보가트 도박장` 스탯 변화 `0%` + 오카리나 골드 피버), 일체형 `카단 리듬 지휘 오브(Kadan Command Orb)` 및 환경 설정 싱크 보정(`±100ms`) 구현.
+    - `public/wiki/tip/index.html`, `vite.config.ts`, `scripts/post-build.js`, `public/robots.txt`, `public/sitemap.xml`: 구버전 스펙(`코너 뒤집기·110종·1,000 SNS·SHBP·BTC`) 100% 소거 후 `canonical` 단일 URL(`https://snshero.com/wiki/tip`) 기반 현행 **382종 정통 웹 TCG 공식 공략집(Ch.1~6 + 국문 AEO 블록)** 인플레이스 교체.
+    - `PromoApp.tsx`, `index.html`, `classic-cards.json`: 유튜브 즉시 마운트 iframe을 `data-nosnippet` Click-to-Play 썸네일 파사드로 교체(`"An error occurred"` 스니펫 오염 차단), 한·영 병기 H1/메타 적용, 382종 카드 영문명·종족어(`Murloc` → `Deep Sea` 등) 100% 엘윈 오리지널 IP 치환, 푸터 구 `AI Battle·Classic Stone` 제거, `webtoon.html` 38화 정상 재생 클린 폴백(`Lf2ZI9KrhHY` / `qH-essuMM1w`) 및 KO/EN 재생목록 동적 분기.
+  - **P1 (`DEV-042`, `DEV-046`~`054`, `MKT-063`~`067`, `MKT-070`, `MKT-072`)**:
+    - `PromoApp.tsx`, `PromoCard.tsx`, `CardVisual.tsx`, `OnboardingGuideModal.tsx`, `KadanChatbotWidget.tsx`: 상단 미니멀 GNB(`[로고 + KO/EN + 바로 플레이]`), 재방문 유저 `이어서 플레이(/game 직행)` 상단 바, 히어로 2버튼 압축 + 무스크롤 3탭 아코디언, 무료 선개봉 카드 `snshero_showcase_drawn_cards` 인게임 자동 영구 귀속, 보가트 기본 판돈 `250G` 및 `?mode=bogart&stake=` 딥링크 연동, 도감 `All(382)` `12/382` 정상 매칭·클린 아트 그리드·`3x/1x` 공정 범위 배지, `Idle Chibi Kadan` 및 `'Water Water'` 중복 `alt` 완전 제거, 6단계 가이드·9영웅·외부 채널 접이식 수납.
+    - `Modals.tsx`, `BoxHubScreen.tsx`, `HeroDeckSelectScreen.tsx`, `PackOpeningScreen.tsx`, `BookSection.tsx`: 의뢰 일지 우선순위 1건 `Single-Focus` 뷰, 로비 첫 명예 배지(`250G/300G` 83%) 코칭 바, 요정 샘 `+150G` 구제 내 보급소(`$4/$2.99`) 브릿지, 팩 개봉 `3/10팩` 전설 확정 게이지 & 가루 제작 브릿지, 공식 랭킹 종료 화면 상대 MVP 카드·스킨 입수 및 첫 1승 백업(`+100G`), 보가트 결과 영수증 1클릭 복사, 웹소설 클라이맥스 점프 바(`10·18·31·40화`) 및 2지선다 `CYOA 전술 선택(Option A/B)` + `&rhythm=on` 직행 연동.
+- **빌드 & E2E 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, Playwright E2E(`ko`·`en`, 데스크톱 `1280×800` & 모바일 `390×844` 가로 밀림 `0px`, 페이지 에러 `0`건, `/wiki/tip` canonical·`12/382` 도감·카단 리듬 지휘 오브 탭·`?stake=250` 검증) 전원 통과.
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(**`git push` 미실행 · 수동 푸시 대기**), 3대 시트 반영 및 `submit_report.py` 제출 완료.
+
 ## [2026-11-17 20:12 KST] [`/checkAll` 3대 관리 문서(이슈 · 개발 · 마케팅) 전수 통합 점검·구현 · E2E 통과 · 로컬 커밋 완료 (푸시 대기)]
 - **대상 문서**:
   1. **이슈문서 (`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`)**: 미해결 이슈 `0`건 (`ISS-001`~`ISS-004` 총 12건 전원 완료 확인)

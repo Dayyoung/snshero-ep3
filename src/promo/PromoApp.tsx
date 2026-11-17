@@ -33,6 +33,7 @@ import {
 import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget';
 import { HowToPlayCarousel } from '../hearthstone/components/OnboardingGuideModal';
 import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
+import { hsAudio } from '../hearthstone/audio';
 import { hsStorage } from '../hearthstone/storage';
 import { resolveDialogueSpriteUrl } from '../hearthstone/storyEncounterData';
 import {
@@ -74,24 +75,42 @@ export const PromoApp: React.FC = () => {
   const [activeFeatureTab, setActiveFeatureTab] = useState<FeatureTabId>('story');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Trailer controls
+  // Trailer controls (Click-to-Play Facade — MKT-068(1), DEV-046(2))
   const [activeClipIdx, setActiveClipIdx] = useState(0);
+  const [trailerFacadePlaying, setTrailerFacadePlaying] = useState(false);
 
-  // Card Library Filters
+  // Card Library Filters (DEV-050(1): Default 'ALL' so All (382) matches all 382 cards!)
   const [filterClass, setFilterClass] = useState<string>('ALL');
-  const [filterRarity, setFilterRarity] = useState<string>('LEGENDARY');
+  const [filterRarity, setFilterRarity] = useState<string>('ALL');
   const [filterMana, setFilterMana] = useState<number | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showGolden, setShowGolden] = useState(false);
   const [showAwakened3x, setShowAwakened3x] = useState(false);
-  const [visibleLimit, setVisibleLimit] = useState(9);
+  const [visibleLimit, setVisibleLimit] = useState(12);
   const [cardsSearchExpanded, setCardsSearchExpanded] = useState(false);
   const [zoomedCard, setZoomedCard] = useState<ClassicCardDef | null>(null);
 
-  // DEV-036 / DEV-039(2): Tier 1 Compact Showcase + Tier 2 Progressive Disclosure
+  // DEV-036 / DEV-039(2) / DEV-045(1) / DEV-051(2) / DEV-053(1) / DEV-052(3): Progressive Disclosure Drawers
   const [tier2Expanded, setTier2Expanded] = useState<boolean>(() =>
     typeof window !== 'undefined' && Boolean(window.location.hash && window.location.hash !== '#hero'),
   );
+  const [howToDrawerOpen, setHowToDrawerOpen] = useState<boolean>(() =>
+    typeof window !== 'undefined' && window.location.hash === '#how-to-play',
+  );
+  const [heroesDetailOpen, setHeroesDetailOpen] = useState<boolean>(false);
+  const [externalChannelsOpen, setExternalChannelsOpen] = useState<boolean>(false);
+  const [heroQuickTab, setHeroQuickTab] = useState<'none' | 'bogart' | 'preset' | 'story'>('none');
+  const [hasPlayedBefore] = useState<boolean>(() => {
+    try {
+      return (
+        localStorage.getItem('snshero_has_played') === '1' ||
+        promoProfile.totalWins > 0 ||
+        (promoProfile.journeyMaxStageCleared || 0) > 0
+      );
+    } catch {
+      return false;
+    }
+  });
   const [tier1AwakenedPreview, setTier1AwakenedPreview] = useState<boolean>(true);
   const [tier1ChallengerIdx, setTier1ChallengerIdx] = useState<number>(0);
   const [selectedBossIdx, setSelectedBossIdx] = useState<number>(0);
@@ -102,6 +121,7 @@ export const PromoApp: React.FC = () => {
     const onHash = () => {
       if (window.location.hash && window.location.hash !== '#hero') {
         setTier2Expanded(true);
+        if (window.location.hash === '#how-to-play') setHowToDrawerOpen(true);
       }
     };
     const onMouseLeave = (ev: MouseEvent) => {
@@ -124,21 +144,26 @@ export const PromoApp: React.FC = () => {
     };
   }, []);
 
-  // MKT-033: Pre-Game Free Pack Tear Widget (persisted to hero_hs_promo_pack)
+  // MKT-033 & DEV-049(1): Pre-Game Free Pack Tear Widget (persisted to snshero_showcase_drawn_cards & hero_hs_promo_pack)
   const [promoPackModalOpen, setPromoPackModalOpen] = useState(false);
   const [promoPackCards, setPromoPackCards] = useState<{ card: ClassicCardDef; isGolden: boolean }[] | null>(null);
 
-  // MKT-021: 10-second Keyword Interactive Mini Preview
-  const [activeKeywordDemo, setActiveKeywordDemo] = useState<'shield' | 'taunt' | 'awake'>('awake');
+  // MKT-021 & DEV-048(2): 10-second Keyword & BGM Rhythm Auto Interactive Mini Preview
+  const [activeKeywordDemo, setActiveKeywordDemo] = useState<'rhythm' | 'awake' | 'shield' | 'taunt'>('rhythm');
+  const [rhythmPreviewGrade, setRhythmPreviewGrade] = useState<'1.5x GOOD' | '2.0x PERFECT'>('2.0x PERFECT');
   const [shieldBroken, setShieldBroken] = useState(false);
 
   // MKT-027: In-page Episode 1 Voiced Webtoon Theater Modal
   const [mediaTheaterOpen, setMediaTheaterOpen] = useState(false);
-  const [promoPreviewStake, setPromoPreviewStake] = useState<number>(500);
+  // DEV-048(3) & MKT-069(3): Default stake matches 250G welcome seed!
+  const [promoPreviewStake, setPromoPreviewStake] = useState<number>(250);
 
   const handleOpenPromoPrePack = () => {
     if (cards.length === 0) return;
-    const savedRaw = localStorage.getItem('hero_hs_promo_pack');
+    hsAudio.playSfx('zelda_chest_open', 0.85);
+    const savedRaw =
+      localStorage.getItem('snshero_showcase_drawn_cards') ||
+      localStorage.getItem('hero_hs_promo_pack');
     if (savedRaw) {
       try {
         const parsed = JSON.parse(savedRaw) as { id: string; isGolden: boolean }[];
@@ -177,11 +202,10 @@ export const PromoApp: React.FC = () => {
       card: pickFrom(rar),
       isGolden: idx === 2 ? Math.random() < 0.25 : Math.random() < 0.08,
     }));
+    const serialized = JSON.stringify(drawn.map((d) => ({ id: d.card.id, isGolden: d.isGolden })));
     try {
-      localStorage.setItem(
-        'hero_hs_promo_pack',
-        JSON.stringify(drawn.map((d) => ({ id: d.card.id, isGolden: d.isGolden }))),
-      );
+      localStorage.setItem('snshero_showcase_drawn_cards', serialized);
+      localStorage.setItem('hero_hs_promo_pack', serialized);
     } catch {
       // ignore quota error
     }
@@ -192,8 +216,8 @@ export const PromoApp: React.FC = () => {
   useEffect(() => {
     document.documentElement.lang = isKo ? 'ko' : 'en';
     document.title = isKo
-      ? '눈히어로 — 엘윈마을 전략 카드 배틀 | 공식 소개 페이지'
-      : 'SNSHero — Elwin Village Strategic Card Battle | Official Showcase';
+      ? '눈히어로 : 카단의 여정 (SNSHero) — 무설치 382종 판타지 전략 웹 TCG | Official Showcase'
+      : 'SNSHero : Heroes of Elwin Village (눈히어로) — 382-Card Tactical Web TCG | Official Showcase';
   }, [isKo]);
 
   useEffect(() => {
@@ -424,6 +448,8 @@ export const PromoApp: React.FC = () => {
 
   const filteredCards = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
+    const isDefaultUnfiltered =
+      filterClass === 'ALL' && filterRarity === 'ALL' && filterMana === 'ALL' && !q;
     return cards
       .filter((c) => {
         if (filterClass !== 'ALL' && c.cardClass !== filterClass) return false;
@@ -449,7 +475,15 @@ export const PromoApp: React.FC = () => {
         }
         return true;
       })
-      .sort(compareCardsStoneOrder);
+      .sort((a, b) => {
+        // MKT-069(2) & DEV-050(1): Keep all 382 cards in All (382), curating high-impact 9-Faction Legendaries first!
+        if (isDefaultUnfiltered) {
+          const aChamp = a.rarity === 'LEGENDARY' && a.cardClass !== 'NEUTRAL' && (a.attack || 0) >= 3 ? 0 : a.rarity === 'LEGENDARY' && (a.attack || 0) >= 4 ? 1 : 2;
+          const bChamp = b.rarity === 'LEGENDARY' && b.cardClass !== 'NEUTRAL' && (b.attack || 0) >= 3 ? 0 : b.rarity === 'LEGENDARY' && (b.attack || 0) >= 4 ? 1 : 2;
+          if (aChamp !== bChamp) return aChamp - bChamp;
+        }
+        return compareCardsStoneOrder(a, b);
+      });
   }, [cards, filterClass, filterRarity, filterMana, searchQuery]);
 
   const displayedCards = useMemo(
@@ -473,42 +507,49 @@ export const PromoApp: React.FC = () => {
       <div className="min-h-screen w-full bg-[#120b06] text-[#f8ebd2]">
       {/* MKT-051: 20px+14px=34px safe buffer below #adsense-mobile-top to prevent mobile Ad misclicks */}
       <div aria-hidden="true" className="h-5 w-full bg-[#120b06] sm:hidden" />
+      {/* DEV-047(2): Returning Player 1-Tap Direct /game Entry Bar */}
+      {hasPlayedBefore && (
+        <div
+          data-testid="promo-returning-player-bar"
+          className="border-b border-emerald-400/40 bg-emerald-950/90 px-4 py-2 text-center text-xs font-extrabold text-emerald-100"
+        >
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
+            <span>
+              ⚡ {tr('내 로컬 카드첩·골드 데이터가 준비되어 있습니다 — 스크롤 없이 로비로 바로 복귀하세요!', 'Your saved Collection & Gold are ready — jump straight back into the Lobby!')}
+            </span>
+            <a
+              href="/game"
+              data-testid="promo-returning-play-btn"
+              className="inline-flex min-h-[34px] items-center gap-1 rounded-full border border-emerald-200 bg-emerald-500 px-3.5 py-1 text-[11px] font-black text-stone-950 shadow hover:bg-emerald-400"
+            >
+              <span>{tr('이어서 플레이 (/game 직행) →', 'Continue Playing (/game) →')}</span>
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* =====================================================================
-          1. Sticky Tavern Wood Top Navigation (GNB)
+          1. Minimal Sticky Tavern Header (DEV-042(1): Logo + KO/EN + Play ONLY)
       ===================================================================== */}
       <header className="hs-promo-nav sticky top-0 z-50 w-full">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-[70px] sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-[68px] sm:px-6">
           {/* Brand Logo */}
           <a href="#hero" className="flex items-center gap-2.5 group">
             <img
               src={getSnsLogoUrl(lang)}
-              alt={tr('눈히어로 엘윈마을 카드 배틀', 'SNSHero Elwin Village Card Battle')}
-              className="h-12 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-[54px] transition-transform group-hover:scale-105"
+              alt={tr('눈히어로', 'SNSHero')}
+              className="h-11 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-[50px] transition-transform group-hover:scale-105"
             />
           </a>
 
-          {/* Desktop Nav Links */}
-          <nav
-            onClickCapture={() => setTier2Expanded(true)}
-            className="hidden items-center gap-5 text-sm font-extrabold tracking-wide text-amber-100/90 lg:flex"
-          >
-            <a href="#intro" className="transition hover:text-amber-300">{tr('게임 정보', 'Overview')}</a>
-            <a href="#how-to-play" className="text-emerald-300 transition hover:text-emerald-200">{tr('게임 방법', 'How to Play')}</a>
-            <a href="#latest" className="transition hover:text-amber-300">{tr('신규 콘텐츠', 'Features')}</a>
-            <a href="#heroes" className="transition hover:text-amber-300">{tr('9대 영웅', '9 Heroes')}</a>
-            <a href="#cards" className="transition hover:text-amber-300">{tr('카드 라이브러리', 'Card Library')}</a>
-            <a href="#modes" className="transition hover:text-amber-300">{tr('게임 모드', 'Game Modes')}</a>
-            <a href="#gold-economy" className="text-yellow-300 transition hover:text-yellow-200">{tr('보가트 도박장', "Bogart's Hall")}</a>
-            <a href="#universe" className="transition hover:text-amber-300">{tr('미디어 믹스', 'Universe')}</a>
-          </nav>
-
-          {/* Right CTA & Mobile Menu Toggle */}
+          {/* Right Minimal Controls: KO/EN + Play Now ONLY */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="hidden sm:inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
+            <div className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/35 bg-black/45 p-0.5">
               <button
                 type="button"
+                data-testid="header-lang-ko"
                 onClick={() => setLang('ko')}
-                className={`px-2 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+                className={`min-h-[34px] px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
                   lang === 'ko'
                     ? 'bg-amber-400 text-[#1b120b] shadow-sm'
                     : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
@@ -518,8 +559,9 @@ export const PromoApp: React.FC = () => {
               </button>
               <button
                 type="button"
+                data-testid="header-lang-en"
                 onClick={() => setLang('en')}
-                className={`px-2 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
+                className={`min-h-[34px] px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
                   lang === 'en'
                     ? 'bg-amber-400 text-[#1b120b] shadow-sm'
                     : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
@@ -529,102 +571,24 @@ export const PromoApp: React.FC = () => {
               </button>
             </div>
             <a
-              href="/book.html"
-              className="hidden items-center gap-1 rounded-full border border-amber-300/40 bg-black/30 px-3.5 py-1.5 text-xs font-extrabold text-amber-200 transition hover:border-amber-300 hover:bg-amber-950/60 sm:inline-flex"
-            >
-              <BookOpen className="h-3.5 w-3.5" />
-              <span>{tr('공식 소설', 'Novel')}</span>
-            </a>
-            <a
-              href="/webtoon.html"
-              className="hidden items-center gap-1 rounded-full border border-sky-300/40 bg-black/30 px-3.5 py-1.5 text-xs font-extrabold text-sky-200 transition hover:border-sky-300 hover:bg-sky-950/60 md:inline-flex"
-            >
-              <Layers className="h-3.5 w-3.5" />
-              <span>{tr('공식 웹툰', 'Webtoon')}</span>
-            </a>
-            <a
               href="/game"
-              className="hs-promo-cta-purple inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold tracking-wide sm:px-6 sm:py-2.5 sm:text-sm"
+              data-testid="header-play-now-btn"
+              className="hs-promo-cta-purple inline-flex min-h-[42px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold tracking-wide sm:px-6 sm:py-2.5 sm:text-sm"
             >
-              <span>{tr('지금 플레이', 'Play Now')}</span>
+              <span>{tr('바로 플레이', 'Play Now')}</span>
               <ChevronRight className="h-4 w-4" />
             </a>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen((v) => !v)}
-              aria-label={tr('메뉴 열기', 'Toggle Menu')}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-amber-400/40 bg-black/40 text-amber-200 lg:hidden"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Drawer Menu */}
-        {mobileMenuOpen && (
-          <div className="border-t border-amber-500/30 bg-[#1a0f08]/98 px-4 py-4 lg:hidden">
-            <div className="grid grid-cols-2 gap-2 text-sm font-extrabold text-amber-100">
-              {[
-                { href: '#intro', label: tr('게임 정보', 'Overview') },
-                { href: '#how-to-play', label: tr('게임 방법', 'How to Play') },
-                { href: '#latest', label: tr('신규 콘텐츠', 'Features') },
-                { href: '#heroes', label: tr('9대 영웅', '9 Heroes') },
-                { href: '#cards', label: tr('카드 라이브러리', 'Card Library') },
-                { href: '#modes', label: tr('게임 모드', 'Game Modes') },
-                { href: '#universe', label: tr('미디어 믹스', 'Universe') },
-                { href: '/book.html', label: tr('웹소설 40부작', 'Novel 40 EP') },
-                { href: '/webtoon.html', label: tr('공식 웹툰', 'Webtoon') },
-                { href: '/stone.html', label: tr('오리지널 스톤', 'Classic Stone') },
-                { href: '/game', label: tr('게임 바로 시작', 'Play Now') },
-              ].map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => {
-                    if (item.href.startsWith('#')) setTier2Expanded(true);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="rounded-lg border border-amber-500/20 bg-black/30 px-3 py-2.5 text-center transition hover:border-amber-400"
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-            <div className="mt-3 flex items-center justify-center gap-2 sm:hidden">
-              <button
-                type="button"
-                onClick={() => setLang('ko')}
-                className={`px-3 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
-                  lang === 'ko'
-                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10 border border-amber-400/30'
-                }`}
-              >
-                한국어 (KO)
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang('en')}
-                className={`px-3 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
-                  lang === 'en'
-                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10 border border-amber-400/30'
-                }`}
-              >
-                English (EN)
-              </button>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* =====================================================================
-          2. Full-Bleed Hero Banner
+          2. Full-Bleed Hero Banner (DEV-046(1), DEV-049(1), MKT-063, MKT-068(2))
       ===================================================================== */}
       <section
         id="hero"
         style={{ backgroundImage: `url(${SNS_LOCATIONS.TAVERN_EXTERIOR})` }}
-        className="relative flex min-h-[580px] w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 pb-16 pt-20 sm:min-h-[680px] sm:py-24"
+        className="relative flex min-h-[540px] w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 pb-14 pt-16 sm:min-h-[620px] sm:py-20"
       >
         <div
           className="pointer-events-none absolute inset-0"
@@ -655,142 +619,133 @@ export const PromoApp: React.FC = () => {
 
         <img
           src={resolveDialogueSpriteUrl(CLASSIC_HEROES.PRIEST.heroCutoutUrl)}
-          alt={getLocalizedHeroInfo('PRIEST', lang).name}
+          alt=""
+          aria-hidden="true"
           decoding="async"
           className="pointer-events-none absolute -left-12 bottom-0 h-[220px] w-auto object-contain opacity-30 sm:-left-10 sm:h-[300px] sm:opacity-55 lg:-left-8 lg:h-[400px] lg:opacity-95 xl:left-[1%] xl:h-[450px]"
         />
         <img
           src={resolveDialogueSpriteUrl('/hs-assets/characters/cutouts/011_Ignis.webp')}
-          alt={tr('이그니스', 'Ignis')}
+          alt=""
+          aria-hidden="true"
           decoding="async"
           className="pointer-events-none absolute -right-12 bottom-0 h-[220px] w-auto object-contain opacity-30 sm:-right-10 sm:h-[300px] sm:opacity-55 lg:-right-8 lg:h-[400px] lg:opacity-95 xl:right-[1%] xl:h-[450px]"
         />
 
         <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-300/50 bg-[#140b05]/85 px-4 py-1.5 text-xs font-extrabold tracking-[0.16em] text-amber-200 shadow-lg">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-300/50 bg-[#140b05]/85 px-4 py-1.5 text-xs font-extrabold tracking-[0.12em] text-amber-200 shadow-lg">
             <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-            <span>ELWIN VILLAGE • 382 CARDS • 9 FACTIONS</span>
+            <span>ELWIN VILLAGE • 382 CARDS • RHYTHM AUTO</span>
           </div>
 
           <div className="relative mb-3 flex items-center justify-center">
             <div className="pointer-events-none absolute -inset-8 rounded-full bg-amber-400/20 blur-2xl" />
             <img
               src={getSnsLogoUrl(lang)}
-              alt={tr('눈히어로', 'SNSHero')}
-              className="relative w-[270px] max-w-[82vw] drop-shadow-[0_16px_32px_rgba(0,0,0,0.95)] sm:w-[420px]"
+              alt=""
+              aria-hidden="true"
+              className="relative w-[260px] max-w-[80vw] drop-shadow-[0_16px_32px_rgba(0,0,0,0.95)] sm:w-[400px]"
             />
           </div>
 
-          <div className="mb-4 flex items-center gap-3">
-            <SnsSnowCompassSeal size={36} />
-            <span className="promo-outline text-sm font-extrabold tracking-[0.22em] text-amber-200 sm:text-base">
-              {tr('엘윈마을의 영웅들 · 카단과 이그니스의 여정', "Heroes of Elwin Village · Kadan & Ignis's Journey")}
-            </span>
-            <SnsSnowCompassSeal size={36} />
-          </div>
-
-          <h1 className="promo-outline break-keep text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
-            {tr('놀랄 만큼 쉽고', 'Deceptively Simple')}
-            <br />
-            {tr('믿기 힘들 만큼 재미있습니다', 'Insanely Fun')}
+          {/* MKT-068(2): Bilingual Crawler-Indexable H1 + Clean Subtitle */}
+          <h1 className="promo-outline break-keep text-2xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
+            {isKo
+              ? '눈히어로 : 카단의 여정 (SNSHero : Heroes of Elwin Village)'
+              : 'SNSHero : Heroes of Elwin Village (눈히어로 : 카단의 여정)'}
           </h1>
 
           <p className="promo-outline mt-3 max-w-2xl text-sm font-bold leading-relaxed text-amber-100/95 sm:text-base">
             {tr(
-              '설치·가입 0초 · 무료 3팩 + 250G 즉시 지급 · 첫 10팩 전설 확정 · 40화 성우 풀보이스',
-              'Zero Install · 3 Free Packs + 250G Instantly · 1st Legendary in 10 Packs · 40 Voiced EPs',
+              '무설치 382종 판타지 전략 웹 TCG · 첫 방문 무료 3팩 + 250G + 160가루 즉시 지급 · 첫 10팩 전설 100% 확정',
+              'Zero-Install 382-Card Fantasy Web TCG · Instant 3 Free Packs + 250G + 160 Dust · Guaranteed Legendary in 10 Packs',
             )}
           </p>
 
-          {/* MKT-057: Two-Track FTUE CTA (Veteran Direct vs Beginner Story Coach) */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          {/* DEV-046(1) & DEV-049(1): Compressed 2-Button Hero CTA (1 Primary + 1 Secondary) */}
+          <div
+            data-testid="promo-hero-cta-pair"
+            className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
+          >
             <a
               href="/game?ftue=veteran&open=pack3&utm_source=promotion_hero"
+              data-testid="promo-hero-primary-cta"
               className="hs-promo-cta-purple inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-8 py-3.5 text-base font-extrabold tracking-wide sm:text-lg"
             >
               <Gamepad2 className="h-5 w-5" />
-              <span>{tr('🎁 무료 3팩 뜯고 바로 대결 (숙련자)', '🎁 Open 3 Packs & Play (Veteran)')}</span>
-            </a>
-            <a
-              href="/game?mode=story&ep=1&coach=on&preset=control&tactic=defensive&utm_source=promotion_ep1"
-              className="hs-promo-cta-teal-dark inline-flex min-h-[52px] items-center gap-2 rounded-full px-6 py-3.5 text-sm font-extrabold sm:text-base"
-            >
-              <Swords className="h-4 w-4" />
-              <span>{tr('⚔ 1화 스토리 보스전 시작 (입문자)', '⚔ Start Ep.1 Story (Beginner)')}</span>
+              <span>{tr('엘윈마을 바로 입장 (무료 3팩+250G)', 'Enter Elwin Village (3 Free Packs)')}</span>
             </a>
             <button
               type="button"
+              data-testid="promo-hero-pack-btn"
               onClick={handleOpenPromoPrePack}
               disabled={cards.length === 0}
               className="inline-flex min-h-[52px] cursor-pointer items-center gap-2 rounded-full border-2 border-amber-300/80 bg-amber-950/85 px-6 py-3.5 text-sm font-extrabold text-amber-100 shadow-[0_0_24px_rgba(251,191,36,0.35)] transition hover:scale-105 hover:bg-amber-900 disabled:opacity-50"
             >
               <Sparkles className="h-4 w-4 text-yellow-300" />
-              <span>{tr('✨ 무료 1호 팩 먼저 뜯어보기', '✨ Tear Free Pack #1 Here')}</span>
+              <span>{tr('무료 3팩 선개봉 체험', 'Preview Free Pack Here')}</span>
             </button>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-            <a
-              href="/game?mode=story&ep=0&utm_source=promo_ep0"
-              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-950/75 px-4 py-1.5 text-xs font-extrabold text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-900/90"
-            >
-              <span>🎯</span>
-              <span>
-                {tr(
-                  '카드 게임이 처음이신가요? 30초 허수아비 기초 훈련(제0화) 깨고 무료 3팩 받기 →',
-                  'New to Card Games? Beat 30s Tutorial (Ep.0) & Claim 3 Free Packs →',
-                )}
-              </span>
-            </a>
-            <a
-              href="#how-to-play"
-              className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/50 bg-sky-950/75 px-4 py-1.5 text-xs font-extrabold text-sky-200 transition hover:border-sky-300 hover:bg-sky-900/90"
-            >
-              <span>📖</span>
-              <span>
-                {tr(
-                  '게임 방법 · 실제 스크린샷 6단계 보기 ↓',
-                  'How to Play · 6-Step Real Screenshot Guide ↓',
-                )}
-              </span>
-            </a>
-          </div>
-
-          {/* MKT-015: 9 Faction Quick-Pick FTUE Bar */}
-          <div className="mt-5 w-full max-w-2xl rounded-2xl border border-amber-400/35 bg-black/55 px-3 py-2.5 backdrop-blur-sm">
-            <div className="mb-2 text-[11px] font-extrabold text-amber-200">
-              {tr(
-                '🔥 내 운명의 9대 종족 선택 → 무료 3팩 + 해당 종족 전설 체험덱 즉시 출정:',
-                '🔥 Pick Your Faction → Instant 3 Free Packs + Signature Legendary Trial:',
-              )}
+          {/* MKT-063(1): No-Scroll 3-Tab Progressive Disclosure Strip */}
+          <div
+            data-testid="promo-hero-3tab-strip"
+            className="mt-5 w-full max-w-2xl"
+          >
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {(
+                [
+                  { id: 'bogart', label: tr('보가트의 도박장', "Bogart's Hall") },
+                  { id: 'preset', label: tr('1초 프리셋 & 리듬 오토', '1s Preset & Rhythm Auto') },
+                  { id: 'story', label: tr('40화 풀보이스 & 24K 도감', '40 Voiced EPs & 24K Foil') },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setHeroQuickTab((prev) => (prev === tab.id ? 'none' : tab.id))}
+                  className={`min-h-[38px] cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-extrabold transition ${
+                    heroQuickTab === tab.id
+                      ? 'border-yellow-200 bg-amber-400 text-stone-950 shadow'
+                      : 'border-amber-400/35 bg-black/55 text-amber-200 hover:border-amber-300'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
-              {HERO_CLASS_ORDER.map((cls) => {
-                const ui = getLocalizedHeroInfo(cls, lang);
-                return (
-                  <a
-                    key={cls}
-                    href={`/game?faction=${cls}&open=pack3&utm_source=promo_faction`}
-                    className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-[#1a0f08]/90 px-2.5 py-1 text-[11px] font-extrabold text-amber-100 transition hover:border-amber-300 hover:bg-amber-900/80"
-                  >
-                    <img src={CLASS_CREST_URL[cls]} alt="" className="h-4 w-4 rounded-full" />
-                    <span>{ui.className}</span>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-bold text-amber-200/80">
-            <span className="rounded-full border border-amber-400/30 bg-black/45 px-3 py-1">
-              {tr('PC · Mac 브라우저', 'PC · Mac Browser')}
-            </span>
-            <span className="rounded-full border border-amber-400/30 bg-black/45 px-3 py-1">
-              {tr('iOS · Android PWA 전체화면', 'iOS · Android PWA Fullscreen')}
-            </span>
-            <span className="rounded-full border border-amber-400/30 bg-black/45 px-3 py-1">
-              {tr('100% 무료 · 무설치 즉시 플레이', '100% Free · Instant Play')}
-            </span>
+            {heroQuickTab !== 'none' && (
+              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-300/50 bg-[#140b05]/92 px-4 py-3 text-left text-xs font-bold text-amber-100 shadow-xl">
+                <span className="flex-1">
+                  {heroQuickTab === 'bogart'
+                    ? tr(
+                        '과금 격차 0%! 매 판 100% 랜덤 30장 덱으로 1~1,000G 골드를 걸고 승부해 한정 칭호·스킨을 해금하세요.',
+                        'Zero collection gap! Bet 1–1,000G with 100% Random 30-Card Decks to unlock Prestige Titles & Skins.',
+                      )
+                    : heroQuickTab === 'preset'
+                      ? tr(
+                          '덱 빌딩 고민 없이 철벽·속공·3배각성 프리셋을 1초 선택하고 BGM 정박 리듬 오토(1.5x·2.0x) 손맛을 즐기세요!',
+                          'Pick Defense, Aggro, or 3x Awakening Preset in 1 second with BGM Rhythm Auto (1.5x·2.0x)!',
+                        )
+                      : tr(
+                          '200트랙 성우 풀보이스 40화 스토리(3장=3배 각성)와 382종 24K 황금 카드를 무설치로 수집하세요.',
+                          'Enjoy 40 voiced episodes (3-Copy = 3x Awakening) and collect all 382 24K Golden Foil cards.',
+                        )}
+                </span>
+                <a
+                  href={
+                    heroQuickTab === 'bogart'
+                      ? `/game?mode=bogart&stake=${promoPreviewStake}`
+                      : heroQuickTab === 'preset'
+                        ? '/game?preset=defense&rhythm=on'
+                        : '/game?mode=story&ep=1&rhythm=on'
+                  }
+                  className="hs-promo-cta-purple shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-extrabold"
+                >
+                  {tr('바로 시작 →', 'Start →')}
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -896,7 +851,7 @@ export const PromoApp: React.FC = () => {
                     ③ {tr('보가트의 도박장', "Bogart's Gambling Hall")}
                   </span>
                   <div className="flex gap-1">
-                    {[100, 500, 1000].map((st) => (
+                    {[100, 250, 500, 1000].map((st) => (
                       <button
                         key={st}
                         type="button"
@@ -1029,17 +984,48 @@ export const PromoApp: React.FC = () => {
           </div>
 
           <div className="lg:col-span-7">
-            <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
+            {/* MKT-068(1) & DEV-046(2): data-nosnippet Click-to-Play Facade — Zero Googlebot YouTube Error Snippets! */}
+            <div data-nosnippet className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
               <div className="relative aspect-video w-full overflow-hidden bg-black">
-                <iframe
-                  key={`${lang}-${activeClip.youtubeId}`}
-                  src={activeClip.embedUrl}
-                  title={`${tr('눈히어로 공식 웹툰', 'SNSHero Official Webtoon')} - ${activeClip.label}`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  loading="lazy"
-                  className="h-full w-full border-0"
-                />
+                {trailerFacadePlaying ? (
+                  <iframe
+                    key={`${lang}-${activeClip.youtubeId}`}
+                    src={`https://www.youtube-nocookie.com/embed/${activeClip.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+                    title={`${tr('눈히어로 공식 웹툰', 'SNSHero Official Webtoon')} - ${activeClip.label}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="h-full w-full border-0"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    data-testid="promo-youtube-facade"
+                    onClick={() => setTrailerFacadePlaying(true)}
+                    className="group relative flex h-full w-full cursor-pointer flex-col items-center justify-center overflow-hidden bg-stone-950 text-center"
+                  >
+                    <img
+                      src={
+                        activeClip.id === 'ep1'
+                          ? '/webtoon-assets/episode_01/scene_01.webp'
+                          : activeClip.id === 'ep8'
+                            ? '/hs-assets/screenshots/ingame_story_theater.png?v=20261116'
+                            : '/webtoon-assets/episode_01/scene_14.webp'
+                      }
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-300 group-hover:scale-105 group-hover:opacity-90"
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/45" />
+                    <span className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-amber-300 bg-amber-500/95 text-2xl font-black text-stone-950 shadow-[0_0_28px_rgba(251,191,36,0.8)] transition group-hover:scale-110">
+                      ▶
+                    </span>
+                    <span className="relative z-10 mt-3 rounded-full border border-amber-300/60 bg-black/75 px-4 py-1 text-xs font-extrabold text-amber-100">
+                      {tr(`성우 풀보이스 웹툰 트레일러 재생 (${activeClip.label})`, `Play Full-Voice Webtoon Trailer (${activeClip.label})`)}
+                    </span>
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/40 bg-[#1a0f07] px-3 py-2.5">
                 <a
@@ -1049,14 +1035,17 @@ export const PromoApp: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-xs font-extrabold text-amber-300 underline decoration-amber-400/50 underline-offset-4 hover:text-amber-200"
                 >
-                  {tr('유튜브 공식 웹툰 재생목록 ↗', 'Official EN YouTube Playlist ↗')}
+                  {isKo ? '공식 국문 웹툰 재생목록 ↗' : 'Official EN YouTube Playlist ↗'}
                 </a>
                 <div className="flex flex-wrap gap-1.5">
                   {trailerClips.map((clip, idx) => (
                     <button
                       key={clip.id}
                       type="button"
-                      onClick={() => setActiveClipIdx(idx)}
+                      onClick={() => {
+                        setActiveClipIdx(idx);
+                        setTrailerFacadePlaying(false);
+                      }}
                       className={`rounded-lg px-2.5 py-1 text-[11px] font-extrabold transition ${
                         idx === activeClipIdx
                           ? 'bg-amber-500 text-[#1b0f05]'
@@ -1207,7 +1196,8 @@ export const PromoApp: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <img
                       src={activeBoss.img}
-                      alt={activeBoss.name}
+                      alt=""
+                      aria-hidden="true"
                       loading="lazy"
                       decoding="async"
                       className="h-20 w-24 shrink-0 rounded-xl border border-amber-400/50 bg-black object-cover object-top sm:h-24 sm:w-32"
@@ -1221,13 +1211,22 @@ export const PromoApp: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <a
-                    href={`/game?mode=story&ep=${activeBoss.ep}`}
-                    className="hs-promo-cta-purple inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold"
-                  >
-                    <span>⚔ {tr(`제${activeBoss.ep}화 보스 도전`, `Challenge EP.${activeBoss.ep}`)}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href={`/webtoon.html?ep=${activeBoss.ep}`}
+                      className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-amber-300/60 bg-black/50 px-4 py-2 text-xs font-extrabold text-amber-200 hover:border-yellow-200 hover:text-white"
+                    >
+                      <span>{tr(`원작 웹툰 제${activeBoss.ep}화`, `Read EP.${activeBoss.ep} Webtoon`)}</span>
+                    </a>
+                    <a
+                      href={`/game?mode=story&ep=${activeBoss.ep}&rhythm=on`}
+                      data-testid="promo-boss-challenge-cta"
+                      className="hs-promo-cta-purple inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold"
+                    >
+                      <span>{tr(`제${activeBoss.ep}화 보스 리듬 도전`, `Challenge EP.${activeBoss.ep}`)}</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                  </div>
                 </div>
               );
             })()}
@@ -1271,16 +1270,16 @@ export const PromoApp: React.FC = () => {
                 icon: <Trophy className="h-7 w-7 text-sky-300" />,
                 title: tr('무료로 플레이하고 승리하세요', 'Free-to-Play Mastery'),
                 desc: tr(
-                  '일일 의뢰·랭킹전·AI대전·스토리모드로 골드와 카드 팩을 획득하고 382종 고유 카드를 무료로 수집하세요.',
-                  'Earn Gold and Card Packs through Daily Quests, Ranked Play, AI Battles, and Story Mode to collect all 382 cards free.',
+                  '일일 의뢰·공식 랭킹전·보가트의 도박장·스토리모드로 골드와 카드 팩을 획득하고 382종 고유 카드를 무료로 수집하세요.',
+                  "Earn Gold and Card Packs through Daily Quests, Ranked Arena, Bogart's Hall, and Story Mode to collect all 382 cards free.",
                 ),
               },
               {
                 icon: <Swords className="h-7 w-7 text-emerald-300" />,
-                title: tr('바로 시작하기 & 스마트 AI', 'Easy to Learn & Smart AI'),
+                title: tr('카단 전술 & BGM 리듬 오토', 'Kadan Tactics & BGM Rhythm Auto'),
                 desc: tr(
-                  '직관적인 마나 수정 룰과 모드별 자동플레이 지원! 초보자도 입문 가이드를 따라 1분 만에 박진감 넘치는 결투를 즐깁니다.',
-                  'Classic mana-crystal combat with built-in Episode 0 interactive tutorial and smart Auto-Play support.',
+                  '자동플레이 중 BGM 정박에 탭하면 오카리나 화음이 울리며 1.5x·2.0x 시너지(경쟁모드는 골드 피버) 손맛을 선사합니다!',
+                  'Tap on the BGM beat during Auto-Play to trigger harmonic Ocarina chords with 1.5x·2.0x resonance or Gold Fever!',
                 ),
               },
               {
@@ -1319,6 +1318,22 @@ export const PromoApp: React.FC = () => {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
+                  data-testid="promo-rhythm-preview-tab"
+                  onClick={() => {
+                    setActiveKeywordDemo('rhythm');
+                    const res = hsAudio.evaluateRhythmTap(128, false, 1);
+                    setRhythmPreviewGrade(res.grade === 'PERFECT' ? '2.0x PERFECT' : '1.5x GOOD');
+                  }}
+                  className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-extrabold transition ${
+                    activeKeywordDemo === 'rhythm'
+                      ? 'border-yellow-300 bg-amber-500 text-stone-950'
+                      : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
+                  }`}
+                >
+                  {tr('오카리나 리듬 오토 (1.5x·2.0x)', 'BGM Rhythm Auto (1.5x·2.0x)')}
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     setActiveKeywordDemo('awake');
                   }}
@@ -1328,7 +1343,7 @@ export const PromoApp: React.FC = () => {
                       : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
                   }`}
                 >
-                  ⚡ {tr('3장=3배 각성', '3-Copy 3x Awakening')}
+                  {tr('3장=3배 각성', '3-Copy 3x Awakening')}
                 </button>
                 <button
                   type="button"
@@ -1342,7 +1357,7 @@ export const PromoApp: React.FC = () => {
                       : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
                   }`}
                 >
-                  ✨ {tr('천상의 보호막 (클릭해 깨기)', 'Divine Shield (Tap to Pop)')}
+                  {tr('천상의 보호막', 'Divine Shield')}
                 </button>
                 <button
                   type="button"
@@ -1353,39 +1368,44 @@ export const PromoApp: React.FC = () => {
                       : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
                   }`}
                 >
-                  🛡️ {tr('도발 수호', 'Taunt Frontline')}
+                  {tr('도발 수호', 'Taunt Frontline')}
                 </button>
               </div>
             </div>
 
             <div className="mt-4 flex flex-col items-center justify-between gap-4 rounded-xl border border-amber-400/25 bg-black/45 p-4 sm:flex-row">
               <div className="text-sm font-bold text-amber-100">
+                {activeKeywordDemo === 'rhythm' &&
+                  tr(
+                    `오카리나 정박 공명 [${rhythmPreviewGrade}] 발동! 스토리 보스전은 턴당 1회 성소 결계·공명을 증폭하고, 공식 랭킹·도박장은 스탯 변화 0% 공정 밸런스 위에서 골드 피버만 채웁니다!`,
+                    `Ocarina Beat Resonance [${rhythmPreviewGrade}]! Grants 1/turn Sanctuary Shield in Story Mode, while keeping 0% stat change in Ranked/Bogart (awards Bonus Gold Fever)!`,
+                  )}
                 {activeKeywordDemo === 'awake' &&
                   tr(
-                    '🔥 스토리모드 전용! 동일 카드 3장 보유 시 알렉산다르(6/6) → 공격력 18 / 생명력 18로 3배 폭증!',
-                    '🔥 Story-only! Owning 3+ copies multiplies stats by 3x (6/6 → 18/18) to crush bosses!',
+                    '스토리모드 전용! 동일 카드 3장 보유 시 알렉산다르(6/6) → 공격력 18 / 생명력 18로 3배 폭증!',
+                    'Story-only! Owning 3+ copies multiplies stats by 3x (6/6 → 18/18) to crush bosses!',
                   )}
                 {activeKeywordDemo === 'shield' &&
                   (shieldBroken
                     ? tr(
-                        '💥 천상의 보호막이 첫 타격을 0 데미지로 막아내고 깨졌습니다! (다시 누르면 보호막 재장착)',
-                        '💥 Divine Shield absorbed the first hit for 0 damage! (Tap again to restore)',
+                        '천상의 보호막이 첫 타격을 0 데미지로 막아내고 깨졌습니다! (다시 누르면 보호막 재장착)',
+                        'Divine Shield absorbed the first hit for 0 damage! (Tap again to restore)',
                       )
                     : tr(
-                        '✨ 황금빛 천상의 보호막이 활성화되어 있습니다 — 어떤 강력한 공격도 첫 1회는 완벽 무효화!',
-                        '✨ Golden Divine Shield active — blocks the very first instance of damage completely!',
+                        '황금빛 천상의 보호막이 활성화되어 있습니다 — 어떤 강력한 공격도 첫 1회는 완벽 무효화!',
+                        'Golden Divine Shield active — blocks the very first instance of damage completely!',
                       ))}
                 {activeKeywordDemo === 'taunt' &&
                   tr(
-                    '🛡️ 도발 하수인이 전열 방패를 세우면 적 하수인은 본체 영웅을 절대 직접 공격할 수 없습니다!',
-                    '🛡️ Taunt minions form a frontline shield — enemies must break through them before hitting your Hero!',
+                    '도발 하수인이 전열 방패를 세우면 적 하수인은 본체 영웅을 절대 직접 공격할 수 없습니다!',
+                    'Taunt minions form a frontline shield — enemies must break through them before hitting your Hero!',
                   )}
               </div>
               <a
-                href="/game?mode=story&ep=0&utm_source=promo_keyword_demo"
+                href="/game?mode=story&ep=0&rhythm=on&utm_source=promo_keyword_demo"
                 className="hs-promo-cta-purple shrink-0 rounded-full px-5 py-2.5 text-xs font-extrabold"
               >
-                {tr('30초 제0화 훈련으로 바로 체험 →', 'Try Ep.0 30s Tutorial →')}
+                {tr('30초 제0화 리듬 훈련 체험 →', 'Try Ep.0 Rhythm Tutorial →')}
               </a>
             </div>
           </div>
@@ -1395,43 +1415,45 @@ export const PromoApp: React.FC = () => {
       <div className="hs-promo-divider" />
 
       {/* =====================================================================
-          5.5. How to Play — Real Screenshot 6-Page Interactive Walkthrough
+          5.5. How to Play — Collapsible 6-Step Visual Guide Drawer (DEV-051(2))
       ===================================================================== */}
-      <section id="how-to-play" className="hs-promo-tavern py-16 sm:py-24">
+      <section id="how-to-play" className="hs-promo-tavern py-10 sm:py-14">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <div className="mb-8 text-center">
-            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-emerald-300">
-              HOW TO PLAY · 6-STEP VISUAL GUIDE
-            </div>
-            <h2 className="promo-outline mt-1.5 text-3xl font-black text-white sm:text-5xl">
-              {tr('실제 게임 화면으로 배우는 6단계 가이드', 'How to Play SNSHero in 6 Visual Steps')}
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-amber-100/80 sm:text-base">
-              {tr(
-                '여관 로비부터 멀리건 교체, 마나·하수인 전투, 실리아·카단 필살기, 3배 각성까지 실제 인게임 스크린샷을 넘기며 1분 만에 마스터하세요.',
-                'Flip through real in-game screenshots covering Hub, Mulligan, Mana combat, Kadan/Silia Ultimates, Free Packs, and 3x Awakening.',
-              )}
-            </p>
+          <div className="flex flex-col items-center text-center">
+            <button
+              type="button"
+              data-testid="promo-howto-drawer-btn"
+              onClick={() => setHowToDrawerOpen((v) => !v)}
+              className="inline-flex min-h-[48px] cursor-pointer items-center gap-2 rounded-full border-2 border-emerald-300/75 bg-emerald-950/85 px-6 py-2.5 text-sm font-extrabold text-emerald-100 shadow-lg transition hover:border-emerald-200 hover:bg-emerald-900"
+            >
+              <span>
+                {howToDrawerOpen
+                  ? tr('▲ 30초 플레이 가이드 접기', '▲ Hide 6-Step Visual Guide')
+                  : tr('? 30초 플레이 가이드 보기 (실제 화면 6단계) ▼', '? Open 30s How-to-Play Visual Guide (6 Steps) ▼')}
+              </span>
+            </button>
           </div>
-          <div className="hs-promo-gold-frame rounded-3xl bg-[#140c06]/95 p-4 sm:p-6">
-            <HowToPlayCarousel variant="promo" playSound={false} />
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-              <a
-                href="/game.html?mode=story&ep=0&utm_source=promo_howto_ep0"
-                className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-              >
-                <Gamepad2 className="h-4 w-4" />
-                <span>{tr('🎯 바로 30초 튜토리얼(제0화) 출격', '🎯 Launch 30s Tutorial (EP.0)')}</span>
-              </a>
-              <a
-                href="/game.html?open=pack3&utm_source=promo_howto_pack"
-                className="hs-promo-cta-teal-dark inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span>{tr('🎁 무료 3팩 먼저 받기', '🎁 Open 3 Free Packs')}</span>
-              </a>
+          {howToDrawerOpen && (
+            <div className="hs-promo-gold-frame mt-6 rounded-3xl bg-[#140c06]/95 p-4 sm:p-6">
+              <HowToPlayCarousel variant="promo" playSound={false} />
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                <a
+                  href="/game.html?mode=story&ep=0&rhythm=on&utm_source=promo_howto_ep0"
+                  className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
+                >
+                  <Gamepad2 className="h-4 w-4" />
+                  <span>{tr('바로 30초 튜토리얼(제0화) 출격', 'Launch 30s Tutorial (EP.0)')}</span>
+                </a>
+                <a
+                  href="/game.html?open=pack3&utm_source=promo_howto_pack"
+                  className="hs-promo-cta-teal-dark inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>{tr('무료 3팩 먼저 받기', 'Open 3 Free Packs')}</span>
+                </a>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -1479,37 +1501,37 @@ export const PromoApp: React.FC = () => {
                 {
                   id: 'match-a',
                   heroClass: 'PRIEST' as HeroClass,
-                  badge: tr('선택 A · 🛡 철벽 방어 & 성화 역전', 'Option A · 🛡 Iron Defense'),
+                  badge: tr('선택 A · 철벽 방어 & 성화 역전', 'Option A · Iron Defense'),
                   title: tr('철벽 방어 & 성화 역전극', 'Iron Wall & Holy Turnaround'),
                   desc: tr(
                     '인간 카단 · 수호/치유 기반 후반 역전 덱',
                     'Human Kadan · Taunt, Heal & Control Comeback',
                   ),
-                  href: '/game.html?starter=human&preset=control&tactic=defensive&utm_source=promo_match_a',
+                  href: '/game.html?preset=defense&rhythm=on&utm_source=promo_match_a',
                   accent: 'border-sky-400/60 hover:border-sky-300 bg-sky-950/45',
                 },
                 {
                   id: 'match-b',
                   heroClass: 'WARRIOR' as HeroClass,
-                  badge: tr('선택 B · 🔥 초고속 돌진 & 화력', 'Option B · 🔥 Blitz Aggro'),
+                  badge: tr('선택 B · 초고속 돌진 & 화력', 'Option B · Blitz Aggro'),
                   title: tr('초고속 돌진 & 명치 폭격', 'Hyper Rush & Burn Blitz'),
                   desc: tr(
                     '불종족 이그니스 · 1~3코스트 속공 명치 압박',
                     'Fire Ignis · Low-Cost Rush & Hero Burn Pressure',
                   ),
-                  href: '/game.html?starter=fire&preset=aggro&tactic=aggressive&utm_source=promo_match_b',
+                  href: '/game.html?preset=aggro&rhythm=on&utm_source=promo_match_b',
                   accent: 'border-rose-400/60 hover:border-rose-300 bg-rose-950/45',
                 },
                 {
                   id: 'match-c',
                   heroClass: 'ROGUE' as HeroClass,
-                  badge: tr('선택 C · 🌑 3배 각성 & 주문 연타', 'Option C · 🌑 3x Awakening'),
+                  badge: tr('선택 C · 3배 각성 & 주문 연타', 'Option C · 3x Awakening'),
                   title: tr('무한 부활 & 아케인 주문 연타', 'Infinite Value & Spell Chain'),
                   desc: tr(
                     '언데드 아르투스 · 3장=3배 각성 시너지 & 연계',
                     'Undead Artus · 3x Awakened Cards & Tempo Combo',
                   ),
-                  href: '/game.html?starter=undead&preset=awakening&tactic=awakening&utm_source=promo_match_c',
+                  href: '/game.html?preset=awakening&rhythm=on&utm_source=promo_match_c',
                   accent: 'border-amber-400/65 hover:border-amber-300 bg-amber-950/45',
                 },
               ].map((opt) => (
@@ -1537,6 +1559,23 @@ export const PromoApp: React.FC = () => {
             </div>
           </div>
 
+          {/* DEV-053(1) & DEV-047(1): Collapsible 9-Faction Heroes Drawer with Zero Duplicate Alt Text */}
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              data-testid="promo-9heroes-drawer-btn"
+              onClick={() => setHeroesDetailOpen((v) => !v)}
+              className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border-2 border-amber-400/65 bg-black/55 px-6 py-2 text-xs font-extrabold text-amber-200 transition hover:border-yellow-300 hover:text-white sm:text-sm"
+            >
+              <span>
+                {heroesDetailOpen
+                  ? tr('▲ 9대 종족 수호자 상세 접기', '▲ Hide 9 Faction Champions')
+                  : tr('+ 9대 종족 수호자 상세 도감 펼치기 ▼', '+ Explore All 9 Faction Champions ▼')}
+              </span>
+            </button>
+          </div>
+
+          <div className={heroesDetailOpen ? 'block' : 'hidden'}>
           <div className="mt-8 flex flex-wrap justify-center gap-2 sm:gap-3">
             {HERO_CLASS_ORDER.map((cls) => {
               const ui = getLocalizedHeroInfo(cls, lang);
@@ -1554,7 +1593,8 @@ export const PromoApp: React.FC = () => {
                 >
                   <img
                     src={CLASS_CREST_URL[cls]}
-                    alt={ui.className}
+                    alt=""
+                    aria-hidden="true"
                     className="h-6 w-6 rounded-full object-cover"
                   />
                   <span>{ui.className}</span>
@@ -1576,7 +1616,8 @@ export const PromoApp: React.FC = () => {
                 />
                 <img
                   src={resolveDialogueSpriteUrl(selectedHero.heroCutoutUrl)}
-                  alt={selectedHeroUi.name}
+                  alt=""
+                  aria-hidden="true"
                   loading="lazy"
                   decoding="async"
                   className="relative max-h-[340px] w-auto object-contain"
@@ -1587,7 +1628,8 @@ export const PromoApp: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-2.5">
                   <img
                     src={CLASS_CREST_URL[selectedHero.heroClass]}
-                    alt={selectedHeroUi.className}
+                    alt=""
+                    aria-hidden="true"
                     className="h-8 w-8 rounded-full border border-amber-300/70"
                   />
                   <span className="rounded-full border border-amber-400/50 bg-black/45 px-3 py-0.5 text-xs font-extrabold text-amber-300">
@@ -1619,7 +1661,7 @@ export const PromoApp: React.FC = () => {
                     </div>
                   </div>
                   <a
-                    href={`/game.html?mode=ranked_battle&faction=${selectedHero.heroClass}&preset=${
+                    href={`/game.html?mode=ranked_battle&faction=${selectedHero.heroClass}&rhythm=on&preset=${
                       selectedHero.heroClass === 'WARRIOR' ||
                       selectedHero.heroClass === 'HUNTER' ||
                       selectedHero.heroClass === 'DRUID'
@@ -1652,6 +1694,7 @@ export const PromoApp: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </section>
@@ -1730,18 +1773,31 @@ export const PromoApp: React.FC = () => {
                 onClick={() => {
                   const next = !cardsSearchExpanded;
                   setCardsSearchExpanded(next);
-                  setVisibleLimit(next ? 18 : 9);
+                  setVisibleLimit(next ? 18 : 12);
                 }}
                 className="inline-flex min-h-[42px] cursor-pointer items-center gap-2 rounded-full border-2 border-[#8b5a1b] bg-[#2a1709] px-4 py-2 text-xs font-extrabold text-sky-200 shadow transition hover:bg-[#3e220e]"
               >
                 <span>
                   {cardsSearchExpanded
-                    ? tr('▲ 대표 전설 9장 요약 보기', '▲ Show 9 Signature Aces')
+                    ? tr('▲ 대표 전설 12장 요약 보기', '▲ Show 12 Signature Aces')
                     : tr('+ 전체 382장 검색 · 필터 펼치기 ▼', '+ Search All 382 Cards ▼')}
                 </span>
               </button>
             </div>
           </div>
+
+          {/* DEV-053(2): Clear Mode Fairness Scope Badge when 3x Awakening Simulator is Active */}
+          {showAwakened3x && (
+            <div
+              data-testid="promo-3x-fairness-badge"
+              className="mt-4 rounded-2xl border-2 border-emerald-500/75 bg-[#1a2e1f] px-4 py-2.5 text-center text-xs font-extrabold text-emerald-100 shadow"
+            >
+              {tr(
+                '⚔ [스토리 보스전 전용 3x 각성] 동일 카드 3장 보유 시 스토리모드에서 3배 폭증 | 🏆 [랭킹·도박장은 1x 공정 룰] 스탯 변화 0% · 리듬 터치는 골드 피버 전용',
+                '⚔ [Story Mode Exclusive 3x Awakening] 3+ copies multiply stats 3x in Story | 🏆 [Ranked & Bogart Fair 1x Rule] 0% stat change · Rhythm taps award Gold Fever only',
+              )}
+            </div>
+          )}
 
           <div className={`${cardsSearchExpanded ? 'block' : 'hidden'} mt-7 rounded-2xl border-2 border-[#b88a44] bg-[#241409] p-4 text-amber-100 shadow-xl`}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -2127,10 +2183,10 @@ export const PromoApp: React.FC = () => {
                 </div>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="/game?mode=gamble&utm_source=promo_mode_gamble"
+                    href={`/game?mode=bogart&stake=${promoPreviewStake}&utm_source=promo_mode_gamble`}
                     className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
-                    <span>🎲 {tr('보가트 도박장 바로 입장', "Enter Bogart's Hall")}</span>
+                    <span>{tr('보가트 도박장 바로 입장', "Enter Bogart's Hall")}</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
@@ -2217,7 +2273,8 @@ export const PromoApp: React.FC = () => {
                 <div className="relative aspect-video w-full overflow-hidden bg-black">
                   <img
                     src={guide.img}
-                    alt={guide.title}
+                    alt=""
+                    aria-hidden="true"
                     loading="lazy"
                     decoding="async"
                     className="h-full w-full object-cover"
@@ -2278,10 +2335,11 @@ export const PromoApp: React.FC = () => {
                   </div>
                 </div>
                 <a
-                  href="/game?mode=gamble&utm_source=promo_slider_bet"
+                  href={`/game?mode=bogart&stake=${promoPreviewStake}&utm_source=promo_slider_bet`}
+                  data-testid="promo-slider-start-bet-btn"
                   className="hs-promo-cta-purple inline-flex min-h-[52px] shrink-0 items-center justify-center rounded-2xl px-4 py-2 text-xs font-black sm:text-sm"
                 >
-                  🎲 {tr('베팅 시작', 'Start Bet')}
+                  {tr(`베팅 시작 (${promoPreviewStake}G)`, `Start Bet (${promoPreviewStake}G)`)}
                 </a>
               </div>
             </div>
@@ -2333,13 +2391,14 @@ export const PromoApp: React.FC = () => {
                   <div className="relative h-32 w-full overflow-hidden bg-black">
                     <img
                       src={item.img}
-                      alt={item.title}
+                      alt=""
+                      aria-hidden="true"
                       loading="lazy"
                       decoding="async"
                       className="h-full w-full object-cover"
                     />
                     <span className="absolute right-2 top-2 rounded-full border border-yellow-300/60 bg-black/80 px-2 py-0.5 text-[10px] font-extrabold text-yellow-300">
-                      🪙 {item.price}
+                      {item.price}
                     </span>
                   </div>
                   <div className="p-3.5">
@@ -2348,7 +2407,7 @@ export const PromoApp: React.FC = () => {
                       <h3 className="text-sm font-black text-white sm:text-base">{item.title}</h3>
                     </div>
                     <p className="mt-1 text-xs font-semibold text-amber-100/85">
-                      📍 {item.where}
+                      {item.where}
                     </p>
                   </div>
                 </div>
@@ -2357,11 +2416,11 @@ export const PromoApp: React.FC = () => {
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <a
-                href="/game?mode=gamble&utm_source=promo_gold_economy"
+                href={`/game?mode=bogart&stake=${promoPreviewStake}&utm_source=promo_gold_economy`}
                 data-testid="promo-gamble-cta"
                 className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-8 py-3 text-sm font-extrabold sm:text-base"
               >
-                <span>🎲 {tr('보가트 도박장 랜덤덱 승부 시작하기', "Play Bogart's Random-Deck Duel Now")}</span>
+                <span>{tr(`보가트 도박장 ${promoPreviewStake}G 승부 시작하기`, `Play Bogart's ${promoPreviewStake}G Duel Now`)}</span>
                 <ChevronRight className="h-4 w-4" />
               </a>
               <a
@@ -2446,164 +2505,171 @@ export const PromoApp: React.FC = () => {
             </h2>
           </div>
 
-          <div className="mt-10">
-            <div className="mb-5 flex flex-col items-center justify-between gap-3 rounded-2xl border border-amber-400/35 bg-[#12192c] p-4 sm:flex-row">
-              <div className="text-left">
-                <div className="text-xs font-extrabold text-amber-300">
-                  {tr('🎧 인페이지 1화 미니 극장 (외부 이탈 없이 바로 감상)', '🎧 IN-PAGE EP.1 MINI THEATER')}
-                </div>
-                <div className="mt-0.5 text-sm font-extrabold text-white">
-                  {tr(
-                    '제1화 《눈보라 아래 두 서약》 5컷 웹툰 + 한국어 성우 보이스 미리듣기',
-                    'Preview Ep.1 5-Panel Webtoon + Studio Voice Narration right here',
-                  )}
-                </div>
+          {/* DEV-052(3) & MKT-070(2): Leak-Proof 3 Internal Universe Buttons + Collapsible External Support Drawer */}
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <a
+              href="/book.html"
+              className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1 hover:border-amber-400/70"
+            >
+              <div className="aspect-[16/9] overflow-hidden bg-black">
+                <img
+                  src="/webtoon-assets/episode_01/scene_04.webp"
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                />
               </div>
-              <button
-                type="button"
-                onClick={() => setMediaTheaterOpen(true)}
-                className="hs-promo-cta-purple shrink-0 cursor-pointer rounded-full px-5 py-2.5 text-xs font-extrabold"
-              >
-                {tr('🎬 제1화 미니 극장 바로 열기', '🎬 Open Ep.1 Mini Theater')}
-              </button>
-            </div>
-          </div>
+              <div className="p-4">
+                <div className="flex items-center gap-2 text-sm font-extrabold text-white">
+                  <BookOpen className="h-5 w-5 text-amber-300" />
+                  <span>{tr('공식 웹소설 1~40화 무료 열람', 'Official 40-EP Web Novel')}</span>
+                </div>
+                <p className="mt-1 text-xs font-bold text-slate-300/80">
+                  {tr('무로그인 전 회차 열람 & 회차별 보스전 연동 (/book.html)', 'Read all 40 chapters free with Boss Duel links')}
+                </p>
+              </div>
+            </a>
 
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: <BookOpen className="h-5 w-5 text-amber-300" />,
-                title: tr('웹소설', 'Web Novel'),
-                sub: tr('40부작 공식 판타지 웹소설 · 원작 전편 무료 감상', '40-Episode Fantasy Novel · Read All Chapters Free'),
-                img: '/webtoon-assets/episode_01/scene_04.webp',
-                href: '/book',
-                external: false,
-              },
-              {
-                icon: <Layers className="h-5 w-5 text-sky-300" />,
-                title: tr('웹툰', 'Webtoon'),
-                sub: tr('카단과 이그니스의 서사를 풀컬러 웹툰으로 감상', 'Read the full illustrated webtoon series free'),
-                img: '/webtoon-assets/episode_01/scene_14.webp',
-                href: '/webtoon',
-                external: false,
-              },
-              {
-                icon: <BookOpen className="h-5 w-5 text-emerald-300" />,
-                title: tr('네이버웹소설', 'Naver Web Novel'),
-                sub: tr('네이버 챌린지리그 공식 연재처 바로가기', 'Official Naver Challenge League serialization'),
-                img: '/webtoon-assets/episode_01/scene_06.webp',
-                href: 'https://novel.naver.com/challenge/list?novelId=1250635',
-                external: true,
-              },
-              {
-                icon: <Layers className="h-5 w-5 text-green-400" />,
-                title: tr('네이버웹툰', 'Naver Webtoon'),
-                sub: tr('네이버 도전만화 공식 연재처 바로가기', 'Official Naver Challenge Comic series'),
-                img: '/webtoon-assets/episode_01/scene_01.webp',
-                href: 'https://comic.naver.com/challenge/list?titleId=857363',
-                external: true,
-              },
-            ].map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                target={item.external ? '_blank' : undefined}
-                rel={item.external ? 'noopener noreferrer' : undefined}
-                className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1.5 hover:border-amber-400/70"
-              >
-                <div className="aspect-[16/10] overflow-hidden bg-black">
-                  <img
-                    src={item.img}
-                    alt={item.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                  />
+            <a
+              href="/webtoon.html"
+              className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1 hover:border-amber-400/70"
+            >
+              <div className="aspect-[16/9] overflow-hidden bg-black">
+                <img
+                  src="/webtoon-assets/episode_01/scene_14.webp"
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                />
+              </div>
+              <div className="p-4">
+                <div className="flex items-center gap-2 text-sm font-extrabold text-white">
+                  <Layers className="h-5 w-5 text-sky-300" />
+                  <span>{tr('공식 풀컬러 웹툰 (/webtoon.html)', 'Official Full-Color Webtoon')}</span>
                 </div>
-                <div className="p-4">
-                  <div className="flex items-center gap-2 text-sm font-extrabold text-white">
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </div>
-                  <p className="mt-1.5 text-xs font-bold text-slate-300/80">{item.sub}</p>
+                <p className="mt-1 text-xs font-bold text-slate-300/80">
+                  {tr('카단과 이그니스의 서사를 풀컬러 웹툰으로 감상', 'Read the full illustrated webtoon series free')}
+                </p>
+              </div>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => setMediaTheaterOpen(true)}
+              className="group cursor-pointer overflow-hidden rounded-2xl border border-amber-400/50 bg-[#12192c] text-left transition hover:-translate-y-1 hover:border-yellow-300"
+            >
+              <div className="aspect-[16/9] overflow-hidden bg-black">
+                <img
+                  src="/webtoon-assets/episode_01/scene_01.webp"
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                />
+              </div>
+              <div className="p-4">
+                <div className="flex items-center gap-2 text-sm font-extrabold text-amber-200">
+                  <Sparkles className="h-5 w-5 text-yellow-300" />
+                  <span>{tr('제1화 풀보이스 미니 극장', 'EP.1 Voiced Mini Theater')}</span>
                 </div>
-              </a>
-            ))}
+                <p className="mt-1 text-xs font-bold text-slate-300/80">
+                  {tr('외부 이탈 없이 5컷 웹툰 + 성우 내레이션 즉시 감상', 'Preview 5-panel webtoon + studio voice right here')}
+                </p>
+              </div>
+            </button>
           </div>
         </div>
       </section>
       </div>
 
-      {/* Always-Visible Official Channels & Community Bar */}
-      <section className="bg-[#120b06] px-4 py-8 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="hs-promo-gold-frame rounded-2xl bg-gradient-to-b from-[#462914] via-[#2c180a] to-[#1a0d05] p-6 text-center">
-            <h3 className="text-xl font-black text-amber-200">
-              {tr('공식 연재 · 소셜 서비스', 'Official Channels & Community')}
-            </h3>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs font-extrabold">
-              <a
-                href="https://novel.naver.com/challenge/list?novelId=1250635"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-              >
-                {tr('네이버 웹소설', 'Naver Web Novel')}
-              </a>
-              <a
-                href="https://comic.naver.com/challenge/list?titleId=857363"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-              >
-                {tr('네이버 웹툰', 'Naver Webtoon')}
-              </a>
-              <a
-                href="https://nlink.munpia.com/link/munpia/novel/616551"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-              >
-                {tr('문피아 웹소설', 'Munpia Novel')}
-              </a>
-              <a
-                href={youtubePlaylistUrl}
-                data-testid="promo-youtube-channel-link"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-              >
-                {tr('YouTube 한국어 웹툰 (@snshero)', 'YouTube EN Webtoon (@snshero)')}
-              </a>
-              <a
-                href="https://github.com/Dayyoung/snshero"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-              >
-                {tr('GitHub 오픈소스', 'GitHub Open Source')}
-              </a>
+      {/* Leak-Proof Collapsible External Channels Support Bar (DEV-052(3) & MKT-070(2)) */}
+      <section className="bg-[#120b06] px-4 py-6 sm:px-6">
+        <div className="mx-auto max-w-4xl text-center">
+          <button
+            type="button"
+            data-testid="promo-external-channels-toggle"
+            onClick={() => setExternalChannelsOpen((v) => !v)}
+            className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border border-amber-400/45 bg-[#1d1108] px-5 py-2 text-xs font-extrabold text-amber-200 transition hover:border-yellow-300 hover:text-white"
+          >
+            <span>
+              {externalChannelsOpen
+                ? tr('▲ 외부 연재처 · 채널 접기', '▲ Hide External Serialization Channels')
+                : tr('+ 외부 연재처(네이버·문피아·유튜브) 응원 댓글 남기고 한정 칭호 받기 ↗', '+ Support on External Channels (Naver · Munpia · YouTube) ↗')}
+            </span>
+          </button>
+
+          {externalChannelsOpen && (
+            <div className="hs-promo-gold-frame mt-4 rounded-2xl bg-[#1f1209] p-5 text-center">
+              <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs font-extrabold">
+                <a
+                  href="https://novel.naver.com/challenge/list?novelId=1250635"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
+                >
+                  {tr('네이버 웹소설 응원 ↗', 'Naver Web Novel ↗')}
+                </a>
+                <a
+                  href="https://comic.naver.com/challenge/list?titleId=857363"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
+                >
+                  {tr('네이버 도전만화 응원 ↗', 'Naver Webtoon ↗')}
+                </a>
+                <a
+                  href="https://nlink.munpia.com/link/munpia/novel/616551"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
+                >
+                  {tr('문피아 웹소설 응원 ↗', 'Munpia Novel ↗')}
+                </a>
+                <a
+                  href={youtubePlaylistUrl}
+                  data-testid="promo-youtube-channel-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
+                >
+                  {isKo ? 'YouTube 국문 웹툰 (@snshero) ↗' : 'YouTube EN Webtoon (@snshero) ↗'}
+                </a>
+                <a
+                  href="https://github.com/Dayyoung/snshero"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
+                >
+                  {tr('GitHub 오픈소스 ↗', 'GitHub Open Source ↗')}
+                </a>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
       {/* =====================================================================
-          Global Footer + Language Switcher
+          Global Footer + Language Switcher (DEV-045(3): Clean Modern Mode Links)
       ===================================================================== */}
       <footer className="border-t border-amber-900/50 bg-[#151210] px-4 py-12 text-center text-xs text-stone-400">
         <div className="mx-auto max-w-4xl">
           <img
             src={getSnsLogoUrl(lang)}
-            alt={tr('눈히어로', 'SNSHero')}
+            alt=""
+            aria-hidden="true"
             className="mx-auto h-10 w-auto opacity-90"
           />
           <div className="mt-5 flex flex-wrap justify-center gap-5 font-bold text-stone-300">
             <a href="/game" className="hover:text-amber-300">{tr('게임 바로 시작 (/game)', 'Play (/game)')}</a>
-            <a href="/game?mode=story" className="hover:text-amber-300">{tr('스토리모드', 'Story Mode')}</a>
-            <a href="/game?mode=ranked" className="hover:text-amber-300">{tr('랭킹대전', 'Ranked Play')}</a>
-            <a href="/game?mode=ai" className="hover:text-amber-300">{tr('AI대전', 'AI Battle')}</a>
-            <a href="/stone.html" className="hover:text-amber-300">{tr('오리지널 스톤', 'Classic Stone')}</a>
+            <a href="/game?mode=story&rhythm=on" className="hover:text-amber-300">{tr('스토리모드 (40화)', 'Story Mode')}</a>
+            <a href="/game?mode=ranked" className="hover:text-amber-300">{tr('공식 랭킹대전', 'Ranked Arena')}</a>
+            <a href={`/game?mode=bogart&stake=${promoPreviewStake}`} className="hover:text-amber-300">{tr('보가트의 도박장', "Bogart's Hall")}</a>
+            <a href="/wiki/tip" className="hover:text-amber-300">{tr('382종 공식 공략집', 'Official Guide')}</a>
             <a href="/book.html" className="hover:text-amber-300">{tr('공식 웹소설', 'Official Novel')}</a>
             <a href="/webtoon.html" className="hover:text-amber-300">{tr('공식 웹툰', 'Official Webtoon')}</a>
           </div>
@@ -2759,11 +2825,10 @@ export const PromoApp: React.FC = () => {
 
               <div className="mt-6 flex flex-wrap gap-2.5">
                 <a
-                  href="/game"
+                  href={`/game?faction=${zoomedCard.cardClass === 'NEUTRAL' || zoomedCard.cardClass === 'DREAM' ? 'PRIEST' : zoomedCard.cardClass}&preset=awakening&rhythm=on&utm_source=promo_card_zoom`}
                   className="hs-promo-cta-purple inline-flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-extrabold"
                 >
-                  <span>{tr('게임에서 카드 얻기 (/game)', 'Collect Card in Game (/game)')}</span>
-                  <ChevronRight className="h-4 w-4" />
+                  <span>{tr('이 전설 프리셋으로 즉시 출격 →', 'Launch With This Faction Preset →')}</span>
                 </a>
               </div>
             </div>
@@ -2815,12 +2880,18 @@ export const PromoApp: React.FC = () => {
                 />
               ))}
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
               <a
                 href="/game?claim_promo=1&utm_source=promo_prepack"
-                className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-extrabold sm:text-base"
+                className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-extrabold sm:text-base"
               >
-                <span>{tr('내 카드 5장 즉시 수령 & 남은 무료 2팩 마저 열기 →', 'Claim 5 Cards & Open 2 Remaining Packs →')}</span>
+                <span>{tr('내 카드 5장 영구 수령 & 남은 무료 2팩 마저 열기 (전설 확정까지 7팩!) →', 'Claim 5 Cards & Open Remaining Packs (7 Left to Legendary!) →')}</span>
+              </a>
+              <a
+                href="/game?preset=defense&rhythm=on&utm_source=promo_prepack_preset"
+                className="hs-promo-cta-teal-dark inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold sm:text-sm"
+              >
+                <span>{tr('카단 프리셋으로 1화 즉시 출격', 'Start EP.1 With Kadan Preset')}</span>
               </a>
             </div>
           </div>

@@ -2332,9 +2332,12 @@ class HearthstoneStorage {
 
   claimPromoPrePack(): { claimed: boolean; cards: OpenedPackCard[] } {
     try {
-      const raw = localStorage.getItem('hero_hs_promo_pack');
+      const showcaseRaw = localStorage.getItem('snshero_showcase_drawn_cards');
+      const legacyRaw = localStorage.getItem('hero_hs_promo_pack');
+      const raw = showcaseRaw || legacyRaw;
       if (!raw) return { claimed: false, cards: [] };
       const parsed = JSON.parse(raw) as { id: string; isGolden?: boolean }[];
+      localStorage.removeItem('snshero_showcase_drawn_cards');
       localStorage.removeItem('hero_hs_promo_pack');
       if (!Array.isArray(parsed) || parsed.length === 0) {
         return { claimed: false, cards: [] };

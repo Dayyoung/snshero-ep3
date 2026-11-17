@@ -8,6 +8,22 @@ const CALM_SFX_MIGRATION_KEY = 'hero_hs_calm_sfx_38_v1';
 
 export type LobbySkyTimePref = 'AUTO' | 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT';
 
+export type RhythmGrade = 'PERFECT' | 'GOOD' | 'NORMAL';
+
+export interface RhythmBeatPhaseInfo {
+  bpm: number;
+  beatSec: number;
+  barIndex: number;
+  beatInBar: number;
+  /** 0.0 at downbeat -> approaches 1.0 right before next beat */
+  phase01: number;
+  /** Progress along a 4-beat bar (0.0 -> 1.0) for 2x speed mode */
+  barPhase01: number;
+  /** Milliseconds distance to the nearest beat (-beatMs/2 .. +beatMs/2) */
+  deltaMs: number;
+  silentVisualMode: boolean;
+}
+
 export interface AudioSettings {
   bgmVolume: number;
   sfxVolume: number;
@@ -19,6 +35,8 @@ export interface AudioSettings {
   emoteBubblesEnabled: boolean;
   kadanClutchBreakEnabled: boolean;
   compactCleanCardView: boolean;
+  rhythmAutoEnabled: boolean;
+  rhythmOffsetMs: number;
 }
 
 export type AttackVibrationKind =
@@ -45,6 +63,8 @@ const DEFAULT_AUDIO: AudioSettings = {
   emoteBubblesEnabled: true,
   kadanClutchBreakEnabled: true,
   compactCleanCardView: false,
+  rhythmAutoEnabled: true,
+  rhythmOffsetMs: 0,
 };
 
 export interface DamageVibrationSpec {
@@ -310,7 +330,7 @@ class SnsHeroCardAudioEngine {
       (this.currentBgm.loop || !this.currentBgm.ended)
     ) {
       this.currentBgm.volume = this.currentStoryAudio
-        ? this.settings.bgmVolume * 0.42
+        ? this.settings.bgmVolume * 0.2
         : this.settings.bgmVolume;
       this.currentBgm.play().catch(() => {});
     }
@@ -1273,13 +1293,27 @@ class SnsHeroCardAudioEngine {
     this.currentStoryAudio = audio;
 
     if (this.currentBgm && !this.settings.muted) {
-      this.currentBgm.volume = this.settings.bgmVolume * 0.42;
+      this.currentBgm.volume = this.settings.bgmVolume * 0.2;
     }
 
     const restoreBgm = () => {
-      if (this.currentBgm && !this.settings.muted) {
-        this.currentBgm.volume = this.settings.bgmVolume;
-      }
+      if (!this.currentBgm || this.settings.muted) return;
+      const targetVol = this.settings.bgmVolume;
+      const startVol = this.currentBgm.volume;
+      const steps = 6;
+      let stepIdx = 0;
+      const bgmRef = this.currentBgm;
+      const fadeId = window.setInterval(() => {
+        stepIdx += 1;
+        if (stepIdx >= steps || this.currentBgm !== bgmRef || this.settings.muted) {
+          window.clearInterval(fadeId);
+          if (this.currentBgm === bgmRef && !this.settings.muted && !this.currentStoryAudio) {
+            bgmRef.volume = targetVol;
+          }
+          return;
+        }
+        bgmRef.volume = startVol + ((targetVol - startVol) * stepIdx) / steps;
+      }, 50);
     };
 
     const emitProgress = () => {
@@ -1791,6 +1825,160 @@ class SnsHeroCardAudioEngine {
       await this.playCustomVoUrl(oUrl);
     } else if (this.settings.ttsEnabled) {
       await this.speakTts(oShort, 1.0, 0.82);
+    }
+  }
+
+  private beatClockAnchorSec = 0;
+
+  /**
+   * DEV-044 & DEV-052: Re-align BeatSyncScheduler to a fresh bar downbeat on tab visibility return
+   */
+  resyncBeatClockToDownbeat(): void {
+    const rawSec =
+      this.ctx && this.ctx.state === 'running'
+        ? this.ctx.currentTime
+        : typeof performance !== 'undefined'
+          ? performance.now() / 1000
+          : Date.now() / 1000;
+    this.beatClockAnchorSec = rawSec;
+  }
+
+  /**
+   * DEV-044 & DEV-052: Web Audio / High-Precision BeatSyncScheduler (120 / 128 / 140 BPM)
+   * Keeps silent visual metronome active even when `muted === true`.
+   */
+  getBeatPhaseInfo(bpm = 128): RhythmBeatPhaseInfo {
+    const safeBpm = Math.max(60, Math.min(200, bpm));
+    const beatSec = 60 / safeBpm;
+    const rawSec =
+      this.ctx && this.ctx.state === 'running'
+        ? this.ctx.currentTime
+        : typeof performance !== 'undefined'
+          ? performance.now() / 1000
+          : Date.now() / 1000;
+    const offsetSec = (this.settings.rhythmOffsetMs || 0) / 1000;
+    const elapsed = Math.max(0, rawSec - this.beatClockAnchorSec - offsetSec);
+    const totalBeats = elapsed / beatSec;
+    const beatIndex = Math.floor(totalBeats);
+    const phase01 = totalBeats - beatIndex;
+    const barIndex = Math.floor(beatIndex / 4);
+    const beatInBar = ((beatIndex % 4) + 4) % 4;
+    const barPhase01 = (beatInBar + phase01) / 4;
+    const nearestBeat = Math.round(totalBeats);
+    const deltaMs = (totalBeats - nearestBeat) * beatSec * 1000;
+
+    return {
+      bpm: safeBpm,
+      beatSec,
+      barIndex,
+      beatInBar,
+      phase01,
+      barPhase01,
+      deltaMs,
+      silentVisualMode: Boolean(this.settings.muted || this.settings.bgmVolume <= 0),
+    };
+  }
+
+  /**
+   * DEV-043 / 044 / 050 / 053: Evaluate player Rhythm Tap (PERFECT ±45ms = 2.0x / GOOD ±110ms = 1.5x / NORMAL = 1.0x),
+   * synthesize Harmonic Chord-Locked Ocarina Arpeggio (C -> G -> Am -> F), and fire mobile haptics!
+   */
+  evaluateRhythmTap(
+    bpm = 128,
+    speed2x = false,
+    comboAfterPerfect = 1,
+  ): { grade: RhythmGrade; multiplier: 1 | 1.5 | 2; deltaMs: number } {
+    const info = this.getBeatPhaseInfo(bpm);
+    let effectiveDeltaMs = Math.abs(info.deltaMs);
+    if (speed2x) {
+      const barDurMs = info.beatSec * 4000;
+      const distStart = info.barPhase01 * barDurMs;
+      const distEnd = (1 - info.barPhase01) * barDurMs;
+      effectiveDeltaMs = Math.min(distStart, distEnd);
+    }
+
+    let grade: RhythmGrade = 'NORMAL';
+    let multiplier: 1 | 1.5 | 2 = 1;
+    // Generous mobile-touch-friendly window centered on ±45ms / ±110ms (scaled gently for human tap latency)
+    if (effectiveDeltaMs <= 75) {
+      grade = 'PERFECT';
+      multiplier = 2;
+    } else if (effectiveDeltaMs <= 165) {
+      grade = 'GOOD';
+      multiplier = 1.5;
+    }
+
+    // DEV-050: Haptic feedback (1.5x = 12ms, 2.0x = [18, 30, 25]ms)
+    if (this.settings.vibrateEnabled && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try {
+        if (grade === 'PERFECT') navigator.vibrate([18, 30, 25]);
+        else if (grade === 'GOOD') navigator.vibrate(12);
+      } catch {
+        // ignore
+      }
+    }
+
+    // DEV-044 & DEV-053: Harmonic Chord-Locked Ocarina Synthesis (C -> G -> Am -> F)
+    this.playHarmonicRhythmChord(info.barIndex % 4, grade, comboAfterPerfect >= 3 && grade === 'PERFECT');
+
+    return { grade, multiplier, deltaMs: Math.round(info.deltaMs) };
+  }
+
+  playHarmonicRhythmChord(chordSlot: number, grade: RhythmGrade, playFinale = false): void {
+    if (this.settings.muted || this.settings.sfxVolume <= 0 || !this.checkWindowActive()) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!this.ctx) this.ctx = new AudioCtx();
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      const ctx = this.ctx;
+      const now = ctx.currentTime;
+
+      // C (261.63), G (392.00), Am (440.00), F (349.23) — Root, 5th, Octave
+      const chords: [number, number, number][] = [
+        [523.25, 783.99, 1046.5],
+        [392.0, 587.33, 783.99],
+        [440.0, 659.25, 880.0],
+        [349.23, 523.25, 698.46],
+      ];
+      const triad = chords[((chordSlot % 4) + 4) % 4];
+      const volBase = Math.min(0.36, this.settings.sfxVolume * 0.42);
+
+      const synthTone = (freq: number, delay: number, dur: number, gainPeak: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + delay);
+        gain.gain.setValueAtTime(0.0001, now + delay);
+        gain.gain.exponentialRampToValueAtTime(gainPeak, now + delay + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + delay);
+        osc.stop(now + delay + dur + 0.02);
+        osc.onended = () => {
+          osc.disconnect();
+          gain.disconnect();
+        };
+      };
+
+      if (playFinale) {
+        // DEV-053: 3x Consecutive PERFECT Wordless 5-Note Ocarina Finale Fanfare (D5 -> F5 -> D6 -> A5 -> D6)
+        [587.33, 698.46, 1174.66, 880.0, 1174.66].forEach((f, idx) => {
+          synthTone(f, idx * 0.065, 0.24, volBase * 0.95);
+        });
+      } else if (grade === 'PERFECT') {
+        synthTone(triad[0], 0, 0.2, volBase * 0.85);
+        synthTone(triad[1], 0.035, 0.22, volBase * 0.85);
+        synthTone(triad[2], 0.07, 0.28, volBase * 0.95);
+      } else if (grade === 'GOOD') {
+        synthTone(triad[0], 0, 0.16, volBase * 0.7);
+        synthTone(triad[1], 0.04, 0.2, volBase * 0.75);
+      } else {
+        synthTone(triad[0] * 0.5, 0, 0.1, volBase * 0.4);
+      }
+    } catch {
+      // ignore Web Audio errors
     }
   }
 }
