@@ -157,6 +157,8 @@ export const PromoApp: React.FC = () => {
   const [mediaTheaterOpen, setMediaTheaterOpen] = useState(false);
   // DEV-048(3) & MKT-069(3): Default stake matches 250G welcome seed!
   const [promoPreviewStake, setPromoPreviewStake] = useState<number>(250);
+  // DEV-055(2): 1-Tap Gold Prestige Live Preview & Category Deep Link ('badge' | 'frame' | 'cardback' | 'title')
+  const [selectedPrestigeCat, setSelectedPrestigeCat] = useState<'badge' | 'frame' | 'cardback' | 'title'>('badge');
 
   const handleOpenPromoPrePack = () => {
     if (cards.length === 0) return;
@@ -2043,7 +2045,8 @@ export const PromoApp: React.FC = () => {
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
                     src="/hs-assets/screenshots/ingame_story_theater.png?v=20261116"
-                    alt={tr('스토리모드 카단의 여정', "Story Mode Kadan's Journey")}
+                    alt=""
+                    aria-hidden="true"
                     loading="lazy"
                     decoding="async"
                     className="aspect-video w-full object-cover"
@@ -2063,7 +2066,10 @@ export const PromoApp: React.FC = () => {
                     'Battle from Episode 1 through the Episode 40 finale with voiced theater cutscenes, 3-Copy = 3x Awakening stats, Boss Packs every 5 episodes, and Infinite Reincarnation.',
                   )}
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-3 inline-flex items-center rounded-full border border-emerald-300/65 bg-emerald-950/85 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
+                  {tr('리듬 오토: 스토리 턴당 1회 1.5x·2.0x 성소 버스트 & 보스 패링', 'Rhythm Auto: 1/Turn 1.5x·2.0x Sanctuary Burst & Boss Parry')}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
                   <span className="rounded-full border border-emerald-400/50 bg-emerald-950/70 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
                     {tr('3장=3배 각성', '3-Copy 3x Awakening')}
                   </span>
@@ -2076,7 +2082,7 @@ export const PromoApp: React.FC = () => {
                 </div>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="/game?mode=story&ep=1&utm_source=promo_mode_story"
+                    href="/game?mode=story&ep=1&rhythm=on&utm_source=promo_mode_story"
                     className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
                     <span>{tr('스토리 1화 바로 출격', 'Start Story Mode')}</span>
@@ -2101,7 +2107,10 @@ export const PromoApp: React.FC = () => {
                     'Match against live-style challengers sporting custom Titles, Badges, and Tier frames! Exchange tactical emotes (with 1-tap Mute) under fair 1x rules—the sole mode counted toward your Official Ranked Record.',
                   )}
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-3 inline-flex items-center rounded-full border border-sky-300/65 bg-sky-950/85 px-3 py-1 text-[11px] font-extrabold text-sky-200">
+                  {tr('리듬 오토: 공정 1x 스탯 불변 · 장착 치장 공명 & 골드 피버', 'Rhythm Auto: Fair 1x (0% Stat Change) · Prestige Glow & Gold Fever')}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
                   <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
                     {tr('공식 승률·연승 단독 집계', 'Exclusive Official Record')}
                   </span>
@@ -2130,7 +2139,8 @@ export const PromoApp: React.FC = () => {
                         ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
                         : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116'
                     }
-                    alt={tr('온라인형 랭킹대전', 'Ranked Arena')}
+                    alt=""
+                    aria-hidden="true"
                     loading="lazy"
                     decoding="async"
                     className="aspect-video w-full object-cover"
@@ -2150,7 +2160,8 @@ export const PromoApp: React.FC = () => {
                         ? '/hs-assets/screenshots/ingame_bogart_slider_ko.webp'
                         : '/hs-assets/screenshots/ingame_bogart_slider_en.webp'
                     }
-                    alt={tr('보가트 도박장 1~1,000G 슬라이드 베팅', "Bogart's Gambling Hall 1–1,000G Slider Bet")}
+                    alt=""
+                    aria-hidden="true"
                     loading="lazy"
                     decoding="async"
                     className="aspect-video w-full object-cover"
@@ -2162,7 +2173,7 @@ export const PromoApp: React.FC = () => {
                   {tr('보가트 위험 경고 나레이션 · 1~1,000G 슬라이드 베팅 · 100% 랜덤덱', 'Bogart Loss-Risk Narration · 1–1,000G Slider Bet · 100% Random Deck')}
                 </div>
                 <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  🎲 {tr('보가트 도박장 (랜덤덱 판돈전)', "Bogart's Gambling Hall (Random-Deck Stakes)")}
+                  {tr('보가트 도박장 (랜덤덱 판돈전)', "Bogart's Gambling Hall (Random-Deck Stakes)")}
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
                   {tr(
@@ -2170,6 +2181,9 @@ export const PromoApp: React.FC = () => {
                     "Upon entry, Goblin Gambling King Bogart greets you in an upper-body narration scene warning of Gold loss risk! Slide freely from 1G to 1,000G, hit the adjacent [Start Bet] button, and clash with unpredictable freshly dealt 30-card Random Decks. Double your pot on victory and unlock 4 Gold Prestige cosmetics with live in-game previews!",
                   )}
                 </p>
+                <div className="mt-3 inline-flex items-center rounded-full border border-yellow-300/65 bg-amber-950/85 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
+                  {tr('리듬 오토: 공정 1x 스탯 불변 · 골드 피버 → 치장품 해금 가속', 'Rhythm Auto: Fair 1x (0% Stat Change) · Gold Fever Unlocks Cosmetics Faster')}
+                </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="rounded-full border border-rose-400/60 bg-rose-950/80 px-3 py-1 text-[11px] font-extrabold text-rose-200">
                     ⚠️ {tr('입장 시 보가트 손실 위험 경고', 'Bogart Loss-Risk Warning')}
@@ -2344,74 +2358,123 @@ export const PromoApp: React.FC = () => {
               </div>
             </div>
 
-            {/* 4 Gold Prestige Collectibles Grid with Real In-Game Applied Screenshots */}
+            {/* DEV-055(2): 4 Gold Prestige Collectibles Grid — 1-Tap Live Kadan Equip Preview & Category Shop Deep Link */}
             <div className="mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                {
-                  icon: '🛡️',
-                  title: tr('프로필 뱃지', 'Profile Badges'),
-                  where: tr('광장 상단 & 영웅 초상화 문장', 'Hub Top & Hero Portrait Crest'),
-                  img: isKo
-                    ? '/hs-assets/prestige/preview_badge_ko.webp'
-                    : '/hs-assets/prestige/preview_badge_en.webp',
-                  price: '300G ~ 2,500G',
-                },
-                {
-                  icon: '🖼️',
-                  title: tr('카드 프레임 디자인', 'Card Frame Designs'),
-                  where: tr('손패·전장·카드첩 외곽 테두리', 'Hand, Board & Collection Card Rim'),
-                  img: isKo
-                    ? '/hs-assets/prestige/preview_frame_ko.webp'
-                    : '/hs-assets/prestige/preview_frame_en.webp',
-                  price: '500G ~ 3,000G',
-                },
-                {
-                  icon: '🎴',
-                  title: tr('카드 뒷면 스킨', 'Card Back Skins'),
-                  where: tr('팩 개봉 · 멀리건 · 덱 더미 스킨', 'Pack, Mulligan & Deck Stack Back'),
-                  img: isKo
-                    ? '/hs-assets/prestige/preview_cardback_ko.webp'
-                    : '/hs-assets/prestige/preview_cardback_en.webp',
-                  price: '800G ~ 1,800G',
-                },
-                {
-                  icon: '👑',
-                  title: tr('캐릭터 호칭', 'Character Titles'),
-                  where: tr('전장 영웅 상단 황금 〈호칭〉 리본', 'Battle Hero Overhead <Title> Ribbon'),
-                  img: isKo
-                    ? '/hs-assets/prestige/preview_title_ko.webp'
-                    : '/hs-assets/prestige/preview_title_en.webp',
-                  price: '400G ~ 3,500G',
-                },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="flex flex-col justify-between overflow-hidden rounded-2xl border border-amber-300/45 bg-stone-950/90"
-                >
-                  <div className="relative h-32 w-full overflow-hidden bg-black">
-                    <img
-                      src={item.img}
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
-                    <span className="absolute right-2 top-2 rounded-full border border-yellow-300/60 bg-black/80 px-2 py-0.5 text-[10px] font-extrabold text-yellow-300">
-                      {item.price}
-                    </span>
-                  </div>
-                  <div className="p-3.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-lg">{item.icon}</span>
-                      <h3 className="text-sm font-black text-white sm:text-base">{item.title}</h3>
+              {(
+                [
+                  {
+                    id: 'badge' as const,
+                    title: tr('프로필 뱃지', 'Profile Badges'),
+                    where: tr('광장 상단 & 영웅 초상화 문장', 'Hub Top & Hero Portrait Crest'),
+                    img: isKo
+                      ? '/hs-assets/prestige/preview_badge_ko.webp'
+                      : '/hs-assets/prestige/preview_badge_en.webp',
+                    price: '300G ~ 2,500G',
+                  },
+                  {
+                    id: 'frame' as const,
+                    title: tr('카드 프레임 디자인', 'Card Frame Designs'),
+                    where: tr('손패·전장·카드첩 외곽 테두리', 'Hand, Board & Collection Card Rim'),
+                    img: isKo
+                      ? '/hs-assets/prestige/preview_frame_ko.webp'
+                      : '/hs-assets/prestige/preview_frame_en.webp',
+                    price: '500G ~ 3,000G',
+                  },
+                  {
+                    id: 'cardback' as const,
+                    title: tr('카드 뒷면 스킨', 'Card Back Skins'),
+                    where: tr('팩 개봉 · 멀리건 · 덱 더미 스킨', 'Pack, Mulligan & Deck Stack Back'),
+                    img: isKo
+                      ? '/hs-assets/prestige/preview_cardback_ko.webp'
+                      : '/hs-assets/prestige/preview_cardback_en.webp',
+                    price: '800G ~ 1,800G',
+                  },
+                  {
+                    id: 'title' as const,
+                    title: tr('캐릭터 호칭', 'Character Titles'),
+                    where: tr('전장 영웅 상단 황금 〈호칭〉 리본', 'Battle Hero Overhead <Title> Ribbon'),
+                    img: isKo
+                      ? '/hs-assets/prestige/preview_title_ko.webp'
+                      : '/hs-assets/prestige/preview_title_en.webp',
+                    price: '400G ~ 3,500G',
+                  },
+                ]
+              ).map((item) => {
+                const isSelected = selectedPrestigeCat === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    data-testid={`promo-prestige-card-${item.id}`}
+                    onClick={() => setSelectedPrestigeCat(item.id)}
+                    className={`flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border-2 text-left transition ${
+                      isSelected
+                        ? 'scale-[1.02] border-yellow-300 bg-amber-950/65 shadow-[0_0_20px_rgba(250,204,21,0.45)]'
+                        : 'border-amber-300/40 bg-stone-950/90 hover:border-amber-300'
+                    }`}
+                  >
+                    <div className="relative h-32 w-full overflow-hidden bg-black">
+                      <img
+                        src={item.img}
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="absolute right-2 top-2 rounded-full border border-yellow-300/60 bg-black/80 px-2 py-0.5 text-[10px] font-extrabold text-yellow-300">
+                        {item.price}
+                      </span>
                     </div>
-                    <p className="mt-1 text-xs font-semibold text-amber-100/85">
-                      {item.where}
-                    </p>
+                    <div className="p-3.5">
+                      <h3 className="text-sm font-black text-white sm:text-base">{item.title}</h3>
+                      <p className="mt-1 text-xs font-semibold text-amber-100/85">{item.where}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Live Selected Prestige Kadan Equip Preview Strip */}
+            <div
+              data-testid="promo-prestige-live-preview"
+              className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-yellow-300/55 bg-stone-950/90 px-4 py-3 text-xs"
+            >
+              <div className="flex items-center gap-3">
+                <img
+                  src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
+                  alt=""
+                  aria-hidden="true"
+                  className={`h-12 w-12 rounded-xl object-cover object-top ${
+                    selectedPrestigeCat === 'frame'
+                      ? 'border-[3px] border-yellow-300 shadow-[0_0_16px_rgba(250,204,21,0.85)]'
+                      : selectedPrestigeCat === 'cardback'
+                        ? 'border-2 border-cyan-300 shadow-[0_0_14px_rgba(56,189,248,0.8)]'
+                        : 'border-2 border-amber-400'
+                  }`}
+                />
+                <div>
+                  <div className="font-black text-yellow-300">
+                    {selectedPrestigeCat === 'badge'
+                      ? tr('장착 프리뷰: [엘윈 성소 문장 뱃지] 카단 초상화 활성!', 'Live Preview: [Sanctuary Crest Badge] Equipped on Kadan!')
+                      : selectedPrestigeCat === 'frame'
+                        ? tr('장착 프리뷰: [24K 로얄 골드 카드 프레임] 리듬 공명 활성!', 'Live Preview: [24K Royal Gold Frame] Rhythm Glow Active!')
+                        : selectedPrestigeCat === 'cardback'
+                          ? tr('장착 프리뷰: [보가트 VIP 황금주화 뒷면] 덱 스킨 활성!', 'Live Preview: [Bogart VIP Gold Card Back] Equipped!')
+                          : tr('장착 프리뷰: 카단 〈보가트 도박장 승부사〉 황금 호칭 활성!', 'Live Preview: Kadan <Bogart Hall High-Roller> Title Active!')}
+                  </div>
+                  <div className="mt-0.5 text-[11px] font-semibold text-amber-100/80">
+                    {tr('인게임 리듬 오토(1.5x·2.0x) 정박 성공 시 장착 치장품이 황금빛으로 공명합니다!', 'Equipped Prestige items resonate with golden light on 1.5x·2.0x Rhythm Auto hits!')}
                   </div>
                 </div>
-              ))}
+              </div>
+              <a
+                href={`/game?tab=shop&category=${selectedPrestigeCat}&utm_source=promo_prestige_preview`}
+                data-testid="promo-prestige-category-cta"
+                className="hs-promo-cta-teal-dark shrink-0 rounded-full px-4 py-2 text-xs font-extrabold"
+              >
+                {tr('이 치장품 상점 탭 바로가기 →', 'Open This Shop Category →')}
+              </a>
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -2424,10 +2487,11 @@ export const PromoApp: React.FC = () => {
                 <ChevronRight className="h-4 w-4" />
               </a>
               <a
-                href="/game?open=shop&utm_source=promo_gold_shop"
+                href={`/game?tab=shop&category=${selectedPrestigeCat}&utm_source=promo_gold_shop`}
+                data-testid="promo-browse-prestige-shop-btn"
                 className="inline-flex min-h-[48px] items-center gap-2 rounded-full border-2 border-yellow-300/75 bg-amber-950/85 px-6 py-3 text-sm font-extrabold text-yellow-200 transition hover:bg-amber-900"
               >
-                <span>🪙 {tr('황금 주화 교환소 구경하기', 'Browse Gold Prestige Shop')}</span>
+                <span>{tr('황금 주화 교환소 구경하기', 'Browse Gold Prestige Shop')}</span>
               </a>
             </div>
           </div>

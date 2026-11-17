@@ -6909,6 +6909,40 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                           <span className="text-yellow-300">+{rhythmFeverBonusGold}G</span>
                         </div>
                       )}
+                      {(mode === 'RANKED' || mode === 'BOGART_GAMBLE') && (
+                        <div
+                          data-testid="gameover-prestige-unlock-gauge"
+                          className="mt-1.5 rounded-xl border border-yellow-300/45 bg-black/50 px-2.5 py-2"
+                        >
+                          {(() => {
+                            const nextTarget =
+                              liveProfile.gold < 300
+                                ? { cost: 300, ko: '프로필 배지(300G)', en: 'Profile Badge (300G)' }
+                                : liveProfile.gold < 500
+                                  ? { cost: 500, ko: '황금 카드 프레임(500G)', en: 'Card Frame (500G)' }
+                                  : liveProfile.gold < 800
+                                    ? { cost: 800, ko: '카드 뒷면 스킨(800G)', en: 'Card Back Skin (800G)' }
+                                    : { cost: 1500, ko: '전설 호칭(1,500G)', en: 'Legend Title (1,500G)' };
+                            const pct = Math.min(100, Math.round((liveProfile.gold / nextTarget.cost) * 100));
+                            return (
+                              <>
+                                <div className="flex items-center justify-between text-[10.5px] font-extrabold text-yellow-200">
+                                  <span>
+                                    🪙 {tr(`다음 치장 해금: ${nextTarget.ko}`, `Next Prestige: ${nextTarget.en}`)}
+                                  </span>
+                                  <span>{pct}%</span>
+                                </div>
+                                <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-stone-900">
+                                  <div
+                                    style={{ width: `${pct}%` }}
+                                    className="h-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-all duration-300"
+                                  />
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </>
                   ) : diag ? (
                     <div className="flex items-center gap-2.5">
@@ -7406,6 +7440,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         <div
           data-testid="rhythm-sanctuary-aura-finale"
           className="pointer-events-none fixed inset-0 z-[70] animate-pulse border-4 border-yellow-300/75 bg-radial from-amber-300/20 via-sky-300/10 to-transparent"
+        />
+      )}
+
+      {/* DEV-055(3): Equipped Gold Frame & Card Back Rhythm Resonance Glow on 1.5x/2.0x Beat Hit */}
+      {rhythmFlash && rhythmFlash.mult >= 1.5 && (
+        <div
+          data-testid="prestige-rhythm-resonance-glow"
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-[69] h-40 bg-gradient-to-t from-amber-400/25 via-yellow-300/10 to-transparent transition-opacity duration-300"
         />
       )}
 

@@ -416,8 +416,19 @@ export const HearthstoneApp: React.FC = () => {
               );
             }
             setScreen('PACK_OPENING');
-          } else if (openParam === 'shop') {
+          } else if (openParam === 'shop' || params.get('tab')?.toLowerCase() === 'shop') {
             hsStorage.markJourneyGuideDone();
+            const catRaw = params.get('category')?.toLowerCase();
+            if (catRaw) {
+              try {
+                sessionStorage.setItem(
+                  'snshero_shop_category',
+                  catRaw === 'cardback' || catRaw === 'card_back' ? 'CARDBACK' : catRaw.toUpperCase(),
+                );
+              } catch {
+                // ignore
+              }
+            }
             setScreen('BOX_HUB');
             setShopOpen(true);
           } else if (launchMode === 'story') {

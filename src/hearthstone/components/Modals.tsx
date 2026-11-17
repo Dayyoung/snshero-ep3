@@ -735,8 +735,26 @@ export const TavernShopModal: React.FC<{
 
   const [profile, setProfile] = useState<PlayerProfile>(() => hsStorage.getProfile());
   const [vipAdRemoved, setVipAdRemoved] = useState<boolean>(() => isHsGameAdRemoved());
-  const [shopTab, setShopTab] = useState<'PACKS' | 'PRESTIGE'>('PACKS');
-  const [prestigeCat, setPrestigeCat] = useState<PrestigeCategory>('BADGE');
+  const [shopTab, setShopTab] = useState<'PACKS' | 'PRESTIGE'>(() => {
+    try {
+      return sessionStorage.getItem('snshero_shop_category') ? 'PRESTIGE' : 'PACKS';
+    } catch {
+      return 'PACKS';
+    }
+  });
+  const [prestigeCat, setPrestigeCat] = useState<PrestigeCategory>(() => {
+    try {
+      const raw = sessionStorage.getItem('snshero_shop_category')?.toUpperCase();
+      sessionStorage.removeItem('snshero_shop_category');
+      if (raw === 'BADGE' || raw === 'FRAME' || raw === 'CARDBACK' || raw === 'TITLE') {
+        return raw;
+      }
+      if (raw === 'CARD_BACK') return 'CARDBACK';
+    } catch {
+      // ignore
+    }
+    return 'BADGE';
+  });
   const [zoomedPrestigeImg, setZoomedPrestigeImg] = useState<{ src: string; title: string; where: string } | null>(null);
   const [prestigeBackupPromptOpen, setPrestigeBackupPromptOpen] = useState<boolean>(false);
   const [step, setStep] = useState<ShopCheckoutStep>('quantity');
