@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { SiliaSkillPowerSpec, getSiliaSkillPowerSpec } from '../types';
@@ -359,6 +359,29 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
   const [castingSkill, setCastingSkill] = useState<SiliaSkillKind | null>(null);
   const [windstormSkill, setWindstormSkill] = useState<SiliaSkillKind | null>(null);
   const [speechText, setSpeechText] = useState<string | null>(null);
+  const siliaRootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen && !speechText) return;
+    const handleOutsidePointerDown = (e: PointerEvent) => {
+      if (siliaRootRef.current && !siliaRootRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+        setSpeechText(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        setSpeechText(null);
+      }
+    };
+    document.addEventListener('pointerdown', handleOutsidePointerDown, true);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown, true);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen, speechText]);
 
   // Preload 3-head-tall chibi sprites lazily ONLY when Story Mode battle makes Silia visible
   const preloadedRef = React.useRef(false);
@@ -543,6 +566,7 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
       )}
 
       <div
+        ref={siliaRootRef}
         data-silia-widget="true"
         className="pointer-events-none fixed bottom-2.5 left-2.5 z-[72] flex max-w-[calc(100vw-20px)] flex-col items-start select-none sm:bottom-3.5 sm:left-3.5"
       >

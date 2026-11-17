@@ -2,6 +2,17 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 13:54 KST] [카단·실리아 채팅창 외부 클릭 닫기 및 로컬 LLM·마이크 음성 질문 기능 구현 (푸시 대기)]
+- **요청**: ① 카단 / 실리아 채팅창 외부 영역 클릭 시 자동 닫힘 적용, ② 로컬 LLM 구동 가능 브라우저(`LanguageModel` / `window.ai.languageModel` · WebGPU)에서 `명령` 버튼 옆 마이크 버튼(`🎤`) 표시 및 다양한 SNSHero 질문 응답 지원
+- **구현 내용**:
+  - [`KadanChatbotWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/KadanChatbotWidget.tsx) & [`SiliaUltimateWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SiliaUltimateWidget.tsx): `pointerdown`(캡처 단계) 및 `Escape` 키 리스너를 적용해 위젯 외부 클릭 시 열린 채팅/말풍선/스킬 메뉴가 즉시 닫히도록 개선.
+  - [`localLlmAssistant.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/services/localLlmAssistant.ts): Chrome 온디바이스 Prompt API(`LanguageModel` / `ai.languageModel`) 및 WebGPU 기반 브라우저 지원 감지(`detectLocalLlmCapability`), SNSHero 382종 카드/3배 각성/실리아 필살기/팩 천장/실시간 전장 스냅샷 컨텍스트 기반 온디바이스 LLM 호출 및 내장 로컬 AI 폴백 응답(`askLocalLlmAssistant`) 구현.
+  - [`KadanChatbotWidget.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/KadanChatbotWidget.tsx): 로비·카드첩·전투 등 모든 화면에서 질문/명령 입력바 상시 제공, 로컬 LLM 지원 브라우저일 때 `명령` 버튼 옆 `🎤` 마이크 버튼(`kadan-mic-btn`, `44px×44px` 터치 타깃 · Web Speech API 실시간 음성 입력) 표시 및 질문/전술 명령 자동 분기 처리.
+- **검증 및 저장 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (`0` errors).
+  - Playwright E2E(`1280×800` KO + `390×844` EN): 카단·실리아 외부 클릭 닫힘, Prompt API(`LanguageModel`) 모의 온디바이스 Q&A + 마이크 버튼(`>=40px`) 표시, 미지원 환경 마이크 숨김·모바일 폭 비이탈·로컬 지식 엔진 폴백 및 앱 에러 `0`건 통과.
+  - 정책에 따라 로컬 `git commit`만 수행(`git push` 보류) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-17 13:38 KST] [iOS Safari `/game` WebKit 프로세스 재시작(`문제가 반복적으로 발생했습니다`) 7대 원인 근본 수정 완료 (푸시 대기)]
 - **요청**: 아이폰(iOS Safari)에서 `https://snshero.com/game` 접속 시 `'https://snshero.com/game'에서 문제가 반복적으로 발생했습니다.` WebKit Jetsam / 프로세스 크래시 재발 오류 수정
 - **원인 진단 및 근본 조치**:

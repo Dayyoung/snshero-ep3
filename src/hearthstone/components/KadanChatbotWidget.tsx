@@ -1,6 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Mic, MicOff } from 'lucide-react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
+import {
+  LocalLlmCapability,
+  askLocalLlmAssistant,
+  detectLocalLlmCapability,
+  getSpeechRecognitionCtor,
+} from '../services/localLlmAssistant';
 import { CLASSIC_HEROES, GameMode, HeroClass, KadanTacticalStance, PlayerProfile, ScreenName } from '../types';
 
 export interface LiveBattleHelpSnapshot {
@@ -86,9 +93,65 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [speechText, setSpeechText] = useState<string | null>(null);
   const [tacticInput, setTacticInput] = useState('');
+  const [llmCap, setLlmCap] = useState<LocalLlmCapability>({
+    supported: false,
+    hasPromptApi: false,
+    hasWebGpu: false,
+    hasSpeechRecognition: false,
+    engineLabelKo: '',
+    engineLabelEn: '',
+  });
+  const [llmLoading, setLlmLoading] = useState(false);
+  const [llmSource, setLlmSource] = useState<'ON_DEVICE_PROMPT_API' | 'LOCAL_KNOWLEDGE_ENGINE' | null>(null);
+  const [micListening, setMicListening] = useState(false);
+
+  const kadanRootRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const recognitionRef = useRef<{
+    stop: () => void;
+  } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    detectLocalLlmCapability().then((cap) => {
+      if (active) setLlmCap(cap);
+    });
+    return () => {
+      active = false;
+      recognitionRef.current?.stop();
+    };
+  }, []);
+
+  // Close Kadan chat popover / speech bubble immediately when user clicks outside or presses Escape
+  useEffect(() => {
+    if (!menuOpen && !speechText) return;
+    const handleOutsidePointerDown = (e: PointerEvent) => {
+      if (kadanRootRef.current && !kadanRootRef.current.contains(e.target as Node)) {
+        recognitionRef.current?.stop();
+        setMicListening(false);
+        setMenuOpen(false);
+        setSpeechText(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        recognitionRef.current?.stop();
+        setMicListening(false);
+        setMenuOpen(false);
+        setSpeechText(null);
+      }
+    };
+    document.addEventListener('pointerdown', handleOutsidePointerDown, true);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown, true);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen, speechText]);
 
   const applyTacticalCommand = (stance: KadanTacticalStance, customReplyKo?: string, customReplyEn?: string) => {
     hsAudio.playSfx('ui_click', 0.8);
+    setLlmSource(null);
     onChangeTacticalStance?.(stance);
     const defaultKo =
       stance === 'AGGRO'
@@ -109,25 +172,148 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
     setSpeechText(isKo ? customReplyKo || defaultKo : customReplyEn || defaultEn);
   };
 
+  const processUserQueryOrCommand = useCallback(
+    async (rawText: string) => {
+      const cleaned = rawText.trim();
+      if (!cleaned) return;
+      const q = cleaned.toLowerCase();
+      setTacticInput('');
+
+      const looksLikeQuestion =
+        /[?？]|뭐야|무엇|알려|설명|어떻게|몇|추천|방법|규칙|차이|왜|언제|누구|스토리|실리아|3배|각성|전설|팩|퀘스트|의뢰|종족|what|how|why|when|who|which|explain|tell|recommend/i.test(
+          q,
+        );
+
+      if (screen === 'BATTLE' && !looksLikeQuestion) {
+        if (/공격|맹공|명치|돌진|빨리|aggro|face|rush|attack/i.test(q)) {
+          applyTacticalCommand('AGGRO');
+          if (!autoPlay) onEnableAutoPlay();
+          return;
+        }
+        if (/수비|방어|막아|살려|도발|회복|통제|control|defen|taunt|heal/i.test(q)) {
+          applyTacticalCommand('CONTROL');
+          if (!autoPlay) onEnableAutoPlay();
+          return;
+        }
+        if (/아껴|콤보|연계|존버|combo|save|awakening\s*mode/i.test(q)) {
+          applyTacticalCommand('AWAKENING');
+          if (!autoPlay) onEnableAutoPlay();
+          return;
+        }
+        if (/정지|멈춰|수동|stop|manual|off/i.test(q)) {
+          setLlmSource(null);
+          onDisableAutoPlay();
+          setSpeechText(tr('자동플레이를 멈췄습니다! 직접 지휘해 주세요.', 'Auto-Play paused! Manual control active.'));
+          return;
+        }
+        if (/자동|오토|auto/i.test(q)) {
+          setLlmSource(null);
+          onEnableAutoPlay();
+          setSpeechText(tr('자동플레이를 시작합니다! 제가 턴을 이어서 지휘할게요.', 'Enabling Auto-Play now!'));
+          return;
+        }
+      }
+
+      // General SNSHero Question -> Route through On-Device Local LLM Assistant
+      hsAudio.playSfx('ui_click', 0.7);
+      setLlmLoading(true);
+      setLlmSource(null);
+      setSpeechText(
+        isKo
+          ? `“${cleaned}” — 로컬 AI가 답변을 생각 중이에요...`
+          : `“${cleaned}” — Local AI is thinking...`,
+      );
+      try {
+        const res = await askLocalLlmAssistant(cleaned, {
+          isKo,
+          screen,
+          profile,
+          tacticalStance,
+          battleSnapshot,
+        });
+        setLlmSource(res.source);
+        setSpeechText(res.answer);
+      } finally {
+        setLlmLoading(false);
+      }
+    },
+    [
+      screen,
+      autoPlay,
+      isKo,
+      profile,
+      tacticalStance,
+      battleSnapshot,
+      onEnableAutoPlay,
+      onDisableAutoPlay,
+    ],
+  );
+
   const handleTacticInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const q = tacticInput.trim().toLowerCase();
-    if (!q) return;
-    setTacticInput('');
-    if (/공격|맹공|명치|돌진|빨리|aggro|face|rush|attack/i.test(q)) {
-      applyTacticalCommand('AGGRO');
-      if (!autoPlay) onEnableAutoPlay();
-    } else if (/수비|방어|막아|살려|도발|회복|통제|control|defen|taunt|heal/i.test(q)) {
-      applyTacticalCommand('CONTROL');
-      if (!autoPlay) onEnableAutoPlay();
-    } else if (/각성|아껴|콤보|연계|존버|awak|combo|save/i.test(q)) {
-      applyTacticalCommand('AWAKENING');
-      if (!autoPlay) onEnableAutoPlay();
-    } else if (/정지|멈춰|수동|stop|manual|off/i.test(q)) {
-      onDisableAutoPlay();
-      setSpeechText(tr('자동플레이를 멈췄습니다! 직접 지휘해 주세요.', 'Auto-Play paused! Manual control active.'));
-    } else {
-      applyTacticalCommand('BALANCED');
+    void processUserQueryOrCommand(tacticInput);
+  };
+
+  const handleToggleMic = () => {
+    hsAudio.playSfx('ui_click', 0.8);
+    if (micListening) {
+      recognitionRef.current?.stop();
+      setMicListening(false);
+      return;
+    }
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) {
+      inputRef.current?.focus();
+      setSpeechText(
+        isKo
+          ? '이 환경에서는 브라우저 마이크 음성 인식이 비활성화되어 있습니다. 왼쪽 입력창에 질문을 입력해 주세요!'
+          : 'Speech recognition is unavailable in this environment. Please type your question on the left!',
+      );
+      return;
+    }
+    try {
+      const rec = new Ctor();
+      rec.lang = isKo ? 'ko-KR' : 'en-US';
+      rec.interimResults = true;
+      rec.maxAlternatives = 1;
+      rec.continuous = false;
+      let latestTranscript = '';
+      rec.onresult = (ev) => {
+        const res = ev.results?.[0];
+        const transcript = res?.[0]?.transcript || '';
+        latestTranscript = transcript;
+        setTacticInput(transcript);
+        if ((res as { isFinal?: boolean })?.isFinal && transcript.trim()) {
+          rec.stop();
+          setMicListening(false);
+          void processUserQueryOrCommand(transcript);
+        }
+      };
+      rec.onerror = () => {
+        setMicListening(false);
+        setSpeechText(
+          isKo
+            ? '음성을 인식하지 못했습니다. 마이크 권한을 확인하거나 직접 입력해 주세요!'
+            : 'Could not capture voice. Check mic permission or type your question!',
+        );
+      };
+      rec.onend = () => {
+        setMicListening(false);
+        if (latestTranscript.trim()) {
+          void processUserQueryOrCommand(latestTranscript);
+        }
+      };
+      recognitionRef.current = rec;
+      setMicListening(true);
+      setSpeechText(
+        isKo
+          ? '🎤 말씀하세요! (예: "3배 각성이 뭐야?", "실리아 필살기 설명해줘", "맹공으로 바꿔")'
+          : '🎤 Listening! Ask anything about SNSHero or give a battle command!',
+      );
+      rec.start();
+    } catch {
+      setMicListening(false);
+      inputRef.current?.focus();
     }
   };
 
@@ -624,6 +810,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
 
   return (
     <div
+      ref={kadanRootRef}
       data-testid="kadan-chatbot-root"
       className="pointer-events-none fixed bottom-2 right-2 z-[125] flex flex-col items-end sm:bottom-3.5 sm:right-4"
     >
@@ -632,7 +819,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
         <div
           onClick={(e) => e.stopPropagation()}
           data-testid="kadan-chatbot-popover"
-          className="pointer-events-auto mb-1.5 w-[276px] max-w-[calc(100vw-20px)] overflow-hidden rounded-2xl border-2 border-[#e3be73] bg-gradient-to-b from-[#1d140c]/98 via-[#130d08]/98 to-[#0a0704]/98 text-amber-50 shadow-[0_18px_44px_rgba(0,0,0,0.92),0_0_20px_rgba(56,189,248,0.22)] sm:w-[324px]"
+          className="pointer-events-auto mb-1.5 w-[300px] max-w-[calc(100vw-20px)] overflow-hidden rounded-2xl border-2 border-[#e3be73] bg-gradient-to-b from-[#1d140c]/98 via-[#130d08]/98 to-[#0a0704]/98 text-amber-50 shadow-[0_18px_44px_rgba(0,0,0,0.92),0_0_20px_rgba(56,189,248,0.22)] sm:w-[348px]"
         >
           {/* Header Bar */}
           <div className="flex items-center justify-between border-b border-amber-400/25 bg-gradient-to-r from-sky-950/90 via-stone-900/90 to-stone-950/90 px-3 py-1.5">
@@ -655,11 +842,13 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
               type="button"
               onClick={() => {
                 hsAudio.playSfx('ui_click', 0.45);
+                recognitionRef.current?.stop();
+                setMicListening(false);
                 setMenuOpen(false);
                 setSpeechText(null);
               }}
               aria-label={tr('대화창 닫기', 'Close Kadan chat')}
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-amber-300/35 bg-stone-900 text-[11px] font-black text-amber-200 hover:bg-stone-800"
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-amber-300/35 bg-stone-900 text-[11px] font-black text-amber-200 hover:bg-stone-800"
             >
               ✕
             </button>
@@ -669,17 +858,27 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
           {speechText && (
             <div
               data-testid="kadan-chatbot-speech"
-              className="border-b border-amber-400/15 bg-[#24190f]/90 px-3 py-2.5 text-[12px] font-bold leading-relaxed text-amber-100 sm:text-[12.5px]"
+              className="max-h-[145px] overflow-y-auto border-b border-amber-400/15 bg-[#24190f]/90 px-3 py-2.5 text-[12px] font-bold leading-relaxed text-amber-100 sm:text-[12.5px]"
             >
-              “{speechText}”
+              {llmSource && (
+                <div className="mb-1 flex items-center gap-1 text-[10px] font-extrabold text-sky-300">
+                  <span>{llmSource === 'ON_DEVICE_PROMPT_API' ? '🤖' : '⚡'}</span>
+                  <span>
+                    {llmSource === 'ON_DEVICE_PROMPT_API'
+                      ? tr('온디바이스 Gemini Nano 답변', 'On-Device Nano LLM')
+                      : tr('SNSHero 로컬 AI 답변', 'SNSHero Local AI')}
+                  </span>
+                </div>
+              )}
+              <span>“{speechText}”</span>
             </div>
           )}
 
-          {/* DEV-021: Kadan Tactical Stance Chips & Command Chat (Battle Mode) */}
+          {/* DEV-021: Kadan Tactical Stance Chips (Battle Mode Only) */}
           {menuOpen && screen === 'BATTLE' && onChangeTacticalStance && (
             <div
               data-testid="kadan-tactical-command-box"
-              className="border-b border-amber-400/20 bg-black/55 p-2 space-y-1.5"
+              className="space-y-1.5 border-b border-amber-400/20 bg-black/55 p-2"
             >
               <div className="flex items-center justify-between text-[10px] font-extrabold text-amber-200/90">
                 <span>⚔ {tr('카단 실시간 전술 지휘', 'Kadan Live Tactic')}</span>
@@ -698,7 +897,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
                   type="button"
                   data-testid="kadan-tactic-AGGRO"
                   onClick={() => applyTacticalCommand('AGGRO')}
-                  className={`min-h-[34px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
+                  className={`min-h-[36px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
                     tacticalStance === 'AGGRO'
                       ? 'border-rose-300 bg-rose-700 text-white shadow'
                       : 'border-rose-400/40 bg-rose-950/50 text-rose-200 hover:bg-rose-900/60'
@@ -710,7 +909,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
                   type="button"
                   data-testid="kadan-tactic-CONTROL"
                   onClick={() => applyTacticalCommand('CONTROL')}
-                  className={`min-h-[34px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
+                  className={`min-h-[36px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
                     tacticalStance === 'CONTROL'
                       ? 'border-sky-300 bg-sky-700 text-white shadow'
                       : 'border-sky-400/40 bg-sky-950/50 text-sky-200 hover:bg-sky-900/60'
@@ -722,7 +921,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
                   type="button"
                   data-testid="kadan-tactic-AWAKENING"
                   onClick={() => applyTacticalCommand('AWAKENING')}
-                  className={`min-h-[34px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
+                  className={`min-h-[36px] rounded-lg border px-1.5 text-[10.5px] font-extrabold transition ${
                     tacticalStance === 'AWAKENING'
                       ? 'border-amber-200 bg-amber-600 text-stone-950 shadow'
                       : 'border-amber-400/40 bg-amber-950/50 text-amber-200 hover:bg-amber-900/60'
@@ -731,21 +930,67 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
                   ✨ {tr('각성연계', 'Awaken')}
                 </button>
               </div>
-              <form onSubmit={handleTacticInputSubmit} className="flex gap-1">
+            </div>
+          )}
+
+          {/* Always-Available SNSHero Local LLM Question + Command Bar (with Mic when Local LLM supported) */}
+          {menuOpen && (
+            <div className="border-b border-amber-400/20 bg-black/45 px-2 py-2">
+              {llmCap.supported && (
+                <div className="mb-1 flex items-center justify-between text-[9.5px] font-extrabold text-sky-300/90">
+                  <span>
+                    🤖 {isKo ? `${llmCap.engineLabelKo} 질문·명령 대기` : `${llmCap.engineLabelEn} Ready`}
+                  </span>
+                  {micListening && (
+                    <span className="animate-pulse text-rose-300">
+                      ● {tr('음성 인식 중...', 'Listening...')}
+                    </span>
+                  )}
+                </div>
+              )}
+              <form onSubmit={handleTacticInputSubmit} data-testid="kadan-command-form" className="flex items-center gap-1">
                 <input
+                  ref={inputRef}
                   type="text"
                   data-testid="kadan-tactic-chat-input"
                   value={tacticInput}
+                  disabled={llmLoading}
                   onChange={(e) => setTacticInput(e.target.value)}
-                  placeholder={tr("지휘 입력 (예: '명치 쳐', '수비해', '각성 아껴')", "Command (e.g. 'aggro', 'control')")}
-                  className="min-w-0 flex-1 rounded-lg border border-amber-400/35 bg-stone-950 px-2 py-1 text-[11px] font-bold text-amber-100 placeholder:text-stone-500 focus:border-amber-300 focus:outline-none"
+                  placeholder={
+                    screen === 'BATTLE'
+                      ? tr("질문/명령 (예: '명치 쳐', '실리아 필살기?')", "Ask/Command (e.g. 'aggro', 'Silia skill?')")
+                      : tr("SNSHero 질문 (예: '3배 각성이 뭐야?')", "Ask SNSHero (e.g. 'How does 3x work?')")
+                  }
+                  className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-amber-400/35 bg-stone-950 px-2.5 py-1.5 text-[11px] font-bold text-amber-100 placeholder:text-stone-500 focus:border-amber-300 focus:outline-none disabled:opacity-60"
                 />
                 <button
                   type="submit"
-                  className="shrink-0 rounded-lg border border-amber-300/60 bg-amber-700 px-2.5 py-1 text-[10.5px] font-extrabold text-white"
+                  data-testid="kadan-command-submit-btn"
+                  disabled={llmLoading}
+                  className="min-h-[44px] shrink-0 rounded-lg border border-amber-300/60 bg-amber-700 px-2.5 py-1 text-[11px] font-extrabold text-white hover:bg-amber-600 disabled:opacity-60"
                 >
-                  {tr('명령', 'Go')}
+                  {llmLoading ? '...' : tr('명령', 'Go')}
                 </button>
+                {llmCap.supported && (
+                  <button
+                    type="button"
+                    data-testid="kadan-mic-btn"
+                    onClick={handleToggleMic}
+                    aria-label={
+                      micListening
+                        ? tr('음성 입력 중지', 'Stop voice input')
+                        : tr('마이크로 질문하기', 'Ask via microphone')
+                    }
+                    title={tr('마이크 음성 질문 (로컬 AI)', 'Voice Ask (Local AI)')}
+                    className={`flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg border transition ${
+                      micListening
+                        ? 'animate-pulse border-rose-300 bg-rose-600 text-white shadow-[0_0_12px_rgba(244,63,94,0.85)]'
+                        : 'border-sky-400/65 bg-sky-950/90 text-sky-200 hover:border-sky-300 hover:bg-sky-900'
+                    }`}
+                  >
+                    {micListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                )}
               </form>
             </div>
           )}
