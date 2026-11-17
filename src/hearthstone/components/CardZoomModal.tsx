@@ -59,6 +59,297 @@ const TYPE_LABEL_EN: Record<ClassicCardDef['type'], string> = {
   HERO: 'Hero',
 };
 
+interface CardNovelLoreEntry {
+  ep: number;
+  epTitle: string;
+  hook: string;
+}
+
+const CHARACTER_LORE_RULES: Array<{
+  keywords: string[];
+  ko: CardNovelLoreEntry;
+  en: CardNovelLoreEntry;
+}> = [
+  {
+    keywords: ['알렉산', 'alexand'],
+    ko: {
+      ep: 1,
+      epTitle: '제1화 · 눈보라 아래 두 서약',
+      hook: '아기 카단을 품에 안고 눈보라 속 추적자들과 맞선 1대 성기사단장의 최후의 서약!',
+    },
+    en: {
+      ep: 1,
+      epTitle: 'EP.1 · Two Oaths Beneath the Blizzard',
+      hook: 'Holding infant Kadan, First Paladin Alexandar makes his final stand on the burning bridge.',
+    },
+  },
+  {
+    keywords: ['카단', 'kadan'],
+    ko: {
+      ep: 1,
+      epTitle: '제1화 · 눈보라 아래 두 서약',
+      hook: '부서진 성기사단의 방패와 은빛 단검 하나로 심연의 제국을 뒤집은 눈히어로의 출발점!',
+    },
+    en: {
+      ep: 1,
+      epTitle: 'EP.1 · Two Oaths Beneath the Blizzard',
+      hook: 'How Kadan inherited the Silver Dagger and forged the Snow Hero legend of Elwin Village.',
+    },
+  },
+  {
+    keywords: ['헤르쿨', '아케', 'hercul', 'arche'],
+    ko: {
+      ep: 2,
+      epTitle: '제2화 · 일곱 추적자의 맹세',
+      hook: '피의 항구에서 일곱 추적자와 맺은 18년 재회 맹세와 순례 성기사의 사투!',
+    },
+    en: {
+      ep: 2,
+      epTitle: 'EP.2 · Oath of the Seven Trackers',
+      hook: 'Arche-Hercul’s harbor clash and the blood pact to raise Kadan and Ignis.',
+    },
+  },
+  {
+    keywords: ['이그니스', 'ignis'],
+    ko: {
+      ep: 10,
+      epTitle: '제10화 · 불꽃 궁정의 포로',
+      hook: '불꽃 궁정의 포로가 된 카단과 태양의 후계자 이그니스가 처음 마주한 운명의 대결!',
+    },
+    en: {
+      ep: 10,
+      epTitle: 'EP.10 · Prisoner of the Flame Court',
+      hook: 'Kadan faces Ignis, heir of the Crimson Glass Court, inside the blazing arena.',
+    },
+  },
+  {
+    keywords: ['말라카이', 'malach'],
+    ko: {
+      ep: 18,
+      epTitle: '제18화 · 검은 성전의 비밀',
+      hook: '바람 속삭임 섬 지하 검은 성전에 숨겨진 고대 유산과 금단의 진실!',
+    },
+    en: {
+      ep: 18,
+      epTitle: 'EP.18 · Secret of the Black Sanctuary',
+      hook: 'Ancient forbidden truths unearthed beneath Windwhisper Isle’s Black Sanctuary.',
+    },
+  },
+  {
+    keywords: ['아르투스', 'artus'],
+    ko: {
+      ep: 25,
+      epTitle: '제25화 · 거짓된 혼례',
+      hook: '수도 라이트헤븐 백리석 대성당을 습격한 섀도우렐름 섭정 데스나이트의 음모!',
+    },
+    en: {
+      ep: 25,
+      epTitle: 'EP.25 · The False Wedding',
+      hook: 'Death Knight Artus unveils Shadowrealm’s ambush inside Lighthaven Cathedral.',
+    },
+  },
+  {
+    keywords: ['에일라', 'aila'],
+    ko: {
+      ep: 2,
+      epTitle: '제2화 · 일곱 추적자의 맹세',
+      hook: '달빛 실반의 초승달 대마도사 에일라와 일곱 추적자의 항구 대격돌!',
+    },
+    en: {
+      ep: 2,
+      epTitle: 'EP.2 · Oath of the Seven Trackers',
+      hook: 'Moonlight Archmage Aila tests Hercul with ancient elven runes.',
+    },
+  },
+  {
+    keywords: ['그림리', '아이언포지', 'grimli', 'ironforge'],
+    ko: {
+      ep: 12,
+      epTitle: '제12화 · 두 무덤 사이의 봄',
+      hook: '딥포지 공방의 황금 거신병과 봉인 석실을 수호하는 강철의 시험!',
+    },
+    en: {
+      ep: 12,
+      epTitle: 'EP.12 · Spring Between Two Graves',
+      hook: 'The Deepforge Colossus guards the sealed vault beneath the twin graves.',
+    },
+  },
+  {
+    keywords: ['펜릴', 'fenrir'],
+    ko: {
+      ep: 4,
+      epTitle: '제4화 · 황야에서 자란 아이',
+      hook: '만년설 황야의 정복왕 펜릴과 북방에서 성장한 카단의 첫 전쟁 서막!',
+    },
+    en: {
+      ep: 4,
+      epTitle: 'EP.4 · Child Raised by the Tundra',
+      hook: 'Frostwolf King Fenrir’s northern steppes forge the young Snow Hero.',
+    },
+  },
+  {
+    keywords: ['포세이돈', 'poseidon'],
+    ko: {
+      ep: 20,
+      epTitle: '제20화 · 꽃배를 삼킨 파도',
+      hook: '바람섬 앞바다를 덮친 심연 해구 바다신의 거대한 해일!',
+    },
+    en: {
+      ep: 20,
+      epTitle: 'EP.20 · Waves Swallowing the Blossom Boat',
+      hook: 'Abyssal Sea God Poseidon unleashes a tidal trial across open waters.',
+    },
+  },
+  {
+    keywords: ['루시안', 'lucian'],
+    ko: {
+      ep: 38,
+      epTitle: '제38화 · 세 개의 명주 봉인',
+      hook: '파멸의 제단 최정상 흑요석 옥좌에서 펼쳐지는 재상 루시안과의 최종 결전!',
+    },
+    en: {
+      ep: 38,
+      epTitle: 'EP.38 · Three Crimson Thread Seals',
+      hook: 'Final showdown against Chancellor Lucian atop the Obsidian Throne.',
+    },
+  },
+];
+
+const CLASS_LORE_FALLBACK: Record<string, { ko: CardNovelLoreEntry; en: CardNovelLoreEntry }> = {
+  PRIEST: {
+    ko: {
+      ep: 1,
+      epTitle: '제1화 · 눈보라 아래 두 서약',
+      hook: '인간종족 성기사 카단과 엘윈마을의 서막 — 무설치 원작 웹소설 제1화에서 시작됩니다.',
+    },
+    en: {
+      ep: 1,
+      epTitle: 'EP.1 · Two Oaths Beneath the Blizzard',
+      hook: 'Human Paladin Kadan’s origin story begins in Episode 1 of the official web novel.',
+    },
+  },
+  WARRIOR: {
+    ko: {
+      ep: 10,
+      epTitle: '제10화 · 불꽃 궁정의 포로',
+      hook: '불꽃 궁정 태양황제 이그니스와 타오르는 전설의 장면을 원작 소설로 확인하세요.',
+    },
+    en: {
+      ep: 10,
+      epTitle: 'EP.10 · Prisoner of the Flame Court',
+      hook: 'Read Sun Emperor Ignis and the Flame Court saga in Episode 10.',
+    },
+  },
+  MAGE: {
+    ko: {
+      ep: 20,
+      epTitle: '제20화 · 꽃배를 삼킨 파도',
+      hook: '심연 해역의 바다신 포세이돈과 물종족 비술이 폭발하는 해상 결전을 읽어보세요.',
+    },
+    en: {
+      ep: 20,
+      epTitle: 'EP.20 · Waves Swallowing the Blossom Boat',
+      hook: 'Read Sea God Poseidon’s abyssal tide clash in Episode 20.',
+    },
+  },
+  HUNTER: {
+    ko: {
+      ep: 18,
+      epTitle: '제18화 · 검은 성전의 비밀',
+      hook: '폭풍 바람섬 토람과 바람종족 비밀 유산을 다룬 제3막 핵심 에피소드입니다.',
+    },
+    en: {
+      ep: 18,
+      epTitle: 'EP.18 · Secret of the Black Sanctuary',
+      hook: 'Explore Wind Isle’s Black Sanctuary lore in Episode 18.',
+    },
+  },
+  PALADIN: {
+    ko: {
+      ep: 12,
+      epTitle: '제12화 · 두 무덤 사이의 봄',
+      hook: '대지 성채 수호자들과 굳건한 반석의 결의를 담은 원작 명장면을 열람하세요.',
+    },
+    en: {
+      ep: 12,
+      epTitle: 'EP.12 · Spring Between Two Graves',
+      hook: 'Discover Earth Citadel’s guardians in Episode 12 of the novel.',
+    },
+  },
+  ROGUE: {
+    ko: {
+      ep: 25,
+      epTitle: '제25화 · 거짓된 혼례',
+      hook: '섀도우렐름 섭정 아르투스와 언데드종족의 치밀한 암흑 계략이 펼쳐집니다.',
+    },
+    en: {
+      ep: 25,
+      epTitle: 'EP.25 · The False Wedding',
+      hook: 'Read Death Knight Artus’s Shadowrealm intrigue in Episode 25.',
+    },
+  },
+  SHAMAN: {
+    ko: {
+      ep: 2,
+      epTitle: '제2화 · 일곱 추적자의 맹세',
+      hook: '달빛 실반 대마도사 에일라와 정령 룬 마법의 기원을 원작 소설에서 확인하세요.',
+    },
+    en: {
+      ep: 2,
+      epTitle: 'EP.2 · Oath of the Seven Trackers',
+      hook: 'Uncover Elf Archmage Aila’s spirit rune pact in Episode 2.',
+    },
+  },
+  WARLOCK: {
+    ko: {
+      ep: 12,
+      epTitle: '제12화 · 두 무덤 사이의 봄',
+      hook: '딥포지 공방의 거신병 아이언포지와 드워프 비기를 담은 에피소드입니다.',
+    },
+    en: {
+      ep: 12,
+      epTitle: 'EP.12 · Spring Between Two Graves',
+      hook: 'See Deepforge Colossus Ironforge’s trial in Episode 12.',
+    },
+  },
+  DRUID: {
+    ko: {
+      ep: 4,
+      epTitle: '제4화 · 황야에서 자란 아이',
+      hook: '야성 설원의 빙결늑대왕 펜릴과 동물종족 군단의 맹위가 담긴 챕터입니다.',
+    },
+    en: {
+      ep: 4,
+      epTitle: 'EP.4 · Child Raised by the Tundra',
+      hook: 'Follow Frostwolf King Fenrir in Episode 4 of the official novel.',
+    },
+  },
+};
+
+function getCardNovelLoreBridge(card: ClassicCardDef, isKo: boolean): CardNovelLoreEntry {
+  const haystack = `${card.snsCharName || ''} ${card.snsCharNameEn || ''} ${card.name} ${card.nameEn || ''}`.toLowerCase();
+  for (const rule of CHARACTER_LORE_RULES) {
+    if (rule.keywords.some((kw) => haystack.includes(kw))) {
+      return isKo ? rule.ko : rule.en;
+    }
+  }
+  const fb = CLASS_LORE_FALLBACK[card.cardClass];
+  if (fb) {
+    return isKo ? fb.ko : fb.en;
+  }
+  return isKo
+    ? {
+        ep: 1,
+        epTitle: '제1화 · 눈보라 아래 두 서약',
+        hook: '카단과 이그니스의 40부작 대서사시 — 지금 원작 웹소설과 스토리모드에서 만나보세요.',
+      }
+    : {
+        ep: 1,
+        epTitle: 'EP.1 · Two Oaths Beneath the Blizzard',
+        hook: 'Begin the 40-chapter saga of Kadan & Ignis in the official web novel.',
+      };
+}
+
 export interface CardZoomAction {
   label: string;
   onClick: () => void;
@@ -188,7 +479,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!hasNav) return;
-    if ((e.target as HTMLElement | null)?.closest('button')) return;
+    if ((e.target as HTMLElement | null)?.closest('button, a')) return;
     swipeStateRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
@@ -607,6 +898,47 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
               “{cardDisplayFlavor.replace(/<[^>]+>/g, '')}”
             </p>
           )}
+
+          {/* MKT-052: Game-to-Novel Reverse Lore Bridge */}
+          {showFlavor && (() => {
+            const lore = getCardNovelLoreBridge(card, isKo);
+            return (
+              <div
+                data-testid="card-novel-lore-bridge"
+                className="mt-2 rounded-xl border border-[#8c6432]/70 bg-[#2b1a0c] p-2.5 text-left text-amber-100 shadow-inner"
+              >
+                <div className="flex items-center justify-between gap-2 text-[10.5px] font-extrabold text-amber-300">
+                  <span>{tr('📖 영웅 원작 웹소설 비하인드 로어', '📖 Official Novel Lore')}</span>
+                  <span className="rounded-full border border-amber-400/45 bg-amber-950/90 px-2 py-0.5 text-[10px] text-amber-200">
+                    {lore.epTitle}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] font-bold leading-snug text-amber-100/90">
+                  {lore.hook}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <a
+                    href={`/book.html?ep=${lore.ep}&utm_source=card_lore`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="card-lore-book-link"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex min-h-[38px] flex-1 items-center justify-center rounded-lg border border-amber-300/70 bg-gradient-to-b from-amber-500 to-amber-700 px-2.5 py-1.5 text-[11px] font-extrabold text-stone-950 shadow transition hover:brightness-110"
+                  >
+                    {tr(`📖 제${lore.ep}화 원작 읽기 →`, `📖 Read EP.${lore.ep} Novel →`)}
+                  </a>
+                  <a
+                    href={`/game.html?mode=story&ep=${lore.ep}&utm_source=card_lore_story`}
+                    data-testid="card-lore-story-link"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex min-h-[38px] flex-1 items-center justify-center rounded-lg border border-sky-400/65 bg-sky-950/90 px-2.5 py-1.5 text-[11px] font-extrabold text-sky-100 shadow transition hover:border-sky-300 hover:bg-sky-900"
+                  >
+                    {tr(`⚔ 제${lore.ep}화 스토리 출격`, `⚔ Battle EP.${lore.ep}`)}
+                  </a>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {primaryAction && (

@@ -2,6 +2,20 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 10:27 KST] [`/checkAll` 3대 문서 재점검 및 `MKT-052` 역방향 로어 브릿지 구현 완료 (푸시 대기)]
+- **요청**: `/checkAll` 실행으로 이슈문서 · 개발문서 · 마케팅문서 3종 일괄 재점검
+- **시트 현황 확인**:
+  - **이슈문서 (`ISSUE`)**: 미해결 `0`건 (`10/10` 완료).
+  - **개발문서 (`DEV`)**: 미해결 `0`건 (`24/24` 완료).
+  - **마케팅문서 (`MARKET`)**: 신규 `MKT-052`(`2026-11-17 10:11` 등록, `점검완료·실행대기`) 확인 및 코드 반영 가능 영역 구현.
+- **구현 내역 (`MKT-052` 코드측 완료)**:
+  - `src/hearthstone/components/CardZoomModal.tsx`: `getCardNovelLoreBridge()` 매핑(알렉산다르/카단 Ep.1, 헤르쿨/에일라 Ep.2, 펜릴 Ep.4, 이그니스 Ep.10, 아이언포지/그림리 Ep.12, 말라카이 Ep.18, 포세이돈 Ep.20, 아르투스 Ep.25, 루시안 Ep.38 및 9종족·중립 폴백) 및 `'내 카드첩'` 확대 모달(`showFlavor`) 내 `card-novel-lore-bridge` 박스(`📖 제N화 원작 읽기 → book.html?ep=N&utm_source=card_lore` + `⚔ 제N화 스토리 출격`) 탑재.
+  - `book.html`: 정적 `<title>` / `description` / `og:title` 메타에 `'몰락한 성기사의 3배 각성 대서사시 — 382종 웹 TCG 원작'` 부제 리패키징 반영.
+- **검증 및 저장소 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 (`✓ built in 4.24s`).
+  - Playwright E2E(`vite preview` `127.0.0.1:4180`) 실측: `/game.html?mode=collection` 카드 확대 모달에서 `card-novel-lore-bridge` 및 `/book.html?ep=20&utm_source=card_lore` / `/game.html?mode=story&ep=20&utm_source=card_lore_story` 링크, `/book.html?ep=20` 연결 및 앱 에러 `0`건 통과.
+  - **로컬 `git commit`만 완료(`git push` 보류 · 사용자 수동 확인 대기)**.
+
 ## [2026-11-17 10:26 KST] [스토리 모드 · 실리아 필살기 컷신 상반신 크기 현재 대비 70% 비율 축소(`h-[51%] sm:h-[55%]`) 완료]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:
