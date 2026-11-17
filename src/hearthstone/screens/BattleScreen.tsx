@@ -5282,7 +5282,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 }`}
               >
                 <img
-                  src="/hs-assets/bosses/kadan_upper.webp"
+                  src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
                   alt={tr('카단 상반신', 'Kadan Upper Body')}
                   data-testid="ep0-kadan-portrait"
                   className="h-11 w-11 rounded-lg object-cover object-top sm:h-24 sm:w-24 sm:rounded-xl"
@@ -5342,7 +5342,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 }`}
               >
                 <img
-                  src="/hs-assets/bosses/scarecrow_robot.webp"
+                  src="/hs-assets/bosses/scarecrow_robot.webp?v=hd20"
                   alt={tr('허수아비 로봇 상반신', 'Scarecrow Robot Upper Body')}
                   data-testid="ep0-scarecrow-portrait"
                   className="h-11 w-11 rounded-lg object-cover object-top sm:h-24 sm:w-24 sm:rounded-xl"
@@ -6275,7 +6275,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 className="relative z-10 mt-2.5 flex w-full items-center gap-3 rounded-2xl border-2 border-sky-300/70 bg-sky-950/80 p-3 text-left shadow-lg"
               >
                 <img
-                  src="/hs-assets/bosses/kadan_upper.webp"
+                  src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
                   alt={tr('카단 환영 인사', 'Kadan Welcome')}
                   className="h-14 w-14 shrink-0 rounded-xl border-2 border-sky-300 object-cover object-top"
                 />

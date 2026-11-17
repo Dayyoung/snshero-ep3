@@ -34,6 +34,7 @@ import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget
 import { HowToPlayCarousel } from '../hearthstone/components/OnboardingGuideModal';
 import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
 import { hsStorage } from '../hearthstone/storage';
+import { resolveDialogueSpriteUrl } from '../hearthstone/storyEncounterData';
 import {
   CARD_CLASS_LABELS_EN,
   getCardCharName,
@@ -279,25 +280,25 @@ export const PromoApp: React.FC = () => {
         ep: 38,
         name: tr('심연화신 루시안', 'Abyssal Avatar Lucian'),
         role: tr('붉은 유리 궁정 재상 · 최종 흑막', 'Chancellor of Crimson Glass · Mastermind'),
-        img: '/hs-assets/bosses/boss_abyss_lucian.webp',
+        img: '/hs-assets/bosses/boss_abyss_lucian.webp?v=hd20',
       },
       {
         ep: 25,
         name: tr('대심판관 말라카이', 'Arch-Inquisitor Malakai'),
         role: tr('광휘 신전 이단심문관', 'Grand Inquisitor of the Radiant Temple'),
-        img: '/hs-assets/bosses/boss_malakai.webp',
+        img: '/hs-assets/bosses/boss_malakai.webp?v=hd20',
       },
       {
         ep: 32,
         name: tr('환각마녀 모르가나', 'Mirage Witch Morgana'),
         role: tr('안개 늪의 환술 지배자', 'Sovereign of Illusion in Misty Fen'),
-        img: '/hs-assets/bosses/boss_morgana.webp',
+        img: '/hs-assets/bosses/boss_morgana.webp?v=hd20',
       },
       {
         ep: 26,
         name: tr('수문장 발타자르', 'Gatekeeper Balthazar'),
         role: tr('심연 관문의 강철 수호자', 'Iron Warden of the Abyssal Gate'),
-        img: '/hs-assets/bosses/boss_balthazar.webp',
+        img: '/hs-assets/bosses/boss_balthazar.webp?v=hd20',
       },
     ],
     [lang],
@@ -583,14 +584,16 @@ export const PromoApp: React.FC = () => {
         </div>
 
         <img
-          src={CLASSIC_HEROES.PRIEST.heroCutoutUrl}
+          src={resolveDialogueSpriteUrl(CLASSIC_HEROES.PRIEST.heroCutoutUrl)}
           alt={getLocalizedHeroInfo('PRIEST', lang).name}
-          className="pointer-events-none absolute -bottom-4 -left-10 h-[250px] w-auto object-contain opacity-30 drop-shadow-[0_18px_36px_rgba(0,0,0,0.95)] sm:-left-6 sm:h-[340px] sm:opacity-55 lg:left-[-2%] lg:h-[470px] lg:opacity-95 xl:left-[2%] xl:h-[540px]"
+          decoding="async"
+          className="pointer-events-none absolute -left-12 bottom-0 h-[220px] w-auto object-contain opacity-30 sm:-left-10 sm:h-[300px] sm:opacity-55 lg:-left-8 lg:h-[400px] lg:opacity-95 xl:left-[1%] xl:h-[450px]"
         />
         <img
-          src="/hs-assets/characters/cutouts/011_Ignis.webp"
+          src={resolveDialogueSpriteUrl('/hs-assets/characters/cutouts/011_Ignis.webp')}
           alt={tr('이그니스', 'Ignis')}
-          className="pointer-events-none absolute -bottom-4 -right-12 h-[250px] w-auto object-contain opacity-30 drop-shadow-[0_18px_36px_rgba(0,0,0,0.95)] sm:-right-6 sm:h-[340px] sm:opacity-55 lg:right-[-2%] lg:h-[470px] lg:opacity-95 xl:right-[2%] xl:h-[540px]"
+          decoding="async"
+          className="pointer-events-none absolute -right-12 bottom-0 h-[220px] w-auto object-contain opacity-30 sm:-right-10 sm:h-[300px] sm:opacity-55 lg:-right-8 lg:h-[400px] lg:opacity-95 xl:right-[1%] xl:h-[450px]"
         />
 
         <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
@@ -1308,9 +1311,10 @@ export const PromoApp: React.FC = () => {
                   className="pointer-events-none absolute inset-6 rounded-full opacity-20 blur-3xl"
                 />
                 <img
-                  src={selectedHero.heroCutoutUrl}
+                  src={resolveDialogueSpriteUrl(selectedHero.heroCutoutUrl)}
                   alt={selectedHeroUi.name}
-                  className="relative max-h-[340px] w-auto object-contain drop-shadow-[0_18px_28px_rgba(0,0,0,0.92)]"
+                  decoding="async"
+                  className="relative max-h-[340px] w-auto object-contain"
                 />
               </div>
 

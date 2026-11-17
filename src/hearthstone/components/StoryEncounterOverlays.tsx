@@ -275,11 +275,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
             transition: 'filter 160ms ease, opacity 160ms ease',
           }}
           className={`w-auto max-w-none select-none ${
-            encounter.leftSpriteUrl.includes('/characters/cutouts/')
-              ? 'h-[168%]'
-              : encounter.leftSpriteUrl.endsWith('kadan_upper.webp')
-                ? 'h-[122%]'
-                : 'h-full'
+            encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'h-[168%]' : 'h-full'
           }`}
         />
       </div>
@@ -310,11 +306,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
             transition: 'filter 160ms ease, opacity 160ms ease',
           }}
           className={`w-auto max-w-none select-none ${
-            encounter.rightSpriteUrl.includes('/characters/cutouts/')
-              ? 'h-[168%]'
-              : encounter.rightSpriteUrl.endsWith('kadan_upper.webp')
-                ? 'h-[122%]'
-                : 'h-full'
+            encounter.rightSpriteUrl.includes('/characters/cutouts/') ? 'h-[168%]' : 'h-full'
           }`}
         />
       </div>
@@ -556,11 +548,7 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
             transition: 'filter 240ms ease, opacity 240ms ease',
           }}
           className={`w-auto max-w-none select-none ${
-            encounter.leftSpriteUrl.includes('/characters/cutouts/')
-              ? 'h-[168%]'
-              : encounter.leftSpriteUrl.endsWith('kadan_upper.webp')
-                ? 'h-[122%]'
-                : 'h-full'
+            encounter.leftSpriteUrl.includes('/characters/cutouts/') ? 'h-[168%]' : 'h-full'
           }`}
         />
       </div>

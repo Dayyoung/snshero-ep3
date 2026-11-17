@@ -2,6 +2,21 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 11:48 KST] [스토리 대사화면(EP 0~40 · 실리아 필살기) 및 프로모션 홈화면 상반신 일러스트 33종(34슬롯) 1024px 고화질 재생성·적용 완료 (푸시 대기)]
+- **요청**: 대사할 때 표시되는 상반신 이미지와 프로모션 홈화면(`/`)에 표시되는 상반신 이미지 중 저화질로 나오는 이미지를 전수 조사해 고화질로 다시 생성하여 적용
+- **원인 분석 (전수 해상도·선명도 감사)**:
+  1. **보스 포트레이트 9종 + `kadan_upper` (`public/hs-assets/bosses/*.webp`, `cutouts/*.webp`)**: 기존 에셋이 `400×420` / `416×428` / `512×512` (`37KB~78KB`) 초저해상도로 제작되어 있어 프로모션 홈화면 보스 쇼케이스 4종 및 스토리모드 보스 대사 장면에서 픽셀 뭉개짐과 외곽선 계단 현상이 발생함.
+  2. **영웅·주역 캐릭터 24종 (`EP 0~40` 대사화면 · 실리아 필살기 · 프로모션 홈 히어로 배너 & 9종족 대표 영웅)**: 기존 전신(`Full-body`, `1024px`) 컷아웃을 `h-[168%]`로 강제 확대 크롭해 상반신 유효 세로 해상도가 약 `480~550px`에 불과했으며, 일부 캐릭터(`013_Belphegor`, `061_Lucian`, `060_Death_Knight_Artus`, `006_Leviathan`, `011_Ignis`, `089_Medusa_Gorgo` 등)의 내부 선명도(Laplacian variance)가 낮아 레티나/고해상도 화면에서 흐릿하게 보임.
+- **고화질 재생성 및 코드 적용 내역**:
+  - **`public/hs-assets/upper-hd/*.webp` (신규 24종, 세로 `1024px` 전용 상반신 투명 RGBA WebP, `144KB~322KB`)**: `005_Aqualord`, `006_Leviathan`, `010_Poseidon`, `011_Ignis`, `013_Belphegor`, `025_Aeolus`, `030_Wind_God_Toram`, `040_Colossus`, `041_Kadan`, `045_Gawain`, `049_Hercul`, `050_Aleksandar`, `054_Arachne`, `060_Death_Knight_Artus`, `061_Lucian`, `062_Celia`, `066_Malfuon`, `069_Gandar`, `070_Aila`, `074_Grimli`, `080_Ironforge`, `081_Fenrir`, `086_Leonar`, `089_Medusa_Gorgo` 전수 고화질 상반신 일러스트 신규 제작.
+  - **`public/hs-assets/bosses/*.webp` (10종) & `public/hs-assets/bosses/cutouts/*.webp` (9종)**: `boss_abyss_lucian`, `boss_balthazar`, `boss_bolton`, `boss_karg`, `boss_krakenlord`, `boss_malakai`, `boss_morgana`, `boss_zephyr`, `scarecrow_robot`, `kadan_upper` 전수 `1024px` 고화질 재제작 (`116KB~241KB`).
+  - **`src/hearthstone/storyEncounterData.ts` · `StoryEncounterOverlays.tsx` · `SiliaUltimateWidget.tsx` · `BattleScreen.tsx`**: `resolveDialogueSpriteUrl()`이 24종 `upper-hd` 및 10종 HD 보스 에셋(`?v=hd20`)을 반환하도록 연결하고, `items-end` + `h-full` 정배율 렌더링으로 전환해 다리 크롭 확대(`h-[168%]`)로 인한 화질 저하를 원천 해소 (전투/덱 선택 아치 프레임용 기존 전신 `characters/cutouts/*.webp`는 100% 보존).
+  - **`src/promo/PromoApp.tsx` · `public/sw.js`**: 프로모션 홈 상단 히어로 배너 좌·우(`카단` · `이그니스`), 스토리 보스 쇼케이스 4종, `9종족과 대표 영웅` 쇼케이스에 `1024px` HD 상반신 일러스트를 적용하고 서비스워커 미디어 캐시 버전(`snshero-media-v20-20261117`)을 갱신.
+- **검증 및 저장소 상태**:
+  - `npx tsc --noEmit` 오류 0건 및 `npm run build` 성공 (`dist/` 반영 완료).
+  - Playwright 데스크톱(`1280×800`) · 모바일(`390×844`) 한·영 E2E 실측 검증 통과 (`naturalHeight === 1024`, `PAGE_ERRORS: []`).
+  - 정책에 따라 로컬 `git commit`만 수행(`git push` 보류) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-17 10:57 KST] [`AGENTS.md` 신규 기능 모바일 최적화 필수 원칙 명시 완료 (푸시 대기)]
 - **요청**: 새로 추가되는 모든 기능들 역시 모바일에 최적화되어야 한다는 점을 `AGENTS.md`에 필수로 명시
 - **수정 내용 (`AGENTS.md`)**:

@@ -62,16 +62,50 @@ export function recordStoryItemObtained(code: string, episode: number): void {
   }
 }
 
+const HD_UPPER_PORTRAIT_FILES = new Set<string>([
+  '005_Aqualord.webp',
+  '006_Leviathan.webp',
+  '010_Poseidon.webp',
+  '011_Ignis.webp',
+  '013_Belphegor.webp',
+  '025_Aeolus.webp',
+  '030_Wind_God_Toram.webp',
+  '040_Colossus.webp',
+  '041_Kadan.webp',
+  '045_Gawain.webp',
+  '049_Hercul.webp',
+  '050_Aleksandar.webp',
+  '054_Arachne.webp',
+  '060_Death_Knight_Artus.webp',
+  '061_Lucian.webp',
+  '062_Celia.webp',
+  '066_Malfuon.webp',
+  '069_Gandar.webp',
+  '070_Aila.webp',
+  '074_Grimli.webp',
+  '080_Ironforge.webp',
+  '081_Fenrir.webp',
+  '086_Leonar.webp',
+  '089_Medusa_Gorgo.webp',
+]);
+
 /**
- * Resolves any hero/boss portrait URL to its transparent RGBA upper-body cutout
- * so both characters stand cleanly over the live card battlefield without rectangular boxes.
+ * Resolves any hero/boss portrait URL to its dedicated 1024px HD transparent RGBA waist-up (`상반신`)
+ * cutout so characters render razor-sharp on Retina/desktop screens without leg-crop upscaling.
  */
 export function resolveDialogueSpriteUrl(rawUrl: string): string {
-  if (!rawUrl) return '/hs-assets/characters/cutouts/041_Kadan.webp';
-  if (rawUrl.includes('/hs-assets/bosses/') && !rawUrl.includes('/cutouts/')) {
-    const fn = rawUrl.split('/').pop() || '';
-    if (fn && fn !== 'kadan_upper.webp') {
-      return `/hs-assets/bosses/cutouts/${fn}`;
+  if (!rawUrl) return '/hs-assets/upper-hd/041_Kadan.webp?v=hd20';
+  const cleanPath = rawUrl.split('?')[0];
+  const fn = cleanPath.split('/').pop() || '';
+  if (cleanPath.includes('/hs-assets/characters/cutouts/') && HD_UPPER_PORTRAIT_FILES.has(fn)) {
+    return `/hs-assets/upper-hd/${fn}?v=hd20`;
+  }
+  if (cleanPath.includes('/hs-assets/bosses/')) {
+    if (fn === 'kadan_upper.webp') {
+      return '/hs-assets/bosses/kadan_upper.webp?v=hd20';
+    }
+    if (fn) {
+      return `/hs-assets/bosses/cutouts/${fn}?v=hd20`;
     }
   }
   return rawUrl;
