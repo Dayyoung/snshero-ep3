@@ -5,7 +5,7 @@
 ## [2026-11-17 20:12 KST] [`/checkAll` 3대 관리 문서(이슈 · 개발 · 마케팅) 전수 통합 점검·구현 · E2E 통과 · 로컬 커밋 완료 (푸시 대기)]
 - **대상 문서**:
   1. **이슈문서 (`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`)**: 미해결 이슈 `0`건 (`ISS-001`~`ISS-004` 총 12건 전원 완료 확인)
-  2. **개발문서 (`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`)**: 기조치된 `DEV-013`~`DEV-031`(19건) 상태 `"완료"` 동기화 + 신규 **`DEV-032`~`DEV-040`(9건, P0 2건 · P1 7건)** 전수 구현 완료 (`40/40건 100% 완료`)
+  2. **개발문서 (`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`)**: 기조치된 `DEV-013`~`DEV-031`(19건) 상태 `"완료"` 동기화 + 신규 **`DEV-032`~`DEV-041`(10건, P0 2건 · P1 8건)** 전수 구현 완료 (`41/41건 100% 완료`)
   3. **마케팅문서 (`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`)**: 웹 코드 단독 해결 항목(`MKT-036`, `MKT-039`, `MKT-042`, `MKT-054`, `MKT-057`, `MKT-060`) `"완료"` 및 하이브리드 코드 구현 완료 항목(`MKT-003`, `MKT-040`, `MKT-046`, `MKT-053`, `MKT-055`, `MKT-056`, `MKT-058`, `MKT-059`, `MKT-061`) `"진행중"` 최신화
 - **핵심 코드 구현 내역 (`382장 카드 동결` & `/stone.html` 격리 보존)**:
   - **P0 (`DEV-036`, `DEV-037`, `MKT-056`, `MKT-057`, `MKT-058`, `MKT-059`, `MKT-061`)**:
@@ -15,7 +15,7 @@
   - **P1 (`DEV-032`~`035`, `DEV-038`~`040`, `MKT-036`, `MKT-039`, `MKT-042`, `MKT-053`~`055`, `MKT-060`)**:
     - `audio.ts`, `SnsHeroArtKit.tsx`, `Modals.tsx`: 성소 하늘 시간대 고정(`실시간/아침/한낮/황혼/밤`), 도발 말풍선·카단 승부처·클린 아트 뷰 토글, 의뢰 일지(`보가트 +300G / 랭킹 카단 +250G / 3배 각성 +200G`) 및 잔여 골드 450G/850G 프로그레스 브릿지, 보급소 골드/현금 통화 가치 분리 배너 및 명예 치장품 백업 락인(`+100G`).
     - `BookSection.tsx` & `WebtoonSection.tsx`: `snshero_media_read_eps` 회차 열람 초회 `+100G` 시드머니·10/40화 호칭(`〈성소의 연대기 학자〉`, `〈운명의 오카리나 계승자〉`) 자동 해금, 웹툰 성우 200트랙 보이스 오디오 싱크 바, 하단 1메인(`다음 화 읽기`) + 1서브(`보스전 체험`) 브릿지 단순화.
-    - `HeroDeckSelectScreen.tsx`, `BattleScreen.tsx`, `CardVisual.tsx`, `PreBattleDeckModal.tsx`, `CollectionScreen.tsx`: 30종 도전자 페르소나 4대 골드 치장품 프리셋 & `치장품 보기(상점 바로가기)` 팝오버, 보가트 일일 구제(`+100G`), 전장 `클린 아트 뷰` & 상단 유틸바 정리, 출격 프리셋 마나커브 접기 토글, 카드첩 상단 `3배 각성 임박(x2)` 추천 & `카단 1탭 자동 보강` 및 가루 비용 포함 덱 챌린지 공유 URL 적용.
+    - `HeroDeckSelectScreen.tsx`, `BattleScreen.tsx`, `StoryEncounterOverlays.tsx`, `CardVisual.tsx`, `PreBattleDeckModal.tsx`, `CollectionScreen.tsx`: 30종 도전자 페르소나 4대 골드 치장품 프리셋 & `치장품 보기(상점 바로가기)` 팝오버, 보가트 일일 구제(`+100G`), 스토리 `5화 단위 8챕터 거점 맵`·`⚡ 즉시 결투 진입` & 프로모션 단일 대표 보스 스포트라이트(`DEV-041`), 전장 `클린 아트 뷰` & 상단 유틸바 정리, 출격 프리셋 마나커브 접기 토글, 카드첩 상단 `3배 각성 임박(x2)` 추천 & `카단 1탭 자동 보강` 및 가루 비용 포함 덱 챌린지 공유 URL 적용.
 - **빌드 & E2E 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, Playwright E2E(`ko`·`en`, 데스크톱 `1280×800` & 모바일 `390×844` 가로 밀림 `0px`, 페이지 에러 `0`건, 수집 카드 `382장` 동결 확인) 전원 통과.
 - **버전 관리 & 보고**: 로컬 `git commit` 완료(**`git push` 미실행 · 수동 푸시 대기**), 3대 시트 반영 및 `submit_report.py` 제출 완료.
 

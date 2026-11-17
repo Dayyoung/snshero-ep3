@@ -94,6 +94,7 @@ export const PromoApp: React.FC = () => {
   );
   const [tier1AwakenedPreview, setTier1AwakenedPreview] = useState<boolean>(true);
   const [tier1ChallengerIdx, setTier1ChallengerIdx] = useState<number>(0);
+  const [selectedBossIdx, setSelectedBossIdx] = useState<number>(0);
   const [exitSaverOpen, setExitSaverOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -1173,41 +1174,63 @@ export const PromoApp: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-10">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xl font-black text-[#2b1707] sm:text-2xl">
-                {tr('카단의 여정 주요 적장 & 레이드 보스', 'Major Story Rivals & Raid Bosses')}
+          {/* DEV-041: Consolidated Single Spotlight Boss Card + Pill Selector (Zero Multi-Card Duplication) */}
+          <div
+            data-testid="promo-boss-single-spotlight"
+            className="mt-8"
+          >
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-lg font-black text-[#2b1707] sm:text-xl">
+                {tr('대표 레이드 보스 미리보기', 'Featured Raid Boss Spotlight')}
               </h3>
-              <a
-                href="/game?mode=story"
-                className="hs-promo-cta-teal rounded-full px-4 py-1.5 text-xs font-extrabold"
-              >
-                {tr('전체 도전하기', 'Challenge All')}
-              </a>
+              <div className="flex flex-wrap gap-1.5">
+                {storyBossHighlights.map((boss, idx) => (
+                  <button
+                    key={boss.img}
+                    type="button"
+                    onClick={() => setSelectedBossIdx(idx)}
+                    className={`min-h-[36px] rounded-full border px-3 py-1 text-xs font-extrabold transition ${
+                      selectedBossIdx === idx
+                        ? 'border-[#8b5a1b] bg-[#2a1709] text-amber-200 shadow'
+                        : 'border-[#c39b56] bg-[#fbf1da]/90 text-[#3c230d] hover:bg-[#fff8e8]'
+                    }`}
+                  >
+                    {boss.name}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {storyBossHighlights.map((boss) => (
-                <a
-                  key={boss.img}
-                  href={`/game?mode=story&ep=${boss.ep}`}
-                  className="hs-promo-gold-frame group overflow-hidden rounded-xl bg-[#1d1008] transition hover:-translate-y-1.5"
-                >
-                  <div className="aspect-[4/3] overflow-hidden bg-black">
+            {(() => {
+              const activeBoss = storyBossHighlights[selectedBossIdx] || storyBossHighlights[0];
+              return (
+                <div className="hs-promo-gold-frame flex flex-col items-center justify-between gap-4 overflow-hidden rounded-2xl bg-[#1d1008] p-4 sm:flex-row sm:p-5">
+                  <div className="flex items-center gap-4">
                     <img
-                      src={boss.img}
-                      alt={boss.name}
+                      src={activeBoss.img}
+                      alt={activeBoss.name}
                       loading="lazy"
                       decoding="async"
-                      className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-108"
+                      className="h-20 w-24 shrink-0 rounded-xl border border-amber-400/50 bg-black object-cover object-top sm:h-24 sm:w-32"
                     />
+                    <div>
+                      <div className="text-base font-black text-amber-200 sm:text-lg">
+                        {activeBoss.name}
+                      </div>
+                      <div className="mt-1 text-xs font-bold text-amber-100/80">
+                        {activeBoss.role}
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-3">
-                    <div className="text-sm font-extrabold text-amber-200">{boss.name}</div>
-                    <div className="mt-0.5 text-[11px] font-bold text-amber-100/70">{boss.role}</div>
-                  </div>
-                </a>
-              ))}
-            </div>
+                  <a
+                    href={`/game?mode=story&ep=${activeBoss.ep}`}
+                    className="hs-promo-cta-purple inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold"
+                  >
+                    <span>⚔ {tr(`제${activeBoss.ep}화 보스 도전`, `Challenge EP.${activeBoss.ep}`)}</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </section>

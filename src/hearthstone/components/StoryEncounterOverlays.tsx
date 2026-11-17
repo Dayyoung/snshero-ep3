@@ -240,18 +240,38 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
           </span>
         </div>
 
-        <button
-          type="button"
-          data-testid="story-dialogue-skip-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            hsAudio.playSfx('ui_click', 0.75);
-            onComplete();
-          }}
-          className="min-h-[44px] rounded-xl border border-white/25 bg-stone-950/85 px-3.5 py-1.5 text-xs font-extrabold text-stone-200 shadow-lg transition hover:border-amber-300 hover:text-amber-200"
-        >
-          {tr('건너뛰기 ▸▸', 'SKIP ▸▸')}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            data-testid="story-fast-intro-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              hsAudio.playSfx('gem_a_confirm', 0.8);
+              try {
+                const cur = localStorage.getItem('hero_hs_story_fast_intro') === '1';
+                localStorage.setItem('hero_hs_story_fast_intro', cur ? '0' : '1');
+              } catch {
+                // ignore
+              }
+              onComplete();
+            }}
+            className="hs-zelda-c-btn min-h-[44px] rounded-xl px-3 py-1.5 text-xs font-extrabold text-stone-950 shadow-lg"
+          >
+            ⚡ {tr('즉시 결투 진입', 'Quick Duel')}
+          </button>
+          <button
+            type="button"
+            data-testid="story-dialogue-skip-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              hsAudio.playSfx('ui_click', 0.75);
+              onComplete();
+            }}
+            className="min-h-[44px] rounded-xl border border-white/25 bg-stone-950/85 px-3.5 py-1.5 text-xs font-extrabold text-stone-200 shadow-lg transition hover:border-amber-300 hover:text-amber-200"
+          >
+            {tr('건너뛰기 ▸▸', 'SKIP ▸▸')}
+          </button>
+        </div>
       </div>
 
       {/* Left Character Upper-Body Cutout (Protagonist / Ally — 70% Scaled Waist-Up `상반신` 51%~55% Viewport Height) */}
@@ -624,6 +644,16 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
                       : tr('잠시 후 다음 화 시작화면으로 이동...', 'Moving to next episode start...')}
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
+                  {encounter.episode >= 1 && (
+                    <a
+                      href={`/webtoon.html?ep=${encounter.episode}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-[44px] items-center rounded-lg border border-amber-600/60 bg-amber-100 px-3 py-2 text-xs font-extrabold text-amber-950 no-underline transition hover:bg-amber-200"
+                    >
+                      📖 {tr('원작 웹툰 보기 ↗', 'Read Webtoon ↗')}
+                    </a>
+                  )}
                   <button
                     type="button"
                     data-testid="story-victory-hub-btn"
@@ -807,6 +837,19 @@ export const StoryEpisodeSelectorModal: React.FC<StoryEpisodeSelectorModalProps>
   const unlockedMax = reincarnation > 0 ? 40 : Math.max(currentEpisode, maxClearedEpisode + 1, 1);
   const obtainedMap = useMemo(() => getObtainedStoryItems(), []);
   const ep0Def = useMemo(() => getJourneyEpisodeDef(0, isKo), [isKo]);
+  const initialChapter = Math.max(1, Math.min(8, Math.ceil(Math.max(1, currentEpisode) / 5)));
+  const [selectedChapter, setSelectedChapter] = useState<number>(initialChapter);
+  const [showAll40List, setShowAll40List] = useState<boolean>(false);
+
+  const chapterStart = (selectedChapter - 1) * 5 + 1;
+  const chapterEnd = selectedChapter * 5;
+  const chapterEpisodes = useMemo(
+    () =>
+      KADAN_JOURNEY_EPISODES.filter(
+        (ep) => ep.episode >= chapterStart && ep.episode <= chapterEnd,
+      ),
+    [chapterStart, chapterEnd],
+  );
 
   return (
     <div
@@ -821,12 +864,12 @@ export const StoryEpisodeSelectorModal: React.FC<StoryEpisodeSelectorModalProps>
         <div className="flex items-center justify-between gap-2 border-b border-amber-500/30 pb-3">
           <div>
             <h3 className="hs-title text-base font-extrabold text-amber-200 sm:text-lg">
-              {tr('카단의 여정 · 회차 이동 및 대사 다시보기', 'Kadan’s Journey · Episodes & Relics')}
+              {tr('카단의 여정 · 챕터 월드맵 (5화 거점)', 'Kadan’s Journey · 5-Node Chapter Map')}
             </h3>
             <p className="text-[11px] font-bold text-amber-200/75">
               {tr(
-                `수집 성물: ${Object.keys(obtainedMap).length} / 20종 · 해금 회차: 0~${unlockedMax}화`,
-                `Relics Collected: ${Object.keys(obtainedMap).length} / 20 · Unlocked: EP 0–${unlockedMax}`,
+                `수집 성물: ${Object.keys(obtainedMap).length} / 20종 · 해금: 0~${unlockedMax}화`,
+                `Relics: ${Object.keys(obtainedMap).length} / 20 · Unlocked: EP 0–${unlockedMax}`,
               )}
             </p>
           </div>
@@ -840,7 +883,7 @@ export const StoryEpisodeSelectorModal: React.FC<StoryEpisodeSelectorModalProps>
               }}
               className="hs-arcane-btn min-h-[40px] rounded-xl px-3 py-1.5 text-xs font-extrabold text-white"
             >
-              💬 {tr('이번 화 대사 보기', 'Replay Dialogue')}
+              💬 {tr('대사 보기', 'Dialogue')}
             </button>
             <button
               type="button"
@@ -852,52 +895,148 @@ export const StoryEpisodeSelectorModal: React.FC<StoryEpisodeSelectorModalProps>
           </div>
         </div>
 
-        <div className="mt-3 grid flex-1 grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2">
-          {/* Episode 0 Tutorial */}
+        {/* DEV-041: 8-Chapter Selector Chips (5 Episodes per Chapter) + EP.0 Tutorial */}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-1.5">
+          <div className="flex flex-wrap gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                hsAudio.playSfx('box_press');
+                onSelectEpisode(0);
+              }}
+              className={`min-h-[36px] rounded-lg border px-2.5 py-1 text-[11px] font-extrabold transition ${
+                currentEpisode === 0
+                  ? 'border-emerald-300 bg-emerald-900 text-emerald-100'
+                  : 'border-amber-500/35 bg-stone-950/80 text-sky-200 hover:border-amber-300'
+              }`}
+            >
+              EP.0 {ep0Def.titleKo}
+            </button>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((ch) => {
+              const chMinEp = (ch - 1) * 5 + 1;
+              const chLocked = chMinEp > unlockedMax;
+              const active = selectedChapter === ch && !showAll40List;
+              return (
+                <button
+                  key={ch}
+                  type="button"
+                  disabled={chLocked}
+                  onClick={() => {
+                    hsAudio.playSfx('gem_c_select', 0.7);
+                    setSelectedChapter(ch);
+                    setShowAll40List(false);
+                  }}
+                  className={`min-h-[36px] rounded-lg border px-2.5 py-1 text-[11px] font-extrabold transition ${
+                    active
+                      ? 'border-yellow-200 bg-amber-500 text-stone-950 shadow'
+                      : chLocked
+                        ? 'cursor-not-allowed border-stone-800 bg-stone-950/40 text-stone-600'
+                        : 'border-amber-500/35 bg-stone-950/80 text-amber-100 hover:border-amber-300'
+                  }`}
+                >
+                  {isKo ? `${ch}장` : `Ch.${ch}`} {chLocked ? '🔒' : ''}
+                </button>
+              );
+            })}
+          </div>
           <button
             type="button"
-            onClick={() => {
-              hsAudio.playSfx('box_press');
-              onSelectEpisode(0);
-            }}
-            className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-extrabold transition ${
-              currentEpisode === 0
-                ? 'border-emerald-300 bg-emerald-950/80 text-emerald-100'
-                : 'border-amber-500/35 bg-stone-950/75 text-amber-100 hover:border-amber-300'
-            }`}
+            onClick={() => setShowAll40List((v) => !v)}
+            className="min-h-[34px] rounded-lg border border-amber-400/35 bg-black/45 px-2.5 text-[10.5px] font-bold text-amber-200"
           >
-            <span className="truncate">EP.0 · {ep0Def.titleKo}</span>
-            <span className="ml-2 shrink-0 text-[10px] text-sky-300">{tr('튜토리얼', 'Tutorial')}</span>
+            {showAll40List ? tr('5화 거점 맵 보기', '5-Node Map') : tr('전체 40화 목록', 'All 40 List')}
           </button>
-
-          {KADAN_JOURNEY_EPISODES.map((ep) => {
-            const locked = ep.episode > unlockedMax;
-            const epLoc = getJourneyEpisodeDef(ep.episode, isKo);
-            return (
-              <button
-                key={ep.episode}
-                type="button"
-                disabled={locked}
-                onClick={() => {
-                  hsAudio.playSfx('box_press');
-                  onSelectEpisode(ep.episode);
-                }}
-                className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-extrabold transition ${
-                  currentEpisode === ep.episode
-                    ? 'border-emerald-300 bg-emerald-950/80 text-emerald-100'
-                    : locked
-                      ? 'cursor-not-allowed border-stone-800 bg-stone-950/40 text-stone-600 opacity-50'
-                      : 'border-amber-500/35 bg-stone-950/75 text-amber-100 hover:border-amber-300'
-                }`}
-              >
-                <span className="truncate">
-                  {isKo ? `제${ep.episode}화 · ${epLoc.titleKo}` : `EP.${ep.episode} · ${epLoc.titleKo}`}
-                </span>
-                {locked && <span className="ml-1 shrink-0 text-[10px]">🔒</span>}
-              </button>
-            );
-          })}
         </div>
+
+        {/* DEV-041: Nintendo Adventure 5-Node Step Map (Default) vs All-40 List */}
+        {!showAll40List ? (
+          <div
+            data-testid="story-5node-chapter-map"
+            className="hs-ocarina-dialog mt-3 flex flex-1 flex-col justify-between rounded-2xl p-4"
+          >
+            <div className="mb-2 flex items-center justify-between text-xs font-extrabold text-yellow-300">
+              <span>
+                🗺️{' '}
+                {isKo
+                  ? `제${selectedChapter}장 거점 지도 (${chapterStart}~${chapterEnd}화)`
+                  : `Chapter ${selectedChapter} Waypoints (EP ${chapterStart}–${chapterEnd})`}
+              </span>
+              <span className="text-[11px] text-emerald-300">
+                {tr('5화 보스 격파 시 +1 보스팩 지급!', 'Clear 5th Node Boss for +1 Pack!')}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
+              {chapterEpisodes.map((ep, idx) => {
+                const locked = ep.episode > unlockedMax;
+                const cleared = reincarnation > 0 || ep.episode <= maxClearedEpisode;
+                const isCurrent = currentEpisode === ep.episode;
+                const isBossNode = idx === 4;
+                const epLoc = getJourneyEpisodeDef(ep.episode, isKo);
+                return (
+                  <button
+                    key={ep.episode}
+                    type="button"
+                    disabled={locked}
+                    onClick={() => {
+                      hsAudio.playSfx('box_press');
+                      onSelectEpisode(ep.episode);
+                    }}
+                    className={`hs-mario-spring flex min-h-[78px] flex-col items-center justify-between rounded-2xl border-2 p-2.5 text-center transition ${
+                      isCurrent
+                        ? 'border-emerald-300 bg-emerald-900/85 text-emerald-50 ring-2 ring-yellow-300'
+                        : locked
+                          ? 'cursor-not-allowed border-stone-800 bg-stone-950/50 text-stone-500 opacity-55'
+                          : isBossNode
+                            ? 'border-yellow-300/80 bg-amber-950/80 text-yellow-100 hover:border-yellow-200'
+                            : 'border-sky-400/50 bg-slate-950/80 text-sky-100 hover:border-amber-300'
+                    }`}
+                  >
+                    <span className="text-base">
+                      {locked ? '🔒' : isBossNode ? '👑' : cleared ? '⭐' : '⚔️'}
+                    </span>
+                    <span className="text-xs font-black">
+                      {isKo ? `제${ep.episode}화` : `EP.${ep.episode}`}
+                    </span>
+                    <span className="w-full truncate text-[10px] font-bold opacity-90">
+                      {epLoc.titleKo}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-3 grid flex-1 grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2">
+            {KADAN_JOURNEY_EPISODES.map((ep) => {
+              const locked = ep.episode > unlockedMax;
+              const epLoc = getJourneyEpisodeDef(ep.episode, isKo);
+              return (
+                <button
+                  key={ep.episode}
+                  type="button"
+                  disabled={locked}
+                  onClick={() => {
+                    hsAudio.playSfx('box_press');
+                    onSelectEpisode(ep.episode);
+                  }}
+                  className={`flex min-h-[42px] items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-extrabold transition ${
+                    currentEpisode === ep.episode
+                      ? 'border-emerald-300 bg-emerald-950/80 text-emerald-100'
+                      : locked
+                        ? 'cursor-not-allowed border-stone-800 bg-stone-950/40 text-stone-600 opacity-50'
+                        : 'border-amber-500/35 bg-stone-950/75 text-amber-100 hover:border-amber-300'
+                  }`}
+                >
+                  <span className="truncate">
+                    {isKo ? `제${ep.episode}화 · ${epLoc.titleKo}` : `EP.${ep.episode} · ${epLoc.titleKo}`}
+                  </span>
+                  {locked && <span className="ml-1 shrink-0 text-[10px]">🔒</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
