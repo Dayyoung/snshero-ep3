@@ -896,6 +896,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   });
   const [aiHighlightText, setAiHighlightText] = useState<string | null>(null);
   const [outcomeSummary, setOutcomeSummary] = useState<MatchRewardBreakdown | null>(null);
+  const [postGameStep, setPostGameStep] = useState<'SUMMARY' | 'NEXT_ACTIONS'>('SUMMARY');
   const [postGameAutoPaused, setPostGameAutoPaused] = useState<boolean>(false);
   const [postGameRemainingMs, setPostGameRemainingMs] = useState<number>(3000);
   const [defeatPackResult, setDefeatPackResult] = useState<
@@ -1509,6 +1510,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         hsAudio.playSfx('mario_coin', 0.75);
       }
       setOutcomeSummary(summary);
+      setPostGameStep('SUMMARY');
       setLiveProfile(hsStorage.getProfile());
       setPostGameRemainingMs(matchState.winner === 'PLAYER' ? 3000 : 6000);
       postGameFiredRef.current = false;
@@ -6471,23 +6473,33 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 )}
               </div>
             </div>
-          ) : (
-          <div className="hs-wood-panel relative flex max-h-[94%] w-full max-w-lg flex-col items-center overflow-y-auto rounded-3xl p-5 text-center text-amber-100 sm:p-6">
+          ) : (() => {
+            const didWin = matchState.winner === 'PLAYER';
+            const mvp = didWin ? computeBattleMvpCard(matchState, playerDeck.cards) : null;
+            const diag = !didWin ? diagnoseDefeatAndCounter(matchState, isKo) : null;
+
+            return (
+          <div
+            data-testid="gameover-modal"
+            className="hs-wood-panel relative flex max-h-[94%] w-full max-w-lg flex-col items-center overflow-y-auto rounded-3xl p-5 text-center text-amber-100 sm:p-6"
+          >
             <button
               type="button"
               data-testid="gameover-close-btn"
               onClick={() => {
+                postGameFiredRef.current = true;
                 hsAudio.playSfx('menu_select');
                 hsAudio.playBgm('tavern_hub');
                 onExitBattle();
               }}
               aria-label={tr('닫기 (로비로 이동)', 'Close (Return to Hub)')}
-              className="hs-brass-btn absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-amber-100"
+              className="hs-brass-btn absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-xl text-amber-100"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
+
             {autoPlay && !postGameAutoPaused && (
               <div className="absolute left-0 right-0 top-0 h-1.5 bg-stone-900">
                 <div
@@ -6500,11 +6512,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             )}
 
             {autoPlay && (
-              <div className="relative z-20 mb-1 flex w-full justify-end">
+              <div className="relative z-20 mb-1 flex w-full justify-start">
                 <button
                   type="button"
                   onClick={() => setPostGameAutoPaused((p) => !p)}
-                  className={`rounded-lg border px-2.5 py-1 text-[11px] font-extrabold ${
+                  className={`min-h-[36px] rounded-lg border px-2.5 py-1 text-[11px] font-extrabold ${
                     !postGameAutoPaused
                       ? 'border-emerald-300/70 bg-emerald-950/90 text-emerald-200'
                       : 'border-amber-400/50 bg-stone-900 text-amber-200'
@@ -6518,244 +6530,231 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 </button>
               </div>
             )}
-            {matchState.winner === 'PLAYER' && (
-              <div
-                style={{
-                  animation: 'hsSlowSpin 24s linear infinite',
-                  background:
-                    'conic-gradient(from 0deg, transparent 0deg, rgba(251,191,36,0.38) 40deg, transparent 80deg, rgba(56,189,248,0.3) 170deg, transparent 210deg, rgba(251,191,36,0.38) 300deg, transparent 360deg)',
-                }}
-                className="pointer-events-none absolute -top-16 h-80 w-80 rounded-full blur-md"
-              />
-            )}
 
-            <div className={`relative z-10 ${matchState.winner === 'PLAYER' ? '' : 'grayscale opacity-75'}`}>
-              <SnsRankMedallion
-                rank={matchState.winner === 'PLAYER' ? 0 : profile.rank}
-                size={76}
-                className="drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)]"
-              />
-            </div>
-
-            <h2
-              className={`hs-title hs-outline relative z-10 mt-1.5 text-2xl font-extrabold sm:text-4xl ${
-                matchState.winner === 'PLAYER' ? 'text-yellow-300' : 'text-slate-200'
-              }`}
-            >
-              {matchState.winner === 'PLAYER'
-                ? mode === 'TUTORIAL' && matchState.journeyMeta
-                  ? matchState.journeyMeta.episode === 0
-                    ? tr('에피소드 0 튜토리얼 완승!', 'Episode 0 Tutorial Complete!')
-                    : tr(`제${matchState.journeyMeta.episode}화 돌파 승리!`,
-                        `Episode ${matchState.journeyMeta.episode} Cleared!`,
-                      )
-                  : tr('승리!', 'Victory!')
-                : mode === 'TUTORIAL' && matchState.journeyMeta
-                  ? tr(`제${matchState.journeyMeta.episode}화 결투 패배`,
-                      `Episode ${matchState.journeyMeta.episode} Defeat`,
-                    )
-                  : tr('패배', 'Defeat')}
-            </h2>
-            <p className="relative z-10 mt-1 text-xs font-bold text-amber-200/90">
-              {matchState.winner === 'PLAYER'
-                ? isEp0Tutorial
-                  ? tr('모험가님, 엘윈마을 눈히어로에 오신 것을 환영합니다! 이제 3초 뒤 제1화 본편 자동플레이가 시작됩니다!',
-                      'Welcome to Elwin Village, SNSHero! Episode 1 Auto-Play starts in 3 seconds!',
-                    )
-                  : tr(`${matchState.opponent.name}을(를) 제압하고 확정 보상을 수령했습니다!`,
-                      `Defeated ${matchState.opponent.name} and claimed your rewards!`,
-                    )
-                : mode === 'TUTORIAL' && matchState.journeyMeta
-                  ? tr(`회차·환생이 높아질수록 적 보스(체력 ${matchState.journeyMeta.enemyHeroHealth} · 스탯 ×${matchState.journeyMeta.enemyStatScale}배)가 강력해집니다!`,
-                      `Bosses grow stronger with each stage (HP ${matchState.journeyMeta.enemyHeroHealth} · Stats ×${matchState.journeyMeta.enemyStatScale})!`,
-                    )
-                  : tr('아군 영웅이 쓰러졌습니다. 덱을 정비하고 다시 도전해 보세요!',
-                      'Your hero has fallen. Tune your deck and try again!',
-                    )}
-            </p>
-
-            {matchState.winner === 'PLAYER' && isEp0Tutorial && (
-              <div
-                data-testid="ep0-welcome-banner"
-                className="relative z-10 mt-2.5 flex w-full items-center gap-3 rounded-2xl border-2 border-sky-300/70 bg-sky-950/80 p-3 text-left shadow-lg"
-              >
-                <img
-                  src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
-                  alt={tr('카단 환영 인사', 'Kadan Welcome')}
-                  className="h-14 w-14 shrink-0 rounded-xl border-2 border-sky-300 object-cover object-top"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="text-[11px] font-black text-sky-300">
-                    {tr('카단 · 튜토리얼 수료 & 자동 추천 30장 덱 안내', 'Kadan · Tutorial Complete & Auto-Deck Ready')}
-                  </div>
-                  <div className="mt-0.5 text-xs font-extrabold leading-snug text-white sm:text-sm">
-                    {tr('“허수아비 로봇을 쓰러뜨리셨어요! 복잡한 덱 짜기 없이 카단 추천 30장 스타터 덱과 스마트 오토 배틀로 제1화 웹툰 스토리를 바로 감상하세요!”',
-                      '“Scarecrow Bot defeated! Jump straight into Episode 1 with our Auto-Recommended 30-Card Starter Deck & Smart Auto-Play!”',
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Itemized Victory / Match Reward Receipt */}
-            {outcomeSummary && (
-              <div className="relative z-10 my-3.5 w-full space-y-1.5 rounded-2xl border-2 border-[#c8a158]/60 bg-black/50 p-3.5 text-left text-xs sm:p-4">
-                <div className="mb-1 border-b border-amber-500/25 pb-1 text-center font-extrabold text-amber-200">
-                  {outcomeSummary.didWin
-                    ? tr('🏆 확정 승리 보상 지급 명세', '🏆 Victory Rewards Summary')
-                    : tr('📋 대결 결과 안내', '📋 Match Summary')}
-                </div>
-
-                {outcomeSummary.didWin ? (
-                  <>
-                    <div className="flex items-center justify-between font-bold text-amber-100">
-                      <span>{tr('• 기본 승리 골드', '• Base Win Gold')}</span>
-                      <span className="font-extrabold text-yellow-300">
-                        +{outcomeSummary.baseWinGold} {tr('골드', 'Gold')}
-                      </span>
-                    </div>
-
-                    {outcomeSummary.bonusGold > 0 && outcomeSummary.bonusLabel && (
-                      <div className="flex items-center justify-between font-bold text-emerald-200">
-                        <span>• {outcomeSummary.bonusLabel}</span>
-                        <span className="font-extrabold text-emerald-300">
-                          +{outcomeSummary.bonusGold} {tr('골드', 'Gold')}
-                        </span>
-                      </div>
-                    )}
-
-                    {outcomeSummary.questGold > 0 && (
-                      <div className="flex items-center justify-between font-bold text-sky-200">
-                        <span>{tr('• 일일 의뢰 달성 보상', '• Daily Quest Reward')}</span>
-                        <span className="font-extrabold text-sky-300">
-                          +{outcomeSummary.questGold} {tr('골드', 'Gold')}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="mt-1 flex items-center justify-between border-t border-amber-500/30 pt-1.5 text-sm font-extrabold">
-                      <span className="text-amber-100">
-                        {tr(`총 획득 골드 (보유 ${profile.gold}G)`, `Total Gold (Owned ${profile.gold}G)`)}
-                      </span>
-                      <span className="flex items-center gap-1 text-yellow-300">
-                        <HsGoldCoinIcon size={18} />
-                        <span>+{outcomeSummary.goldEarned}G</span>
-                      </span>
-                    </div>
-
-                    {outcomeSummary.packsEarned > 0 && (
-                      <div className="mt-1.5 flex items-center justify-between rounded-xl border border-yellow-300/60 bg-amber-950/70 px-3 py-2 font-extrabold text-yellow-200">
-                        <span className="truncate pr-2">
-                          🎁 {outcomeSummary.packReason || tr('특전 눈히어로 팩 보상', 'Bonus Card Pack Reward')}
-                        </span>
-                        <span className="shrink-0 text-yellow-300">
-                          +{outcomeSummary.packsEarned} {tr('팩!', 'Pack(s)!')}
-                        </span>
-                      </div>
-                    )}
-
-                    {outcomeSummary.reincarnatedNow && (
-                      <div className="mt-1.5 rounded-xl border border-purple-300/70 bg-purple-950/80 px-3 py-2 text-center font-extrabold text-purple-200">
-                        {tr(`✦ 40화 대단원 완주! [환생 ${outcomeSummary.nextReincarnation}회차]가 개방되었습니다!`,
-                          `✦ Episode 40 Complete! Reincarnation ${outcomeSummary.nextReincarnation} Unlocked!`,
-                        )}
-                      </div>
-                    )}
-
-                    {(mode === 'RANKED' || mode === 'CASUAL') && (
-                      <div className="mt-1 flex items-center justify-between text-[11px] font-bold text-amber-200/85">
-                        <span>{tr('3승 달성 추가 보너스 진행도', '3-Win Bonus Progress')}</span>
-                        <span className="text-yellow-300">
-                          {outcomeSummary.threeWinProgress} / 3{isKo ? '승' : ' Wins'}
-                        </span>
-                      </div>
-                    )}
-
-                    {mode === 'RANKED' && (
-                      <div className="mt-1 flex items-center justify-between text-[11px] font-bold text-sky-200">
-                        <span>{tr('현재 눈히어로 등급', 'Current SNSHero Rank')}</span>
-                        <span>
-                          {outcomeSummary.newRank === 0
-                            ? tr('전설의 눈히어로!', 'Legend SNSHero!')
-                            : isKo
-                              ? `${outcomeSummary.newRank}등급 (${CLASSIC_RANK_NAMES[outcomeSummary.newRank]}) · ★${outcomeSummary.newStars}`
-                              : `Rank ${outcomeSummary.newRank} (${getRankTitle(outcomeSummary.newRank, CLASSIC_RANK_NAMES, lang)}) · ★${outcomeSummary.newStars}`}
-                          {outcomeSummary.streakBonus ? tr(' (연승 ×2!)', ' (Win Streak ×2!)') : ''}
-                        </span>
-                      </div>
-                    )}
-                  </>
-                ) : mode === 'TUTORIAL' ? (
-                  <div className="space-y-1.5 text-center leading-relaxed text-amber-100">
-                    <div className="font-extrabold text-emerald-300">
-                      {tr('⚡ 패배 시 자동 전력 보강: 카드팩 1개 구매 · 개봉 후 재도전!',
-                        '⚡ Defeat Auto-Power-Up: Open 1 Card Pack & Retry!',
-                      )}
-                    </div>
-                    <p className="text-[11.5px] font-semibold text-amber-100/90">
-                      {isKo ? (
-                        <>
-                          바로 재대결하지 않고{' '}
-                          <b className="text-yellow-300">
-                            {profile.gold >= 100
-                              ? `보유 골드(${profile.gold}G)로 카드팩 1개를 구매(-100G)`
-                              : profile.packs > 0
-                                ? `보유 카드팩(${profile.packs}팩) 1개를 사용`
-                                : '엘윈 성소 구호 지원팩 1개를 보급'}
-                          </b>
-                          하여 <b className="text-emerald-300">5장을 개봉(동일 카드 3장 = 공격력·생명력 ×3배 각성)</b>한 뒤 강화된 덱으로 다시 도전합니다!
-                          {(() => {
-                            const twoCopyInfo = hsStorage.countTwoCopyAwakenableCards(isKo);
-                            return twoCopyInfo.count > 0 ? (
-                              <span className="mt-1 block text-[11px] font-extrabold text-sky-300">
-                                💡 현재 1장만 더 얻으면 3배 각성되는 카드 {twoCopyInfo.count}종 대기 중! ({twoCopyInfo.sampleNames.join(', ')})
-                              </span>
-                            ) : null;
-                          })()}
-                        </>
-                      ) : (
-                        <>
-                          Before retrying, you&apos;ll{' '}
-                          <b className="text-yellow-300">
-                            {profile.gold >= 100
-                              ? `spend 100G (Gold ${profile.gold}G) for 1 card pack`
-                              : profile.packs > 0
-                                ? `open 1 owned card pack (${profile.packs} left)`
-                                : 'claim 1 free Elwin Sanctuary Aid pack'}
-                          </b>{' '}
-                          and awaken <b className="text-emerald-300">3+ duplicate cards (×3 ATK/HP)</b>!
-                          {(() => {
-                            const twoCopyInfo = hsStorage.countTwoCopyAwakenableCards(isKo);
-                            return twoCopyInfo.count > 0 ? (
-                              <span className="mt-1 block text-[11px] font-extrabold text-sky-300">
-                                💡 {twoCopyInfo.count} card(s) only need 1 more copy for 3x Awakening! ({twoCopyInfo.sampleNames.join(', ')})
-                              </span>
-                            ) : null;
-                          })()}
-                        </>
-                      )}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center text-[11.5px] font-semibold text-amber-200/85">
-                    {tr('승리 시 확정 골드와 일일 의뢰 보상이 지급됩니다. 덱 구성을 점검하고 다시 도전해 보세요!',
-                      'Wins award Gold and Daily Quest progress. Adjust your deck and try again!',
-                    )}
-                  </div>
+            {postGameStep === 'SUMMARY' ? (
+              <>
+                {didWin && (
+                  <div
+                    style={{
+                      animation: 'hsSlowSpin 24s linear infinite',
+                      background:
+                        'conic-gradient(from 0deg, transparent 0deg, rgba(251,191,36,0.38) 40deg, transparent 80deg, rgba(56,189,248,0.3) 170deg, transparent 210deg, rgba(251,191,36,0.38) 300deg, transparent 360deg)',
+                    }}
+                    className="pointer-events-none absolute -top-16 h-80 w-80 rounded-full blur-md"
+                  />
                 )}
-              </div>
-            )}
 
-            {/* DEV-025: Victory Battle MVP Card & 1-Click Deck Challenge Share / Defeat Kadan Diagnosis & 1-Tap Counter Rematch */}
-            {matchState.winner === 'PLAYER' ? (
-              (() => {
-                const mvp = computeBattleMvpCard(matchState, playerDeck.cards);
-                return (
-                  <div className="relative z-10 mb-3 w-full space-y-2">
+                <div className={`relative z-10 ${didWin ? '' : 'grayscale opacity-75'}`}>
+                  <SnsRankMedallion
+                    rank={didWin ? 0 : profile.rank}
+                    size={72}
+                    className="drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)]"
+                  />
+                </div>
+
+                <h2
+                  className={`hs-title hs-outline relative z-10 mt-1.5 text-2xl font-extrabold sm:text-4xl ${
+                    didWin ? 'text-yellow-300' : 'text-slate-200'
+                  }`}
+                >
+                  {didWin
+                    ? mode === 'TUTORIAL' && matchState.journeyMeta
+                      ? matchState.journeyMeta.episode === 0
+                        ? tr('에피소드 0 완승!', 'Episode 0 Cleared!')
+                        : tr(`제${matchState.journeyMeta.episode}화 승리!`, `Episode ${matchState.journeyMeta.episode} Victory!`)
+                      : tr('승리!', 'Victory!')
+                    : mode === 'TUTORIAL' && matchState.journeyMeta
+                      ? tr(`제${matchState.journeyMeta.episode}화 패배`, `Episode ${matchState.journeyMeta.episode} Defeat`)
+                      : tr('패배', 'Defeat')}
+                </h2>
+
+                <p className="relative z-10 mt-1 text-xs font-bold text-amber-200/90">
+                  {didWin
+                    ? isEp0Tutorial
+                      ? tr('튜토리얼 수료 완료! 제1화 여정이 시작됩니다.', 'Tutorial complete! Episode 1 is ready.')
+                      : tr(`${matchState.opponent.name} 제압 완료`, `Defeated ${matchState.opponent.name}`)
+                    : tr('전열을 가다듬고 다시 도전해 보세요.', 'Regroup and challenge again.')}
+                </p>
+
+                {/* Minimal Key Summary Box */}
+                <div className="hs-ocarina-dialog relative z-10 my-4 w-full space-y-2 rounded-2xl p-3.5 text-left text-xs sm:p-4">
+                  {didWin && outcomeSummary ? (
+                    <>
+                      <div className="flex items-center justify-between text-sm font-extrabold">
+                        <span className="text-amber-100">{tr('총 획득 골드', 'Gold Earned')}</span>
+                        <span className="flex items-center gap-1 text-yellow-300">
+                          <HsGoldCoinIcon size={18} />
+                          <span>+{outcomeSummary.goldEarned}G</span>
+                        </span>
+                      </div>
+                      {outcomeSummary.packsEarned > 0 && (
+                        <div className="flex items-center justify-between font-extrabold text-emerald-200">
+                          <span>🎁 {tr('특전 카드팩', 'Bonus Card Pack')}</span>
+                          <span>+{outcomeSummary.packsEarned} {tr('팩', 'Pack(s)')}</span>
+                        </div>
+                      )}
+                      {outcomeSummary.reincarnatedNow && (
+                        <div className="rounded-lg border border-purple-300/60 bg-purple-950/75 px-2.5 py-1.5 text-center font-extrabold text-purple-200">
+                          {tr(`✦ [환생 ${outcomeSummary.nextReincarnation}회차] 개방!`, `✦ Reincarnation ${outcomeSummary.nextReincarnation} Unlocked!`)}
+                        </div>
+                      )}
+                      {mode === 'RANKED' && (
+                        <div className="flex items-center justify-between text-[11px] font-bold text-sky-200">
+                          <span>{tr('현재 등급', 'Current Rank')}</span>
+                          <span>
+                            {outcomeSummary.newRank === 0
+                              ? tr('전설의 눈히어로', 'Legend SNSHero')
+                              : isKo
+                                ? `${outcomeSummary.newRank}등급 · ★${outcomeSummary.newStars}`
+                                : `Rank ${outcomeSummary.newRank} · ★${outcomeSummary.newStars}`}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  ) : diag ? (
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
+                        alt="Kadan"
+                        className="h-10 w-10 shrink-0 rounded-xl border border-sky-300 object-cover object-top"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10.5px] font-black text-sky-300">
+                          🧭 {tr('카단의 핵심 패인', "Kadan's Key Tip")}
+                        </div>
+                        <p className="mt-0.5 text-xs font-bold leading-snug text-amber-50">
+                          {diag.reasonText}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Minimal First-Screen Actions (Max 2 Buttons) */}
+                <div className="relative z-10 flex w-full flex-col gap-2.5">
+                  {mode === 'TUTORIAL' ? (
+                    didWin && onStartJourneyEpisode && outcomeSummary?.nextEpisode ? (
+                      <button
+                        type="button"
+                        data-testid="gameover-primary-btn"
+                        onClick={() => {
+                          postGameFiredRef.current = true;
+                          hsAudio.playSfx('box_press');
+                          onStartJourneyEpisode(outcomeSummary.nextEpisode!, false);
+                        }}
+                        className="hs-arcane-btn hs-title hs-outline-sm hs-mario-spring min-h-[50px] w-full rounded-2xl px-4 py-3 text-base font-extrabold text-white sm:text-lg"
+                      >
+                        {isEp0Tutorial
+                          ? tr(`⚔ 제${outcomeSummary.nextEpisode}화 시작`, `⚔ Start Episode ${outcomeSummary.nextEpisode}`)
+                          : tr(`⚔ 다음 여정 (제${outcomeSummary.nextEpisode}화)`, `⚔ Next Episode (EP ${outcomeSummary.nextEpisode})`)}
+                        {autoPlay && !postGameAutoPaused
+                          ? ` · ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${isKo ? '초' : 's'}`
+                          : ' ▶'}
+                      </button>
+                    ) : !didWin ? (
+                      <button
+                        type="button"
+                        data-testid="gameover-primary-btn"
+                        onClick={() => {
+                          postGameFiredRef.current = true;
+                          triggerDefeatPackReinforcement();
+                        }}
+                        className="hs-arcane-btn hs-title hs-outline-sm hs-mario-spring flex min-h-[50px] w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-extrabold text-white sm:text-base"
+                      >
+                        {tr('🎁 카드팩 1개 개봉해 전력 강화', '🎁 Open 1 Pack to Power Up')}
+                        {autoPlay && !postGameAutoPaused
+                          ? ` (${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${isKo ? '초' : 's'})`
+                          : ' ▶'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        data-testid="gameover-primary-btn"
+                        onClick={() => {
+                          postGameFiredRef.current = true;
+                          hsAudio.playSfx('menu_select');
+                          hsAudio.playBgm('tavern_hub');
+                          onExitBattle();
+                        }}
+                        className="hs-arcane-btn hs-title hs-outline-sm hs-mario-spring min-h-[50px] w-full rounded-2xl px-4 py-3 text-base font-extrabold text-white"
+                      >
+                        {tr('엘윈마을 로비로 돌아가기', 'Return to Elwin Village')}
+                      </button>
+                    )
+                  ) : onRematchSameMode ? (
+                    <button
+                      type="button"
+                      data-testid="gameover-rematch-btn"
+                      onClick={() => {
+                        postGameFiredRef.current = true;
+                        hsAudio.playSfx('box_press');
+                        onRematchSameMode();
+                      }}
+                      className="hs-arcane-btn hs-title hs-outline-sm hs-mario-spring min-h-[50px] w-full rounded-2xl px-4 py-3 text-base font-extrabold text-white sm:text-lg"
+                    >
+                      {tr('⚔ 같은 덱으로 다시 도전', '⚔ Play Again (Same Deck)')}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      data-testid="gameover-primary-btn"
+                      onClick={() => {
+                        postGameFiredRef.current = true;
+                        hsAudio.playSfx('menu_select');
+                        hsAudio.playBgm('tavern_hub');
+                        onExitBattle();
+                      }}
+                      className="hs-arcane-btn hs-title hs-outline-sm hs-mario-spring min-h-[50px] w-full rounded-2xl px-4 py-3 text-base font-extrabold text-white"
+                    >
+                      {tr('엘윈마을로 돌아가기', 'Return to Elwin Village')}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    data-testid="gameover-next-step-btn"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click');
+                      setPostGameAutoPaused(true);
+                      setPostGameStep('NEXT_ACTIONS');
+                    }}
+                    className="hs-brass-btn hs-mario-spring flex min-h-[46px] w-full items-center justify-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-extrabold text-amber-100 sm:text-sm"
+                  >
+                    <span>
+                      {didWin
+                        ? tr('다음 메뉴 · 공유 / 인증 / 로비 →', 'More Options · Share / Card / Hub →')
+                        : tr('다음 메뉴 · 역상성 추천 / 상점 / 로비 →', 'More Options · Counter / Shop / Hub →')}
+                    </span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* Step 2: Secondary Branch Options Popup */
+              <div data-testid="gameover-next-popup" className="relative z-10 w-full space-y-3 text-left">
+                <div className="flex items-center justify-between gap-2 pr-10">
+                  <button
+                    type="button"
+                    data-testid="gameover-back-summary-btn"
+                    onClick={() => {
+                      hsAudio.playSfx('ui_click', 0.7);
+                      setPostGameStep('SUMMARY');
+                    }}
+                    className="hs-brass-btn flex min-h-[40px] items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-extrabold text-amber-100"
+                  >
+                    <span>←</span>
+                    <span>{tr('결과 요약', 'Summary')}</span>
+                  </button>
+                  <h3 className="hs-title text-base font-extrabold text-amber-200 sm:text-lg">
+                    {tr('다음 행동 선택', 'Next Options')}
+                  </h3>
+                </div>
+
+                {didWin ? (
+                  <div className="space-y-2.5">
                     {mvp && (
                       <div
                         data-testid="victory-mvp-card"
-                        className="hs-ocarina-dialog flex items-center justify-between gap-2.5 rounded-2xl px-3 py-2 text-left"
+                        className="hs-ocarina-dialog flex items-center justify-between gap-2.5 rounded-2xl p-3"
                       >
                         <div className="flex min-w-0 items-center gap-2.5">
                           <img
@@ -6796,44 +6795,42 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                             );
                             window.setTimeout(() => setChallengeCopiedMsg(null), 2800);
                           }}
-                          className="hs-zelda-c-btn shrink-0 rounded-xl px-2.5 py-2 text-[11px] font-extrabold"
+                          className="hs-zelda-c-btn min-h-[44px] shrink-0 rounded-xl px-3 py-2 text-xs font-extrabold"
                         >
                           🔗 {tr('챌린지 공유', 'Share Deck')}
                         </button>
                       </div>
                     )}
+
                     {challengeCopiedMsg && (
-                      <div className="rounded-xl border border-yellow-300 bg-amber-950/95 px-3 py-1.5 text-center text-[11px] font-extrabold text-yellow-200">
+                      <div className="rounded-xl border border-yellow-300 bg-amber-950/95 px-3 py-1.5 text-center text-xs font-extrabold text-yellow-200">
                         {challengeCopiedMsg}
                       </div>
                     )}
+
+                    <button
+                      type="button"
+                      data-testid="victory-certificate-btn"
+                      onClick={() => {
+                        hsAudio.playSfx('ui_click');
+                        downloadVictoryCertificatePng({
+                          isKo,
+                          playerName: matchState.player.heroNameKo,
+                          heroClass: matchState.player.heroClass,
+                          opponentName: matchState.opponent.heroNameKo,
+                          turnCount: matchState.turnNumber,
+                          episode: matchState.journeyMeta?.episode,
+                          goldEarned: outcomeSummary?.goldDelta || 0,
+                        });
+                      }}
+                      className="hs-zelda-c-btn flex min-h-[46px] w-full items-center justify-center rounded-xl px-4 text-xs font-extrabold sm:text-sm"
+                    >
+                      📸 {tr('1초 전적 인증 카드 이미지 저장 & 공유', 'Save & Share 1-Click Victory Card')}
+                    </button>
                   </div>
-                );
-              })()
-            ) : (
-              (() => {
-                const diag = diagnoseDefeatAndCounter(matchState, isKo);
-                return (
-                  <div
-                    data-testid="kadan-defeat-diagnosis"
-                    className="hs-ocarina-dialog relative z-10 mb-3 w-full space-y-2 rounded-2xl p-3 text-left"
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <img
-                        src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
-                        alt="Kadan"
-                        className="h-11 w-11 shrink-0 rounded-xl border border-sky-300 object-cover object-top"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[10.5px] font-black text-sky-300">
-                          🧭 {tr('카단의 1줄 패인 분석 & 역상성 처방', "Kadan's Defeat Diagnosis & Counter Tip")}
-                        </div>
-                        <p className="mt-0.5 text-xs font-bold leading-snug text-amber-50">
-                          {diag.reasonText}
-                        </p>
-                      </div>
-                    </div>
-                    {onRematchWithPreset && (
+                ) : (
+                  <div className="space-y-2.5">
+                    {diag && onRematchWithPreset && (
                       <button
                         type="button"
                         data-testid="defeat-counter-rematch-btn"
@@ -6842,132 +6839,50 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                           hsAudio.playSfx('mario_spring');
                           onRematchWithPreset(diag.presetId, diag.stance);
                         }}
-                        className="hs-zelda-b-btn flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-extrabold sm:text-sm"
+                        className="hs-zelda-b-btn flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-extrabold sm:text-sm"
                       >
                         <span>⚡</span>
                         <span>
                           {isKo
-                            ? `카단 추천: [${diag.presetLabel} + ${diag.stanceLabel}] 즉시 재도전`
-                            : `Kadan Counter: Retry with [${diag.presetLabel} + ${diag.stanceLabel}]`}
+                            ? `카단 추천 [${diag.presetLabel} + ${diag.stanceLabel}] 재도전`
+                            : `Counter Retry [${diag.presetLabel} + ${diag.stanceLabel}]`}
                         </span>
                       </button>
                     )}
-                  </div>
-                );
-              })()
-            )}
 
-            {/* Action Buttons: Journey Progression / Upgrade Loop vs Standard Return */}
-            {mode === 'TUTORIAL' ? (
-              matchState.winner === 'PLAYER' ? (
-                <div className="relative z-10 flex w-full flex-col gap-2">
-                  {onStartJourneyEpisode && outcomeSummary?.nextEpisode && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        postGameFiredRef.current = true;
-                        hsAudio.playSfx('box_press');
-                        onStartJourneyEpisode(outcomeSummary.nextEpisode!, false);
-                      }}
-                      className="hs-arcane-btn hs-title hs-outline-sm w-full rounded-2xl py-3 text-base font-extrabold text-white sm:text-lg"
-                    >
-                      {isEp0Tutorial
-                        ? tr(
-                            `⚔ 제${outcomeSummary.nextEpisode}화 본편 시작`,
-                            `⚔ Start Episode ${outcomeSummary.nextEpisode}`,
-                          )
-                        : isKo
-                          ? `⚔ 다음 여정 진행 (${
-                              outcomeSummary.nextReincarnation && outcomeSummary.nextReincarnation > 0
-                                ? `환생 ${outcomeSummary.nextReincarnation} · `
-                                : ''
-                            }제${outcomeSummary.nextEpisode}화)`
-                          : `⚔ Next Episode (${
-                              outcomeSummary.nextReincarnation && outcomeSummary.nextReincarnation > 0
-                                ? `Reinc. ${outcomeSummary.nextReincarnation} · `
-                                : ''
-                            }EP ${outcomeSummary.nextEpisode})`}
-                      {autoPlay && !postGameAutoPaused
-                        ? ` · ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${isKo ? '초' : 's'}`
-                        : ' ▶'}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    data-testid="victory-certificate-btn"
-                    onClick={() => {
-                      hsAudio.playSfx('ui_click');
-                      downloadVictoryCertificatePng({
-                        isKo,
-                        playerName: matchState.player.heroNameKo,
-                        heroClass: matchState.player.heroClass,
-                        opponentName: matchState.opponent.heroNameKo,
-                        turnCount: matchState.turnNumber,
-                        episode: matchState.journeyMeta?.episode,
-                        goldEarned: outcomeSummary?.goldDelta || 0,
-                      });
-                    }}
-                    className="hs-gold-btn w-full rounded-xl py-2 text-xs font-extrabold sm:text-sm"
-                  >
-                    📸 {tr('1초 전적 인증 카드 이미지 저장 & 공유', 'Save & Share 1-Click Victory Card')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      postGameFiredRef.current = true;
-                      hsAudio.playSfx('menu_select');
-                      hsAudio.playBgm('tavern_hub');
-                      onExitBattle();
-                    }}
-                    className="hs-brass-btn w-full rounded-xl py-2.5 text-xs font-extrabold text-amber-100 sm:text-sm"
-                  >
-                    {tr('엘윈마을 로비로 돌아가기', 'Return to Elwin Village Hub')}
-                  </button>
-                </div>
-              ) : (
-                <div className="relative z-10 flex w-full flex-col gap-2">
-                  <button
-                    type="button"
-                    data-testid="defeat-buy-open-pack-btn"
-                    onClick={() => {
-                      postGameFiredRef.current = true;
-                      triggerDefeatPackReinforcement();
-                    }}
-                    className="hs-arcane-btn hs-title hs-outline-sm flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-extrabold text-white shadow-[0_4px_16px_rgba(16,185,129,0.45)] sm:text-base"
-                  >
-                    <span>
-                      {profile.gold >= 100
-                        ? tr('🪙 골드로 카드팩 1개 구매 · 개봉하여 전력 강화 (-100G)',
-                            '🪙 Buy & Open 1 Card Pack to Power Up (-100G)',
-                          )
-                        : profile.packs > 0
-                          ? tr(`🎁 보유 카드팩 1개 개봉하여 전력 강화 (보유 ${profile.packs}팩)`,
-                              `🎁 Open 1 Owned Pack to Power Up (${profile.packs} left)`,
-                            )
-                          : tr('🎁 성소 구호 카드팩 1개 개봉하여 전력 강화',
-                              '🎁 Open Free Sanctuary Aid Pack to Power Up',
-                            )}
-                      {autoPlay && !postGameAutoPaused
-                        ? ` (${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${isKo ? '초' : 's'})`
-                        : ' ▶'}
-                    </span>
-                  </button>
-                  {onOpenShopFromBattle && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        postGameFiredRef.current = true;
-                        hsAudio.playSfx('ui_click');
-                        onOpenShopFromBattle();
-                      }}
-                      className="hs-gold-btn w-full rounded-xl py-2.5 text-xs font-extrabold"
-                    >
-                      🎁 {tr('보급소 1팩($1)·5팩($4) 개봉해 3배 각성 즉시 완성하기', 'Open 1-Pack ($1) / 5-Pack ($4) in Shop')}
-                    </button>
-                  )}
+                    {mode === 'TUTORIAL' && (
+                      <button
+                        type="button"
+                        data-testid="defeat-buy-open-pack-btn"
+                        onClick={() => {
+                          postGameFiredRef.current = true;
+                          triggerDefeatPackReinforcement();
+                        }}
+                        className="hs-zelda-a-btn flex min-h-[46px] w-full items-center justify-center rounded-xl px-4 text-xs font-extrabold sm:text-sm"
+                      >
+                        {profile.gold >= 100
+                          ? tr('🪙 골드(-100G)로 팩 1개 개봉 후 재도전', '🪙 Open 1 Pack (-100G) & Retry')
+                          : profile.packs > 0
+                            ? tr(`🎁 보유 팩(${profile.packs}) 1개 개봉 후 재도전`, `🎁 Open 1 Owned Pack (${profile.packs}) & Retry`)
+                            : tr('🎁 성소 지원팩 1개 개봉 후 재도전', '🎁 Open Free Aid Pack & Retry')}
+                      </button>
+                    )}
 
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {onStartJourneyEpisode && (
+                    {onOpenShopFromBattle && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          postGameFiredRef.current = true;
+                          hsAudio.playSfx('ui_click');
+                          onOpenShopFromBattle();
+                        }}
+                        className="hs-zelda-c-btn flex min-h-[46px] w-full items-center justify-center rounded-xl px-4 text-xs font-extrabold sm:text-sm"
+                      >
+                        🎁 {tr('보급소 상점 이동 (1팩/5팩 각성 보강)', 'Open Shop (1-Pack / 5-Pack Upgrade)')}
+                      </button>
+                    )}
+
+                    {mode === 'TUTORIAL' && onStartJourneyEpisode && (
                       <button
                         type="button"
                         onClick={() => {
@@ -6978,91 +6893,32 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                             true,
                           );
                         }}
-                        className="hs-brass-btn rounded-xl py-2 text-xs font-extrabold text-amber-100"
+                        className="hs-brass-btn flex min-h-[46px] w-full items-center justify-center rounded-xl px-4 text-xs font-extrabold text-amber-100 sm:text-sm"
                       >
                         {tr('⚔ 팩 개봉 없이 바로 재도전', '⚔ Retry Without Pack')}
                       </button>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        postGameFiredRef.current = true;
-                        hsAudio.playSfx('menu_select');
-                        hsAudio.playBgm('tavern_hub');
-                        onExitBattle();
-                      }}
-                      className="hs-brass-btn rounded-xl py-2 text-xs font-extrabold text-amber-100"
-                    >
-                      {tr('엘윈마을 로비로 돌아가기', 'Return to Elwin Village Hub')}
-                    </button>
                   </div>
-                </div>
-              )
-            ) : (
-              <div className="relative z-10 flex w-full flex-col gap-2">
-                <div
-                  data-testid="gameover-autoplay-reset-note"
-                  className="rounded-xl border border-stone-600/70 bg-black/50 px-3 py-1.5 text-[11px] font-extrabold text-amber-200/85"
-                >
-                  {tr('⚙ 전투 종료와 함께 자동플레이가 비활성화(OFF)되었습니다 · 다음 판에서 새로 활성화할 수 있습니다.',
-                    '⚙ Auto-Play turned OFF at match end · You can re-enable it next match.',
-                  )}
-                </div>
-                {onRematchSameMode && (
-                  <button
-                    type="button"
-                    data-testid="gameover-rematch-btn"
-                    onClick={() => {
-                      postGameFiredRef.current = true;
-                      hsAudio.playSfx('box_press');
-                      onRematchSameMode();
-                    }}
-                    className="hs-arcane-btn hs-title hs-outline-sm w-full rounded-2xl py-3 text-base font-extrabold text-white sm:text-lg"
-                  >
-                    {tr('⚔ 같은 덱으로 다음 판 시작', '⚔ Play Again (Same Deck)')}
-                  </button>
                 )}
-                {matchState.winner === 'PLAYER' && (
-                  <button
-                    type="button"
-                    data-testid="victory-certificate-btn"
-                    onClick={() => {
-                      hsAudio.playSfx('ui_click');
-                      downloadVictoryCertificatePng({
-                        isKo,
-                        playerName: matchState.player.heroNameKo,
-                        heroClass: matchState.player.heroClass,
-                        opponentName: matchState.opponent.heroNameKo,
-                        turnCount: matchState.turnNumber,
-                        goldEarned: outcomeSummary?.goldDelta || 0,
-                      });
-                    }}
-                    className="hs-gold-btn w-full rounded-xl py-2 text-xs font-extrabold sm:text-sm"
-                  >
-                    📸 {tr('1초 전적 인증 카드 이미지 저장 & 공유', 'Save & Share 1-Click Victory Card')}
-                  </button>
-                )}
+
                 <button
                   type="button"
+                  data-testid="gameover-hub-btn"
                   onClick={() => {
                     postGameFiredRef.current = true;
                     hsAudio.playSfx('menu_select');
                     hsAudio.playBgm('tavern_hub');
                     onExitBattle();
                   }}
-                  className={`hs-title hs-outline-sm w-full rounded-2xl py-2.5 text-sm font-extrabold sm:text-base ${
-                    onRematchSameMode
-                      ? 'hs-brass-btn text-amber-100'
-                      : 'hs-arcane-btn py-3 text-lg text-white'
-                  }`}
+                  className="hs-arcane-btn hs-title hs-outline-sm flex min-h-[48px] w-full items-center justify-center rounded-2xl text-sm font-extrabold text-white sm:text-base"
                 >
-                  {tr('엘윈마을로 돌아가기', 'Return to Elwin Village')}
+                  {tr('엘윈마을 로비로 돌아가기', 'Return to Elwin Village Hub')}
                 </button>
               </div>
             )}
           </div>
-          )}
+            );
+          })()}
         </div>
       )}
 

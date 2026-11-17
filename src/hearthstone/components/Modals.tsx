@@ -2188,6 +2188,23 @@ export const GameOptionsModal: React.FC<{
 
         {/* Scrollable Body (`p-4` = 16px Padding) */}
         <div className="relative z-10 flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+          {/* Top-Most Priority Action During Battle: Concede Match */}
+          {inBattle && onConcede && (
+            <button
+              type="button"
+              data-testid="options-concede-btn"
+              onClick={() => {
+                hsAudio.playSfx('menu_press');
+                onClose();
+                onConcede();
+              }}
+              className="hs-mario-spring flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-rose-400/80 bg-gradient-to-b from-rose-700 to-rose-950 text-sm font-extrabold text-rose-50 shadow-[0_10px_24px_rgba(190,18,60,0.45)] transition hover:brightness-110"
+            >
+              <Flag className="h-4 w-4 text-rose-200" strokeWidth={1.75} />
+              <span>{tr('대결 항복하기', 'Concede Match')}</span>
+            </button>
+          )}
+
           {/* Tier 1: Top 2x2 Quick Action Grid (Sanctuary Glass & Brass Style) */}
           <div
             data-testid="options-quick-grid"
@@ -2836,23 +2853,8 @@ export const GameOptionsModal: React.FC<{
           )}
         </div>
 
-        {/* Bottom Separated Action Zone (Danger Concede Action Isolated at Footer) */}
-        <div className="relative z-10 space-y-2.5 border-t border-amber-500/35 bg-black/35 p-4 sm:px-5">
-          {inBattle && onConcede && (
-            <button
-              type="button"
-              data-testid="options-concede-btn"
-              onClick={() => {
-                hsAudio.playSfx('menu_press');
-                onClose();
-                onConcede();
-              }}
-              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-rose-400/75 bg-gradient-to-b from-rose-700 to-rose-950 text-sm font-extrabold text-rose-50 shadow-lg transition hover:brightness-110"
-            >
-              <Flag className="h-4 w-4 text-rose-200" strokeWidth={1.75} />
-              <span>{tr('대결 항복하기', 'Concede Match')}</span>
-            </button>
-          )}
+        {/* Bottom Return Action */}
+        <div className="relative z-10 border-t border-amber-500/35 bg-black/35 p-4 sm:px-5">
           <button
             type="button"
             onClick={() => {
