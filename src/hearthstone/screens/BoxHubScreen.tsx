@@ -461,7 +461,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 className={`hs-ivory-plate hs-mario-spring group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
               >
                 <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#78350f] group-hover:text-[#b45309] sm:text-lg">
-                  🎲 {tr('보가트의 도박장', "Bogart's Gambling Hall")}
+                  🎲 {tr('보가트 도박장', "Bogart's Gambling Hall")}
                 </span>
                 <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
                   {tr('100G~5,000G 판돈 · 100% 동일 미러덱', 'Wager 100–5,000G · 100% Mirror Deck')}

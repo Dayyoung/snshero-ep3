@@ -49,7 +49,7 @@ export const SNS_CARD_BACK_THEMES: Record<
     glowColor: 'rgba(217, 119, 6, 0.55)',
   },
   ocarina_crest: {
-    name: '시간의 오카리나 성소',
+    name: '엘윈 성소의 문장',
     subtitle: '사파이어 문장 · 프레스티지 골드 뒷면',
     imageUrl: '/hs-assets/cardbacks/snshero-silver.png',
     glowColor: 'rgba(56, 189, 248, 0.72)',
@@ -73,7 +73,7 @@ export function getSnsCardBackLabel(id: SnsCardBackId): { name: string; subtitle
     return { name: 'SNSHero Bronze', subtitle: 'Official Bronze Classic Card Back' };
   }
   if (id === 'ocarina_crest') {
-    return { name: 'Sanctuary Ocarina Crest', subtitle: 'Sapphire Royal Prestige Card Back' };
+    return { name: 'Elwin Sanctuary Crest', subtitle: 'Sapphire Royal Prestige Card Back' };
   }
   if (id === 'bogart_vip') {
     return { name: 'Bogart VIP High-Roller', subtitle: 'Golden Dice Champion Card Back' };

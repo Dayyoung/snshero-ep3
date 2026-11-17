@@ -933,7 +933,7 @@ export const TavernShopModal: React.FC<{
             <div className="hs-ocarina-dialog flex flex-wrap items-center justify-between gap-2 rounded-2xl px-4 py-3 text-xs">
               <div>
                 <div className="font-extrabold text-yellow-300 sm:text-sm">
-                  🪙 {tr('보가트의 도박장 · 스토리 · 랭킹 골드 순환 교환소', 'Gold Sink Prestige Exchange (100% Free In-Game Gold)')}
+                  🪙 {tr('보가트 도박장 · 스토리 · 랭킹 골드 순환 교환소', 'Gold Sink Prestige Exchange (100% Free In-Game Gold)')}
                 </div>
                 <div className="mt-0.5 text-[11px] font-semibold text-sky-200/90">
                   {tr(

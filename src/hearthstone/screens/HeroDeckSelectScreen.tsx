@@ -51,15 +51,15 @@ const ONLINE_CHALLENGER_POOL: {
   heroClass: HeroClass;
   rating: number;
 }[] = [
-  { nickname: '별빛성기사#4821', titleKo: '시간을 깨우는 연주자', titleEn: 'Conductor of Time', badgeIcon: '🎵', tierLabelKo: '골드 II', tierLabelEn: 'Gold II', heroClass: 'PALADIN', rating: 1640 },
+  { nickname: '별빛성기사#4821', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '🎵', tierLabelKo: '골드 II', tierLabelEn: 'Gold II', heroClass: 'PALADIN', rating: 1640 },
   { nickname: 'FrostMage_KR', titleKo: '엘윈 대평원의 전설', titleEn: 'Legend of Elwin Plain', badgeIcon: '👑', tierLabelKo: '다이아 IV', tierLabelEn: 'Diamond IV', heroClass: 'MAGE', rating: 1890 },
-  { nickname: '붉은성채타짜#777', titleKo: '보가트 도박장의 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 I', tierLabelEn: 'Platinum I', heroClass: 'WARRIOR', rating: 1750 },
+  { nickname: '붉은성채타짜#777', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 I', tierLabelEn: 'Platinum I', heroClass: 'WARRIOR', rating: 1750 },
   { nickname: 'ShadowBlade99', titleKo: '심연 정복자', titleEn: 'Abyss Conqueror', badgeIcon: '🛡️', tierLabelKo: '골드 I', tierLabelEn: 'Gold I', heroClass: 'ROGUE', rating: 1685 },
   { nickname: '바람섬명궁#305', titleKo: '엘윈의 모험가', titleEn: 'Adventurer of Elwin', badgeIcon: '❄️', tierLabelKo: '실버 I', tierLabelEn: 'Silver I', heroClass: 'HUNTER', rating: 1520 },
-  { nickname: 'OcarinaSage', titleKo: '3배 각성의 지배자', titleEn: 'Sovereign of 3x Awakening', badgeIcon: '🎵', tierLabelKo: '다이아 II', tierLabelEn: 'Diamond II', heroClass: 'PRIEST', rating: 1940 },
+  { nickname: 'ElwinSage', titleKo: '3배 각성의 지배자', titleEn: 'Sovereign of 3x Awakening', badgeIcon: '🎵', tierLabelKo: '다이아 II', tierLabelEn: 'Diamond II', heroClass: 'PRIEST', rating: 1940 },
   { nickname: 'DeepforgeKing', titleKo: '성검과 성소 방패', titleEn: 'Sacred Sword & Shield', badgeIcon: '🛡️', tierLabelKo: '플래티넘 III', tierLabelEn: 'Platinum III', heroClass: 'WARLOCK', rating: 1710 },
-  { nickname: '늑대왕의후예#812', titleKo: '시간을 깨우는 연주자', titleEn: 'Conductor of Time', badgeIcon: '👑', tierLabelKo: '골드 III', tierLabelEn: 'Gold III', heroClass: 'DRUID', rating: 1605 },
-  { nickname: 'StormTotem_EN', titleKo: '보가트 도박장의 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 II', tierLabelEn: 'Platinum II', heroClass: 'SHAMAN', rating: 1735 },
+  { nickname: '늑대왕의후예#812', titleKo: '엘윈 성소의 수호자', titleEn: 'Guardian of Elwin', badgeIcon: '👑', tierLabelKo: '골드 III', tierLabelEn: 'Gold III', heroClass: 'DRUID', rating: 1605 },
+  { nickname: 'StormTotem_EN', titleKo: '보가트 도박장 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 II', tierLabelEn: 'Platinum II', heroClass: 'SHAMAN', rating: 1735 },
 ];
 
 export function rollOnlineChallenger(preferredClass?: HeroClass, isBogart = false): {
@@ -327,7 +327,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 }`}
               >
                 <span>🎲</span>
-                <span>{tr('보가트의 도박장', "Bogart's Hall")}</span>
+                <span>{tr('보가트 도박장', "Bogart's Hall")}</span>
               </button>
               <button
                 type="button"
@@ -623,7 +623,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 <div className="flex items-center gap-1.5">
                   <span className="text-base">🎲</span>
                   <span className="hs-title text-sm font-extrabold text-yellow-300 sm:text-base">
-                    {tr('보가트의 도박장 · 판돈 선택', "Bogart's Hall · Select Wager")}
+                    {tr('보가트 도박장 · 판돈 선택', "Bogart's Hall · Select Wager")}
                   </span>
                 </div>
                 <span className="flex items-center gap-1 rounded-full border border-yellow-300/60 bg-black/55 px-2.5 py-0.5 text-xs font-extrabold text-yellow-200">

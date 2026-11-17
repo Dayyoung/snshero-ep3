@@ -4750,7 +4750,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           >
             {mode === 'BOGART_GAMBLE' ? (
               <span className="text-yellow-300">
-                🎲 {tr(`보가트의 도박장 · 판돈 ${(bogartStakeGold || 100).toLocaleString()}G (승리 +${((bogartStakeGold || 100) * 2).toLocaleString()}G) · ⚖ 100% 미러덱`, `Bogart's Hall · Stake ${(bogartStakeGold || 100).toLocaleString()}G (Win +${((bogartStakeGold || 100) * 2).toLocaleString()}G) · ⚖ 100% Mirror`)}
+                🎲 {tr(`보가트 도박장 · 판돈 ${(bogartStakeGold || 100).toLocaleString()}G (승리 +${((bogartStakeGold || 100) * 2).toLocaleString()}G) · ⚖ 100% 미러덱`, `Bogart's Hall · Stake ${(bogartStakeGold || 100).toLocaleString()}G (Win +${((bogartStakeGold || 100) * 2).toLocaleString()}G) · ⚖ 100% Mirror`)}
               </span>
             ) : (
               <span className="text-sky-200">

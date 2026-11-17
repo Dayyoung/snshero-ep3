@@ -2,6 +2,13 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 14:18 KST] [라이센스 명칭(`시간의 오카리나` → `엘윈 성소의 문장`) 교체 및 `보가트 도박장` 표기 일원화 완료 (푸시 대기)]
+- **요청**: 타사 라이센스 우려가 있는 `시간의 오카리나 성소` 관련 표기를 독자 IP 표현으로 변경하고, `보가트의 도박장` / `보가트 도박장의` 표기를 **`보가트 도박장`**으로 축약·통일
+- **수정 내용**:
+  - `시간의 오카리나(성소/문장)` / `Ocarina` → **`엘윈 성소의 문장` / `엘윈 성소 사파이어 문장` / `엘윈 성소의 수호자` (`Elwin Sanctuary Crest` / `Elwin Sanctuary Back` / `Guardian of Elwin` / `ElwinSage`)** 로 전수 치환([`SnsHeroArtKit.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SnsHeroArtKit.tsx), [`storage.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/storage.ts), [`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx), [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx)). (기존 로컬스토리지 `ocarina_crest` 키 호환성 유지)
+  - `보가트의 도박장` / `보가트 도박장의 승부사` → **`보가트 도박장` / `보가트 도박장 승부사`** 로 일괄 축약 통일([`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx), [`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx), [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx), [`Modals.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/Modals.tsx), [`storage.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/storage.ts), [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx)).
+- **검증 및 저장 상태**: `npx tsc --noEmit && npm run build` 통과 및 Playwright로 `/`, `/game.html` 로비·도박장·상점·컬렉션 UI 문자열 검증 후 로컬 커밋(`git push` 보류) 및 구글 폼 보고 완료.
+
 ## [2026-11-17 13:54 KST] [카단·실리아 채팅창 외부 클릭 닫기 및 로컬 LLM·마이크 음성 질문 기능 구현 (푸시 대기)]
 - **요청**: ① 카단 / 실리아 채팅창 외부 영역 클릭 시 자동 닫힘 적용, ② 로컬 LLM 구동 가능 브라우저(`LanguageModel` / `window.ai.languageModel` · WebGPU)에서 `명령` 버튼 옆 마이크 버튼(`🎤`) 표시 및 다양한 SNSHero 질문 응답 지원
 - **구현 내용**:

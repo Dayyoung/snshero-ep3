@@ -1699,7 +1699,7 @@ export const PromoApp: React.FC = () => {
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-amber-100/80 sm:text-base">
               {tr(
-                '40부작 성우 풀보이스 스토리모드, 실시간 도전자가 매칭되어 공식 전적에 단독 기록되는 온라인형 랭킹대전, 그리고 양측 100% 동일 미러덱으로 승부하는 보가트의 도박장까지 완벽한 재미를 경험하세요!',
+                '40부작 성우 풀보이스 스토리모드, 실시간 도전자가 매칭되어 공식 전적에 단독 기록되는 온라인형 랭킹대전, 그리고 양측 100% 동일 미러덱으로 승부하는 보가트 도박장까지 완벽한 재미를 경험하세요!',
                 "Experience the 40-Episode voiced Story Mode, live-challenger Ranked Arena (sole Official Record), and Bogart's 100% Fair Mirror-Deck Gambling Hall!",
               )}
             </p>
@@ -1814,7 +1814,7 @@ export const PromoApp: React.FC = () => {
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
                   <img
                     src="/hs-assets/screenshots/ingame_story_battle.png?v=20261116"
-                    alt={tr('보가트의 도박장', "Bogart's Gambling Hall")}
+                    alt={tr('보가트 도박장', "Bogart's Gambling Hall")}
                     loading="lazy"
                     decoding="async"
                     className="aspect-video w-full object-cover"
@@ -1826,7 +1826,7 @@ export const PromoApp: React.FC = () => {
                   {tr('100G~5,000G 골드 베팅 · 양측 100% 동일 30장 미러덱', 'Wager 100G–5,000G · 100% Identical 30-Card Mirror Deck')}
                 </div>
                 <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  🎲 {tr('보가트의 도박장 (미러덱 판돈전)', "Bogart's Gambling Hall (Mirror Stakes)")}
+                  🎲 {tr('보가트 도박장 (미러덱 판돈전)', "Bogart's Gambling Hall (Mirror Stakes)")}
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
                   {tr(
@@ -1850,7 +1850,7 @@ export const PromoApp: React.FC = () => {
                     href="/game?mode=gamble&utm_source=promo_mode_gamble"
                     className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
-                    <span>🎲 {tr('보가트의 도박장 바로 입장', "Enter Bogart's Hall")}</span>
+                    <span>🎲 {tr('보가트 도박장 바로 입장', "Enter Bogart's Hall")}</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
@@ -1877,7 +1877,7 @@ export const PromoApp: React.FC = () => {
               <span>BOGART&apos;S HALL &amp; GOLD PRESTIGE COLLECTION</span>
             </div>
             <h2 className="promo-outline mt-2 text-3xl font-black text-white sm:text-5xl">
-              {tr('보가트의 도박장 & 황금 주화 컬렉션', "Bogart's Hall & Gold Prestige Economy")}
+              {tr('보가트 도박장 & 황금 주화 컬렉션', "Bogart's Hall & Gold Prestige Economy")}
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-sky-100/90 sm:text-base">
               {tr(
@@ -1925,7 +1925,7 @@ export const PromoApp: React.FC = () => {
                 {
                   icon: '🛡️',
                   title: tr('프로필 뱃지', 'Profile Badges'),
-                  desc: tr('시간의 오카리나 문장 · 보가트 황금 주사위 · 성검 방패 · 대평원 왕관', 'Ocarina Crest, Golden Dice, Sacred Shield & Plain Crown'),
+                  desc: tr('엘윈 성소 사파이어 문장 · 보가트 황금 주사위 · 성검 방패 · 대평원 왕관', 'Elwin Sanctuary Crest, Golden Dice, Sacred Shield & Plain Crown'),
                   price: '300G ~ 2,500G',
                 },
                 {
@@ -1937,13 +1937,13 @@ export const PromoApp: React.FC = () => {
                 {
                   icon: '🎴',
                   title: tr('카드 뒷면 스킨', 'Card Back Skins'),
-                  desc: tr('시간의 성소 사파이어 스킨 · 보가트 VIP 하이롤러 루비·골드 스킨', 'Ocarina Sanctuary & Bogart VIP High-Roller Card Backs'),
+                  desc: tr('엘윈 성소 사파이어 스킨 · 보가트 VIP 하이롤러 루비·골드 스킨', 'Elwin Sanctuary & Bogart VIP High-Roller Card Backs'),
                   price: '800G ~ 1,800G',
                 },
                 {
                   icon: '👑',
                   title: tr('캐릭터 호칭', 'Character Titles'),
-                  desc: tr('〈시간을 깨우는 연주자〉 · 〈보가트 도박장의 승부사〉 · 〈엘윈 대평원의 전설〉', '<Conductor of Time>, <Bogart High-Roller> & <Legend of Elwin>'),
+                  desc: tr('〈엘윈 성소의 수호자〉 · 〈보가트 도박장 승부사〉 · 〈엘윈 대평원의 전설〉', '<Guardian of Elwin>, <Bogart High-Roller> & <Legend of Elwin>'),
                   price: '400G ~ 3,500G',
                 },
               ].map((item) => (
@@ -1973,7 +1973,7 @@ export const PromoApp: React.FC = () => {
                 data-testid="promo-gamble-cta"
                 className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-8 py-3 text-sm font-extrabold sm:text-base"
               >
-                <span>🎲 {tr('보가트의 도박장 미러덱 승부 시작하기', "Play Bogart's Mirror-Deck Duel Now")}</span>
+                <span>🎲 {tr('보가트 도박장 미러덱 승부 시작하기', "Play Bogart's Mirror-Deck Duel Now")}</span>
                 <ChevronRight className="h-4 w-4" />
               </a>
               <a
