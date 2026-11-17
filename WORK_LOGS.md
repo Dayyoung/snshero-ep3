@@ -2,6 +2,24 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 10:48 KST] [영문판 실리아 필살기 발동 시 일부 한글 노출 수정 완료 (푸시 대기)]
+- **요청**: 영문판에서 실리아가 스킬(바람 결계 · 녹풍 참격 · 생명의 미풍)을 사용할 때 일부 한글이 노출되는 현상 수정
+- **원인 분석**:
+  1. `src/hearthstone/engine/GameEngine.ts`: `createMinionInstance` 및 `equipWeapon`이 `def.name`(한국어 원문)을 그대로 저장하고, `useSiliaSkill`이 VFX 배지(`🛡 ${m.name} 보호막/Shield!`) 및 전투 로그 상세(`targetNames`)에서 `m.name`을 직접 참조함.
+  2. `src/hearthstone/screens/BattleScreen.tsx`: `SiliaUltimateWidget`의 `friendlyNames` / `enemyNames` prop으로 `m.name`을 그대로 전달해 영문판 실리아 말풍선에 한글 하수인명이 출력됨.
+  3. `src/hearthstone/components/SiliaUltimateWidget.tsx`: `formatTargetSummary`에서 3기 이상 대상 요약 시 영문 분기 없이 `'... 외 N'` 한글 문자열이 하드코딩됨.
+  4. `src/hearthstone/vfx/BoardVfxCanvas.tsx`: `SILIA_WIND_DEFENSE` / `SILIA_WIND_ATTACK` 기본 폴백 라벨이 한국어로 고정되어 있었음.
+- **수정 내용**:
+  - `src/hearthstone/engine/GameEngine.ts`: `createMinionInstance` · `equipWeapon`에서 `getCardName(def)` 적용 및 `useSiliaSkill` 대상명 조회에 `cardDispName(m.cardId, m.name)` 적용.
+  - `src/hearthstone/screens/BattleScreen.tsx`: `SiliaUltimateWidget`의 `friendlyNames` / `enemyNames`를 `getCardName(def, lang)`으로 현지화 전달.
+  - `src/hearthstone/components/SiliaUltimateWidget.tsx`: `formatTargetSummary` 3기 이상 영문 요약(`+${names.length - 2} more`) 분기 추가.
+  - `src/hearthstone/vfx/BoardVfxCanvas.tsx`: 실리아 VFX 폴백 배너/배지 라벨 `isKoreanLanguage()` 한·영 분기 적용.
+- **검증 결과**:
+  - `npx tsc --noEmit` (수정 4개 파일 오류 0건) 및 `npm run build` 성공.
+  - Playwright 영문 스토리 모드(`/game.html?lang=en`) 실전 검증: 메뉴 · 상반신 컷신 · VFX 배너 · 전장 하수인 타겟 말풍선(`🛡 Wind Barrier! Shielded Frost-Tusk Wild Boar!`) · 전투 기록 툴팁(`Granted Divine Shield to 1 friendly minion(s): Frost-Tusk Wild Boar`) 모두 한글 노출 0건 및 `PAGE_ERRORS: []` 확인 완료.
+- **구글 폼 보고**: `submit_report.py` 제출 완료.
+
+
 ## [2026-11-17 10:45 KST] [영문 버전 전용 How to Play 스크린샷 6종 분리 적용 및 AGENTS.md 한·영/다국어 원칙 명시]
 - **요청**: 영문 버전에서는 영문 UI 스크린샷이 표시되도록 분기하고, `AGENTS.md`에 영문 버전 고려사항과 한·영/다국어 언어팩 작업 지침을 필수로 명시
 - **수정 내역**:

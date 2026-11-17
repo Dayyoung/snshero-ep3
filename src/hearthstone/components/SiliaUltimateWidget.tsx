@@ -411,7 +411,10 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
 
   const formatTargetSummary = (names: string[], count: number): string => {
     if (names.length > 0) {
-      return names.length <= 2 ? names.join(', ') : `${names.slice(0, 2).join(', ')} 외 ${names.length - 2}`;
+      if (names.length <= 2) return names.join(', ');
+      return isKo
+        ? `${names.slice(0, 2).join(', ')} 외 ${names.length - 2}`
+        : `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
     }
     return isKo ? `${count}체` : `${count} unit(s)`;
   };

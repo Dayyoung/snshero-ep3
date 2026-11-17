@@ -6805,8 +6805,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         usedThisTurn={Boolean(matchState.siliaUsedThisTurn)}
         friendlyBoardCount={matchState.player.board.length}
         enemyBoardCount={matchState.opponent.board.length}
-        friendlyNames={matchState.player.board.map((m) => m.name)}
-        enemyNames={matchState.opponent.board.map((m) => m.name)}
+        friendlyNames={matchState.player.board.map((m) => {
+          const def = cardDb.getCard(m.cardId);
+          return def ? getCardName(def, lang) : m.name;
+        })}
+        enemyNames={matchState.opponent.board.map((m) => {
+          const def = cardDb.getCard(m.cardId);
+          return def ? getCardName(def, lang) : m.name;
+        })}
         onInteractionPauseChange={setSiliaAutoPaused}
         onCastSkill={(skillKind: SiliaSkillKind) => {
           // Snapshot live stage coordinates of all entities BEFORE state mutation

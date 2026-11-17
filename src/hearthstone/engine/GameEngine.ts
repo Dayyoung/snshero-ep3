@@ -547,7 +547,7 @@ export function createEngine(rawState: BattleMatchState) {
     p.weapon = {
       uid: nextUid('wpn'),
       cardId: def.id,
-      name: def.name,
+      name: getCardName(def),
       baseAttack: rawAtk,
       attack: effectiveAtk,
       durability: effectiveDur,
@@ -597,7 +597,7 @@ export function createEngine(rawState: BattleMatchState) {
     return {
       uid: nextUid('min'),
       cardId: def.id,
-      name: def.name,
+      name: getCardName(def),
       owner: side,
       playOrder: state.playOrderSeq,
       baseAttack: rawAtk,
@@ -2449,7 +2449,7 @@ export function createEngine(rawState: BattleMatchState) {
 
     if (skillKind === 'DEFENSE') {
       const friendlyTargets = [...state.player.board];
-      const targetNames = friendlyTargets.map((m) => m.name);
+      const targetNames = friendlyTargets.map((m) => cardDispName(m.cardId, m.name));
       pushVfx(
         'SILIA_WIND_DEFENSE',
         'PLAYER_HERO',
@@ -2465,12 +2465,13 @@ export function createEngine(rawState: BattleMatchState) {
       );
       for (const m of friendlyTargets) {
         m.divineShield = true;
+        const mName = cardDispName(m.cardId, m.name);
         pushVfx(
           'SILIA_WIND_DEFENSE',
           m.uid,
           'SILIA_WIDGET',
           1,
-          ko ? `🛡 ${m.name} 보호막!` : `🛡 ${m.name} Shield!`,
+          ko ? `🛡 ${mName} 보호막!` : `🛡 ${mName} Shield!`,
         );
       }
       pushHistory({
@@ -2489,7 +2490,7 @@ export function createEngine(rawState: BattleMatchState) {
       });
     } else if (skillKind === 'ATTACK') {
       const enemyTargets = [...state.opponent.board];
-      const targetNames = enemyTargets.map((em) => em.name);
+      const targetNames = enemyTargets.map((em) => cardDispName(em.cardId, em.name));
       pushVfx(
         'SILIA_WIND_ATTACK',
         'OPPONENT_HERO',
