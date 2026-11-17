@@ -572,7 +572,9 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               className={`hs-brass-btn relative flex min-h-[48px] items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-amber-100 sm:gap-2.5 sm:px-3 sm:py-2 ${lockedBtnStyle}`}
             >
               {(() => {
-                const claimableQ = quests.filter((q) => q.completed && !q.bonusClaimed).length;
+                const claimableQ = quests.filter(
+                  (q) => (q.completed || q.progress >= q.goal) && !q.bonusClaimed,
+                ).length;
                 const badgeNum = claimableQ > 0 ? claimableQ : incompleteQuestsCount;
                 return badgeNum > 0 ? (
                   <span

@@ -449,6 +449,7 @@ class HearthstoneStorage {
               ...fq,
               progress: Math.min(fq.goal, old.progress || 0),
               completed: Boolean(old.completed),
+              bonusClaimed: Boolean(old.bonusClaimed),
             }
           : fq;
       });
@@ -1282,21 +1283,45 @@ class HearthstoneStorage {
   }
 
   /**
+   * Claim the completion bonus (+20G mastery reward, plus base rewardGold if not yet marked completed)
+   * for a single completed Daily Quest when the player clicks the quest card.
+   */
+  claimCompletedQuest(questId: string): { claimed: boolean; goldGranted: number } {
+    const quests = this.getQuests();
+    const target = quests.find((q) => q.id === questId);
+    if (!target || (!target.completed && target.progress < target.goal) || target.bonusClaimed) {
+      return { claimed: false, goldGranted: 0 };
+    }
+    const baseUnpaid = !target.completed ? target.rewardGold : 0;
+    target.completed = true;
+    target.bonusClaimed = true;
+    const goldGranted = baseUnpaid + 20;
+    this.saveQuests(quests);
+    const p = this.getProfile();
+    p.gold += goldGranted;
+    this.saveProfile(p);
+    return { claimed: true, goldGranted };
+  }
+
+  /**
    * 1-Click "Claim All" bonus for completed Daily Quests (+20G mastery chest per quest).
    */
   claimAllCompletedQuests(): { claimedCount: number; goldGranted: number } {
     const quests = this.getQuests();
     let claimedCount = 0;
+    let goldGranted = 0;
     for (const q of quests) {
-      if (q.completed && !q.bonusClaimed) {
+      if ((q.completed || q.progress >= q.goal) && !q.bonusClaimed) {
+        const baseUnpaid = !q.completed ? q.rewardGold : 0;
+        q.completed = true;
         q.bonusClaimed = true;
         claimedCount += 1;
+        goldGranted += baseUnpaid + 20;
       }
     }
     if (claimedCount <= 0) {
       return { claimedCount: 0, goldGranted: 0 };
     }
-    const goldGranted = claimedCount * 20;
     this.saveQuests(quests);
     const p = this.getProfile();
     p.gold += goldGranted;

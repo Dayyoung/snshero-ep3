@@ -2,6 +2,17 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 10:34 KST] [성공한 일일 퀘스트(의뢰) 개별 카드 클릭 보상 수령 불가 결함 수정]
+- **요청**: 성공한 퀘스트 카드를 클릭해도 보상이 수령되지 않는 버그 수정
+- **원인**: `Modals.tsx`의 `QuestLogModal`에서 완료된 의뢰 카드가 클릭 이벤트 없는 일반 `<div>`로 렌더링되고 `storage.ts`에 개별 의뢰 보상 수령 메서드가 부재했으며, 수령 가능 의뢰가 있어도 아코디언이 기본 접힘(`'NONE'`) 상태였음.
+- **수정 내역**:
+  - `src/hearthstone/storage.ts`: `claimCompletedQuest(questId)` 신규 구현, `claimAllCompletedQuests()` 통합 및 마이그레이션 시 `bonusClaimed` 보존.
+  - `src/hearthstone/components/Modals.tsx` (`QuestLogModal`): 수령 가능 의뢰(`!bonusClaimed`)가 있으면 `'QUESTS'` 패널 자동 오픈, 완료된 의뢰 카드를 클릭 가능한 `<button>`(`data-testid="quest-card-*"`)으로 전환해 카드 직접 클릭 시 `+20G` 추가 보상(미지급 기본 골드 포함) 즉시 수령 및 배너/사운드 피드백 제공, 이미 수령한 의뢰 클릭 시 안내 배너 표시.
+  - `src/hearthstone/screens/BoxHubScreen.tsx`: 허브 의뢰 배지 수령 가능 조건을 `(q.completed || q.progress >= q.goal) && !q.bonusClaimed`로 통일.
+- **검증 및 저장소 상태**:
+  - `npx tsc --noEmit && npm run build` 통과 및 Playwright E2E(`game.html`)에서 완료 퀘스트 직접 클릭 수령(`250G → 270G`), 중복 클릭 방지, 일괄 수령(`270G → 290G`) 및 0에러 확인 완료.
+  - 정책에 따라 로컬 `git commit`만 수행(`git push` 보류).
+
 ## [2026-11-17 10:27 KST] [`/checkAll` 3대 문서 재점검 및 `MKT-052` 역방향 로어 브릿지 구현 완료 (푸시 대기)]
 - **요청**: `/checkAll` 실행으로 이슈문서 · 개발문서 · 마케팅문서 3종 일괄 재점검
 - **시트 현황 확인**:

@@ -164,7 +164,12 @@ export const QuestLogModal: React.FC<{
     onClose();
   });
 
-  const [openSection, setOpenSection] = useState<'NONE' | 'REWARDS' | 'QUESTS'>('NONE');
+  const [openSection, setOpenSection] = useState<'NONE' | 'REWARDS' | 'QUESTS'>(() => {
+    const curQuests = hsStorage.getQuests();
+    return curQuests.some((q) => (q.completed || q.progress >= q.goal) && !q.bonusClaimed)
+      ? 'QUESTS'
+      : 'NONE';
+  });
   const [claimBanner, setClaimBanner] = useState<string | null>(null);
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -178,8 +183,10 @@ export const QuestLogModal: React.FC<{
   const standing = computeOverallStanding(profile);
   const rankTitle = getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang) || tr('엘윈 마을 수습생', 'Elwin Apprentice');
   const starsNeeded = getStarsNeededForRank(profile.rank);
-  const completedQuestsCount = quests.filter((q) => q.completed).length;
-  const claimableBonusCount = quests.filter((q) => q.completed && !q.bonusClaimed).length;
+  const completedQuestsCount = quests.filter((q) => q.completed || q.progress >= q.goal).length;
+  const claimableBonusCount = quests.filter(
+    (q) => (q.completed || q.progress >= q.goal) && !q.bonusClaimed,
+  ).length;
 
   return (
     <div
@@ -483,16 +490,85 @@ export const QuestLogModal: React.FC<{
             )}
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {quests.map((q) => {
+                const isCleared = q.completed || q.progress >= q.goal;
+                const isClaimable = isCleared && !q.bonusClaimed;
                 const pct = Math.min(100, Math.round((q.progress / q.goal) * 100));
                 const qText = getLocalizedQuestText(q, isKo);
+                const handleQuestClick = () => {
+                  if (isClaimable) {
+                    const res = hsStorage.claimCompletedQuest(q.id);
+                    if (res.claimed) {
+                      hsAudio.playSfx('purchase');
+                      onProfileChanged();
+                      setClaimBanner(
+                        tr(
+                          `🎁 [${qText.title}] 성공 보상 수령 완료 (+${res.goldGranted}G)!`,
+                          `🎁 Claimed [${qText.title}] reward (+${res.goldGranted}G)!`,
+                        ),
+                      );
+                    }
+                  } else if (isCleared) {
+                    hsAudio.playSfx('ui_click', 0.65);
+                    setClaimBanner(
+                      tr(
+                        `✓ [${qText.title}]은(는) 기본 골드(+${q.rewardGold}G) 및 추가 보상(+20G) 수령을 이미 완료했습니다.`,
+                        `✓ [${qText.title}] reward (+${q.rewardGold}G) & bonus (+20G) already claimed.`,
+                      ),
+                    );
+                  }
+                };
+                if (isCleared) {
+                  return (
+                    <button
+                      key={q.id}
+                      type="button"
+                      data-testid={`quest-card-${q.id}`}
+                      data-quest-claimable={isClaimable ? 'true' : 'false'}
+                      onClick={handleQuestClick}
+                      className={`flex flex-col justify-between rounded-2xl border-2 p-3.5 text-left shadow transition ${
+                        isClaimable
+                          ? 'cursor-pointer border-yellow-300 bg-gradient-to-b from-emerald-900/95 to-emerald-950 text-emerald-50 shadow-[0_0_18px_rgba(52,211,153,0.4)] hover:scale-[1.02] hover:border-amber-200'
+                          : 'cursor-pointer border-emerald-500/45 bg-emerald-950/55 text-emerald-100/90 hover:border-emerald-400/75'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="hs-title text-sm font-extrabold">{qText.title}</span>
+                          <span className="flex items-center gap-1 rounded-full border border-amber-900/40 bg-amber-400/90 px-2 py-0.5 text-xs font-black text-stone-950">
+                            <HsGoldCoinIcon size={14} />
+                            <span>+{isClaimable ? 20 : q.rewardGold}G</span>
+                          </span>
+                        </div>
+                        <p className="mt-1.5 text-xs font-semibold text-emerald-200">
+                          {qText.description}
+                        </p>
+                      </div>
+                      <div className="mt-3 w-full">
+                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-stone-800/35">
+                          <div
+                            style={{ width: '100%' }}
+                            className="h-full bg-gradient-to-r from-amber-500 to-emerald-400"
+                          />
+                        </div>
+                        {isClaimable ? (
+                          <div className="mt-2 flex min-h-[34px] items-center justify-center rounded-xl border border-yellow-300/80 bg-gradient-to-b from-amber-400 to-amber-600 px-2.5 py-1 text-center text-xs font-black text-stone-950 shadow">
+                            {tr('🎁 클릭하여 보상 수령 (+20G)', '🎁 Click to Claim (+20G)')}
+                          </div>
+                        ) : (
+                          <div className="mt-1.5 text-right text-[11px] font-extrabold text-emerald-300">
+                            {tr('✓ 기본 + 보너스 수령 완료', 'Claimed ✓')}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                }
                 return (
                   <div
                     key={q.id}
-                    className={`rounded-2xl border-2 p-3.5 shadow ${
-                      q.completed
-                        ? 'border-emerald-400/70 bg-emerald-950/60 text-emerald-100'
-                        : 'border-[#a88246] bg-[#f3e5c3] text-stone-900'
-                    }`}
+                    data-testid={`quest-card-${q.id}`}
+                    data-quest-claimable="false"
+                    className="rounded-2xl border-2 border-[#a88246] bg-[#f3e5c3] p-3.5 text-stone-900 shadow"
                   >
                     <div className="flex items-center justify-between gap-1">
                       <span className="hs-title text-sm font-extrabold">{qText.title}</span>
@@ -501,11 +577,7 @@ export const QuestLogModal: React.FC<{
                         <span>+{q.rewardGold}G</span>
                       </span>
                     </div>
-                    <p
-                      className={`mt-1.5 text-xs font-semibold ${
-                        q.completed ? 'text-emerald-200' : 'text-stone-700'
-                      }`}
-                    >
+                    <p className="mt-1.5 text-xs font-semibold text-stone-700">
                       {qText.description}
                     </p>
                     <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-stone-800/35">
@@ -515,7 +587,7 @@ export const QuestLogModal: React.FC<{
                       />
                     </div>
                     <div className="mt-1 text-right text-[11px] font-extrabold">
-                      {q.completed ? tr('보상 지급 완료 ✓', 'Completed ✓') : `${q.progress} / ${q.goal}`}
+                      {`${q.progress} / ${q.goal}`}
                     </div>
                   </div>
                 );
