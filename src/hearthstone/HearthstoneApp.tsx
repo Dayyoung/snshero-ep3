@@ -33,7 +33,9 @@ import { TavernIntroScreen } from './screens/TavernIntroScreen';
 import { initGamePwaFullscreen, isStandalonePwa } from './pwaFullscreen';
 import { hsStorage } from './storage';
 import {
+  BattleMatchState,
   BoardThemeId,
+  ChallengerMeta,
   CustomDeck,
   GameMode,
   HeroClass,
@@ -73,6 +75,15 @@ export const HearthstoneApp: React.FC = () => {
     skipStoryIntro?: boolean;
     initialPresetId?: ArchetypePresetId;
     openPresetModalOnStart?: boolean;
+    bogartStakeGold?: number;
+    challengerMeta?: ChallengerMeta;
+    restoredMatchState?: BattleMatchState;
+  } | null>(null);
+  const [pendingGambleEscrow, setPendingGambleEscrow] = useState<{
+    matchState: BattleMatchState;
+    deck: CustomDeck;
+    bogartStakeGold: number;
+    challengerMeta?: ChallengerMeta;
   } | null>(null);
 
   // Popup checkout bridge state (only active inside window.open popup)
@@ -179,7 +190,8 @@ export const HearthstoneApp: React.FC = () => {
           const starterParam = params.get('starter')?.toLowerCase();
           const presetParamRaw = params.get('preset')?.toLowerCase();
           const tacticParamRaw = params.get('tactic')?.toLowerCase();
-          const deckParam = params.get('deck');
+          const deckParam = params.get('deck') || params.get('challenge');
+          const isChallengeLaunch = Boolean(params.get('challenge'));
           const restoreParam = params.get('restore');
           const epParamRaw = params.get('ep');
           const epNum =
@@ -285,14 +297,34 @@ export const HearthstoneApp: React.FC = () => {
                 cards: validCards,
               };
               hsStorage.saveDecks([newDeck, ...decks]);
-              setLaunchNotice(
-                tr(
-                  `🔗 공유된 덱 [${newDeck.name}] (${validCards.length}/30장)을 내 덱 목록에 불러왔습니다!`,
-                  `🔗 Imported shared deck [${newDeck.name}] (${validCards.length}/30 cards)!`,
-                ),
-              );
+              if (isChallengeLaunch && validCards.length >= 10) {
+                while (newDeck.cards.length < 30) {
+                  newDeck.cards.push(chosenDeck.cards[newDeck.cards.length % chosenDeck.cards.length]);
+                }
+                setLaunchNotice(
+                  tr(
+                    `⚔ 챌린지 공유 덱 [${newDeck.name}] & 카단 전술이 장착되었습니다!`,
+                    `⚔ Challenge Deck [${newDeck.name}] & Kadan Stance equipped!`,
+                  ),
+                );
+                setActiveBattleParams({
+                  mode: 'RANKED',
+                  deck: newDeck,
+                  skipStoryIntro: true,
+                });
+                setScreen('BATTLE');
+              } else {
+                setLaunchNotice(
+                  tr(
+                    `🔗 공유된 덱 [${newDeck.name}] (${validCards.length}/30장)을 내 덱 목록에 불러왔습니다!`,
+                    `🔗 Imported shared deck [${newDeck.name}] (${validCards.length}/30 cards)!`,
+                  ),
+                );
+                setScreen('COLLECTION');
+              }
+            } else {
+              setScreen('COLLECTION');
             }
-            setScreen('COLLECTION');
           } else if (openParam === 'pack3' || openParam === 'pack') {
             hsStorage.markJourneyGuideDone();
             if (factionParam) {
@@ -380,6 +412,10 @@ export const HearthstoneApp: React.FC = () => {
             setScreen('PACK_OPENING');
           } else if (launchMode === 'collection') {
             setScreen('COLLECTION');
+          } else if (launchMode === 'gamble' || launchMode === 'bogart') {
+            hsStorage.markJourneyGuideDone();
+            setSelectedMode('BOGART_GAMBLE');
+            setScreen('HERO_SELECT');
           } else if (launchMode === 'ranked') {
             hsStorage.markJourneyGuideDone();
             setSelectedMode('RANKED');
@@ -415,6 +451,25 @@ export const HearthstoneApp: React.FC = () => {
             } catch {
               // ignore storage error
             }
+          }
+        }
+        // DEV-031: Check for active Bogart Gambling Hall escrow snapshot on refresh (F5)
+        if (typeof sessionStorage !== 'undefined') {
+          try {
+            const escrowRaw = sessionStorage.getItem('snshero_gamble_active_match');
+            if (escrowRaw) {
+              const parsedEscrow = JSON.parse(escrowRaw);
+              if (parsedEscrow?.matchState && parsedEscrow?.deck && parsedEscrow.matchState.phase !== 'GAME_OVER') {
+                setPendingGambleEscrow({
+                  matchState: parsedEscrow.matchState,
+                  deck: parsedEscrow.deck,
+                  bogartStakeGold: parsedEscrow.bogartStakeGold || 100,
+                  challengerMeta: parsedEscrow.challengerMeta,
+                });
+              }
+            }
+          } catch {
+            // ignore malformed escrow
           }
         }
         setProfile(hsStorage.getProfile());
@@ -737,6 +792,9 @@ export const HearthstoneApp: React.FC = () => {
             skipStoryIntro={activeBattleParams.skipStoryIntro}
             initialPresetId={activeBattleParams.initialPresetId}
             openPresetModalOnStart={activeBattleParams.openPresetModalOnStart}
+            bogartStakeGold={activeBattleParams.bogartStakeGold}
+            challengerMeta={activeBattleParams.challengerMeta}
+            restoredMatchState={activeBattleParams.restoredMatchState}
             externalAutoPlay={globalAutoPlay}
             onAutoPlayChange={setGlobalAutoPlay}
             tacticalStance={tacticalStance}
@@ -769,7 +827,46 @@ export const HearthstoneApp: React.FC = () => {
             onRematchSameMode={() => {
               setGlobalAutoPlay(false);
               setBattleSnapshot(null);
+              if (activeBattleParams.mode === 'BOGART_GAMBLE') {
+                const stake = activeBattleParams.bogartStakeGold || 100;
+                const wager = hsStorage.placeBogartWager(stake);
+                if (!wager.ok) {
+                  refreshProfile();
+                  setSelectedMode('BOGART_GAMBLE');
+                  setActiveBattleParams(null);
+                  setScreen('HERO_SELECT');
+                  return;
+                }
+              }
               refreshProfile();
+              setBattleSessionKey((k) => k + 1);
+            }}
+            onRematchWithPreset={(presetId, nextStance) => {
+              setGlobalAutoPlay(false);
+              setBattleSnapshot(null);
+              setTacticalStance(nextStance);
+              if (activeBattleParams.mode === 'BOGART_GAMBLE') {
+                const stake = activeBattleParams.bogartStakeGold || 100;
+                const wager = hsStorage.placeBogartWager(stake);
+                if (!wager.ok) {
+                  refreshProfile();
+                  setSelectedMode('BOGART_GAMBLE');
+                  setActiveBattleParams(null);
+                  setScreen('HERO_SELECT');
+                  return;
+                }
+              }
+              refreshProfile();
+              setActiveBattleParams((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      initialPresetId: presetId,
+                      skipStoryIntro: true,
+                      openPresetModalOnStart: false,
+                    }
+                  : null,
+              );
               setBattleSessionKey((k) => k + 1);
             }}
             onExitBattle={() => {
@@ -781,6 +878,74 @@ export const HearthstoneApp: React.FC = () => {
               setScreen('BOX_HUB');
             }}
           />
+        )}
+
+        {/* DEV-031: Bogart Gambling Hall Escrow Resume / Forfeit Modal */}
+        {pendingGambleEscrow && (
+          <div
+            data-testid="gamble-escrow-resume-modal"
+            className="fixed inset-0 z-[130] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          >
+            <div className="hs-ocarina-dialog w-full max-w-md rounded-3xl p-6 text-center text-amber-100">
+              <div className="text-3xl">🎲</div>
+              <h2 className="hs-title mt-1.5 text-lg font-extrabold text-yellow-300 sm:text-xl">
+                {tr('진행 중인 보가트 판돈 승부가 있습니다!', 'Active Bogart Wager Match Found!')}
+              </h2>
+              <p className="mt-2 text-xs font-bold leading-relaxed text-sky-100/90 sm:text-sm">
+                {tr(
+                  `에스크로에 보관된 판돈 ${pendingGambleEscrow.bogartStakeGold.toLocaleString()}G 미러덱 대결(${pendingGambleEscrow.matchState.turnNumber}턴)을 이어서 진행할까요? (포기 시 에스크로 판돈이 몰수됩니다)`,
+                  `Resume your escrowed ${pendingGambleEscrow.bogartStakeGold.toLocaleString()}G Mirror-Deck match (Turn ${pendingGambleEscrow.matchState.turnNumber})? Forfeiting surrenders the staked Gold.`,
+                )}
+              </p>
+              <div className="mt-5 flex flex-col gap-2.5">
+                <button
+                  type="button"
+                  data-testid="gamble-escrow-resume-btn"
+                  onClick={() => {
+                    const snap = pendingGambleEscrow;
+                    setPendingGambleEscrow(null);
+                    setActiveBattleParams({
+                      mode: 'BOGART_GAMBLE',
+                      deck: snap.deck,
+                      bogartStakeGold: snap.bogartStakeGold,
+                      challengerMeta: snap.challengerMeta,
+                      restoredMatchState: snap.matchState,
+                      skipStoryIntro: true,
+                    });
+                    setBattleSessionKey((k) => k + 1);
+                    setScreen('BATTLE');
+                  }}
+                  className="hs-zelda-a-btn min-h-[46px] w-full rounded-2xl py-2.5 text-sm font-extrabold"
+                >
+                  ▶ {tr(`판돈 ${pendingGambleEscrow.bogartStakeGold.toLocaleString()}G 승부 이어하기`, `Resume ${pendingGambleEscrow.bogartStakeGold.toLocaleString()}G Match`)}
+                </button>
+                <button
+                  type="button"
+                  data-testid="gamble-escrow-forfeit-btn"
+                  onClick={() => {
+                    const snap = pendingGambleEscrow;
+                    setPendingGambleEscrow(null);
+                    try {
+                      sessionStorage.removeItem('snshero_gamble_active_match');
+                    } catch {
+                      // ignore
+                    }
+                    hsStorage.recordMatchOutcome(
+                      snap.deck.heroClass,
+                      false,
+                      'BOGART_GAMBLE',
+                      snap.deck.heroClass,
+                      snap.bogartStakeGold,
+                    );
+                    refreshProfile();
+                  }}
+                  className="hs-brass-btn min-h-[44px] w-full rounded-2xl py-2 text-xs font-extrabold text-rose-200"
+                >
+                  ✕ {tr('승부 포기 (에스크로 판돈 몰수)', 'Forfeit Match (Surrender Wager)')}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Global Overlays */}

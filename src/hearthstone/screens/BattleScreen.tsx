@@ -5,6 +5,7 @@ import {
   CLASSIC_RANK_NAMES,
   CLASS_CREST_URL,
   cardDb,
+  encodeDeckShareCode,
   getCardArtUrl,
   getCardTileUrl,
   getHeroArtUrl,
@@ -54,7 +55,13 @@ import {
   getJourneyDifficultySpec,
   getJourneyEpisodeDef,
 } from '../kadanJourneyData';
-import { DefeatPackReinforcementResult, OpenedPackCard, hsStorage } from '../storage';
+import {
+  DefeatPackReinforcementResult,
+  OpenedPackCard,
+  getEquippedPrestigeSummary,
+  hsStorage,
+} from '../storage';
+import { rollOnlineChallenger } from './HeroDeckSelectScreen';
 import {
   clientToStagePoint,
   elementCenterInStage,
@@ -65,6 +72,8 @@ import {
   BattleMatchState,
   BoardThemeId,
   CLASSIC_HEROES,
+  ChallengerMeta,
+  ClassicCardDef,
   CustomDeck,
   GameMode,
   HeroClass,
@@ -114,6 +123,116 @@ function getKadanMulliganAdvice(
   return def.cost <= 3 ? 'KEEP' : 'SWAP';
 }
 
+/** DEV-025: Analyze why the player lost from board/deck/turn state and recommend a counter Preset + Kadan Stance. */
+function diagnoseDefeatAndCounter(
+  ms: BattleMatchState,
+  isKo: boolean,
+): {
+  reasonText: string;
+  presetId: ArchetypePresetId;
+  presetLabel: string;
+  stance: KadanTacticalStance;
+  stanceLabel: string;
+} {
+  const oppTaunts = ms.opponent.board.filter((m) => hasMinionTaunt(m)).length;
+  const oppBoardSize = ms.opponent.board.length;
+  const playerDeckEmpty = ms.player.deck.length === 0;
+  if (playerDeckEmpty) {
+    return {
+      reasonText: isKo
+        ? '30장 덱이 모두 소진되어 탈진 피해를 입었어요! 템포가 빠른 속공 덱으로 초중반에 끝내보세요.'
+        : 'Your 30-card deck ran out into Fatigue! Close games faster with an Aggro Rush preset.',
+      presetId: 'AGGRO',
+      presetLabel: isKo ? '속공 돌파형' : 'Aggro Rush',
+      stance: 'AGGRO',
+      stanceLabel: isKo ? '공격적(맹공)' : 'Aggro',
+    };
+  }
+  if (oppTaunts >= 1) {
+    return {
+      reasonText: isKo
+        ? '적 도발(Taunt) 방패벽에 공격이 가로막혔어요! 고화력 3배 각성 일격 덱으로 도발을 단숨에 돌파하세요.'
+        : 'Enemy Taunt minions blocked your attacks! Smash through with 3x Awakening powerhouses.',
+      presetId: 'AWAKENING',
+      presetLabel: isKo ? '3배 각성 일격형' : '3x Awakening',
+      stance: 'AWAKENING',
+      stanceLabel: isKo ? '각성연계' : 'Awakening',
+    };
+  }
+  if (oppBoardSize >= 3 || ms.turnNumber <= 7) {
+    return {
+      reasonText: isKo
+        ? '적의 다수 하수인 공세에 명치가 먼저 뚫렸어요! 도발·제압기 중심 철벽 반격형으로 필드를 잠그세요.'
+        : 'Enemy board pressure overwhelmed your Hero! Stabilize with Taunts & removals.',
+      presetId: 'CONTROL',
+      presetLabel: isKo ? '철벽 반격형' : 'Taunt & Control',
+      stance: 'CONTROL',
+      stanceLabel: isKo ? '방어적(수비)' : 'Control',
+    };
+  }
+  return {
+    reasonText: isKo
+      ? '후반 에이스 싸움에서 화력이 살짝 부족했어요! 보유 ×3 각성 카드를 최우선 편성해 재도전하세요.'
+      : 'Late-game firepower fell slightly short! Deploy your ×3 Awakened aces to overpower them.',
+    presetId: 'AWAKENING',
+    presetLabel: isKo ? '3배 각성 일격형' : '3x Awakening',
+    stance: 'AWAKENING',
+    stanceLabel: isKo ? '각성연계' : 'Awakening',
+  };
+}
+
+/** DEV-025: Pick the #1 Battle MVP card from match history & surviving board (highlighting 3x Awakened cards). */
+function computeBattleMvpCard(
+  ms: BattleMatchState,
+  fallbackDeckCards: string[],
+): { card: ClassicCardDef; mult: number;plays: number } | null {
+  const multMap = ms.journeyMeta?.playerCardMultipliers || {};
+  const scores = new Map<string, { score: number; plays: number }>();
+
+  for (const h of ms.history) {
+    if (h.actorSide !== 'PLAYER' || !h.cardId) continue;
+    const def = cardDb.getCard(h.cardId);
+    if (!def || !def.collectible) continue;
+    const mult = multMap[def.id] || 1;
+    const prev = scores.get(def.id) || { score: 0, plays: 0 };
+    const impact =
+      (def.cost || 1) * 3 +
+      ((def.attack || 0) + (def.health || 0)) * mult +
+      (def.rarity === 'LEGENDARY' ? 14 : def.rarity === 'EPIC' ? 8 : 0) +
+      (mult >= 3 ? 25 : 0);
+    scores.set(def.id, { score: prev.score + impact, plays: prev.plays + 1 });
+  }
+
+  for (const m of ms.player.board) {
+    const def = cardDb.getCard(m.cardId);
+    if (!def || !def.collectible) continue;
+    const mult = multMap[def.id] || 1;
+    const prev = scores.get(def.id) || { score: 0, plays: 1 };
+    scores.set(def.id, {
+      score: prev.score + getMinionAttack(m) * 3 + (mult >= 3 ? 20 : 6),
+      plays: Math.max(1, prev.plays),
+    });
+  }
+
+  let bestId: string | null = null;
+  let bestScore = -1;
+  let bestPlays = 1;
+  for (const [cid, val] of scores.entries()) {
+    if (val.score > bestScore) {
+      bestScore = val.score;
+      bestId = cid;
+      bestPlays = val.plays;
+    }
+  }
+  if (!bestId && fallbackDeckCards.length > 0) {
+    bestId = fallbackDeckCards[0];
+  }
+  if (!bestId) return null;
+  const card = cardDb.getCard(bestId);
+  if (!card) return null;
+  return { card, mult: multMap[card.id] || 1, plays: bestPlays };
+}
+
 export interface BattleScreenProps {
   mode: GameMode;
   playerDeck: CustomDeck;
@@ -132,6 +251,7 @@ export interface BattleScreenProps {
     keepAutoPlay?: boolean,
   ) => void;
   onRematchSameMode?: () => void;
+  onRematchWithPreset?: (presetId: ArchetypePresetId, stance: KadanTacticalStance) => void;
   externalAutoPlay?: boolean;
   onAutoPlayChange?: (active: boolean) => void;
   tacticalStance?: KadanTacticalStance;
@@ -139,6 +259,9 @@ export interface BattleScreenProps {
   onBattleHelpSnapshot?: (snapshot: LiveBattleHelpSnapshot) => void;
   initialPresetId?: ArchetypePresetId;
   openPresetModalOnStart?: boolean;
+  bogartStakeGold?: number;
+  challengerMeta?: ChallengerMeta;
+  restoredMatchState?: BattleMatchState;
 }
 
 type PendingSelection =
@@ -455,6 +578,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   onGoCollectionFromBattle,
   onStartJourneyEpisode,
   onRematchSameMode,
+  onRematchWithPreset,
   externalAutoPlay = false,
   onAutoPlayChange,
   tacticalStance: externalTacticalStance,
@@ -462,9 +586,22 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   onBattleHelpSnapshot,
   initialPresetId,
   openPresetModalOnStart = false,
+  bogartStakeGold,
+  challengerMeta,
+  restoredMatchState,
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
+  const [resolvedChallenger] = useState<ChallengerMeta | null>(() => {
+    if (challengerMeta) return challengerMeta;
+    if (mode === 'RANKED' || mode === 'BOGART_GAMBLE') {
+      return rollOnlineChallenger(preferredOpponentClass, mode === 'BOGART_GAMBLE').meta;
+    }
+    return null;
+  });
+  const [challengeCopiedMsg, setChallengeCopiedMsg] = useState<string | null>(null);
+  const lastAutoTauntAtRef = useRef<number>(0);
+  const lastTauntHistoryLenRef = useRef<number>(0);
   const buildBattleMatchState = useCallback(
     (targetEpisode?: number, overridePlayerCards?: string[]): BattleMatchState => {
       const curKo = isKoreanLanguage();
@@ -537,14 +674,22 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           : nonStoryPresetCards && nonStoryPresetCards.length >= 30
             ? nonStoryPresetCards.slice(0, 30)
             : playerDeck.cards;
+      const eqPrest = getEquippedPrestigeSummary(hsStorage.getProfile(), curKo);
+      const isBogartMirror = mode === 'BOGART_GAMBLE';
+      const oppDisplayName = resolvedChallenger
+        ? resolvedChallenger.nickname
+        : opp.opponentName;
       return createBattleMatch({
         mode,
-        playerName: curKo ? '엘윈마을 모험가' : 'Elwin Adventurer',
+        playerName: curKo
+          ? `${eqPrest.badgeIcon} 모험가 · 〈${eqPrest.titleText}〉`
+          : `${eqPrest.badgeIcon} Adventurer · <${eqPrest.titleText}>`,
         playerClass: playerDeck.heroClass,
         playerDeck: finalCards,
-        opponentName: opp.opponentName,
-        opponentClass: opp.opponentClass,
-        opponentDeck: opp.opponentDeck,
+        opponentName: oppDisplayName,
+        opponentClass: isBogartMirror ? playerDeck.heroClass : opp.opponentClass,
+        // DEV-027: 100% Identical 30-Card Mirror Deck in Bogart's Gambling Hall!
+        opponentDeck: isBogartMirror ? [...finalCards] : opp.opponentDeck,
         boardTheme: preferredBoardTheme,
       });
     },
@@ -555,13 +700,37 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       preferredBoardTheme,
       journeyEpisodeOverride,
       initialPresetId,
+      resolvedChallenger,
     ],
   );
 
   const [matchState, setMatchState] = useState<BattleMatchState>(() =>
-    buildBattleMatchState(),
+    restoredMatchState || buildBattleMatchState(),
   );
   const [liveProfile, setLiveProfile] = useState(() => hsStorage.getProfile());
+
+  // DEV-031: Bogart's Gambling Hall Escrow Match Snapshot (Prevents F5 abuse & accidental stake loss!)
+  useEffect(() => {
+    if (mode !== 'BOGART_GAMBLE' || typeof sessionStorage === 'undefined') return;
+    try {
+      if (matchState.phase === 'GAME_OVER') {
+        sessionStorage.removeItem('snshero_gamble_active_match');
+      } else {
+        sessionStorage.setItem(
+          'snshero_gamble_active_match',
+          JSON.stringify({
+            matchState,
+            deck: playerDeck,
+            bogartStakeGold: bogartStakeGold || 100,
+            challengerMeta: resolvedChallenger,
+            savedAt: Date.now(),
+          }),
+        );
+      }
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [mode, matchState, playerDeck, bogartStakeGold, resolvedChallenger]);
 
   // 모든 모드(스토리모드·랭킹대전·AI대전) 시작 시 자동플레이 기본 비활성화(OFF) 원칙!
   // 오직 카단 챗봇("자동플레이 해줘.") 또는 자동플레이 토글을 명시적으로 켰을 때만 활성화됩니다.
@@ -642,7 +811,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [matchState.matchId, externalAutoPlay, setAutoPlay]);
 
-  const [vsIntroActive, setVsIntroActive] = useState(true);
+  const [vsIntroActive, setVsIntroActive] = useState(() => !restoredMatchState);
   const [selection, setSelection] = useState<PendingSelection | null>(null);
   const [zoomState, setZoomState] = useState<BattleZoomState | null>(null);
   const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false);
@@ -1314,7 +1483,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         didWin,
         mode,
         matchState.opponent.heroClass,
+        bogartStakeGold || 0,
       );
+      if (didWin && mode === 'BOGART_GAMBLE') {
+        hsAudio.playSfx('zelda_chest_open', 0.9);
+        hsAudio.playSfx('mario_coin', 0.95);
+      } else if (didWin) {
+        hsAudio.playSfx('mario_coin', 0.75);
+      }
       setOutcomeSummary(summary);
       setLiveProfile(hsStorage.getProfile());
       setPostGameRemainingMs(matchState.winner === 'PLAYER' ? 3000 : 6000);
@@ -1326,6 +1502,66 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     matchState.player.heroClass,
     matchState.opponent.heroClass,
     mode,
+    bogartStakeGold,
+  ]);
+
+  // DEV-028: Live Challenger Contextual Taunt Emotes (18s cooldown, respects Squelch/Mute)
+  useEffect(() => {
+    if (
+      (mode !== 'RANKED' && mode !== 'BOGART_GAMBLE') ||
+      opponentSquelched ||
+      matchState.phase !== 'PLAYING'
+    ) {
+      return;
+    }
+    const now = Date.now();
+    if (now - lastAutoTauntAtRef.current < 18000) return;
+
+    const hLen = matchState.history.length;
+    let tauntMsg: string | null = null;
+
+    if (hLen > lastTauntHistoryLenRef.current) {
+      const latest = matchState.history[hLen - 1];
+      lastTauntHistoryLenRef.current = hLen;
+      if (latest?.actorSide === 'OPPONENT' && latest.cardId) {
+        const playedDef = cardDb.getCard(latest.cardId);
+        if (playedDef?.rarity === 'LEGENDARY') {
+          tauntMsg = isKo
+            ? '전설 에이스 등판! 이건 쉽게 못 막을걸? 😎'
+            : 'Behold my Legendary ace! Try stopping this! 😎';
+        } else if (playedDef?.type === 'SPELL') {
+          tauntMsg = isKo
+            ? '깔끔하게 정리 완료~ 계산대로야! ✨'
+            : 'Clean answer~ Everything according to plan! ✨';
+        }
+      }
+    } else if (matchState.player.health <= 10 && matchState.activeSide === 'OPPONENT') {
+      tauntMsg = isKo
+        ? '킬각이 보이는데? 체크메이트! ⚡'
+        : 'I see lethal on board! Checkmate! ⚡';
+    } else if (matchState.activeSide === 'PLAYER' && matchState.turnSecondsLeft === 20) {
+      tauntMsg = isKo
+        ? '음… 장고 중이군? 신중하게 내보라고!'
+        : 'Thinking hard over there? Make your best move!';
+    }
+
+    if (tauntMsg) {
+      lastAutoTauntAtRef.current = now;
+      setOpponentEmoteText(tauntMsg);
+      hsAudio.playSfx('taunt_bubble_pop', 0.8);
+      window.setTimeout(() => {
+        setOpponentEmoteText((prev) => (prev === tauntMsg ? null : prev));
+      }, 3200);
+    }
+  }, [
+    mode,
+    isKo,
+    opponentSquelched,
+    matchState.phase,
+    matchState.history,
+    matchState.player.health,
+    matchState.activeSide,
+    matchState.turnSecondsLeft,
   ]);
 
   const triggerDefeatPackReinforcement = useCallback(() => {
@@ -4506,6 +4742,58 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* ==================== CENTER ZONE: 7v7 BATTLEFIELD ARENA ==================== */}
       <main className="relative z-20 mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center gap-1 px-1.5 sm:gap-2 sm:px-12">
+        {/* DEV-027/028: Live Challenger Arena / Bogart Mirror-Deck Status Strip + 1-Tap Emote & Mute */}
+        {(mode === 'RANKED' || mode === 'BOGART_GAMBLE') && resolvedChallenger && (
+          <div
+            data-testid="battle-challenger-badge"
+            className="mx-auto flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-amber-400/55 bg-stone-950/90 px-2.5 py-1 text-[10px] font-extrabold text-amber-100 shadow-lg sm:px-3.5 sm:text-xs"
+          >
+            {mode === 'BOGART_GAMBLE' ? (
+              <span className="text-yellow-300">
+                🎲 {tr(`보가트의 도박장 · 판돈 ${(bogartStakeGold || 100).toLocaleString()}G (승리 +${((bogartStakeGold || 100) * 2).toLocaleString()}G) · ⚖ 100% 미러덱`, `Bogart's Hall · Stake ${(bogartStakeGold || 100).toLocaleString()}G (Win +${((bogartStakeGold || 100) * 2).toLocaleString()}G) · ⚖ 100% Mirror`)}
+              </span>
+            ) : (
+              <span className="text-sky-200">
+                🏆 {resolvedChallenger.badgeIcon} <b className="text-white">{resolvedChallenger.nickname}</b>{' '}
+                <span className="text-yellow-300">〈{isKo ? resolvedChallenger.titleKo : resolvedChallenger.titleEn}〉</span>
+              </span>
+            )}
+            <span className="text-stone-600">|</span>
+            <button
+              type="button"
+              data-testid="battle-emote-trigger-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                hsAudio.playSfx('gem_c_select');
+                setEmoteMenuOpen((v) => !v);
+              }}
+              className="rounded-lg border border-sky-400/50 bg-sky-950/80 px-2 py-0.5 text-[10px] font-extrabold text-sky-200 hover:bg-sky-900"
+            >
+              💬 {tr('감정표현', 'Emotes')}
+            </button>
+            <button
+              type="button"
+              data-testid="battle-taunt-mute-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                hsAudio.playSfx('ui_click', 0.75);
+                setOpponentSquelched((prev) => {
+                  const next = !prev;
+                  if (next) setOpponentEmoteText(null);
+                  return next;
+                });
+              }}
+              className={`rounded-lg border px-2 py-0.5 text-[10px] font-extrabold ${
+                opponentSquelched
+                  ? 'border-rose-400/60 bg-rose-950/85 text-rose-200'
+                  : 'border-stone-500/60 bg-stone-900 text-stone-200'
+              }`}
+            >
+              {opponentSquelched ? tr('🔇 차단됨', '🔇 Muted') : tr('🔊 도발 허용', '🔊 Taunts ON')}
+            </button>
+          </div>
+        )}
+
         {/* Kadan's Journey Stage Status Strip */}
         {mode === 'TUTORIAL' && matchState.journeyMeta && (
           <div className="mx-auto flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-emerald-400/55 bg-stone-950/88 px-3 py-1 text-[10.5px] font-extrabold text-emerald-100 shadow-lg sm:px-4 sm:text-xs">
@@ -6439,6 +6727,117 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   </div>
                 )}
               </div>
+            )}
+
+            {/* DEV-025: Victory Battle MVP Card & 1-Click Deck Challenge Share / Defeat Kadan Diagnosis & 1-Tap Counter Rematch */}
+            {matchState.winner === 'PLAYER' ? (
+              (() => {
+                const mvp = computeBattleMvpCard(matchState, playerDeck.cards);
+                return (
+                  <div className="relative z-10 mb-3 w-full space-y-2">
+                    {mvp && (
+                      <div
+                        data-testid="victory-mvp-card"
+                        className="hs-ocarina-dialog flex items-center justify-between gap-2.5 rounded-2xl px-3 py-2 text-left"
+                      >
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <img
+                            src={getCardArtUrl(mvp.card)}
+                            alt={getCardName(mvp.card, lang)}
+                            className="h-12 w-12 shrink-0 rounded-xl border-2 border-yellow-300 object-cover object-top shadow"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="rounded bg-yellow-400 px-1.5 py-0.5 text-[9.5px] font-black text-stone-950">
+                                🏆 BATTLE MVP
+                              </span>
+                              {mvp.mult >= 3 && (
+                                <span className="rounded bg-emerald-600 px-1.5 py-0.5 text-[9.5px] font-black text-white">
+                                  ⚡ ×{mvp.mult} {tr('각성', 'Awake')}
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-0.5 truncate text-xs font-black text-white sm:text-sm">
+                              {getCardName(mvp.card, lang)}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          data-testid="victory-share-challenge-btn"
+                          onClick={async () => {
+                            const code = encodeDeckShareCode(playerDeck);
+                            const url = `${window.location.origin}/game?challenge=${encodeURIComponent(code)}&tactic=${activeStance.toLowerCase()}`;
+                            try {
+                              await navigator.clipboard.writeText(url);
+                            } catch {
+                              // ignore clipboard fallback
+                            }
+                            hsAudio.playSfx('mario_coin');
+                            setChallengeCopiedMsg(
+                              tr('✓ 덱·전술 챌린지 URL이 복사되었습니다!', '✓ Deck & Tactic Challenge URL copied!'),
+                            );
+                            window.setTimeout(() => setChallengeCopiedMsg(null), 2800);
+                          }}
+                          className="hs-zelda-c-btn shrink-0 rounded-xl px-2.5 py-2 text-[11px] font-extrabold"
+                        >
+                          🔗 {tr('챌린지 공유', 'Share Deck')}
+                        </button>
+                      </div>
+                    )}
+                    {challengeCopiedMsg && (
+                      <div className="rounded-xl border border-yellow-300 bg-amber-950/95 px-3 py-1.5 text-center text-[11px] font-extrabold text-yellow-200">
+                        {challengeCopiedMsg}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              (() => {
+                const diag = diagnoseDefeatAndCounter(matchState, isKo);
+                return (
+                  <div
+                    data-testid="kadan-defeat-diagnosis"
+                    className="hs-ocarina-dialog relative z-10 mb-3 w-full space-y-2 rounded-2xl p-3 text-left"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <img
+                        src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
+                        alt="Kadan"
+                        className="h-11 w-11 shrink-0 rounded-xl border border-sky-300 object-cover object-top"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10.5px] font-black text-sky-300">
+                          🧭 {tr('카단의 1줄 패인 분석 & 역상성 처방', "Kadan's Defeat Diagnosis & Counter Tip")}
+                        </div>
+                        <p className="mt-0.5 text-xs font-bold leading-snug text-amber-50">
+                          {diag.reasonText}
+                        </p>
+                      </div>
+                    </div>
+                    {onRematchWithPreset && (
+                      <button
+                        type="button"
+                        data-testid="defeat-counter-rematch-btn"
+                        onClick={() => {
+                          postGameFiredRef.current = true;
+                          hsAudio.playSfx('mario_spring');
+                          onRematchWithPreset(diag.presetId, diag.stance);
+                        }}
+                        className="hs-zelda-b-btn flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-extrabold sm:text-sm"
+                      >
+                        <span>⚡</span>
+                        <span>
+                          {isKo
+                            ? `카단 추천: [${diag.presetLabel} + ${diag.stanceLabel}] 즉시 재도전`
+                            : `Kadan Counter: Retry with [${diag.presetLabel} + ${diag.stanceLabel}]`}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })()
             )}
 
             {/* Action Buttons: Journey Progression / Upgrade Loop vs Standard Return */}

@@ -86,6 +86,8 @@ export const CollectionScreen: React.FC<{
   const [activeTab, setActiveTab] = useState<CardClass>('MAGE');
   const [manaFilter, setManaFilter] = useState<number | 'ALL'>('ALL');
   const [rarityFilter, setRarityFilter] = useState<'ALL' | CardRarity>('ALL');
+  const [keywordChip, setKeywordChip] = useState<'ALL' | 'CHARGE' | 'TAUNT' | 'AWAKENED' | 'AOE'>('ALL');
+  const [autoStance, setAutoStance] = useState<'AGGRO' | 'CONTROL' | 'AWAKENING'>('AWAKENING');
   const [searchQuery, setSearchQuery] = useState('');
   const [craftingMode, setCraftingMode] = useState(true);
   const [page, setPage] = useState(0);
@@ -176,6 +178,34 @@ export const CollectionScreen: React.FC<{
         if (manaFilter === 7 ? c.cost < 7 : c.cost !== manaFilter) return false;
       }
       if (rarityFilter !== 'ALL' && c.rarity !== rarityFilter) return false;
+      if (keywordChip !== 'ALL') {
+        const ownedCnt = collection[c.id] || 0;
+        const txt = `${c.text || ''} ${c.textEn || ''}`.toLowerCase();
+        if (keywordChip === 'CHARGE') {
+          const isAggro =
+            c.mechanics.includes('CHARGE') ||
+            c.mechanics.includes('WINDFURY') ||
+            c.type === 'WEAPON' ||
+            /돌진|질풍|charge|windfury/.test(txt);
+          if (!isAggro) return false;
+        } else if (keywordChip === 'TAUNT') {
+          const isGuard =
+            c.mechanics.includes('TAUNT') ||
+            c.mechanics.includes('DIVINE_SHIELD') ||
+            /도발|보호막|생명력.*회복|방어도|taunt|divine shield|restore|armor/.test(txt);
+          if (!isGuard) return false;
+        } else if (keywordChip === 'AWAKENED') {
+          const isAwake =
+            (c.type === 'MINION' || c.type === 'WEAPON') &&
+            (c.rarity === 'LEGENDARY' ? ownedCnt >= 2 : ownedCnt >= 3);
+          if (!isAwake) return false;
+        } else if (keywordChip === 'AOE') {
+          const isAoeBurn =
+            c.type === 'SPELL' ||
+            /모든 적|적 전체|피해를|all enemies|all minions|deal \d+ damage/.test(txt);
+          if (!isAoeBurn) return false;
+        }
+      }
       const q = searchQuery.trim().toLowerCase();
       if (q) {
         const raceKo = c.race ? RACE_KO[c.race] || '' : '';
@@ -197,13 +227,13 @@ export const CollectionScreen: React.FC<{
       }
       return true;
     },
-    [craftingMode, collection, goldenCollection, manaFilter, rarityFilter, searchQuery, editingDeck],
+    [craftingMode, collection, goldenCollection, manaFilter, rarityFilter, keywordChip, searchQuery, editingDeck],
   );
 
   const filteredCards = useMemo(() => {
-    const hasSearch = searchQuery.trim().length > 0;
+    const hasSearchOrChip = searchQuery.trim().length > 0 || keywordChip !== 'ALL';
     const all = cardDb.getAllCollectible();
-    if (hasSearch) {
+    if (hasSearchOrChip) {
       const allowedTabs: CardClass[] = editingDeck
         ? [editingDeck.heroClass, 'NEUTRAL']
         : ALL_CLASS_TABS;
@@ -214,7 +244,7 @@ export const CollectionScreen: React.FC<{
     return all
       .filter((c) => c.cardClass === activeTab && matchesBaseFilters(c))
       .sort(compareCardsStoneOrder);
-  }, [activeTab, matchesBaseFilters, searchQuery, editingDeck]);
+  }, [activeTab, matchesBaseFilters, searchQuery, keywordChip, editingDeck]);
 
   // 전체 카드첩 순회 리스트: 9개 진영 + 중립 전수(기본 382장 전체, 덱 편집 시 해당 진영+중립 전체)를 탭·비용·이름 순으로 연결
   const allNavigableCards = useMemo(() => {
@@ -378,9 +408,44 @@ export const CollectionScreen: React.FC<{
     hsAudio.playSfx('cm_remove_card', 0.8);
   };
 
-  const handleAutoCompleteDeck = () => {
+  const handleAutoCompleteDeck = (
+    stanceOverride?: 'AGGRO' | 'CONTROL' | 'AWAKENING',
+    replaceAll = false,
+  ) => {
     if (!editingDeck) return;
-    const current = [...editingDeck.cards];
+    const stance = stanceOverride || autoStance;
+    const current = replaceAll ? [] : [...editingDeck.cards];
+    const scoreCard = (c: ClassicCardDef): number => {
+      const owned = collection[c.id] || 0;
+      const isClass = c.cardClass === editingDeck.heroClass ? 12 : 0;
+      const txt = `${c.text || ''} ${c.textEn || ''}`.toLowerCase();
+      if (stance === 'AGGRO') {
+        let s = isClass + Math.max(0, 7 - c.cost) * 4;
+        if (c.mechanics.includes('CHARGE')) s += 26;
+        if (c.type === 'WEAPON') s += 16;
+        if (c.type === 'MINION' && (c.attack ?? 0) >= c.cost + 1) s += 10;
+        if (owned >= 3) s += 6;
+        return s;
+      }
+      if (stance === 'CONTROL') {
+        let s = isClass + Math.min(7, c.cost) * 2;
+        if (c.mechanics.includes('TAUNT')) s += 28;
+        if (c.mechanics.includes('DIVINE_SHIELD')) s += 16;
+        if (/회복|방어도|모든 적|처치|restore|armor|all enemies|destroy/.test(txt)) s += 18;
+        if ((c.health ?? 0) >= 5) s += 8;
+        return s;
+      }
+      // AWAKENING: owned x3 (or x2 Legendary) prioritized first!
+      const isAwake =
+        (c.type === 'MINION' || c.type === 'WEAPON') &&
+        (c.rarity === 'LEGENDARY' ? owned >= 2 : owned >= 3);
+      let s = isClass + (isAwake ? 55 + owned * 4 : owned * 5);
+      if (c.rarity === 'LEGENDARY') s += 12;
+      if (c.rarity === 'EPIC') s += 7;
+      s -= Math.abs(c.cost - 3.5) * 1.5;
+      return s;
+    };
+
     const candidates = cardDb
       .getAllCollectible()
       .filter(
@@ -388,12 +453,7 @@ export const CollectionScreen: React.FC<{
           (c.cardClass === editingDeck.heroClass || c.cardClass === 'NEUTRAL') &&
           (collection[c.id] || 0) > 0,
       )
-      .sort((a, b) => {
-        const aClassScore = a.cardClass === editingDeck.heroClass ? 0 : 1;
-        const bClassScore = b.cardClass === editingDeck.heroClass ? 0 : 1;
-        if (aClassScore !== bClassScore) return aClassScore - bClassScore;
-        return Math.abs(a.cost - 3.5) - Math.abs(b.cost - 3.5);
-      });
+      .sort((a, b) => scoreCard(b) - scoreCard(a));
 
     for (const c of candidates) {
       if (current.length >= 30) break;
@@ -409,9 +469,18 @@ export const CollectionScreen: React.FC<{
     );
     hsStorage.saveDecks(updated);
     setDecks(updated);
-    hsAudio.playSfx('menu_select');
+    hsAudio.playSfx('zelda_secret', 0.85);
+    const stanceLabel =
+      stance === 'AGGRO'
+        ? tr('속공형', 'Aggro')
+        : stance === 'CONTROL'
+          ? tr('수비형', 'Control')
+          : tr('3배 각성형', '3x Awakening');
     showNotice(
-      tr(`덱이 ${current.length}/30장으로 자동 완성되었습니다.`, `Deck auto-completed to ${current.length}/30 cards.`),
+      tr(
+        `⚡ 카단 [${stanceLabel}] 전술로 덱이 ${current.length}/30장 완성되었습니다!`,
+        `⚡ Kadan [${stanceLabel}] auto-built ${current.length}/30 cards!`,
+      ),
     );
   };
 
@@ -646,6 +715,46 @@ export const CollectionScreen: React.FC<{
         </button>
       </div>
 
+      {/* DEV-026: Mobile Sticky Mini Mana Curve Bar (`< lg`) */}
+      {editingDeck && (
+        <div
+          data-testid="mobile-sticky-mana-curve"
+          className="relative z-20 flex shrink-0 items-center justify-between gap-2 border-b border-amber-400/35 bg-[#120b05]/95 px-2.5 py-1.5 lg:hidden"
+        >
+          <div className="flex flex-1 items-end gap-1">
+            {deckGrouped.curve.map((cnt, bucket) => {
+              const maxBar = Math.max(5, ...deckGrouped.curve);
+              const pct = Math.round((cnt / maxBar) * 100);
+              return (
+                <div key={bucket} className="flex flex-1 flex-col items-center">
+                  <div className="flex h-4 w-full items-end overflow-hidden rounded-t border border-sky-400/30 bg-stone-900">
+                    <div
+                      style={{ height: `${pct}%` }}
+                      className="w-full bg-gradient-to-t from-sky-600 to-cyan-300"
+                    />
+                  </div>
+                  <span className="hs-num text-[8.5px] text-sky-200">{bucket === 7 ? '7+' : bucket}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span className="hs-num rounded-md bg-stone-900 px-1.5 py-0.5 text-[11px] font-black text-yellow-300">
+              {editingDeck.cards.length}/30
+            </span>
+            {editingDeck.cards.length < 30 && (
+              <button
+                type="button"
+                onClick={() => handleAutoCompleteDeck()}
+                className="hs-zelda-a-btn rounded-lg px-2 py-1 text-[10px] font-extrabold"
+              >
+                ⚡ {tr('자동완성', 'Auto')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {toast && (
         <div className="pointer-events-none fixed left-1/2 top-16 z-[140] w-[90vw] max-w-md -translate-x-1/2 rounded-2xl border-2 border-amber-300 bg-stone-950/95 px-4 py-2 text-center text-xs font-extrabold text-amber-100 shadow-2xl">
           {toast}
@@ -739,6 +848,44 @@ export const CollectionScreen: React.FC<{
                 ▶
               </button>
             )}
+
+            {/* DEV-026: Tactical Keyword Quick-Filter Chips */}
+            <div
+              data-testid="collection-keyword-chips"
+              className="hs-no-scrollbar mb-1 flex shrink-0 items-center gap-1 overflow-x-auto pb-0.5"
+            >
+              {(
+                [
+                  { id: 'ALL', ko: '전체 카드', en: 'All Cards', icon: '📚' },
+                  { id: 'CHARGE', ko: '돌진/속공', en: 'Charge/Aggro', icon: '⚡' },
+                  { id: 'TAUNT', ko: '도발/방어', en: 'Taunt/Guard', icon: '🛡️' },
+                  { id: 'AWAKENED', ko: '3배 각성', en: '3x Awakened', icon: '✨' },
+                  { id: 'AOE', ko: '광역/번 주문', en: 'AoE/Spells', icon: '🔥' },
+                ] as const
+              ).map((chip) => {
+                const active = keywordChip === chip.id;
+                return (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    data-testid={`keyword-chip-${chip.id.toLowerCase()}`}
+                    onClick={() => {
+                      hsAudio.playSfx('gem_c_select');
+                      setKeywordChip(active && chip.id !== 'ALL' ? 'ALL' : chip.id);
+                      setPage(0);
+                    }}
+                    className={`hs-mario-spring flex min-h-[34px] shrink-0 items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10.5px] font-extrabold transition sm:text-xs ${
+                      active
+                        ? 'border-sky-300 bg-gradient-to-b from-sky-600 to-blue-900 text-white shadow'
+                        : 'border-[#8f6a38]/55 bg-[#efe1c0] text-[#3a2310] hover:bg-[#e5d0a3]'
+                    }`}
+                  >
+                    <span>{chip.icon}</span>
+                    <span>{isKo ? chip.ko : chip.en}</span>
+                  </button>
+                );
+              })}
+            </div>
 
             {/* 8-Card Spread Grid (Standard 1x Stats Only — Avoids Confusion with Story-Mode Multipliers!) */}
             <div className="grid min-h-0 flex-1 grid-cols-2 place-items-center gap-x-1.5 gap-y-1 overflow-y-auto px-7 py-0.5 sm:grid-cols-4 sm:gap-x-2 sm:gap-y-1.5">
@@ -1300,16 +1447,51 @@ export const CollectionScreen: React.FC<{
                 )}
               </div>
 
-              {/* Deckbuilder Footer Controls */}
+              {/* Deckbuilder Footer Controls + DEV-026 Kadan Tactical 30-Card Auto-Complete */}
               <div className="mt-2 space-y-1.5 border-t border-amber-500/25 pt-2">
+                <div
+                  data-testid="kadan-tactical-autocomplete"
+                  className="rounded-xl border border-amber-400/35 bg-black/40 p-1.5"
+                >
+                  <div className="mb-1 flex items-center justify-between px-1 text-[10px] font-extrabold text-amber-200">
+                    <span>⚡ {tr('카단 전술형 30장 자동 편성', 'Kadan Tactical 30-Card Auto-Build')}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(
+                      [
+                        { id: 'AGGRO', ko: '⚔ 속공형', en: '⚔ Aggro' },
+                        { id: 'CONTROL', ko: '🛡 수비형', en: '🛡 Control' },
+                        { id: 'AWAKENING', ko: '✨ 각성형', en: '✨ 3x Awake' },
+                      ] as const
+                    ).map((st) => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        data-testid={`kadan-autobuild-${st.id.toLowerCase()}`}
+                        onClick={() => {
+                          setAutoStance(st.id);
+                          handleAutoCompleteDeck(st.id, editingDeck.cards.length === 30);
+                        }}
+                        className={`hs-mario-spring min-h-[36px] rounded-lg border px-1.5 py-1 text-[10.5px] font-extrabold transition ${
+                          autoStance === st.id
+                            ? 'border-yellow-300 bg-amber-700/90 text-white shadow'
+                            : 'border-amber-500/35 bg-stone-900 text-amber-200 hover:border-amber-300'
+                        }`}
+                      >
+                        {isKo ? st.ko : st.en}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex gap-1.5">
                   {editingDeck.cards.length < 30 && (
                     <button
                       type="button"
-                      onClick={handleAutoCompleteDeck}
+                      onClick={() => handleAutoCompleteDeck()}
                       className="hs-arcane-btn flex-1 rounded-xl py-1.5 text-xs font-extrabold text-white"
                     >
-                      {tr('자동 완성', 'Auto Complete')}
+                      {tr('빈 슬롯 자동 채우기', 'Fill Remaining')}
                     </button>
                   )}
                   <button

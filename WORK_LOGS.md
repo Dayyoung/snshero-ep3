@@ -2,6 +2,31 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 13:03 KST] [`/checkBug` 개발개선점 전수 패치(`DEV-013~031` 31/31 완료) 및 `/git-push` 원격 배포 완료]
+- **요청**: `/checkBug /git-push` — SNSHero 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`) 미해결 과제 전수 구현·검증·시트 최신화 및 `origin main` 원격 푸시 수행
+- **신규 구현 및 검증 완료 항목 (`DEV-025 ~ DEV-031` + 기존 완료분 `DEV-013 ~ DEV-024` 시트 상태 동기화)**:
+  1. **`DEV-030` (`P0`) — 닌텐도 젤다(시간의 오카리나)·마리오 감성 리부트 및 루트 `design.md` 표준 확립**:
+     - 루트 [`design.md`](file:///Users/dayyoung/project/snshero/design.md) 제정 및 [`SnsHeroArtKit.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SnsHeroArtKit.tsx)에 성검+방패+오카리나 문장(`SnsOcarinaCrestSeal`) 및 새벽·낮·황혼·밤 시간대별 스카이 라이팅(`getElwinTimeOfDayTheme`) 적용.
+     - [`hearthstone.css`](file:///Users/dayyoung/project/snshero/src/hearthstone/hearthstone.css)에 감청색+이중 황동 대화창(`.hs-ocarina-dialog`), A블루·B그린·C앰버 보석 버튼(`.hs-zelda-a/b/c-btn`), 마리오 스프링 물리(`.hs-mario-spring`) 적용 및 [`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts)에 프로시저럴 10대 SFX(`mario_coin` B5→E6, `zelda_secret`, `zelda_chest_open`, `ocarina_chime` 등) 구현.
+  2. **`DEV-027` (`P0`) — `'보가트의 도박장'`(100% 동일 미러덱 · 판돈 베팅) 및 `'황금 주화 교환소'` 신설**:
+     - [`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx) · [`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx) · [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx) · [`storage.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/storage.ts)에 `BOGART_GAMBLE` 모드(`100G/500G/2,000G/5,000G` 베팅, 승리 시 `2×` 상금, 100G 미만 무료 구호칩 `+100G`, 양측 100% 동일 30장 미러덱 배분) 구현.
+     - [`Modals.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/Modals.tsx) 보급소에 `'황금 주화 교환소'` 탭 신설 (`프로필 뱃지` · `카드 프레임 디자인` · `카드 뒷면 스킨` · `캐릭터 호칭` 4대 치장 상품 골드 해금·즉시 장착, `localStorage` 영구 저장).
+  3. **`DEV-028` (`P0`) — `'온라인형 랭킹대전'` 승격(실시간 도전자 초상화·도발 멘트) 및 공식 전적 단독 반영**:
+     - 매칭 시 닉네임·장착 호칭·뱃지·티어 액자 기반 도전자 초상화(`ChallengerPortrait`) 매칭, 배틀 중 18초 쿨타임 전황 반응형 도발 말풍선 및 6종 감정표현·도발 차단(`Mute`) 버튼 제공.
+     - `storage.ts` · `QuestLogModal` 공식 전적(`rankedWins`, `rankedGames`, `rankedWinStreak`)을 오직 `RANKED` 승패만 반영하도록 완전 분리.
+  4. **`DEV-025` (`P1`) — 배틀 결과 모달 카단 패인 진단·역상성 재도전 및 승리 MVP·챌린지 공유**:
+     - 패배 시 카단 1줄 패인 진단 및 `[카단 추천 프리셋+전술 즉시 재도전]` 원탭 버튼(`onRematchWithPreset`), 승리 시 `🏆 BATTLE MVP` 카드 하이라이트 및 `/game?challenge=<deckCode>&tactic=<mode>` 공유 링크 복사 연동.
+  5. **`DEV-026` (`P1`) — 내 카드첩 전술 키워드 칩 필터·카단 전술형 30장 자동 편성·모바일 마나커브 고정**:
+     - [`CollectionScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/CollectionScreen.tsx)에 `[전체/돌진·속공/도발·방어/3배 각성/광역·번]` 필터 칩, 카단 3대 전술 자동 편성, 모바일 상단 고정 미니 마나 커브 바 적용 (382장 카드 동결 준수).
+  6. **`DEV-029` (`P1`) — 프로모션 페이지(`/`) 3대 모드 개편 및 `#gold-economy` 쇼케이스 신설**:
+     - [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx) `#modes` 3대 체제 개편 및 `#gold-economy` 섹션(판돈 상금 시뮬레이터·4대 골드 치장 쇼케이스·`?mode=gamble` 직행 CTA) 탑재.
+  7. **`DEV-031` (`P1`) — 보가트의 도박장 판돈 에스크로(F5 이어하기)·요정 샘 파산 구제 및 4대 치장품 전장 실시간 바인딩**:
+     - `sessionStorage('snshero_gamble_active_match')` 에스크로 턴 스냅샷 및 새로고침 시 `이어하기 / 포기(판돈 몰수)` 모달 구현, `<100G` 요정 샘 재기 지원금(일 3회 `+150G` + 다음 공식 랭킹 1승 `+200G` 보너스), [`CardVisual.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/CardVisual.tsx) 앞면 프레임·뒷면 스킨·영웅 상단 호칭 리본·좌하단 뱃지 실시간 렌더링 바인딩.
+- **검증 · 시트 최신화 · 배포 상태**:
+  - `npx tsc --noEmit` 오류 0건, `npm run build` 성공, Playwright 데스크톱/모바일 한·영 E2E 통과 (`PAGE_ERRORS: []`).
+  - 개발문서(`1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU`) `DEV-013~031` 전수 `"완료"` (`31/31`, `100%`) 최신화 완료.
+  - 사용자 `/git-push` 요청에 따라 로컬 커밋 후 `git push origin main` 원격 배포 및 구글 폼 보고 완료.
+
 ## [2026-11-17 11:48 KST] [스토리 대사화면(EP 0~40 · 실리아 필살기) 및 프로모션 홈화면 상반신 일러스트 33종(34슬롯) 1024px 고화질 재생성·적용 완료 (푸시 대기)]
 - **요청**: 대사할 때 표시되는 상반신 이미지와 프로모션 홈화면(`/`)에 표시되는 상반신 이미지 중 저화질로 나오는 이미지를 전수 조사해 고화질로 다시 생성하여 적용
 - **원인 분석 (전수 해상도·선명도 감사)**:

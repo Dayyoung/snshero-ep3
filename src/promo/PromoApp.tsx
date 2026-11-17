@@ -96,6 +96,7 @@ export const PromoApp: React.FC = () => {
 
   // MKT-027: In-page Episode 1 Voiced Webtoon Theater Modal
   const [mediaTheaterOpen, setMediaTheaterOpen] = useState(false);
+  const [promoPreviewStake, setPromoPreviewStake] = useState<number>(500);
 
   const handleOpenPromoPrePack = () => {
     if (cards.length === 0) return;
@@ -432,6 +433,7 @@ export const PromoApp: React.FC = () => {
             <a href="#heroes" className="transition hover:text-amber-300">{tr('9대 영웅', '9 Heroes')}</a>
             <a href="#cards" className="transition hover:text-amber-300">{tr('카드 라이브러리', 'Card Library')}</a>
             <a href="#modes" className="transition hover:text-amber-300">{tr('게임 모드', 'Game Modes')}</a>
+            <a href="#gold-economy" className="text-yellow-300 transition hover:text-yellow-200">{tr('보가트 도박장', "Bogart's Hall")}</a>
             <a href="#universe" className="transition hover:text-amber-300">{tr('미디어 믹스', 'Universe')}</a>
           </nav>
 
@@ -1688,113 +1690,18 @@ export const PromoApp: React.FC = () => {
               {tr('플레이 방식', 'WAYS TO PLAY')}
             </div>
             <h2 className="promo-outline mt-1.5 text-3xl font-black text-white sm:text-5xl">
-              {tr('게임 모드', 'Game Modes')}
+              {tr('3대 핵심 게임 모드', '3 Signature Game Modes')}
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-amber-100/80 sm:text-base">
               {tr(
-                '정통 1배 룰로 전설 등급에 도전하는 랭킹대전부터, 9종족 AI 격파, 40부작 카단의 여정 스토리모드까지 원하는 방식으로 즐기세요!',
-                "Climb the Ranked ladder with classic 1x rules, sharpen your decks against 9 AI champions, or conquer the 40-episode Kadan's Journey.",
+                '40부작 성우 풀보이스 스토리모드, 실시간 도전자가 매칭되어 공식 전적에 단독 기록되는 온라인형 랭킹대전, 그리고 양측 100% 동일 미러덱으로 승부하는 보가트의 도박장까지 완벽한 재미를 경험하세요!',
+                "Experience the 40-Episode voiced Story Mode, live-challenger Ranked Arena (sole Official Record), and Bogart's 100% Fair Mirror-Deck Gambling Hall!",
               )}
             </p>
           </div>
 
           <div className="mt-12 space-y-12">
-            {/* Mode 1 */}
-            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-              <div className="lg:col-span-6">
-                <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
-                  <img
-                    src={
-                      isKo
-                        ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
-                        : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116'
-                    }
-                    alt={tr('랭킹대전', 'Ranked Play')}
-                    className="aspect-video w-full object-cover"
-                  />
-                </div>
-              </div>
-              <div className="lg:col-span-6">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-amber-400">
-                  {tr('직업 선택 및 덱 구성 · 정통 1배 룰', 'Deck Building · Classic 1x Competitive Rules')}
-                </div>
-                <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  {tr('랭킹대전 (등급전 · 일반전)', 'Ranked & Casual Play')}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
-                  {tr(
-                    '9대 종족 중 원하는 영웅과 30장 덱을 선택해 25등급 수습생부터 최고 영예인 ‘전설의 눈히어로’까지 등반하세요. 매 1승마다 +25 골드와 등급 별(★)을 획득하며, 3연승 시 별 +2 보너스 및 3승 달성마다 +30G 추가 보상이 지급됩니다.',
-                    'Choose any of the 9 Factions with a 30-card deck and climb from Rank 25 Apprentice all the way to Legend Hero. Earn +25 Gold per win, Win-Streak bonus stars, and +30G every 3 victories.',
-                  )}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-amber-400/50 bg-amber-950/70 px-3 py-1 text-[11px] font-extrabold text-amber-200">
-                    {tr('공정 1배수 룰', 'Fair 1x Rules')}
-                  </span>
-                  <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
-                    {tr('3연승 별★ +2 고속 승급', '3-Win Streak +2 Stars')}
-                  </span>
-                  <span className="rounded-full border border-yellow-400/50 bg-yellow-950/70 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
-                    {tr('3승마다 +30G', '+30G Every 3 Wins')}
-                  </span>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <a
-                    href="/game?mode=ranked&utm_source=promo_mode_ranked"
-                    className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-                  >
-                    <span>{tr('등급전 바로 매칭', 'Enter Ranked Play')}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Mode 2 */}
-            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-              <div className="order-2 lg:order-1 lg:col-span-6">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-300">
-                  {tr('가볍게 한 판 플레이 · 9종족 수호자 정복', 'Solo Practice · Defeat All 9 Champions')}
-                </div>
-                <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  {tr('AI대전 (일반 AI · 숙련 AI)', 'Practice vs AI (Normal · Expert)')}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
-                  {tr(
-                    '물·불·바람·땅·인간·언데드·엘프·드워프·동물 9대 종족 영웅과 언제든 맞붙어 새 덱을 실험하고 실력을 갈고닦으세요. 각 종족 최초 제압 시 +25G~+50G 보너스, 숙련 AI 9개 종족 올클리어 시 눈히어로 카드 팩 2개가 추가 지급됩니다!',
-                    'Test custom decks anytime against all 9 Faction AI opponents. Earn +25G–+50G first-clear rewards per champion and 2 Bonus Card Packs for sweeping Expert AI.',
-                  )}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-emerald-400/50 bg-emerald-950/70 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
-                    {tr('종족별 첫 격파 +25~50G', 'First-Clear +25~50G')}
-                  </span>
-                  <span className="rounded-full border border-yellow-400/50 bg-yellow-950/70 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
-                    {tr('숙련 AI 9종족 올클리어 +2팩!', 'All-9 Expert Sweep +2 Packs!')}
-                  </span>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <a
-                    href="/game?mode=ai&utm_source=promo_mode_ai"
-                    className="hs-promo-cta-teal-dark inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-                  >
-                    <span>{tr('9종족 AI 도전하기', 'Train vs AI')}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-              <div className="order-1 lg:order-2 lg:col-span-6">
-                <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
-                  <img
-                    src="/hs-assets/screenshots/ingame_story_battle.png?v=20261116"
-                    alt={tr('AI대전', 'AI Battle')}
-                    className="aspect-video w-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mode 3 */}
+            {/* Mode 1: 40-Episode Story Mode */}
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <div className="lg:col-span-6">
                 <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
@@ -1806,16 +1713,16 @@ export const PromoApp: React.FC = () => {
                 </div>
               </div>
               <div className="lg:col-span-6">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-sky-300">
+                <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-300">
                   {tr('40화 풀보이스 극장 · 3장=3배 각성 · 무한 환생', '40-EP Story Theater · 3x Awakening · Reincarnation')}
                 </div>
                 <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  {tr('스토리모드 (카단의 여정)', "Story Mode (Kadan's Journey)")}
+                  {tr('스토리모드 (카단의 여정 40부작)', "Story Mode (40-EP Kadan's Journey)")}
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
                   {tr(
-                    '1화 엘윈마을의 습격부터 40화 최종 결전까지! 5컷 웹툰과 남성 성우 내레이션 극장을 감상하고 원작 보스와 결투하세요. 보유한 동일 카드 3장이 3배로 각성하는 여정 전용 법칙과 매 5화 보스 팩 보상, 40화 완주 후 환생 모드가 기다립니다.',
-                    'Begin with the Episode 0 Tutorial alongside Kazan & the Scarecrow Bot, then battle all 40 episodes! Unlock 3x Awakening multipliers, milestone boss packs, and Infinite Reincarnation.',
+                    '1화 엘윈마을의 습격부터 40화 최종 결전까지! 5컷 웹툰과 성우 내레이션 극장·고화질 상반신 대사 연출을 감상하고 원작 보스와 결투하세요. 보유한 동일 카드 3장이 3배로 각성하는 여정 전용 법칙과 매 5화 보스 팩 보상, 무한 환생 모드가 기다립니다.',
+                    'Battle from Episode 1 through the Episode 40 finale with voiced theater cutscenes, 3-Copy = 3x Awakening stats, Boss Packs every 5 episodes, and Infinite Reincarnation.',
                   )}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -1832,13 +1739,238 @@ export const PromoApp: React.FC = () => {
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
                     href="/game?mode=story&ep=1&utm_source=promo_mode_story"
-                    className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
+                    className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                   >
                     <span>{tr('스토리 1화 바로 출격', 'Start Story Mode')}</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
               </div>
+            </div>
+
+            {/* Mode 2: Online-Style Ranked Arena (Sole Official Record) */}
+            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
+              <div className="order-2 lg:order-1 lg:col-span-6">
+                <div className="text-xs font-extrabold uppercase tracking-wider text-sky-300">
+                  {tr('실시간 도전자 매칭 · 도발 심리전 · 공식 전적 단독 집계', 'Live Challenger Matchmaking · Emote Mindgames · Sole Official Stats')}
+                </div>
+                <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
+                  {tr('온라인형 랭킹대전 (공식 전적)', 'Ranked Arena (Official Record)')}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
+                  {tr(
+                    '매칭 탐색과 함께 고유 호칭·뱃지·티어 액자를 장착한 실시간 도전자가 매칭됩니다! 전설 등판·킬각 등 전황에 반응하는 생생한 도발 말풍선과 6종 감정표현 응수(차단 지원)로 짜릿한 심리전을 즐기세요. 내 프로필의 공식 승/패·승률·연승은 오직 랭킹대전 결과만 순수하게 반영됩니다.',
+                    'Match against live-style challengers sporting custom Titles, Badges, and Tier frames! Exchange tactical emotes (with 1-tap Mute) under fair 1x rules—the sole mode counted toward your Official Ranked Record.',
+                  )}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
+                    {tr('공식 승률·연승 단독 집계', 'Exclusive Official Record')}
+                  </span>
+                  <span className="rounded-full border border-amber-400/50 bg-amber-950/70 px-3 py-1 text-[11px] font-extrabold text-amber-200">
+                    {tr('실시간 도발 & 6종 감정표현', 'Live Taunts & 6 Emotes')}
+                  </span>
+                  <span className="rounded-full border border-yellow-400/50 bg-yellow-950/70 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
+                    {tr('1승 +25G · 3승마다 +30G', '+25G/Win · +30G/3 Wins')}
+                  </span>
+                </div>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <a
+                    href="/game?mode=ranked&utm_source=promo_mode_ranked"
+                    className="hs-promo-cta-teal-dark inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
+                  >
+                    <span>{tr('실시간 도전자 랭킹 매칭', 'Enter Ranked Arena')}</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+              <div className="order-1 lg:order-2 lg:col-span-6">
+                <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
+                  <img
+                    src={
+                      isKo
+                        ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
+                        : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116'
+                    }
+                    alt={tr('온라인형 랭킹대전', 'Ranked Arena')}
+                    className="aspect-video w-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Mode 3: Bogart's Gambling Hall (100% Mirror Deck + Gold Stakes) */}
+            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
+              <div className="lg:col-span-6">
+                <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
+                  <img
+                    src="/hs-assets/screenshots/ingame_story_battle.png?v=20261116"
+                    alt={tr('보가트의 도박장', "Bogart's Gambling Hall")}
+                    className="aspect-video w-full object-cover"
+                  />
+                </div>
+              </div>
+              <div className="lg:col-span-6">
+                <div className="text-xs font-extrabold uppercase tracking-wider text-yellow-300">
+                  {tr('100G~5,000G 골드 베팅 · 양측 100% 동일 30장 미러덱', 'Wager 100G–5,000G · 100% Identical 30-Card Mirror Deck')}
+                </div>
+                <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
+                  🎲 {tr('보가트의 도박장 (미러덱 판돈전)', "Bogart's Gambling Hall (Mirror Stakes)")}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
+                  {tr(
+                    '카드 보유량 격차 ZERO! 양 플레이어가 100% 동일한 30장 미러덱(1배수 공정 스탯)을 쥐고 오직 수싸움 실력만으로 골드 판돈(100G / 500G / 2,000G / 5,000G)을 걸어 대결합니다. 승리 즉시 판돈 2배 상금을 거머쥐고 황금 주화 교환소의 4대 명예 치장을 수집하세요!',
+                    'Zero collection gap! Both sides receive the exact same 30-card Mirror Deck at fair 1x stats. Wager 100G to 5,000G of free in-game Gold, double your pot on victory, and unlock exclusive Gold Prestige cosmetics!',
+                  )}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-yellow-400/60 bg-amber-950/80 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
+                    {tr('양측 100% 동일 미러덱', '100% Identical Mirror Deck')}
+                  </span>
+                  <span className="rounded-full border border-emerald-400/50 bg-emerald-950/70 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
+                    {tr('승리 시 베팅 골드 2배 지급', '2x Gold Payout on Win')}
+                  </span>
+                  <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
+                    {tr('무료 구호 칩(+100G) 상시 보장', 'Free +100G Relief Chip')}
+                  </span>
+                </div>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <a
+                    href="/game?mode=gamble&utm_source=promo_mode_gamble"
+                    className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
+                  >
+                    <span>🎲 {tr('보가트의 도박장 바로 입장', "Enter Bogart's Hall")}</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="hs-promo-divider" />
+
+      {/* =====================================================================
+          8-B. DEV-029: Bogart's Gambling Hall & Gold Prestige Collection Showcase (#gold-economy)
+      ===================================================================== */}
+      <section
+        id="gold-economy"
+        data-testid="promo-gold-economy-section"
+        className="relative overflow-hidden bg-gradient-to-b from-[#0b1636] via-[#091229] to-[#120b05] py-16 sm:py-24"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-yellow-300/60 bg-amber-950/75 px-4 py-1 text-xs font-extrabold tracking-widest text-yellow-200">
+              <span>🎲</span>
+              <span>BOGART&apos;S HALL &amp; GOLD PRESTIGE COLLECTION</span>
+            </div>
+            <h2 className="promo-outline mt-2 text-3xl font-black text-white sm:text-5xl">
+              {tr('보가트의 도박장 & 황금 주화 컬렉션', "Bogart's Hall & Gold Prestige Economy")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-sky-100/90 sm:text-base">
+              {tr(
+                '과금 없이 오직 인게임 골드만으로 즐기는 100% 공정 미러덱 판돈 승부! 획득한 골드로 4대 프레스티지 명예 아이템을 수집해 나만의 위엄을 뽐내세요.',
+                '100% free in-game Gold loop: win 2x pots in fair Mirror-Deck duels and collect 4 Prestige Cosmetic categories!',
+              )}
+            </p>
+          </div>
+
+          {/* Interactive Stake Simulator Bar */}
+          <div className="mt-10 rounded-3xl border-2 border-yellow-300/65 bg-[#0f224c]/90 p-5 shadow-2xl sm:p-7">
+            <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+              <div>
+                <div className="text-xs font-extrabold uppercase tracking-wider text-yellow-300">
+                  ⚖ {tr('양측 100% 동일 30장 미러덱 · 카드 격차 0%', '100% Identical 30-Card Mirror Deck · Zero Pay-to-Win')}
+                </div>
+                <div className="mt-1 text-xl font-black text-white sm:text-2xl">
+                  {tr(
+                    `판돈 ${promoPreviewStake.toLocaleString()}G 베팅 시 → 승리 즉시 +${(promoPreviewStake * 2).toLocaleString()}G 수령!`,
+                    `Wager ${promoPreviewStake.toLocaleString()}G → Win +${(promoPreviewStake * 2).toLocaleString()}G Instant Pot!`,
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {[100, 500, 2000, 5000].map((stake) => (
+                  <button
+                    key={stake}
+                    type="button"
+                    onClick={() => setPromoPreviewStake(stake)}
+                    className={`min-h-[44px] rounded-xl border px-3 py-2 text-xs font-black transition sm:text-sm ${
+                      promoPreviewStake === stake
+                        ? 'border-yellow-200 bg-yellow-400 text-stone-950 shadow-[0_0_16px_rgba(250,204,21,0.65)]'
+                        : 'border-amber-300/40 bg-stone-950/80 text-amber-100 hover:border-yellow-300'
+                    }`}
+                  >
+                    {stake.toLocaleString()}G
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 4 Gold Prestige Collectibles Grid */}
+            <div className="mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                {
+                  icon: '🛡️',
+                  title: tr('프로필 뱃지', 'Profile Badges'),
+                  desc: tr('시간의 오카리나 문장 · 보가트 황금 주사위 · 성검 방패 · 대평원 왕관', 'Ocarina Crest, Golden Dice, Sacred Shield & Plain Crown'),
+                  price: '300G ~ 2,500G',
+                },
+                {
+                  icon: '🖼️',
+                  title: tr('카드 프레임 디자인', 'Card Frame Designs'),
+                  desc: tr('성소 이중 황동 림 · 현자의 사파이어 룬 · 24K 로얄 골드 프레임', 'Double-Brass Rim, Sapphire Rune & 24K Royal Gold Frames'),
+                  price: '500G ~ 3,000G',
+                },
+                {
+                  icon: '🎴',
+                  title: tr('카드 뒷면 스킨', 'Card Back Skins'),
+                  desc: tr('시간의 성소 사파이어 스킨 · 보가트 VIP 하이롤러 루비·골드 스킨', 'Ocarina Sanctuary & Bogart VIP High-Roller Card Backs'),
+                  price: '800G ~ 1,800G',
+                },
+                {
+                  icon: '👑',
+                  title: tr('캐릭터 호칭', 'Character Titles'),
+                  desc: tr('〈시간을 깨우는 연주자〉 · 〈보가트 도박장의 승부사〉 · 〈엘윈 대평원의 전설〉', '<Conductor of Time>, <Bogart High-Roller> & <Legend of Elwin>'),
+                  price: '400G ~ 3,500G',
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="flex flex-col justify-between rounded-2xl border border-amber-300/40 bg-stone-950/80 p-4"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">{item.icon}</span>
+                      <span className="rounded-full border border-yellow-300/50 bg-amber-950/90 px-2.5 py-0.5 text-[10.5px] font-extrabold text-yellow-300">
+                        🪙 {item.price}
+                      </span>
+                    </div>
+                    <h3 className="mt-2.5 text-base font-black text-white">{item.title}</h3>
+                    <p className="mt-1 text-xs font-semibold leading-relaxed text-amber-100/80">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <a
+                href="/game?mode=gamble&utm_source=promo_gold_economy"
+                data-testid="promo-gamble-cta"
+                className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-8 py-3 text-sm font-extrabold sm:text-base"
+              >
+                <span>🎲 {tr('보가트의 도박장 미러덱 승부 시작하기', "Play Bogart's Mirror-Deck Duel Now")}</span>
+                <ChevronRight className="h-4 w-4" />
+              </a>
+              <a
+                href="/game?open=shop&utm_source=promo_gold_shop"
+                className="inline-flex min-h-[48px] items-center gap-2 rounded-full border-2 border-yellow-300/75 bg-amber-950/85 px-6 py-3 text-sm font-extrabold text-yellow-200 transition hover:bg-amber-900"
+              >
+                <span>🪙 {tr('황금 주화 교환소 구경하기', 'Browse Gold Prestige Shop')}</span>
+              </a>
             </div>
           </div>
         </div>

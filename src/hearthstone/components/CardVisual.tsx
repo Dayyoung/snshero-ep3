@@ -24,6 +24,7 @@ import {
   getMinionMaxHealth,
   hasMinionTaunt,
 } from '../engine/GameEngine';
+import { getEquippedPrestigeSummary, hsStorage } from '../storage';
 import {
   CLASSIC_HEROES,
   CardClass,
@@ -623,6 +624,13 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
 
   const cardDisplayName = getCardName(card, lang);
   const cardDisplayText = getCardText(card, lang);
+  const [, setCosmeticTick] = useState(0);
+  useEffect(() => {
+    const onSync = () => setCosmeticTick((n) => n + 1);
+    window.addEventListener('snshero:state-changed', onSync);
+    return () => window.removeEventListener('snshero:state-changed', onSync);
+  }, []);
+  const equippedFrame = hsStorage.getProfile().prestige?.equippedFrame || 'frame_classic';
   const titleTypo = getCardTitleTypography(cardDisplayName);
 
   const shownCost = effectiveCost !== undefined ? effectiveCost : card.cost;
@@ -724,6 +732,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             : undefined,
       }}
       className={`relative select-none transition-transform duration-150 ${silhouetteFilterClass} ${className}`}
+      data-prestige-frame={equippedFrame}
     >
       {/* Master 300x420 Studio Card Canvas Scaled Proportionally */}
       <div
@@ -735,6 +744,18 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
         }}
         className="pointer-events-none relative"
       >
+        {/* DEV-031: Equipped Gold Prestige Card Frame Overlay */}
+        {equippedFrame !== 'frame_classic' && (
+          <div
+            className={`pointer-events-none absolute inset-[10px] z-[45] rounded-[20px] ${
+              equippedFrame === 'frame_royal_24k'
+                ? 'border-[3.5px] border-yellow-300 shadow-[inset_0_0_16px_rgba(250,204,21,0.65)]'
+                : equippedFrame === 'frame_sapphire_rune'
+                  ? 'border-[3px] border-cyan-300 shadow-[inset_0_0_14px_rgba(56,189,248,0.6)]'
+                  : 'border-[3px] border-[#f4d483] shadow-[inset_0_0_0_2px_#7c5821]'
+            }`}
+          />
+        )}
         {/* 1. LAYER A: Painted Atmospheric Portrait Window + RGBA Hero Cutout */}
         <div
           style={{
@@ -1665,6 +1686,16 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
+  const [, setCosmTick] = useState(0);
+  useEffect(() => {
+    if (!isFriendly) return;
+    const onSync = () => setCosmTick((n) => n + 1);
+    window.addEventListener('snshero:state-changed', onSync);
+    return () => window.removeEventListener('snshero:state-changed', onSync);
+  }, [isFriendly]);
+  const equippedCosmetics = isFriendly
+    ? getEquippedPrestigeSummary(hsStorage.getProfile(), isKo)
+    : null;
   const entityId = isFriendly ? 'PLAYER_HERO' : 'OPPONENT_HERO';
   const heroAtk = getHeroAttack(player, isActiveTurn);
   const heroMeta = CLASSIC_HEROES[player.heroClass];
@@ -1801,6 +1832,23 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
         {!isFriendly && isSquelched && (
           <div className="pointer-events-none absolute -top-2.5 right-0 z-45 rounded-full border border-stone-400/80 bg-stone-900/95 px-1.5 py-0.5 text-[8px] font-extrabold text-stone-200 shadow">
             🔇 {tr('차단됨', 'Squelched')}
+          </div>
+        )}
+        {/* DEV-031: Friendly Hero Equipped Prestige Title Ribbon & Bottom-Left Badge */}
+        {isFriendly && equippedCosmetics && player.secrets.length === 0 && (
+          <div
+            data-testid="hero-equipped-title-ribbon"
+            className="pointer-events-none absolute -top-3 left-1/2 z-40 max-w-[110px] -translate-x-1/2 truncate rounded-full border border-yellow-300/75 bg-stone-950/92 px-2 py-0.5 text-[8px] font-extrabold text-yellow-200 shadow sm:max-w-[138px] sm:text-[9px]"
+          >
+            〈{equippedCosmetics.titleText}〉
+          </div>
+        )}
+        {isFriendly && equippedCosmetics && (
+          <div
+            data-testid="hero-equipped-prestige-badge"
+            className="pointer-events-none absolute -bottom-1.5 -left-1.5 z-40 flex h-5 w-5 items-center justify-center rounded-full border border-yellow-300 bg-stone-950 text-[11px] shadow-md sm:h-6 sm:w-6 sm:text-xs"
+          >
+            {equippedCosmetics.badgeIcon}
           </div>
         )}
         {/* Active Secrets Crown Medallions */}

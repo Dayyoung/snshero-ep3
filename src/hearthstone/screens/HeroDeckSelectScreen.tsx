@@ -16,10 +16,11 @@ import {
 } from '../components/SnsHeroArtKit';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { getDeckDisplayName, getLocalizedHeroInfo, getRankTitle } from '../i18nData';
-import { getModeRewardGuide, hsStorage } from '../storage';
+import { BOGART_STAKE_TIERS, BogartStakeTier, getModeRewardGuide, hsStorage } from '../storage';
 import {
   BoardThemeId,
   CLASSIC_HEROES,
+  ChallengerMeta,
   CustomDeck,
   GameMode,
   HERO_CLASS_ORDER,
@@ -35,7 +36,64 @@ export interface HeroDeckSelectScreenProps {
     deck: CustomDeck;
     preferredOpponentClass?: HeroClass;
     boardTheme?: BoardThemeId;
+    bogartStakeGold?: number;
+    challengerMeta?: ChallengerMeta;
   }) => void;
+}
+
+const ONLINE_CHALLENGER_POOL: {
+  nickname: string;
+  titleKo: string;
+  titleEn: string;
+  badgeIcon: string;
+  tierLabelKo: string;
+  tierLabelEn: string;
+  heroClass: HeroClass;
+  rating: number;
+}[] = [
+  { nickname: '별빛성기사#4821', titleKo: '시간을 깨우는 연주자', titleEn: 'Conductor of Time', badgeIcon: '🎵', tierLabelKo: '골드 II', tierLabelEn: 'Gold II', heroClass: 'PALADIN', rating: 1640 },
+  { nickname: 'FrostMage_KR', titleKo: '엘윈 대평원의 전설', titleEn: 'Legend of Elwin Plain', badgeIcon: '👑', tierLabelKo: '다이아 IV', tierLabelEn: 'Diamond IV', heroClass: 'MAGE', rating: 1890 },
+  { nickname: '붉은성채타짜#777', titleKo: '보가트 도박장의 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 I', tierLabelEn: 'Platinum I', heroClass: 'WARRIOR', rating: 1750 },
+  { nickname: 'ShadowBlade99', titleKo: '심연 정복자', titleEn: 'Abyss Conqueror', badgeIcon: '🛡️', tierLabelKo: '골드 I', tierLabelEn: 'Gold I', heroClass: 'ROGUE', rating: 1685 },
+  { nickname: '바람섬명궁#305', titleKo: '엘윈의 모험가', titleEn: 'Adventurer of Elwin', badgeIcon: '❄️', tierLabelKo: '실버 I', tierLabelEn: 'Silver I', heroClass: 'HUNTER', rating: 1520 },
+  { nickname: 'OcarinaSage', titleKo: '3배 각성의 지배자', titleEn: 'Sovereign of 3x Awakening', badgeIcon: '🎵', tierLabelKo: '다이아 II', tierLabelEn: 'Diamond II', heroClass: 'PRIEST', rating: 1940 },
+  { nickname: 'DeepforgeKing', titleKo: '성검과 성소 방패', titleEn: 'Sacred Sword & Shield', badgeIcon: '🛡️', tierLabelKo: '플래티넘 III', tierLabelEn: 'Platinum III', heroClass: 'WARLOCK', rating: 1710 },
+  { nickname: '늑대왕의후예#812', titleKo: '시간을 깨우는 연주자', titleEn: 'Conductor of Time', badgeIcon: '👑', tierLabelKo: '골드 III', tierLabelEn: 'Gold III', heroClass: 'DRUID', rating: 1605 },
+  { nickname: 'StormTotem_EN', titleKo: '보가트 도박장의 승부사', titleEn: 'Bogart Hall High-Roller', badgeIcon: '🎲', tierLabelKo: '플래티넘 II', tierLabelEn: 'Platinum II', heroClass: 'SHAMAN', rating: 1735 },
+];
+
+export function rollOnlineChallenger(preferredClass?: HeroClass, isBogart = false): {
+  opponentClass: HeroClass;
+  meta: ChallengerMeta;
+} {
+  if (isBogart) {
+    const cls = preferredClass || HERO_CLASS_ORDER[Math.floor(Math.random() * HERO_CLASS_ORDER.length)];
+    return {
+      opponentClass: cls,
+      meta: {
+        nickname: '타짜 딜러 보가트#VIP',
+        titleKo: '황금 주사위 하우스 마스터',
+        titleEn: 'Golden Dice House Master',
+        badgeIcon: '🎲',
+        tierLabelKo: '100% 동일 미러덱',
+        tierLabelEn: '100% Mirror Deck',
+        rating: 2000,
+      },
+    };
+  }
+  const picked = ONLINE_CHALLENGER_POOL[Math.floor(Math.random() * ONLINE_CHALLENGER_POOL.length)];
+  return {
+    opponentClass: preferredClass || picked.heroClass,
+    meta: {
+      nickname: picked.nickname,
+      titleKo: picked.titleKo,
+      titleEn: picked.titleEn,
+      badgeIcon: picked.badgeIcon,
+      tierLabelKo: picked.tierLabelKo,
+      tierLabelEn: picked.tierLabelEn,
+      rating: picked.rating,
+    },
+  };
 }
 
 const SNS_SPINNER_TITLES_KO = [
@@ -93,6 +151,12 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const [selectedDeckId, setSelectedDeckId] = useState<string>(decks[0]?.id || 'preset_priest');
   const [practiceOpponentClass, setPracticeOpponentClass] = useState<HeroClass>('WARRIOR');
   const [boardTheme, setBoardTheme] = useState<BoardThemeId | 'RANDOM'>('RANDOM');
+  const [bogartStake, setBogartStake] = useState<BogartStakeTier>(100);
+  const [bogartToast, setBogartToast] = useState<string | null>(null);
+  const [matchedChallenger, setMatchedChallenger] = useState<{
+    opponentClass: HeroClass;
+    meta: ChallengerMeta;
+  } | null>(null);
 
   const [matching, setMatching] = useState(false);
   const [wheelIndex, setWheelIndex] = useState(0);
@@ -112,6 +176,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const selectedDeckLabel = getDeckDisplayName(selectedDeck, lang);
   const rewardGuide = getModeRewardGuide(mode, isKo);
   const isPractice = mode === 'PRACTICE_NORMAL' || mode === 'PRACTICE_EXPERT';
+  const isBogart = mode === 'BOGART_GAMBLE';
 
   const selectedDeckStats = useMemo(() => {
     const curve = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -132,7 +197,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   useEffect(() => {
     if (!matching) return;
     let tick = 0;
-    const maxTicks = 18;
+    const maxTicks = 15;
     let timer: number;
 
     const step = () => {
@@ -140,19 +205,28 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
       if (tick < maxTicks) {
         setWheelIndex((prev) => (prev + 1) % spinnerTitles.length);
         hsAudio.playSfx('ui_hover', 0.45);
-        timer = window.setTimeout(step, 65 + tick * 12);
+        timer = window.setTimeout(step, 58 + tick * 10);
       } else {
         setWheelIndex(0);
         setWheelLocked(true);
-        hsAudio.playSfx('menu_select', 0.95);
+        hsAudio.playSfx('rank_radar_lock', 0.95);
         timer = window.setTimeout(() => {
+          const challenger =
+            matchedChallenger ||
+            rollOnlineChallenger(isPractice ? practiceOpponentClass : undefined, isBogart);
           onLaunchBattle({
             mode,
             deck: selectedDeck,
-            preferredOpponentClass: isPractice ? practiceOpponentClass : undefined,
+            preferredOpponentClass: isPractice
+              ? practiceOpponentClass
+              : isBogart
+                ? selectedDeck.heroClass
+                : challenger.opponentClass,
             boardTheme: boardTheme === 'RANDOM' ? undefined : boardTheme,
+            bogartStakeGold: isBogart ? bogartStake : undefined,
+            challengerMeta: mode === 'RANKED' || isBogart ? challenger.meta : undefined,
           });
-        }, 780);
+        }, 880);
       }
     };
 
@@ -163,15 +237,54 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     mode,
     selectedDeck,
     isPractice,
+    isBogart,
+    bogartStake,
+    matchedChallenger,
     practiceOpponentClass,
     boardTheme,
     onLaunchBattle,
     spinnerTitles.length,
   ]);
 
+  const handleCancelMatchmaking = () => {
+    if (wheelLocked) return;
+    if (isBogart) {
+      // Refund staked Gold if cancelled before lock-in!
+      const p = hsStorage.getProfile();
+      p.gold += bogartStake;
+      hsStorage.saveProfile(p);
+      setProfile(hsStorage.getProfile());
+    }
+    hsAudio.playSfx('gem_b_back');
+    setMatching(false);
+  };
+
   const handleStartClick = () => {
     if (selectedDeck.cards.length < 30) return;
-    hsAudio.playSfx('box_press');
+    if (isBogart) {
+      const wagerRes = hsStorage.placeBogartWager(bogartStake);
+      if (!wagerRes.ok) {
+        hsAudio.playSfx('gem_b_back', 0.8);
+        setBogartToast(
+          tr(
+            `골드가 부족합니다! (선택 판돈 ${bogartStake}G / 보유 ${profile.gold}G)`,
+            `Not enough Gold! (Stake ${bogartStake}G / Owned ${profile.gold}G)`,
+          ),
+        );
+        window.setTimeout(() => setBogartToast(null), 2800);
+        return;
+      }
+      setProfile(hsStorage.getProfile());
+      hsAudio.playSfx('bogart_wager', 0.95);
+    } else {
+      hsAudio.playSfx('gem_a_confirm', 0.95);
+    }
+    setMatchedChallenger(
+      rollOnlineChallenger(
+        isPractice ? practiceOpponentClass : isBogart ? selectedDeck.heroClass : undefined,
+        isBogart,
+      ),
+    );
     setWheelLocked(false);
     setMatching(true);
   };
@@ -196,71 +309,70 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           ← {isKo ? <><span className="hidden sm:inline">엘윈마을 </span>로비로</> : <><span className="hidden sm:inline">Elwin </span>Hub</>}
         </button>
 
-        {/* Mode Switcher Tabs */}
-        <div className="flex items-center gap-1 rounded-2xl border-2 border-[#c39c54] bg-stone-950/90 p-1 shadow-xl sm:gap-1.5">
-          {!isPractice && mode !== 'TUTORIAL' ? (
+        {/* Mode Switcher Tabs (DEV-027 Bogart's Gambling Hall + DEV-028 Online Ranked Arena + 9-Faction Sweep) */}
+        <div className="flex flex-wrap items-center gap-1 rounded-2xl border-2 border-[#c39c54] bg-stone-950/90 p-1 shadow-xl sm:gap-1.5">
+          {mode !== 'TUTORIAL' ? (
             <>
               <button
                 type="button"
+                data-testid="mode-tab-gamble"
                 onClick={() => {
-                  hsAudio.playSfx('ui_click');
-                  setMode('RANKED');
+                  hsAudio.playSfx('gem_c_select');
+                  setMode('BOGART_GAMBLE');
                 }}
-                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:gap-1.5 sm:px-4 sm:text-xs ${
-                  mode === 'RANKED'
-                    ? 'bg-gradient-to-b from-amber-500 to-amber-800 text-white shadow'
+                className={`hs-mario-spring flex min-h-[38px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:gap-1.5 sm:px-3.5 sm:text-xs ${
+                  mode === 'BOGART_GAMBLE'
+                    ? 'bg-gradient-to-b from-yellow-400 to-amber-700 text-stone-950 shadow'
                     : 'text-amber-200/75 hover:text-white'
                 }`}
               >
-                <SnsRankMedallion rank={profile.rank} size={15} />
-                <span>{tr('랭킹대전 · 등급전', 'Ranked · Standard')}</span>
+                <span>🎲</span>
+                <span>{tr('보가트의 도박장', "Bogart's Hall")}</span>
               </button>
               <button
                 type="button"
+                data-testid="mode-tab-ranked"
                 onClick={() => {
-                  hsAudio.playSfx('ui_click');
-                  setMode('CASUAL');
+                  hsAudio.playSfx('gem_a_confirm');
+                  setMode('RANKED');
                 }}
-                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:gap-1.5 sm:px-4 sm:text-xs ${
-                  mode === 'CASUAL'
+                className={`hs-mario-spring flex min-h-[38px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:gap-1.5 sm:px-3.5 sm:text-xs ${
+                  mode === 'RANKED'
                     ? 'bg-gradient-to-b from-sky-500 to-blue-800 text-white shadow'
                     : 'text-amber-200/75 hover:text-white'
                 }`}
               >
-                <SnsSnowCompassSeal size={15} />
-                <span>{tr('랭킹대전 · 일반전', 'Casual')}</span>
+                <SnsRankMedallion rank={profile.rank} size={15} />
+                <span>{tr('랭킹대전 (공식 전적)', 'Ranked Arena')}</span>
               </button>
-            </>
-          ) : isPractice ? (
-            <>
               <button
                 type="button"
+                data-testid="mode-tab-practice"
                 onClick={() => {
-                  hsAudio.playSfx('ui_click');
-                  setMode('PRACTICE_NORMAL');
+                  hsAudio.playSfx('gem_c_select');
+                  setMode(mode === 'PRACTICE_EXPERT' ? 'PRACTICE_EXPERT' : 'PRACTICE_NORMAL');
                 }}
-                className={`rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:px-4 sm:text-xs ${
-                  mode === 'PRACTICE_NORMAL'
+                className={`hs-mario-spring flex min-h-[38px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:px-3 sm:text-xs ${
+                  isPractice
                     ? 'bg-gradient-to-b from-emerald-500 to-emerald-800 text-white shadow'
                     : 'text-amber-200/75 hover:text-white'
                 }`}
               >
-                {tr('AI대전 · 일반 AI', 'Practice · Normal AI')}
+                <span>🎯</span>
+                <span>{tr('9종족 수련 (+2팩)', '9-Faction Trial')}</span>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  hsAudio.playSfx('ui_click');
-                  setMode('PRACTICE_EXPERT');
-                }}
-                className={`rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:px-4 sm:text-xs ${
-                  mode === 'PRACTICE_EXPERT'
-                    ? 'bg-gradient-to-b from-red-600 to-red-900 text-white shadow'
-                    : 'text-amber-200/75 hover:text-white'
-                }`}
-              >
-                {tr('AI대전 · 숙련 AI', 'Practice · Expert AI')}
-              </button>
+              {isPractice && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    hsAudio.playSfx('gem_c_select');
+                    setMode(mode === 'PRACTICE_EXPERT' ? 'PRACTICE_NORMAL' : 'PRACTICE_EXPERT');
+                  }}
+                  className="rounded-lg border border-red-400/50 bg-red-950/80 px-2 py-1 text-[10.5px] font-extrabold text-red-200"
+                >
+                  {mode === 'PRACTICE_EXPERT' ? tr('숙련 ★', 'Expert ★') : tr('일반→숙련', 'Normal→Expert')}
+                </button>
+              )}
             </>
           ) : (
             <span className="px-3 py-1 text-xs font-extrabold text-emerald-300">
@@ -502,11 +614,117 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 })}
               </div>
             </div>
+          ) : isBogart ? (
+            <div
+              data-testid="bogart-gambling-panel"
+              className="hs-ocarina-dialog relative z-10 my-2 rounded-2xl p-3 text-amber-100 sm:my-2.5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base">🎲</span>
+                  <span className="hs-title text-sm font-extrabold text-yellow-300 sm:text-base">
+                    {tr('보가트의 도박장 · 판돈 선택', "Bogart's Hall · Select Wager")}
+                  </span>
+                </div>
+                <span className="flex items-center gap-1 rounded-full border border-yellow-300/60 bg-black/55 px-2.5 py-0.5 text-xs font-extrabold text-yellow-200">
+                  <HsGoldCoinIcon size={14} />
+                  <span>{tr(`보유 ${profile.gold}G`, `Owned ${profile.gold}G`)}</span>
+                </span>
+              </div>
+
+              <div className="mt-2 grid grid-cols-4 gap-1.5">
+                {BOGART_STAKE_TIERS.map((tier) => {
+                  const active = bogartStake === tier;
+                  const affordable = profile.gold >= tier;
+                  return (
+                    <button
+                      key={tier}
+                      type="button"
+                      data-testid={`bogart-stake-${tier}`}
+                      onClick={() => {
+                        hsAudio.playSfx('gem_c_select');
+                        setBogartStake(tier);
+                      }}
+                      className={`hs-mario-spring flex min-h-[44px] flex-col items-center justify-center rounded-xl border px-1.5 py-1 text-center transition ${
+                        active
+                          ? 'border-yellow-200 bg-gradient-to-b from-yellow-400 to-amber-700 text-stone-950 shadow-[0_0_16px_rgba(250,204,21,0.55)]'
+                          : affordable
+                            ? 'border-amber-400/50 bg-stone-950/85 text-amber-100 hover:border-yellow-300'
+                            : 'border-stone-700 bg-stone-950/60 text-stone-500'
+                      }`}
+                    >
+                      <span className="hs-num text-xs font-black sm:text-sm">{tier.toLocaleString()}G</span>
+                      <span className={`text-[9px] font-extrabold ${active ? 'text-stone-900' : 'text-emerald-300'}`}>
+                        {tr(`승리 +${(tier * 2).toLocaleString()}G`, `Win +${(tier * 2).toLocaleString()}G`)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {profile.gold < 100 && (
+                <div
+                  data-testid="fairy-fountain-relief-card"
+                  className="mt-2 rounded-2xl border-2 border-cyan-300/80 bg-gradient-to-r from-sky-950/95 via-indigo-950/95 to-emerald-950/95 p-2.5 text-center shadow-[0_0_20px_rgba(56,189,248,0.4)]"
+                >
+                  <div className="text-[11px] font-extrabold text-cyan-200">
+                    🧚 {tr('엘윈 성소 요정 샘 재기 지원금 (일 3회)', 'Elwin Fairy Fountain Relief (3x/Day)')}
+                  </div>
+                  <p className="mt-0.5 text-[10.5px] font-semibold text-emerald-200">
+                    {tr(
+                      '즉시 +150G 수혈 + 다음 공식 랭킹대전 1승 시 +200G 재기 보너스 부여!',
+                      'Instant +150G + +200G Comeback Bonus on your next Ranked win!',
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    data-testid="bogart-relief-chip-btn"
+                    onClick={() => {
+                      const res = hsStorage.claimBogartReliefChip();
+                      if (res.granted) {
+                        hsAudio.playSfx('ocarina_chime', 0.9);
+                        hsAudio.playSfx('mario_coin', 0.95);
+                        setProfile(hsStorage.getProfile());
+                        setBogartStake(100);
+                        setBogartToast(
+                          tr(
+                            `🧚 요정 샘 재기 지원금 +150G 수령 완료! (오늘 잔여 ${res.remainingToday}회 · 랭킹 1승 +200G 버프 활성)`,
+                            `🧚 +150G Fairy Relief claimed! (${res.remainingToday} left today · +200G Ranked buff active)`,
+                          ),
+                        );
+                        window.setTimeout(() => setBogartToast(null), 3200);
+                      } else {
+                        setBogartToast(
+                          tr('오늘의 무료 재기 지원금(3회)을 모두 사용했습니다. 스토리/랭킹전으로 골드를 모아보세요!', 'Used all 3 daily Fairy Reliefs today. Earn Gold in Story or Ranked!'),
+                        );
+                        window.setTimeout(() => setBogartToast(null), 3200);
+                      }
+                    }}
+                    className="hs-zelda-b-btn mt-1.5 min-h-[42px] w-full rounded-xl py-1.5 text-xs font-extrabold"
+                  >
+                    🧚 {tr('요정 샘 +150G 즉시 수혈 받기', 'Claim +150G Fairy Relief')}
+                  </button>
+                </div>
+              )}
+
+              {bogartToast && (
+                <div className="mt-1.5 rounded-lg border border-yellow-300/70 bg-amber-950/90 px-2.5 py-1 text-center text-[11px] font-extrabold text-yellow-200">
+                  {bogartToast}
+                </div>
+              )}
+
+              <div className="mt-2 flex items-center justify-between rounded-xl border border-sky-300/35 bg-black/45 px-2.5 py-1.5 text-[10.5px] font-bold text-sky-200">
+                <span>⚖ {tr('100% 동일 30장 미러덱 공정 룰 적용', '100% Identical 30-Card Mirror Deck')}</span>
+                <span className="text-yellow-300">
+                  {tr(`누적 순수익 ${profile.bogartStats?.netGoldProfit >= 0 ? '+' : ''}${profile.bogartStats?.netGoldProfit || 0}G`, `Net ${profile.bogartStats?.netGoldProfit >= 0 ? '+' : ''}${profile.bogartStats?.netGoldProfit || 0}G`)}
+                </span>
+              </div>
+            </div>
           ) : (
-            <div className="relative z-10 my-2 flex items-center justify-between rounded-2xl border border-[#c8a158]/40 bg-black/40 p-2.5 sm:my-2.5 sm:p-3">
+            <div className="hs-ocarina-dialog relative z-10 my-2 flex items-center justify-between rounded-2xl p-2.5 sm:my-2.5 sm:p-3">
               <div>
-                <div className="text-[10.5px] font-bold text-amber-300 sm:text-[11px]">
-                  {tr('현재 눈히어로 등급', 'Current SNSHero Rank')}
+                <div className="text-[10.5px] font-bold text-sky-300 sm:text-[11px]">
+                  🏆 {tr('공식 랭킹대전 단독 전적 · 현재 등급', 'Official Ranked Record · Current Tier')}
                 </div>
                 <div className="hs-title text-base font-extrabold text-white sm:text-lg">
                   {profile.rank === 0
@@ -516,11 +734,11 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                         `Rank ${profile.rank} · ${getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang)}`,
                       )}
                 </div>
-                <div className="mt-0.5 text-[10.5px] text-amber-200/80 sm:text-[11px]">
-                  {tr('3승 보너스 진행도:', '3-Win Bonus Progress:')}{' '}
-                  <b className="text-yellow-300">
-                    {isKo ? `${profile.threeWinCounter}/3승` : `${profile.threeWinCounter}/3 Wins`}
-                  </b>
+                <div className="mt-0.5 text-[10.5px] text-amber-200/90 sm:text-[11px]">
+                  {tr(
+                    `공식 전적: ${profile.rankedWins || 0}승 ${Math.max(0, (profile.rankedGames || 0) - (profile.rankedWins || 0))}패 · 연승 ${profile.rankedWinStreak || 0} · 3승 보너스 ${profile.threeWinCounter}/3`,
+                    `Official: ${profile.rankedWins || 0}W ${Math.max(0, (profile.rankedGames || 0) - (profile.rankedWins || 0))}L · Streak ${profile.rankedWinStreak || 0} · 3-Win ${profile.threeWinCounter}/3`,
+                  )}
                 </div>
               </div>
               <SnsRankMedallion rank={profile.rank} size={50} className="shrink-0 drop-shadow" />
@@ -583,16 +801,23 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           <div className="relative z-10 hidden flex-col items-center pt-1 lg:flex">
             <button
               type="button"
+              data-testid="deck-select-play-btn"
               disabled={selectedDeck.cards.length < 30}
               onClick={handleStartClick}
-              className="hs-arcane-btn group relative flex w-full items-center justify-center gap-3 rounded-2xl py-3.5 text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className={`${
+                isBogart ? 'hs-zelda-c-btn' : 'hs-zelda-a-btn'
+              } group relative flex w-full items-center justify-center gap-3 rounded-2xl py-3.5 disabled:cursor-not-allowed disabled:opacity-40`}
             >
               <SnsSnowCompassSeal
                 size={42}
                 className="drop-shadow-[0_0_12px_rgba(56,189,248,0.9)] transition group-hover:rotate-12 group-hover:scale-110"
               />
-              <span className="hs-title hs-outline text-2xl font-extrabold tracking-widest">
-                {tr('대전 시작', 'PLAY')}
+              <span className="hs-title hs-outline text-xl font-extrabold tracking-wider text-white sm:text-2xl">
+                {isBogart
+                  ? tr(`🎲 ${bogartStake.toLocaleString()}G 베팅 · 미러덱 승부`, `🎲 Wager ${bogartStake.toLocaleString()}G · Mirror Duel`)
+                  : mode === 'RANKED'
+                    ? tr('🏆 실시간 도전자 랭킹 매칭', '🏆 Find Ranked Challenger')
+                    : tr('대전 시작', 'PLAY')}
               </span>
             </button>
           </div>
@@ -603,43 +828,42 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
       <div className="relative z-30 mx-auto w-full max-w-6xl shrink-0 pt-1 lg:hidden">
         <button
           type="button"
+          data-testid="deck-select-play-mobile-btn"
           disabled={selectedDeck.cards.length < 30}
           onClick={handleStartClick}
-          className="hs-arcane-btn group relative flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl py-2.5 text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className={`${
+            isBogart ? 'hs-zelda-c-btn' : 'hs-zelda-a-btn'
+          } group relative flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl py-2.5 disabled:cursor-not-allowed disabled:opacity-40`}
         >
           <SnsSnowCompassSeal
             size={34}
             className="drop-shadow-[0_0_12px_rgba(56,189,248,0.9)]"
           />
-          <span className="hs-title hs-outline text-lg font-extrabold tracking-widest">
-            {isKo ? `대전 시작 (${selectedDeckLabel})` : `PLAY (${selectedDeckLabel})`}
+          <span className="hs-title hs-outline text-base font-extrabold tracking-wide text-white sm:text-lg">
+            {isBogart
+              ? tr(`🎲 ${bogartStake.toLocaleString()}G 판돈 · 미러덱 시작`, `🎲 Bet ${bogartStake.toLocaleString()}G · Mirror Duel`)
+              : isKo
+                ? `🏆 도전자 매칭 (${selectedDeckLabel})`
+                : `🏆 Match Challenger (${selectedDeckLabel})`}
           </span>
         </button>
       </div>
 
-      {/* Matchmaking Wheel Modal */}
+      {/* Matchmaking Wheel Modal + Challenger Portrait Reveal (DEV-028) */}
       {matching && (
         <div
-          onClick={() => {
-            if (!wheelLocked) {
-              hsAudio.playSfx('box_close');
-              setMatching(false);
-            }
-          }}
+          onClick={handleCancelMatchmaking}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="hs-wood-panel relative flex w-full max-w-md flex-col items-center rounded-3xl p-7 text-center"
+            className="hs-ocarina-dialog relative flex w-full max-w-md flex-col items-center rounded-3xl p-6 text-center sm:p-7"
           >
             {!wheelLocked && (
               <button
                 type="button"
                 data-testid="matchmaking-close-btn"
-                onClick={() => {
-                  hsAudio.playSfx('box_close');
-                  setMatching(false);
-                }}
+                onClick={handleCancelMatchmaking}
                 aria-label={tr('탐색 취소 및 닫기', 'Cancel & Close')}
                 className="hs-brass-btn absolute right-3.5 top-3.5 flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black text-amber-100"
               >
@@ -647,7 +871,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               </button>
             )}
             <SnsSnowCompassSeal
-              size={56}
+              size={52}
               spinning={!wheelLocked}
               className="mb-2 drop-shadow"
             />
@@ -657,61 +881,94 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               }`}
             >
               {wheelLocked
-                ? tr('맞수를 찾았습니다!', 'Worthy Opponent Found!')
-                : tr('맞수 탐색 중...', 'Finding Opponent...')}
+                ? isBogart
+                  ? tr(`🎲 ${bogartStake.toLocaleString()}G 미러덱 테이블 성사!`, `🎲 ${bogartStake.toLocaleString()}G Mirror Table Ready!`)
+                  : tr('⚔ 실시간 도전자를 찾았습니다!', '⚔ Ranked Challenger Locked In!')
+                : isBogart
+                  ? tr('보가트 미러덱 셔플 & 상대 배정 중...', 'Shuffling Identical Mirror Deck...')
+                  : tr('온라인 도전자 실시간 탐색 중...', 'Searching for Live Challenger...')}
             </div>
 
-            {/* 5-Row Cylindrical Ivory & Oak Drum Slot Machine Window */}
-            <div
-              data-testid="matchmaking-slot-drum"
-              className="relative my-2 flex h-44 w-full flex-col items-center justify-between overflow-hidden rounded-2xl border-[4px] border-[#966d35] bg-gradient-to-b from-[#cbb082] via-[#fbf2dc] to-[#c7ac7d] px-5 py-2.5 shadow-[inset_0_12px_22px_rgba(32,18,6,0.62)]"
-            >
-              {/* Left & Right Brass Pointer Triangles */}
-              <div className="pointer-events-none absolute left-1.5 top-1/2 z-20 -translate-y-1/2 text-base font-black text-[#7c2d12]">
-                ▶
-              </div>
-              <div className="pointer-events-none absolute right-1.5 top-1/2 z-20 -translate-y-1/2 text-base font-black text-[#7c2d12]">
-                ◀
-              </div>
-
-              <div className="max-w-full truncate text-[11px] font-extrabold text-[#5c3b1c]/65">
-                {spinnerTitles[(wheelIndex + spinnerTitles.length - 2) % spinnerTitles.length]}
-              </div>
-              <div className="max-w-full truncate text-xs font-extrabold text-[#38210d]/90">
-                {spinnerTitles[(wheelIndex + spinnerTitles.length - 1) % spinnerTitles.length]}
-              </div>
+            {wheelLocked && matchedChallenger ? (
               <div
-                className={`hs-title relative z-10 my-0.5 w-full rounded-xl border-y-2 px-4 py-2 text-xl font-black tracking-tight shadow-md transition-all duration-150 ${
-                  wheelLocked
-                    ? 'scale-105 border-yellow-300 bg-[#231106] text-[#fde047] shadow-[0_0_20px_rgba(250,204,21,0.55)]'
-                    : 'border-amber-600/80 bg-[#2a1508] text-[#fff9e6]'
-                }`}
+                data-testid="matched-challenger-card"
+                className="my-2 flex w-full items-center gap-3.5 rounded-2xl border-2 border-yellow-300 bg-stone-950/95 p-3.5 text-left shadow-[0_0_24px_rgba(250,204,21,0.45)]"
               >
-                {spinnerTitles[wheelIndex]}
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-amber-300 bg-stone-900">
+                  <img
+                    src={getHeroArtUrl(CLASSIC_HEROES[matchedChallenger.opponentClass].heroId)}
+                    alt=""
+                    className="h-full w-full object-cover object-top"
+                  />
+                  <span className="absolute -bottom-1 -right-1 rounded-full border border-amber-200 bg-stone-950 px-1 text-xs">
+                    {matchedChallenger.meta.badgeIcon}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="rounded bg-sky-800/90 px-1.5 py-0.5 text-[10px] font-black text-sky-100">
+                      {isKo ? matchedChallenger.meta.tierLabelKo : matchedChallenger.meta.tierLabelEn}
+                    </span>
+                    <span className="text-[10px] font-bold text-amber-300">
+                      MMR {matchedChallenger.meta.rating}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 truncate text-base font-black text-white">
+                    {matchedChallenger.meta.nickname}
+                  </div>
+                  <div className="truncate text-xs font-extrabold text-yellow-300">
+                    〈{isKo ? matchedChallenger.meta.titleKo : matchedChallenger.meta.titleEn}〉
+                  </div>
+                </div>
               </div>
-              <div className="max-w-full truncate text-xs font-extrabold text-[#38210d]/90">
-                {spinnerTitles[(wheelIndex + 1) % spinnerTitles.length]}
+            ) : (
+              /* 5-Row Cylindrical Ivory & Oak Drum Slot Machine Window */
+              <div
+                data-testid="matchmaking-slot-drum"
+                className="relative my-2 flex h-44 w-full flex-col items-center justify-between overflow-hidden rounded-2xl border-[4px] border-[#966d35] bg-gradient-to-b from-[#cbb082] via-[#fbf2dc] to-[#c7ac7d] px-5 py-2.5 shadow-[inset_0_12px_22px_rgba(32,18,6,0.62)]"
+              >
+                <div className="pointer-events-none absolute left-1.5 top-1/2 z-20 -translate-y-1/2 text-base font-black text-[#7c2d12]">
+                  ▶
+                </div>
+                <div className="pointer-events-none absolute right-1.5 top-1/2 z-20 -translate-y-1/2 text-base font-black text-[#7c2d12]">
+                  ◀
+                </div>
+
+                <div className="max-w-full truncate text-[11px] font-extrabold text-[#5c3b1c]/65">
+                  {spinnerTitles[(wheelIndex + spinnerTitles.length - 2) % spinnerTitles.length]}
+                </div>
+                <div className="max-w-full truncate text-xs font-extrabold text-[#38210d]/90">
+                  {spinnerTitles[(wheelIndex + spinnerTitles.length - 1) % spinnerTitles.length]}
+                </div>
+                <div className="hs-title relative z-10 my-0.5 w-full rounded-xl border-y-2 border-amber-600/80 bg-[#2a1508] px-4 py-2 text-xl font-black tracking-tight text-[#fff9e6] shadow-md">
+                  {spinnerTitles[wheelIndex]}
+                </div>
+                <div className="max-w-full truncate text-xs font-extrabold text-[#38210d]/90">
+                  {spinnerTitles[(wheelIndex + 1) % spinnerTitles.length]}
+                </div>
+                <div className="max-w-full truncate text-[11px] font-extrabold text-[#5c3b1c]/65">
+                  {spinnerTitles[(wheelIndex + 2) % spinnerTitles.length]}
+                </div>
               </div>
-              <div className="max-w-full truncate text-[11px] font-extrabold text-[#5c3b1c]/65">
-                {spinnerTitles[(wheelIndex + 2) % spinnerTitles.length]}
-              </div>
-            </div>
+            )}
 
             <p className="hs-outline-sm mt-2 text-xs font-bold text-amber-50/95">
-              {tr(
-                '엘윈마을 대결 광장에서 실력이 비슷한 맞수를 탐색하고 있습니다...',
-                'Searching Elwin Village Arena for a worthy challenger...',
-              )}
+              {isBogart
+                ? tr(
+                    '양 플레이어에게 100% 동일한 30장 미러덱을 공정 배분합니다...',
+                    'Dealing 100% identical 30-card Mirror Decks to both sides...',
+                  )
+                : tr(
+                    '엘윈마을 대결 광장에서 비슷한 MMR의 실시간 도전자를 연결합니다...',
+                    'Matching a live challenger of similar MMR in Elwin Arena...',
+                  )}
             </p>
 
             {!wheelLocked && (
               <button
                 type="button"
-                onClick={() => {
-                  hsAudio.playSfx('box_close');
-                  setMatching(false);
-                }}
-                className="hs-brass-btn mt-4 min-h-[40px] rounded-xl px-6 py-2 text-xs font-extrabold text-white"
+                onClick={handleCancelMatchmaking}
+                className="hs-brass-btn mt-4 min-h-[44px] rounded-xl px-6 py-2 text-xs font-extrabold text-white"
               >
                 {tr('탐색 취소', 'Cancel')}
               </button>

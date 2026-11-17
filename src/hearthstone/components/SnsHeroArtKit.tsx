@@ -48,11 +48,23 @@ export const SNS_CARD_BACK_THEMES: Record<
     imageUrl: '/hs-assets/cardbacks/snshero-bronze.png',
     glowColor: 'rgba(217, 119, 6, 0.55)',
   },
+  ocarina_crest: {
+    name: '시간의 오카리나 성소',
+    subtitle: '사파이어 문장 · 프레스티지 골드 뒷면',
+    imageUrl: '/hs-assets/cardbacks/snshero-silver.png',
+    glowColor: 'rgba(56, 189, 248, 0.72)',
+  },
+  bogart_vip: {
+    name: '보가트 VIP 하이롤러',
+    subtitle: '황금 주사위 · 도박장 챔피언 뒷면',
+    imageUrl: '/hs-assets/cardbacks/snshero-gold.png',
+    glowColor: 'rgba(250, 204, 21, 0.85)',
+  },
 };
 
 export function getSnsCardBackLabel(id: SnsCardBackId): { name: string; subtitle: string } {
   if (isKoreanLanguage()) {
-    return SNS_CARD_BACK_THEMES[id];
+    return SNS_CARD_BACK_THEMES[id] || SNS_CARD_BACK_THEMES.gold;
   }
   if (id === 'silver') {
     return { name: 'SNSHero Silver', subtitle: 'Official Silver Platinum Card Back' };
@@ -60,8 +72,112 @@ export function getSnsCardBackLabel(id: SnsCardBackId): { name: string; subtitle
   if (id === 'bronze') {
     return { name: 'SNSHero Bronze', subtitle: 'Official Bronze Classic Card Back' };
   }
+  if (id === 'ocarina_crest') {
+    return { name: 'Sanctuary Ocarina Crest', subtitle: 'Sapphire Royal Prestige Card Back' };
+  }
+  if (id === 'bogart_vip') {
+    return { name: 'Bogart VIP High-Roller', subtitle: 'Golden Dice Champion Card Back' };
+  }
   return { name: 'SNSHero Gold', subtitle: 'Official Gold Emblem Card Back' };
 }
+
+export interface ElwinTimeOfDayTheme {
+  id: 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT';
+  labelKo: string;
+  labelEn: string;
+  icon: string;
+  skyOverlay: string;
+}
+
+/** DEV-030: Zelda (Ocarina of Time)-inspired dynamic Hyrule/Elwin plain sky lighting */
+export function getElwinTimeOfDayTheme(): ElwinTimeOfDayTheme {
+  const hr = typeof window !== 'undefined' ? new Date().getHours() : 12;
+  if (hr >= 5 && hr < 9) {
+    return {
+      id: 'DAWN',
+      labelKo: '새벽빛 엘윈 대평원',
+      labelEn: 'Dawn over Elwin Plain',
+      icon: '🌅',
+      skyOverlay:
+        'linear-gradient(180deg, rgba(251,191,36,0.20) 0%, rgba(56,189,248,0.14) 45%, rgba(9,16,38,0.58) 100%)',
+    };
+  }
+  if (hr >= 9 && hr < 16) {
+    return {
+      id: 'DAY',
+      labelKo: '창공의 엘윈 성소',
+      labelEn: 'Sunlit Elwin Sanctuary',
+      icon: '☀️',
+      skyOverlay:
+        'linear-gradient(180deg, rgba(56,189,248,0.24) 0%, rgba(16,185,129,0.12) 48%, rgba(12,20,44,0.52) 100%)',
+    };
+  }
+  if (hr >= 16 && hr < 20) {
+    return {
+      id: 'DUSK',
+      labelKo: '황혼의 성검 언덕',
+      labelEn: 'Golden Dusk Sanctuary',
+      icon: '🌇',
+      skyOverlay:
+        'linear-gradient(180deg, rgba(249,115,22,0.22) 0%, rgba(168,85,247,0.14) 48%, rgba(15,18,42,0.60) 100%)',
+    };
+  }
+  return {
+    id: 'NIGHT',
+    labelKo: '별빛 시간의 성소',
+    labelEn: 'Starlight Sanctuary Night',
+    icon: '🌙',
+    skyOverlay:
+      'linear-gradient(180deg, rgba(30,64,175,0.28) 0%, rgba(14,165,233,0.12) 46%, rgba(8,13,32,0.66) 100%)',
+  };
+}
+
+/** DEV-030: Forged Brass Shield + Sacred Sword + Ocarina Royal Crest Emblem */
+export const SnsOcarinaCrestSeal: React.FC<{ size?: number; className?: string }> = ({
+  size = 38,
+  className = '',
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 64 64"
+    className={`select-none ${className}`}
+    aria-hidden="true"
+  >
+    <defs>
+      <linearGradient id="ocarinaBrass" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#fef08a" />
+        <stop offset="50%" stopColor="#f59e0b" />
+        <stop offset="100%" stopColor="#78350f" />
+      </linearGradient>
+      <linearGradient id="ocarinaSapphire" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#38bdf8" />
+        <stop offset="55%" stopColor="#1d4ed8" />
+        <stop offset="100%" stopColor="#172554" />
+      </linearGradient>
+    </defs>
+    {/* Sacred Sword Hilt & Blade Behind Shield */}
+    <rect x="30" y="3" width="4" height="56" rx="1.5" fill="#e2e8f0" stroke="#475569" strokeWidth="1" />
+    <path d="M20 13 H44 L41 17 H23 Z" fill="url(#ocarinaBrass)" stroke="#451a03" strokeWidth="1" />
+    <circle cx="32" cy="5" r="3" fill="#38bdf8" stroke="#fef08a" strokeWidth="1.2" />
+    {/* Hylian/Elwin Sanctuary Shield */}
+    <path
+      d="M14 17 H50 V34 C50 46 39 54 32 58 C25 54 14 46 14 34 Z"
+      fill="url(#ocarinaSapphire)"
+      stroke="url(#ocarinaBrass)"
+      strokeWidth="3"
+    />
+    {/* Triforce-inspired Three Sanctuary Gems */}
+    <polygon points="32,22 27,30 37,30" fill="#fde047" />
+    <polygon points="26,31 21,39 31,39" fill="#fde047" />
+    <polygon points="38,31 33,39 43,39" fill="#fde047" />
+    {/* Blue Ocarina Motif at Shield Base */}
+    <ellipse cx="32" cy="46" rx="9" ry="5" fill="#0ea5e9" stroke="#fef08a" strokeWidth="1.5" />
+    <circle cx="28" cy="46" r="1.2" fill="#082f49" />
+    <circle cx="32" cy="45" r="1.2" fill="#082f49" />
+    <circle cx="36" cy="46.5" r="1.2" fill="#082f49" />
+  </svg>
+);
 
 export const SnsCardBackArt: React.FC<{
   variant?: SnsCardBackId | string;
@@ -72,7 +188,11 @@ export const SnsCardBackArt: React.FC<{
       ? 'silver'
       : variant === 'bronze'
         ? 'bronze'
-        : 'gold';
+        : variant === 'ocarina_crest'
+          ? 'ocarina_crest'
+          : variant === 'bogart_vip'
+            ? 'bogart_vip'
+            : 'gold';
   const theme = SNS_CARD_BACK_THEMES[key];
   const label = getSnsCardBackLabel(key);
 
@@ -89,6 +209,30 @@ export const SnsCardBackArt: React.FC<{
         draggable={false}
         className="h-full w-full object-fill select-none"
       />
+      {key === 'ocarina_crest' && (
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[8%]"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(56,189,248,0.45) 0%, rgba(29,78,216,0.52) 65%, rgba(15,23,42,0.72) 100%)',
+          }}
+        >
+          <SnsOcarinaCrestSeal size={42} />
+        </div>
+      )}
+      {key === 'bogart_vip' && (
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[8%]"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(250,204,21,0.38) 0%, rgba(185,28,28,0.48) 70%, rgba(28,10,4,0.68) 100%)',
+          }}
+        >
+          <span className="rounded-full border-2 border-yellow-200 bg-amber-950/85 px-2 py-1 text-base shadow-lg">
+            🎲👑
+          </span>
+        </div>
+      )}
       {/* Subtle glossy foil highlight */}
       <div
         className="pointer-events-none absolute inset-0 rounded-[8%]"

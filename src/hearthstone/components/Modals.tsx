@@ -56,13 +56,16 @@ import {
 import { PwaInstallGuideModal } from './PwaInstallGuideModal';
 import {
   GOLD_PACK_BUNDLES,
+  GOLD_PRESTIGE_ITEMS,
   computeOverallStanding,
+  getEquippedPrestigeSummary,
   hsStorage,
 } from '../storage';
 import {
   DailyQuest,
   GameMode,
   PlayerProfile,
+  PrestigeCategory,
   SnsCardBackId,
 } from '../types';
 import { HsGoldCoinIcon } from './CardVisual';
@@ -144,10 +147,11 @@ const COUNTRY_EN: Record<string, { name: string; subLabel: string }> = {
   },
 };
 
-const CARD_BACK_IDS: SnsCardBackId[] = ['gold', 'silver', 'bronze'];
+const CARD_BACK_IDS: SnsCardBackId[] = ['gold', 'silver', 'bronze', 'ocarina_crest', 'bogart_vip'];
 const ALL_MODES_ORDER: GameMode[] = [
   'TUTORIAL',
   'RANKED',
+  'BOGART_GAMBLE',
   'CASUAL',
   'PRACTICE_NORMAL',
   'PRACTICE_EXPERT',
@@ -256,11 +260,31 @@ export const QuestLogModal: React.FC<{
             </div>
           </div>
 
-          <div className="rounded-xl border border-emerald-400/40 bg-emerald-950/55 px-3 py-1.5 text-xs font-extrabold text-emerald-200">
-            {isKo
-              ? `스토리모드: 환생 ${profile.journeyReincarnation}회차 · 제${profile.journeyEpisode}화`
-              : `Story Mode: Cycle ${profile.journeyReincarnation} · EP ${profile.journeyEpisode}`}
+          <div className="flex flex-col items-end gap-1">
+            <div className="rounded-xl border border-yellow-300/55 bg-amber-950/65 px-3 py-1 text-xs font-extrabold text-yellow-200">
+              {(() => {
+                const eq = getEquippedPrestigeSummary(profile, isKo);
+                return (
+                  <span>
+                    {eq.badgeIcon} 〈{eq.titleText}〉
+                  </span>
+                );
+              })()}
+            </div>
+            <div className="rounded-xl border border-emerald-400/40 bg-emerald-950/55 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
+              {isKo
+                ? `스토리: ${profile.journeyReincarnation}환생 ${profile.journeyEpisode}화 · 도박장 순수익 ${profile.bogartStats?.netGoldProfit >= 0 ? '+' : ''}${profile.bogartStats?.netGoldProfit || 0}G`
+                : `Story: NG+${profile.journeyReincarnation} EP ${profile.journeyEpisode} · Bogart Net ${profile.bogartStats?.netGoldProfit >= 0 ? '+' : ''}${profile.bogartStats?.netGoldProfit || 0}G`}
+            </div>
           </div>
+        </div>
+
+        {/* DEV-028: Official Ranked Exclusive Notice */}
+        <div
+          data-testid="official-ranked-isolation-note"
+          className="mb-2.5 rounded-xl border border-sky-400/45 bg-sky-950/60 px-3 py-1.5 text-center text-[11px] font-extrabold text-sky-200"
+        >
+          🏆 {tr('공식 전적 단독 집계: 아래 승/패·승률·연승은 오직 「온라인형 랭킹대전」 정규 대결 결과만 반영됩니다.', 'Official Ranked Exclusive: Wins, Win Rate & Streaks below count ONLY Official Ranked Arena matches.')}
         </div>
 
         {/* 3 Eye-Catching Spotlight Cards: 전체순위 / 승·패 / 승률 */}
@@ -629,6 +653,8 @@ export const TavernShopModal: React.FC<{
 
   const [profile, setProfile] = useState<PlayerProfile>(() => hsStorage.getProfile());
   const [vipAdRemoved, setVipAdRemoved] = useState<boolean>(() => isHsGameAdRemoved());
+  const [shopTab, setShopTab] = useState<'PACKS' | 'PRESTIGE'>('PACKS');
+  const [prestigeCat, setPrestigeCat] = useState<PrestigeCategory>('BADGE');
   const [step, setStep] = useState<ShopCheckoutStep>('quantity');
   const [selectedPkg, setSelectedPkg] = useState<GameShopPackage>(GAME_SHOP_PACKAGES[0]);
   const [countryCode, setCountryCode] = useState<string>(() => (isKo ? 'ko' : 'en'));
@@ -861,6 +887,218 @@ export const TavernShopModal: React.FC<{
           </button>
         </div>
 
+        {/* Top-Level Shop Mode Tabs (DEV-027: Supply Bundles vs Gold Prestige Exchange) */}
+        <div className="mb-3 grid grid-cols-2 gap-2 rounded-2xl border-2 border-[#c8a158]/60 bg-stone-950/90 p-1.5 text-xs font-extrabold sm:text-sm">
+          <button
+            type="button"
+            data-testid="shop-tab-packs"
+            onClick={() => {
+              hsAudio.playSfx('gem_c_select');
+              setShopTab('PACKS');
+            }}
+            className={`hs-mario-spring min-h-[44px] rounded-xl px-3 py-2 transition ${
+              shopTab === 'PACKS'
+                ? 'bg-gradient-to-b from-sky-500 to-blue-800 text-white shadow'
+                : 'text-amber-200/80 hover:text-white'
+            }`}
+          >
+            🎁 {tr('카드팩 · 보급 패키지', 'Card Packs & Bundles')}
+          </button>
+          <button
+            type="button"
+            data-testid="shop-tab-gold-prestige"
+            onClick={() => {
+              hsAudio.playSfx('mario_coin', 0.85);
+              setShopTab('PRESTIGE');
+            }}
+            className={`hs-mario-spring min-h-[44px] rounded-xl px-3 py-2 transition ${
+              shopTab === 'PRESTIGE'
+                ? 'bg-gradient-to-b from-yellow-400 to-amber-700 text-stone-950 shadow-[0_0_16px_rgba(250,204,21,0.45)]'
+                : 'text-yellow-200/85 hover:text-yellow-100'
+            }`}
+          >
+            🪙 {tr('황금 주화 교환소 (4대 명예 치장)', 'Gold Prestige Exchange')}
+          </button>
+        </div>
+
+        {toast && (
+          <div className="mb-3.5 rounded-xl border border-amber-300 bg-amber-950/90 px-4 py-2 text-center text-xs font-extrabold text-yellow-200 shadow-lg">
+            {toast}
+          </div>
+        )}
+
+        {/* ==================== GOLD PRESTIGE EXCHANGE (DEV-027) ==================== */}
+        {shopTab === 'PRESTIGE' && (
+          <div data-testid="gold-prestige-exchange-panel" className="space-y-3.5">
+            <div className="hs-ocarina-dialog flex flex-wrap items-center justify-between gap-2 rounded-2xl px-4 py-3 text-xs">
+              <div>
+                <div className="font-extrabold text-yellow-300 sm:text-sm">
+                  🪙 {tr('보가트의 도박장 · 스토리 · 랭킹 골드 순환 교환소', 'Gold Sink Prestige Exchange (100% Free In-Game Gold)')}
+                </div>
+                <div className="mt-0.5 text-[11px] font-semibold text-sky-200/90">
+                  {tr(
+                    '획득한 골드로 프로필 뱃지 · 카드 프레임 · 뒷면 스킨 · 캐릭터 호칭을 영구 해금하고 즉시 장착하세요!',
+                    'Unlock & equip Profile Badges, Card Frames, Card Backs, and Character Titles using Gold!',
+                  )}
+                </div>
+              </div>
+              <span className="flex items-center gap-1.5 rounded-full border border-yellow-300 bg-black/65 px-3 py-1.5 text-sm font-black text-yellow-300">
+                <HsGoldCoinIcon size={17} />
+                <span>{profile.gold.toLocaleString()}G</span>
+              </span>
+            </div>
+
+            {/* 4 Prestige Category Sub-Tabs */}
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+              {(
+                [
+                  { id: 'BADGE', icon: '🛡️', ko: '프로필 뱃지', en: 'Badges' },
+                  { id: 'FRAME', icon: '🖼️', ko: '카드 프레임', en: 'Card Frames' },
+                  { id: 'CARDBACK', icon: '🎴', ko: '카드 뒷면 스킨', en: 'Card Backs' },
+                  { id: 'TITLE', icon: '👑', ko: '캐릭터 호칭', en: 'Titles' },
+                ] as { id: PrestigeCategory; icon: string; ko: string; en: string }[]
+              ).map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  data-testid={`prestige-cat-${cat.id.toLowerCase()}`}
+                  onClick={() => {
+                    hsAudio.playSfx('gem_c_select');
+                    setPrestigeCat(cat.id);
+                  }}
+                  className={`hs-mario-spring min-h-[44px] rounded-xl border px-2.5 py-2 text-xs font-extrabold transition ${
+                    prestigeCat === cat.id
+                      ? 'border-yellow-200 bg-amber-600 text-stone-950 shadow'
+                      : 'border-amber-500/35 bg-stone-950/85 text-amber-100 hover:border-amber-300'
+                  }`}
+                >
+                  {cat.icon} {isKo ? cat.ko : cat.en}
+                </button>
+              ))}
+            </div>
+
+            {/* Prestige Items Grid */}
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {GOLD_PRESTIGE_ITEMS.filter((i) => i.category === prestigeCat).map((item) => {
+                const isOwned =
+                  item.costGold === 0 ||
+                  (item.category === 'BADGE' && profile.prestige?.ownedBadges?.includes(item.id)) ||
+                  (item.category === 'FRAME' && profile.prestige?.ownedFrames?.includes(item.id)) ||
+                  (item.category === 'CARDBACK' &&
+                    item.cardBackId &&
+                    profile.prestige?.ownedCardBacks?.includes(item.cardBackId)) ||
+                  (item.category === 'TITLE' && profile.prestige?.ownedTitles?.includes(item.id));
+                const isEquipped =
+                  (item.category === 'BADGE' && profile.prestige?.equippedBadge === item.id) ||
+                  (item.category === 'FRAME' && profile.prestige?.equippedFrame === item.id) ||
+                  (item.category === 'CARDBACK' && item.cardBackId === profile.selectedCardBack) ||
+                  (item.category === 'TITLE' && profile.prestige?.equippedTitle === item.id);
+                const canAfford = profile.gold >= item.costGold;
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`flex flex-col justify-between rounded-2xl border-2 p-3.5 ${item.accentClass} ${
+                      isEquipped ? 'ring-2 ring-yellow-300' : ''
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {item.category === 'CARDBACK' && item.cardBackId ? (
+                        <div className="h-16 w-12 shrink-0">
+                          <SnsCardBackArt variant={item.cardBackId} />
+                        </div>
+                      ) : (
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-amber-300/60 bg-black/55 text-2xl shadow">
+                          {item.icon}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="truncate text-sm font-black text-white">
+                            {isKo ? item.nameKo : item.nameEn}
+                          </span>
+                          {isEquipped && (
+                            <span className="shrink-0 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-stone-950">
+                              {tr('장착 중', 'Equipped')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-[11px] font-semibold leading-snug text-amber-100/85">
+                          {isKo ? item.descKo : item.descEn}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      data-testid={`prestige-item-btn-${item.id}`}
+                      disabled={isEquipped}
+                      onClick={() => {
+                        const res = hsStorage.purchaseOrEquipPrestige(item.id);
+                        if (!res.ok) {
+                          hsAudio.playSfx('gem_b_back');
+                          showToast(
+                            tr(
+                              `골드가 부족합니다! (${item.costGold.toLocaleString()}G 필요 / 현재 ${profile.gold.toLocaleString()}G)`,
+                              `Not enough Gold! (${item.costGold.toLocaleString()}G required / ${profile.gold.toLocaleString()}G owned)`,
+                            ),
+                          );
+                          return;
+                        }
+                        if (res.action === 'PURCHASED') {
+                          hsAudio.playSfx('zelda_chest_open', 0.9);
+                          hsAudio.playSfx('mario_coin', 0.9);
+                          showToast(
+                            tr(
+                              `🎉 [${item.nameKo}] 해금 및 즉시 장착 완료! (-${item.costGold.toLocaleString()}G)`,
+                              `🎉 Unlocked & Equipped [${item.nameEn}]! (-${item.costGold.toLocaleString()}G)`,
+                            ),
+                          );
+                        } else {
+                          hsAudio.playSfx('gem_a_confirm');
+                          showToast(
+                            tr(
+                              `✓ [${item.nameKo}] 장착 완료!`,
+                              `✓ Equipped [${item.nameEn}]!`,
+                            ),
+                          );
+                        }
+                        refresh();
+                      }}
+                      className={`hs-mario-spring mt-3 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl text-xs font-extrabold transition ${
+                        isEquipped
+                          ? 'cursor-default border border-emerald-400/50 bg-emerald-950/70 text-emerald-200'
+                          : isOwned
+                            ? 'hs-zelda-a-btn'
+                            : canAfford
+                              ? 'hs-zelda-c-btn'
+                              : 'border border-stone-700 bg-stone-950/80 text-stone-400'
+                      }`}
+                    >
+                      {isEquipped ? (
+                        <span>✓ {tr('현재 장착됨', 'Currently Equipped')}</span>
+                      ) : isOwned ? (
+                        <span>{tr('즉시 장착하기', 'Equip Now')}</span>
+                      ) : (
+                        <>
+                          <HsGoldCoinIcon size={15} />
+                          <span>
+                            {isKo
+                              ? `${item.costGold.toLocaleString()}G로 해금 · 장착`
+                              : `Unlock & Equip (${item.costGold.toLocaleString()}G)`}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {shopTab === 'PACKS' && (
+          <>
         {/* Sequential 3-Step Indicator Bar */}
         <div className="mb-4 grid grid-cols-3 gap-1.5 rounded-2xl border border-[#c8a158]/45 bg-stone-950/85 p-1.5 text-center text-[11px] font-extrabold sm:text-xs">
           <button
@@ -900,12 +1138,6 @@ export const TavernShopModal: React.FC<{
             {tr('③ 결제수단 선택', '③ Payment Method')}
           </div>
         </div>
-
-        {toast && (
-          <div className="mb-3.5 rounded-xl border border-amber-300 bg-amber-950/90 px-4 py-2 text-center text-xs font-extrabold text-yellow-200 shadow-lg">
-            {toast}
-          </div>
-        )}
 
         {/* ==================== STEP 1: 구매수량 선택 (골드 구매 + 현금 패키지 선택) ==================== */}
         {step === 'quantity' && (
@@ -1561,6 +1793,8 @@ export const TavernShopModal: React.FC<{
               </div>
             )}
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

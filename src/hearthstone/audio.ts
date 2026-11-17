@@ -535,10 +535,44 @@ class SnsHeroCardAudioEngine {
       | 'player_turn'
       | 'purchase'
       | 'victory'
-      | 'whoosh',
+      | 'whoosh'
+      | 'mario_coin'
+      | 'zelda_secret'
+      | 'zelda_chest_open'
+      | 'ocarina_chime'
+      | 'gem_a_confirm'
+      | 'gem_b_back'
+      | 'gem_c_select'
+      | 'mario_spring'
+      | 'bogart_wager'
+      | 'rank_radar_lock'
+      | 'taunt_bubble_pop',
     volumeScale = 1,
   ) {
     if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
+    if (
+      name === 'mario_coin' ||
+      name === 'zelda_secret' ||
+      name === 'zelda_chest_open' ||
+      name === 'ocarina_chime' ||
+      name === 'gem_a_confirm' ||
+      name === 'gem_b_back' ||
+      name === 'gem_c_select' ||
+      name === 'mario_spring' ||
+      name === 'bogart_wager' ||
+      name === 'rank_radar_lock' ||
+      name === 'taunt_bubble_pop'
+    ) {
+      this.playNintendoProceduralSfx(name, volumeScale);
+      return;
+    }
+    if (name === 'purchase') {
+      this.playNintendoProceduralSfx('mario_coin', 0.85 * volumeScale);
+    } else if (name === 'pack_open') {
+      this.playNintendoProceduralSfx('zelda_chest_open', 0.7 * volumeScale);
+    } else if (name === 'box_open') {
+      this.playNintendoProceduralSfx('ocarina_chime', 0.65 * volumeScale);
+    }
     try {
       // iOS Safari WebKit caps concurrent HTMLAudioElement/AVPlayer pipelines; evict oldest if >= 10
       if (this.activeSfx.size >= 10) {
@@ -578,6 +612,141 @@ class SnsHeroCardAudioEngine {
     } catch {
       // ignore
     }
+  }
+
+  /**
+   * DEV-030: Nintendo (Zelda: Ocarina of Time & Super Mario) Procedural 10-SFX Synthesizer.
+   * Zero network payload; disconnects every Oscillator/Gain node on ended to protect iOS WebKit.
+   */
+  playNintendoProceduralSfx(
+    kind:
+      | 'mario_coin'
+      | 'zelda_secret'
+      | 'zelda_chest_open'
+      | 'ocarina_chime'
+      | 'gem_a_confirm'
+      | 'gem_b_back'
+      | 'gem_c_select'
+      | 'mario_spring'
+      | 'bogart_wager'
+      | 'rank_radar_lock'
+      | 'taunt_bubble_pop',
+    volumeScale = 1,
+  ) {
+    if (!this.checkWindowActive() || this.settings.muted || this.settings.sfxVolume <= 0) return;
+    const ctx = this.getAudioCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const master = ctx.createGain();
+    master.gain.value = Math.min(0.45, this.settings.sfxVolume * 0.42 * volumeScale);
+    master.connect(ctx.destination);
+
+    let maxEnd = 0.35;
+    const note = (
+      freq: number,
+      startOffset: number,
+      dur: number,
+      type: OscillatorType = 'triangle',
+      peak = 0.65,
+      freqEnd?: number,
+    ) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now + startOffset);
+      if (freqEnd) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(40, freqEnd), now + startOffset + dur);
+      }
+      g.gain.setValueAtTime(0.0001, now + startOffset);
+      g.gain.linearRampToValueAtTime(peak, now + startOffset + Math.min(0.014, dur * 0.25));
+      g.gain.exponentialRampToValueAtTime(0.0001, now + startOffset + dur);
+      osc.connect(g);
+      g.connect(master);
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          g.disconnect();
+        } catch {
+          // ignore
+        }
+      };
+      osc.start(now + startOffset);
+      osc.stop(now + startOffset + dur + 0.01);
+      maxEnd = Math.max(maxEnd, startOffset + dur + 0.05);
+    };
+
+    switch (kind) {
+      case 'mario_coin':
+        // Classic Mario 2-note Gold Coin: B5 (987.77Hz) -> E6 (1318.51Hz)
+        note(987.77, 0, 0.075, 'square', 0.38);
+        note(987.77 * 2, 0, 0.07, 'sine', 0.22);
+        note(1318.51, 0.075, 0.28, 'square', 0.42);
+        note(1318.51 * 2, 0.075, 0.25, 'sine', 0.24);
+        break;
+      case 'zelda_secret': {
+        // Ocarina Sanctuary Discovery 8-note arpeggio: G5 F#5 D#5 A4 G#4 E5 G#5 C6
+        const seq = [783.99, 739.99, 622.25, 440.0, 415.3, 659.25, 830.61, 1046.5];
+        seq.forEach((f, idx) => note(f, idx * 0.072, idx === 7 ? 0.26 : 0.085, 'triangle', 0.58));
+        break;
+      }
+      case 'zelda_chest_open': {
+        // Rising anticipation + triumphant 4-voice sanctuary fanfare (C5-E5-G5-C6)
+        const rise = [523.25, 587.33, 659.25, 698.46];
+        rise.forEach((f, i) => note(f, i * 0.065, 0.075, 'triangle', 0.48));
+        [523.25, 659.25, 783.99, 1046.5].forEach((f) => note(f, 0.27, 0.42, 'triangle', 0.36));
+        break;
+      }
+      case 'ocarina_chime': {
+        // Ocarina of Time 5-note warm woodwind motif (D5 -> F5 -> D6 -> A5 -> G5)
+        const motif: [number, number, number][] = [
+          [587.33, 0, 0.12],
+          [698.46, 0.11, 0.12],
+          [1174.66, 0.22, 0.22],
+          [880.0, 0.44, 0.14],
+          [783.99, 0.57, 0.24],
+        ];
+        motif.forEach(([f, t, d]) => note(f, t, d, 'triangle', 0.55));
+        break;
+      }
+      case 'gem_a_confirm':
+        note(659.25, 0, 0.07, 'triangle', 0.52);
+        note(987.77, 0.055, 0.16, 'triangle', 0.58);
+        break;
+      case 'gem_b_back':
+        note(523.25, 0, 0.07, 'triangle', 0.45);
+        note(392.0, 0.055, 0.14, 'triangle', 0.42);
+        break;
+      case 'gem_c_select':
+        note(880.0, 0, 0.09, 'triangle', 0.46);
+        note(1320.0, 0.02, 0.07, 'sine', 0.22);
+        break;
+      case 'mario_spring':
+        note(185, 0, 0.19, 'triangle', 0.58, 640);
+        break;
+      case 'bogart_wager':
+        note(1174.66, 0, 0.055, 'triangle', 0.45);
+        note(1567.98, 0.045, 0.065, 'triangle', 0.48);
+        note(987.77, 0.1, 0.07, 'square', 0.34);
+        note(1318.51, 0.165, 0.22, 'square', 0.38);
+        break;
+      case 'rank_radar_lock':
+        note(523.25, 0, 0.075, 'triangle', 0.5);
+        note(783.99, 0.08, 0.075, 'triangle', 0.52);
+        note(1046.5, 0.16, 0.24, 'triangle', 0.6);
+        break;
+      case 'taunt_bubble_pop':
+        note(310, 0, 0.09, 'sine', 0.52, 560);
+        note(660, 0.07, 0.08, 'triangle', 0.35);
+        break;
+    }
+
+    window.setTimeout(() => {
+      try {
+        master.disconnect();
+      } catch {
+        // ignore
+      }
+    }, Math.ceil(maxEnd * 1000) + 80);
   }
 
   /**

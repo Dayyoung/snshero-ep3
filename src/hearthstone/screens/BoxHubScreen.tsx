@@ -8,8 +8,10 @@ import { QuickRulesModal, hasSeenQuickRules } from '../components/OnboardingGuid
 import { PwaInstallGuideModal } from '../components/PwaInstallGuideModal';
 import {
   SNS_LOCATIONS,
+  getElwinTimeOfDayTheme,
   getSnsLogoUrl,
   SnsBoosterPackArt,
+  SnsOcarinaCrestSeal,
   SnsQuestScrollIcon,
   SnsSnowCompassSeal,
 } from '../components/SnsHeroArtKit';
@@ -24,7 +26,7 @@ import {
   subscribePwaFullscreen,
   toggleBrowserFullscreen,
 } from '../pwaFullscreen';
-import { computeOverallStanding, hsStorage } from '../storage';
+import { computeOverallStanding, getEquippedPrestigeSummary, hsStorage } from '../storage';
 import { GameMode, PlayerProfile } from '../types';
 
 export interface BoxHubScreenProps {
@@ -103,7 +105,13 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
     if (mode === 'TUTORIAL' && isFirstVisitGuide) {
       hsStorage.markJourneyGuideDone();
     }
-    hsAudio.playSfx('box_press');
+    if (mode === 'BOGART_GAMBLE') {
+      hsAudio.playSfx('bogart_wager', 0.9);
+    } else if (mode === 'RANKED') {
+      hsAudio.playSfx('gem_a_confirm', 0.9);
+    } else {
+      hsAudio.playSfx('ocarina_chime', 0.85);
+    }
     hsAudio.playSfx('box_disk_flip', 0.85);
     setDiskSpinning(true);
     window.setTimeout(() => {
@@ -114,6 +122,8 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
   const rankTitle = getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang);
   const standing = computeOverallStanding(profile);
+  const timeTheme = getElwinTimeOfDayTheme();
+  const equippedPrestige = getEquippedPrestigeSummary(profile, lang === 'ko');
   const lockedBtnStyle = isFirstVisitGuide
     ? 'pointer-events-none cursor-not-allowed opacity-40 saturate-[0.35]'
     : '';
@@ -124,11 +134,16 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
       style={{ backgroundImage: `url(${SNS_LOCATIONS.BOX_TABLE})` }}
       className="relative flex h-full w-full select-none flex-col items-center justify-between overflow-y-auto bg-cover bg-center px-2.5 py-2 sm:overflow-hidden sm:p-5"
     >
-      {/* Warm Candlelight & Elwin Sanctuary Table Vignette */}
+      {/* DEV-030: Ocarina of Time Dynamic Time-of-Day Sky Lighting Overlay */}
+      <div
+        style={{ background: timeTheme.skyOverlay }}
+        className="pointer-events-none absolute inset-0"
+      />
+      {/* Warm Sanctuary Radiance Vignette */}
       <div
         style={{
           background:
-            'radial-gradient(ellipse at 50% 48%, rgba(255,198,105,0.1) 0%, rgba(12,7,4,0.44) 62%, rgba(5,3,2,0.88) 100%)',
+            'radial-gradient(ellipse at 50% 45%, rgba(254,240,138,0.16) 0%, rgba(15,28,62,0.34) 60%, rgba(6,11,26,0.78) 100%)',
         }}
         className="pointer-events-none absolute inset-0"
       />
@@ -149,6 +164,20 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               className="h-9 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] sm:h-11"
             />
           </a>
+          <button
+            type="button"
+            data-testid="hub-prestige-identity-pill"
+            onClick={() => {
+              if (isFirstVisitGuide) return;
+              hsAudio.playSfx('gem_c_select');
+              onOpenShop();
+            }}
+            className="hs-ocarina-dialog hs-mario-spring hidden min-h-[38px] items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold text-amber-100 md:inline-flex"
+          >
+            <span>{equippedPrestige.badgeIcon}</span>
+            <span className="text-yellow-300">〈{equippedPrestige.titleText}〉</span>
+            <span className="text-sky-300/80">· {timeTheme.icon} {lang === 'ko' ? timeTheme.labelKo : timeTheme.labelEn}</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2.5">
@@ -415,45 +444,45 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               />
             </svg>
 
-            {/* Top Sculpted Snow-Compass Seal */}
-            <SnsSnowCompassSeal
-              size={38}
+            {/* Top Sculpted Ocarina Sanctuary Crest Seal (DEV-030) */}
+            <SnsOcarinaCrestSeal
+              size={40}
               className="relative z-10 -mt-1.5 mb-1 drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] sm:-mt-2 sm:mb-1.5 sm:h-12 sm:w-12"
             />
 
-            {/* 3 Identical-Height Beveled Ivory/Parchment Menu Plates */}
+            {/* 3 Identical-Height Beveled Ivory/Parchment Menu Plates (DEV-027/028/030) */}
             <div className="relative z-10 flex w-full max-w-[218px] flex-col gap-2 sm:max-w-[248px] sm:gap-2.5">
-              {/* 1. 랭킹대전 */}
+              {/* 1. 보가트의 도박장 (Bogart's Gambling Hall — Former Ranked Slot, 100% Mirror Deck + Gold Stake) */}
+              <button
+                type="button"
+                data-testid="hub-mode-gamble"
+                disabled={isFirstVisitGuide}
+                onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.55)}
+                onClick={() => triggerModeTransition('BOGART_GAMBLE')}
+                className={`hs-ivory-plate hs-mario-spring group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
+              >
+                <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#78350f] group-hover:text-[#b45309] sm:text-lg">
+                  🎲 {tr('보가트의 도박장', "Bogart's Gambling Hall")}
+                </span>
+                <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
+                  {tr('100G~5,000G 판돈 · 100% 동일 미러덱', 'Wager 100–5,000G · 100% Mirror Deck')}
+                </span>
+              </button>
+
+              {/* 2. 온라인형 랭킹대전 (Promoted from Former AI Battle — Anonymous Challenger + Emotes + Sole Official Stats) */}
               <button
                 type="button"
                 data-testid="hub-mode-ranked"
                 disabled={isFirstVisitGuide}
                 onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.55)}
                 onClick={() => triggerModeTransition('RANKED')}
-                className={`hs-ivory-plate group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
+                className={`hs-ivory-plate hs-mario-spring group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
               >
-                <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#2d1a0b] group-hover:text-[#0c4a6e] sm:text-lg">
-                  {tr('랭킹대전', 'Ranked Play')}
+                <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#0c4a6e] group-hover:text-[#1d4ed8] sm:text-lg">
+                  🏆 {tr('랭킹대전', 'Ranked Arena')}
                 </span>
-                <span className="mt-0.5 truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
-                  {tr('승리 +25G · 3승 +30G · 등급 별(★)', 'Win +25G · 3 Wins +30G · Rank Stars')}
-                </span>
-              </button>
-
-              {/* 2. AI Battle */}
-              <button
-                type="button"
-                data-testid="hub-mode-ai"
-                disabled={isFirstVisitGuide}
-                onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.55)}
-                onClick={() => triggerModeTransition('PRACTICE_NORMAL')}
-                className={`hs-ivory-plate group flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${lockedBtnStyle}`}
-              >
-                <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#2d1a0b] group-hover:text-[#7c2d12] sm:text-lg">
-                  {tr('AI대전', 'Practice vs AI')}
-                </span>
-                <span className="mt-0.5 truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
-                  {tr('종족 초회 +25~50G · 올클리어 +2팩', 'First Win +25~50G · Sweep Bonus +2 Packs')}
+                <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#475569] sm:text-[10.5px]">
+                  {tr('실시간 도전자 매칭 · 도발 · 공식 전적', 'Challenger Match · Emotes · Official Stats')}
                 </span>
               </button>
 
@@ -474,14 +503,14 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                   data-testid="hub-mode-story"
                   onMouseEnter={() => hsAudio.playSfx('box_hover', 0.55)}
                   onClick={() => triggerModeTransition('TUTORIAL')}
-                  className={`hs-ivory-plate group relative flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${
+                  className={`hs-ivory-plate hs-mario-spring group relative flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-3 sm:h-[60px] sm:px-4 ${
                     isFirstVisitGuide
                       ? 'ring-4 ring-emerald-400 shadow-[0_0_26px_rgba(52,211,153,0.95)]'
                       : ''
                   }`}
                 >
                   <span className="hs-title text-[15px] font-extrabold leading-tight tracking-wider text-[#14532d] group-hover:text-[#064e3b] sm:text-lg">
-                    {tr('스토리모드', 'Story Mode')}
+                    📖 {tr('스토리모드', 'Story Mode')}
                   </span>
                   <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#5c3d1e] sm:text-[10.5px]">
                     {profile.journeyReincarnation > 0

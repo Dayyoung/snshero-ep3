@@ -360,7 +360,13 @@ export const HERO_CLASS_ORDER: HeroClass[] = [
   'DRUID',
 ];
 
-export type GameMode = 'RANKED' | 'CASUAL' | 'PRACTICE_NORMAL' | 'PRACTICE_EXPERT' | 'TUTORIAL';
+export type GameMode =
+  | 'RANKED'
+  | 'CASUAL'
+  | 'PRACTICE_NORMAL'
+  | 'PRACTICE_EXPERT'
+  | 'TUTORIAL'
+  | 'BOGART_GAMBLE';
 
 export type ScreenName =
   | 'TAVERN_INTRO'
@@ -664,12 +670,42 @@ export type KadanTacticalStance = 'BALANCED' | 'AGGRO' | 'CONTROL' | 'AWAKENING'
 
 export type ClutchChoiceOption = 'AOE_CLEAR' | 'ALL_FACE' | 'MANUAL_TURN';
 
-export type SnsCardBackId = 'gold' | 'silver' | 'bronze';
+export type SnsCardBackId = 'gold' | 'silver' | 'bronze' | 'ocarina_crest' | 'bogart_vip';
+
+export type PrestigeCategory = 'BADGE' | 'FRAME' | 'CARDBACK' | 'TITLE';
+
+export interface PlayerPrestigeState {
+  ownedBadges: string[];
+  equippedBadge: string;
+  ownedFrames: string[];
+  equippedFrame: string;
+  ownedCardBacks: SnsCardBackId[];
+  ownedTitles: string[];
+  equippedTitle: string;
+}
+
+export interface BogartGambleStats {
+  totalMatches: number;
+  wins: number;
+  netGoldProfit: number;
+  biggestPotWon: number;
+}
+
+export interface ChallengerMeta {
+  nickname: string;
+  titleKo: string;
+  titleEn: string;
+  badgeIcon: string;
+  tierLabelKo: string;
+  tierLabelEn: string;
+  rating: number;
+}
 
 export interface MatchRewardBreakdown {
   mode: GameMode;
   didWin: boolean;
   goldEarned: number;
+  goldDelta?: number;
   baseWinGold: number;
   bonusGold: number;
   bonusLabel: string | null;
@@ -681,6 +717,9 @@ export interface MatchRewardBreakdown {
   newStars: number;
   streakBonus: boolean;
   threeWinProgress: number;
+  bogartStakeGold?: number;
+  bogartPayoutGold?: number;
+  isOfficialRanked?: boolean;
   clearedEpisode?: number;
   nextEpisode?: number;
   nextReincarnation?: number;
@@ -696,8 +735,17 @@ export interface PlayerProfile {
   winStreak: number;
   totalWins: number;
   totalGames: number;
+  rankedWins: number;
+  rankedGames: number;
+  rankedWinStreak: number;
+  rankedBestStreak: number;
   classWins: Record<HeroClass, number>;
   selectedCardBack: SnsCardBackId;
+  prestige: PlayerPrestigeState;
+  bogartStats: BogartGambleStats;
+  fairyReliefDate?: string;
+  fairyReliefUsedToday?: number;
+  fairyComebackBonusActive?: boolean;
   masterUnlocked: boolean;
   threeWinCounter: number;
   journeyGuideDone: boolean;

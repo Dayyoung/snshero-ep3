@@ -8,6 +8,7 @@ import {
   getStarsNeededForRank,
 } from './cardDb';
 import {
+  BogartGambleStats,
   CardRarity,
   ClassicCardDef,
   CustomDeck,
@@ -16,7 +17,10 @@ import {
   HERO_CLASS_ORDER,
   HeroClass,
   MatchRewardBreakdown,
+  PlayerPrestigeState,
   PlayerProfile,
+  PrestigeCategory,
+  SnsCardBackId,
 } from './types';
 
 const KEYS = {
@@ -142,11 +146,19 @@ export const MODE_REWARD_GUIDES: Record<GameMode, ModeRewardGuide> = {
   },
   RANKED: {
     mode: 'RANKED',
-    modeNameKo: '랭킹대전 · 등급전',
-    playStyleBadge: '매판 자동플레이 지원(시작·종료 시 OFF) · 정통 1배 룰',
+    modeNameKo: '온라인형 랭킹대전 (공식 전적)',
+    playStyleBadge: '실시간 도전자 매칭 · 도발 심리전 · 정통 1배 룰 · 공식 전적 단독 반영',
     baseWinRewardText: '1승당 +25 골드 + 등급 별 ★+1 획득',
-    specialBonusText: '3승 달성마다 +30G 추가 · 3연승 시 별 ★+2 상승 · 전설 등급 도전',
-    summaryOneLine: '승리 시 +25G · 3승마다 +30G 보너스 · 등급 별(★) 승급',
+    specialBonusText: '3승 달성마다 +30G 추가 · 3연승 시 별 ★+2 상승 · 공식 전적 단독 집계',
+    summaryOneLine: '승리 시 +25G · 3승마다 +30G · 공식 승률·연승·등급 반영',
+  },
+  BOGART_GAMBLE: {
+    mode: 'BOGART_GAMBLE',
+    modeNameKo: '보가트의 도박장 (미러덱 판돈전)',
+    playStyleBadge: '100G~5,000G 골드 베팅 · 양측 100% 동일 30장 미러덱 공정 승부',
+    baseWinRewardText: '승리 시 베팅 판돈 2배 즉시 지급 (최대 +10,000G 상금!)',
+    specialBonusText: '공식 전적 무관 · 획득 골드로 황금 주화 교환소 4대 명예 치장 수집',
+    summaryOneLine: '판돈 100G/500G/2,000G/5,000G · 승리 시 2배 상금 · 100% 동일 미러덱',
   },
   CASUAL: {
     mode: 'CASUAL',
@@ -185,11 +197,19 @@ export const MODE_REWARD_GUIDES_EN: Record<GameMode, ModeRewardGuide> = {
   },
   RANKED: {
     mode: 'RANKED',
-    modeNameKo: 'Ranked Play (Standard)',
-    playStyleBadge: 'Auto-Play Available · Classic 1x Rules',
+    modeNameKo: 'Ranked Arena (Official Record)',
+    playStyleBadge: 'Live Challenger Match · Taunt Emotes · Fair 1x Rules · Exclusive Official Stats',
     baseWinRewardText: '+25 Gold + 1 Rank Star per win',
-    specialBonusText: '+30G every 3 wins · +2 Win-Streak Bonus Stars · Climb to Legend',
-    summaryOneLine: '+25G per win · +30G per 3 wins · Rank Stars',
+    specialBonusText: '+30G every 3 wins · +2 Win-Streak Stars · Sole Official Record Mode',
+    summaryOneLine: '+25G per win · +30G per 3 wins · Official Win Rate & Rank',
+  },
+  BOGART_GAMBLE: {
+    mode: 'BOGART_GAMBLE',
+    modeNameKo: "Bogart's Gambling Hall (Mirror Deck)",
+    playStyleBadge: 'Wager 100G–5,000G · 100% Identical 30-Card Mirror Deck Fair Duel',
+    baseWinRewardText: 'Win 2x Stake Payout instantly (up to 10,000G pot!)',
+    specialBonusText: 'Separate from Official Ranked Record · Unlock 4 Gold Prestige Cosmetics',
+    summaryOneLine: 'Stake 100G/500G/2,000G/5,000G · 2x Payout · 100% Mirror Deck',
   },
   CASUAL: {
     mode: 'CASUAL',
@@ -236,14 +256,271 @@ export interface OverallStandingSummary {
   topPercentLabel: string;
 }
 
+export const BOGART_STAKE_TIERS = [100, 500, 2000, 5000] as const;
+export type BogartStakeTier = (typeof BOGART_STAKE_TIERS)[number];
+
+export interface GoldPrestigeItemDef {
+  id: string;
+  category: PrestigeCategory;
+  costGold: number;
+  icon: string;
+  nameKo: string;
+  nameEn: string;
+  descKo: string;
+  descEn: string;
+  accentClass: string;
+  cardBackId?: SnsCardBackId;
+}
+
+export const GOLD_PRESTIGE_ITEMS: GoldPrestigeItemDef[] = [
+  // 1. Profile Badges (프로필 뱃지)
+  {
+    id: 'badge_compass',
+    category: 'BADGE',
+    costGold: 0,
+    icon: '❄️',
+    nameKo: '엘윈 눈나침반',
+    nameEn: 'Elwin Snow Compass',
+    descKo: '엘윈마을 모험가의 기본 수호 문장',
+    descEn: 'Default guardian crest of Elwin Village',
+    accentClass: 'border-sky-400/60 bg-sky-950/60 text-sky-200',
+  },
+  {
+    id: 'badge_ocarina',
+    category: 'BADGE',
+    costGold: 300,
+    icon: '🎵',
+    nameKo: '시간의 오카리나 문장',
+    nameEn: 'Ocarina of Sanctuary Crest',
+    descKo: '성소의 비밀 선율을 연주하는 사파이어 오카리나 뱃지',
+    descEn: 'Sapphire Ocarina badge echoing sanctuary melodies',
+    accentClass: 'border-blue-300/80 bg-blue-950/75 text-blue-100',
+  },
+  {
+    id: 'badge_bogart_dice',
+    category: 'BADGE',
+    costGold: 800,
+    icon: '🎲',
+    nameKo: '보가트 황금 주사위',
+    nameEn: 'Bogart Golden Dice',
+    descKo: '보가트의 도박장에서 담력을 증명한 승부사의 증표',
+    descEn: 'High-roller emblem from Bogart’s Gambling Hall',
+    accentClass: 'border-amber-300/80 bg-amber-950/75 text-yellow-200',
+  },
+  {
+    id: 'badge_sacred_shield',
+    category: 'BADGE',
+    costGold: 1500,
+    icon: '🛡️',
+    nameKo: '성검과 성소 방패',
+    nameEn: 'Sacred Sword & Shield',
+    descKo: '대평원을 수호하는 영웅의 황동 방패 문장',
+    descEn: 'Forged brass shield & sacred blade emblem',
+    accentClass: 'border-emerald-300/80 bg-emerald-950/75 text-emerald-100',
+  },
+  {
+    id: 'badge_abyss_crown',
+    category: 'BADGE',
+    costGold: 2500,
+    icon: '👑',
+    nameKo: '전설의 대평원 왕관',
+    nameEn: 'Crown of the Great Plain',
+    descKo: '최고 명예를 달성한 챔피언 전용 24K 왕관 뱃지',
+    descEn: '24K Sovereign Crown for supreme champions',
+    accentClass: 'border-yellow-200 bg-gradient-to-b from-amber-700/80 to-amber-950 text-yellow-100',
+  },
+  // 2. Card Frame Designs (카드 프레임 디자인)
+  {
+    id: 'frame_classic',
+    category: 'FRAME',
+    costGold: 0,
+    icon: '🪵',
+    nameKo: '기본 참나무 테두리',
+    nameEn: 'Classic Oak Trim',
+    descKo: '정통 여관 참나무와 단조 철제 기본 프레임',
+    descEn: 'Classic tavern oak and forged iron card trim',
+    accentClass: 'border-amber-600/60 bg-stone-900 text-amber-100',
+  },
+  {
+    id: 'frame_zelda_brass',
+    category: 'FRAME',
+    costGold: 500,
+    icon: '✨',
+    nameKo: '성소 이중 황동 림',
+    nameEn: 'Sanctuary Double-Brass Rim',
+    descKo: '시간의 성소 석조 부조를 본뜬 이중 황동 프레임',
+    descEn: 'Double forged-brass sanctuary relief frame',
+    accentClass: 'border-yellow-300/80 bg-amber-950/70 text-yellow-100',
+  },
+  {
+    id: 'frame_sapphire_rune',
+    category: 'FRAME',
+    costGold: 1200,
+    icon: '💎',
+    nameKo: '현자의 사파이어 룬 프레임',
+    nameEn: 'Sage Sapphire Rune Frame',
+    descKo: '감청색 마력 광채가 흐르는 현자의 성소 프레임',
+    descEn: 'Deep sapphire frame pulsing with ancient runes',
+    accentClass: 'border-cyan-300/85 bg-sky-950/80 text-cyan-100',
+  },
+  {
+    id: 'frame_royal_24k',
+    category: 'FRAME',
+    costGold: 3000,
+    icon: '🌟',
+    nameKo: '24K 로얄 골드 프레임',
+    nameEn: '24K Royal Gold Frame',
+    descKo: '순금 포일 광택이 감도는 최고급 프레스티지 프레임',
+    descEn: 'Supreme 24K golden foil prestige frame',
+    accentClass: 'border-yellow-200 bg-gradient-to-r from-yellow-800/80 to-amber-900/80 text-yellow-100',
+  },
+  // 3. Card Back Skins (카드 뒷면 스킨)
+  {
+    id: 'back_gold',
+    category: 'CARDBACK',
+    costGold: 0,
+    icon: '🟨',
+    nameKo: '눈히어로 골드 뒷면',
+    nameEn: 'SNSHero Gold Back',
+    descKo: '공식 골드 엠블럼 기본 카드 뒷면',
+    descEn: 'Official Gold Emblem default card back',
+    accentClass: 'border-amber-400/60 bg-stone-900 text-amber-100',
+    cardBackId: 'gold',
+  },
+  {
+    id: 'back_silver',
+    category: 'CARDBACK',
+    costGold: 0,
+    icon: '⬜',
+    nameKo: '눈히어로 실버 뒷면',
+    nameEn: 'SNSHero Silver Back',
+    descKo: '공식 실버 플래티넘 기본 카드 뒷면',
+    descEn: 'Official Silver Platinum default card back',
+    accentClass: 'border-slate-300/60 bg-stone-900 text-slate-100',
+    cardBackId: 'silver',
+  },
+  {
+    id: 'back_bronze',
+    category: 'CARDBACK',
+    costGold: 0,
+    icon: '🟫',
+    nameKo: '눈히어로 브론즈 뒷면',
+    nameEn: 'SNSHero Bronze Back',
+    descKo: '공식 브론즈 클래식 기본 카드 뒷면',
+    descEn: 'Official Bronze Classic default card back',
+    accentClass: 'border-orange-400/60 bg-stone-900 text-orange-100',
+    cardBackId: 'bronze',
+  },
+  {
+    id: 'back_ocarina_crest',
+    category: 'CARDBACK',
+    costGold: 800,
+    icon: '🛡️',
+    nameKo: '시간의 오카리나 성소 뒷면',
+    nameEn: 'Ocarina Sanctuary Back',
+    descKo: '성검·방패·오카리나 문장이 각인된 사파이어 카드 스킨',
+    descEn: 'Sapphire card skin emblazoned with the Ocarina Crest',
+    accentClass: 'border-sky-300/85 bg-blue-950/80 text-sky-100',
+    cardBackId: 'ocarina_crest',
+  },
+  {
+    id: 'back_bogart_vip',
+    category: 'CARDBACK',
+    costGold: 1800,
+    icon: '🎲',
+    nameKo: '보가트 VIP 하이롤러 뒷면',
+    nameEn: 'Bogart VIP High-Roller Back',
+    descKo: '보가트의 도박장 VIP 전용 루비·골드 카드 스킨',
+    descEn: 'Ruby & 24K Gold VIP card skin from Bogart’s Hall',
+    accentClass: 'border-yellow-300/90 bg-red-950/80 text-yellow-100',
+    cardBackId: 'bogart_vip',
+  },
+  // 4. Character Titles (캐릭터 호칭)
+  {
+    id: 'title_adventurer',
+    category: 'TITLE',
+    costGold: 0,
+    icon: '⚔️',
+    nameKo: '엘윈의 모험가',
+    nameEn: 'Adventurer of Elwin',
+    descKo: '엘윈마을에서 여정을 시작한 용감한 모험가',
+    descEn: 'Brave adventurer setting forth from Elwin Village',
+    accentClass: 'border-stone-500/60 bg-stone-900 text-amber-100',
+  },
+  {
+    id: 'title_ocarina_hero',
+    category: 'TITLE',
+    costGold: 400,
+    icon: '🎼',
+    nameKo: '시간을 깨우는 연주자',
+    nameEn: 'Conductor of Time',
+    descKo: '성소의 선율로 전장의 흐름을 바꾸는 지휘관 호칭',
+    descEn: 'Commander title attuned to sanctuary melodies',
+    accentClass: 'border-sky-300/80 bg-sky-950/75 text-sky-100',
+  },
+  {
+    id: 'title_gambler',
+    category: 'TITLE',
+    costGold: 900,
+    icon: '🪙',
+    nameKo: '보가트 도박장의 승부사',
+    nameEn: 'Bogart Hall High-Roller',
+    descKo: '100% 동일 미러덱 심리전을 제패한 대담한 승부사',
+    descEn: 'Master of fair 100% Mirror-Deck high-stakes duels',
+    accentClass: 'border-amber-300/85 bg-amber-950/75 text-yellow-200',
+  },
+  {
+    id: 'title_awakener',
+    category: 'TITLE',
+    costGold: 1800,
+    icon: '⚡',
+    nameKo: '3배 각성의 지배자',
+    nameEn: 'Sovereign of 3x Awakening',
+    descKo: '여정의 각성 법칙을 극한으로 끌어올린 전략가',
+    descEn: 'Tactician who mastered the 3x Awakening law',
+    accentClass: 'border-emerald-300/85 bg-emerald-950/75 text-emerald-100',
+  },
+  {
+    id: 'title_legend_king',
+    category: 'TITLE',
+    costGold: 3500,
+    icon: '👑',
+    nameKo: '엘윈 대평원의 전설',
+    nameEn: 'Legend of Elwin Plain',
+    descKo: '랭킹대전과 도박장 모두에 이름을 새긴 최고 명예 호칭',
+    descEn: 'Supreme honor title celebrated across all Elwin',
+    accentClass: 'border-yellow-200 bg-gradient-to-r from-amber-800/85 to-yellow-900/85 text-yellow-100',
+  },
+];
+
+export function getEquippedPrestigeSummary(
+  profile: PlayerProfile,
+  isKo: boolean,
+): { badgeIcon: string; badgeName: string; titleText: string; frameId: string } {
+  const badgeDef =
+    GOLD_PRESTIGE_ITEMS.find(
+      (i) => i.category === 'BADGE' && i.id === profile.prestige?.equippedBadge,
+    ) || GOLD_PRESTIGE_ITEMS[0];
+  const titleDef =
+    GOLD_PRESTIGE_ITEMS.find(
+      (i) => i.category === 'TITLE' && i.id === profile.prestige?.equippedTitle,
+    ) || GOLD_PRESTIGE_ITEMS.find((i) => i.id === 'title_adventurer')!;
+  return {
+    badgeIcon: badgeDef.icon,
+    badgeName: isKo ? badgeDef.nameKo : badgeDef.nameEn,
+    titleText: isKo ? titleDef.nameKo : titleDef.nameEn,
+    frameId: profile.prestige?.equippedFrame || 'frame_classic',
+  };
+}
+
 /**
- * 로컬스토리지 전적(등급·별·통산 승/패·승률·연승·스토리모드 진행도) 기반
+ * 로컬스토리지 공식 랭킹대전 단독 전적(DEV-028: 오직 RANKED 승패만 반영) 기반
  * 전체 모험가(50,000명) 대비 현재 전체순위 및 상위 백분율 산출
  */
 export function computeOverallStanding(profile: PlayerProfile): OverallStandingSummary {
   const TOTAL_PLAYERS = 50000;
-  const totalGames = Math.max(0, profile.totalGames || 0);
-  const wins = Math.max(0, Math.min(totalGames, profile.totalWins || 0));
+  const totalGames = Math.max(0, profile.rankedGames ?? 0);
+  const wins = Math.max(0, Math.min(totalGames, profile.rankedWins ?? 0));
   const losses = Math.max(0, totalGames - wins);
   const winRatePct = totalGames > 0 ? Math.min(100, (wins / totalGames) * 100) : 0;
   const winRateLabel = winRatePct.toFixed(1);
@@ -251,7 +528,7 @@ export function computeOverallStanding(profile: PlayerProfile): OverallStandingS
   let overallRank: number;
   if (profile.rank <= 0) {
     const legendScore =
-      wins * 2 + (profile.winStreak || 0) * 3 + (profile.journeyMaxStageCleared || 0);
+      wins * 2 + (profile.rankedWinStreak || 0) * 3 + (profile.journeyMaxStageCleared || 0);
     overallRank = Math.max(1, 150 - Math.floor(legendScore / 2));
   } else {
     let cumStars = 0;
@@ -313,7 +590,30 @@ function emitStateChanged() {
 function normalizeCardBack(raw: unknown): PlayerProfile['selectedCardBack'] {
   if (raw === 'silver' || raw === 'frost') return 'silver';
   if (raw === 'bronze') return 'bronze';
+  if (raw === 'ocarina_crest') return 'ocarina_crest';
+  if (raw === 'bogart_vip') return 'bogart_vip';
   return 'gold';
+}
+
+function defaultPrestigeState(): PlayerPrestigeState {
+  return {
+    ownedBadges: ['badge_compass'],
+    equippedBadge: 'badge_compass',
+    ownedFrames: ['frame_classic'],
+    equippedFrame: 'frame_classic',
+    ownedCardBacks: ['gold', 'silver', 'bronze'],
+    ownedTitles: ['title_adventurer'],
+    equippedTitle: 'title_adventurer',
+  };
+}
+
+function defaultBogartStats(): BogartGambleStats {
+  return {
+    totalMatches: 0,
+    wins: 0,
+    netGoldProfit: 0,
+    biggestPotWon: 0,
+  };
 }
 
 function defaultProfile(): PlayerProfile {
@@ -328,8 +628,14 @@ function defaultProfile(): PlayerProfile {
     winStreak: 0,
     totalWins: 0,
     totalGames: 0,
+    rankedWins: 0,
+    rankedGames: 0,
+    rankedWinStreak: 0,
+    rankedBestStreak: 0,
     classWins,
     selectedCardBack: 'gold',
+    prestige: defaultPrestigeState(),
+    bogartStats: defaultBogartStats(),
     masterUnlocked: false,
     threeWinCounter: 0,
     journeyGuideDone: false,
@@ -470,10 +776,41 @@ class HearthstoneStorage {
           rawEp === undefined || rawEp === null || Number.isNaN(Number(rawEp))
             ? minEp
             : Math.max(minEp, Math.min(40, Math.floor(Number(rawEp))));
+        const defPrest = defaultPrestigeState();
+        const rawPrest = parsed?.prestige || {};
+        const mergedPrestige: PlayerPrestigeState = {
+          ownedBadges: Array.isArray(rawPrest.ownedBadges) && rawPrest.ownedBadges.length > 0
+            ? Array.from(new Set(['badge_compass', ...rawPrest.ownedBadges]))
+            : defPrest.ownedBadges,
+          equippedBadge: rawPrest.equippedBadge || defPrest.equippedBadge,
+          ownedFrames: Array.isArray(rawPrest.ownedFrames) && rawPrest.ownedFrames.length > 0
+            ? Array.from(new Set(['frame_classic', ...rawPrest.ownedFrames]))
+            : defPrest.ownedFrames,
+          equippedFrame: rawPrest.equippedFrame || defPrest.equippedFrame,
+          ownedCardBacks: Array.isArray(rawPrest.ownedCardBacks) && rawPrest.ownedCardBacks.length > 0
+            ? (Array.from(new Set(['gold', 'silver', 'bronze', ...rawPrest.ownedCardBacks])) as SnsCardBackId[])
+            : defPrest.ownedCardBacks,
+          ownedTitles: Array.isArray(rawPrest.ownedTitles) && rawPrest.ownedTitles.length > 0
+            ? Array.from(new Set(['title_adventurer', ...rawPrest.ownedTitles]))
+            : defPrest.ownedTitles,
+          equippedTitle: rawPrest.equippedTitle || defPrest.equippedTitle,
+        };
+        const rawBogart = parsed?.bogartStats || {};
         return {
           ...defaultProfile(),
           ...parsed,
+          rankedWins: Math.max(0, Number(parsed?.rankedWins) || 0),
+          rankedGames: Math.max(0, Number(parsed?.rankedGames) || 0),
+          rankedWinStreak: Math.max(0, Number(parsed?.rankedWinStreak) || 0),
+          rankedBestStreak: Math.max(0, Number(parsed?.rankedBestStreak) || 0),
           selectedCardBack: normalizeCardBack(parsed?.selectedCardBack),
+          prestige: mergedPrestige,
+          bogartStats: {
+            totalMatches: Math.max(0, Number(rawBogart.totalMatches) || 0),
+            wins: Math.max(0, Number(rawBogart.wins) || 0),
+            netGoldProfit: Number(rawBogart.netGoldProfit) || 0,
+            biggestPotWon: Math.max(0, Number(rawBogart.biggestPotWon) || 0),
+          },
           journeyEpisode: parsedEp,
           journeyReincarnation: parsedReinc,
           journeyMaxStageCleared: Math.max(0, Number(parsed?.journeyMaxStageCleared) || 0),
@@ -1329,15 +1666,127 @@ class HearthstoneStorage {
     return { claimedCount, goldGranted };
   }
 
+  /**
+   * DEV-027: Place Gold wager on entry to Bogart's Gambling Hall.
+   */
+  placeBogartWager(stakeGold: number): { ok: boolean; remainingGold: number } {
+    const safeStake = Math.max(100, Math.floor(stakeGold || 100));
+    const p = this.getProfile();
+    if (p.gold < safeStake) {
+      return { ok: false, remainingGold: p.gold };
+    }
+    p.gold -= safeStake;
+    this.saveProfile(p);
+    return { ok: true, remainingGold: p.gold };
+  }
+
+  /**
+   * DEV-027 / DEV-031: Ocarina Fairy Fountain Bankruptcy Relief (<100G: up to 3x/day +150G instant + +200G Ranked 1-win comeback buff).
+   */
+  getFairyReliefStatus(p = this.getProfile()): { remainingToday: number; comebackActive: boolean } {
+    const today = new Date().toISOString().slice(0, 10);
+    const used = p.fairyReliefDate === today ? Math.max(0, p.fairyReliefUsedToday || 0) : 0;
+    return {
+      remainingToday: Math.max(0, 3 - used),
+      comebackActive: Boolean(p.fairyComebackBonusActive),
+    };
+  }
+
+  claimBogartReliefChip(): {
+    granted: boolean;
+    newGold: number;
+    remainingToday: number;
+  } {
+    const p = this.getProfile();
+    const today = new Date().toISOString().slice(0, 10);
+    const used = p.fairyReliefDate === today ? Math.max(0, p.fairyReliefUsedToday || 0) : 0;
+    if (p.gold >= 100 || used >= 3) {
+      return { granted: false, newGold: p.gold, remainingToday: Math.max(0, 3 - used) };
+    }
+    p.gold += 150;
+    p.fairyReliefDate = today;
+    p.fairyReliefUsedToday = used + 1;
+    p.fairyComebackBonusActive = true;
+    this.saveProfile(p);
+    return {
+      granted: true,
+      newGold: p.gold,
+      remainingToday: Math.max(0, 3 - p.fairyReliefUsedToday),
+    };
+  }
+
+  /**
+   * DEV-027: Purchase with Gold (if unowned) and immediately equip any of the 4 Prestige Cosmetic categories.
+   */
+  purchaseOrEquipPrestige(itemId: string): {
+    ok: boolean;
+    action: 'PURCHASED' | 'EQUIPPED' | 'INSUFFICIENT_GOLD' | 'NOT_FOUND';
+    remainingGold: number;
+  } {
+    const item = GOLD_PRESTIGE_ITEMS.find((i) => i.id === itemId);
+    const p = this.getProfile();
+    if (!item) return { ok: false, action: 'NOT_FOUND', remainingGold: p.gold };
+
+    const isOwned =
+      item.costGold === 0 ||
+      (item.category === 'BADGE' && p.prestige.ownedBadges.includes(item.id)) ||
+      (item.category === 'FRAME' && p.prestige.ownedFrames.includes(item.id)) ||
+      (item.category === 'CARDBACK' &&
+        item.cardBackId &&
+        p.prestige.ownedCardBacks.includes(item.cardBackId)) ||
+      (item.category === 'TITLE' && p.prestige.ownedTitles.includes(item.id));
+
+    if (!isOwned) {
+      if (p.gold < item.costGold) {
+        return { ok: false, action: 'INSUFFICIENT_GOLD', remainingGold: p.gold };
+      }
+      p.gold -= item.costGold;
+      if (item.category === 'BADGE') {
+        p.prestige.ownedBadges = Array.from(new Set([...p.prestige.ownedBadges, item.id]));
+      } else if (item.category === 'FRAME') {
+        p.prestige.ownedFrames = Array.from(new Set([...p.prestige.ownedFrames, item.id]));
+      } else if (item.category === 'CARDBACK' && item.cardBackId) {
+        p.prestige.ownedCardBacks = Array.from(
+          new Set([...p.prestige.ownedCardBacks, item.cardBackId]),
+        );
+      } else if (item.category === 'TITLE') {
+        p.prestige.ownedTitles = Array.from(new Set([...p.prestige.ownedTitles, item.id]));
+      }
+    }
+
+    if (item.category === 'BADGE') {
+      p.prestige.equippedBadge = item.id;
+    } else if (item.category === 'FRAME') {
+      p.prestige.equippedFrame = item.id;
+    } else if (item.category === 'CARDBACK' && item.cardBackId) {
+      p.selectedCardBack = item.cardBackId;
+    } else if (item.category === 'TITLE') {
+      p.prestige.equippedTitle = item.id;
+    }
+
+    this.saveProfile(p);
+    return {
+      ok: true,
+      action: isOwned ? 'EQUIPPED' : 'PURCHASED',
+      remainingGold: p.gold,
+    };
+  }
+
   recordMatchOutcome(
     heroClass: HeroClass,
     didWin: boolean,
     mode: GameMode,
     opponentClass?: HeroClass,
+    bogartStakeGold = 0,
   ): MatchRewardBreakdown {
     const p = this.getProfile();
     const prevRank = p.rank;
     p.totalGames += 1;
+
+    // DEV-028: Official Ranked Record exclusively tracks RANKED matches!
+    if (mode === 'RANKED') {
+      p.rankedGames = (p.rankedGames || 0) + 1;
+    }
 
     let baseWinGold = 0;
     let bonusGold = 0;
@@ -1345,6 +1794,7 @@ class HearthstoneStorage {
     let packsEarned = 0;
     let packReason: string | null = null;
     let streakBonus = false;
+    let bogartPayoutGold: number | undefined;
     let clearedEpisode: number | undefined;
     let nextEpisode: number | undefined;
     let nextReincarnation: number | undefined;
@@ -1353,9 +1803,27 @@ class HearthstoneStorage {
     if (didWin) {
       p.totalWins += 1;
       p.classWins[heroClass] = (p.classWins[heroClass] || 0) + 1;
-      p.winStreak += 1;
+      if (mode === 'RANKED') {
+        p.rankedWins = (p.rankedWins || 0) + 1;
+        p.rankedWinStreak = (p.rankedWinStreak || 0) + 1;
+        p.rankedBestStreak = Math.max(p.rankedBestStreak || 0, p.rankedWinStreak);
+        p.winStreak = p.rankedWinStreak;
+      }
 
-      if (mode === 'TUTORIAL') {
+      if (mode === 'BOGART_GAMBLE') {
+        const stake = Math.max(100, Math.floor(bogartStakeGold || 100));
+        bogartPayoutGold = stake * 2;
+        baseWinGold = stake;
+        bonusGold = stake;
+        bonusLabel = tr(
+          `🎲 보가트의 도박장 승리 상금 (판돈 ${stake}G × 2배!)`,
+          `🎲 Bogart's Gambling Hall Jackpot (${stake}G × 2x Payout!)`,
+        );
+        p.bogartStats.totalMatches += 1;
+        p.bogartStats.wins += 1;
+        p.bogartStats.netGoldProfit += stake;
+        p.bogartStats.biggestPotWon = Math.max(p.bogartStats.biggestPotWon || 0, bogartPayoutGold);
+      } else if (mode === 'TUTORIAL') {
         const curReinc = p.journeyReincarnation || 0;
         const rawEp = Number.isFinite(p.journeyEpisode) ? p.journeyEpisode : curReinc > 0 ? 1 : 0;
         const curEp = Math.max(curReinc > 0 ? 1 : 0, Math.min(40, Math.floor(rawEp)));
@@ -1416,8 +1884,16 @@ class HearthstoneStorage {
           bonusGold = 30;
           bonusLabel = tr('등급전 3승 달성 보너스', 'Ranked 3-Win Milestone Bonus');
         }
+        if (p.fairyComebackBonusActive) {
+          p.fairyComebackBonusActive = false;
+          bonusGold += 200;
+          bonusLabel = tr(
+            '🧚 엘윈 성소 요정 샘 재기 달성 보너스 (+200G!)',
+            '🧚 Fairy Fountain Comeback Victory Bonus (+200G!)',
+          );
+        }
         if (p.rank > 0) {
-          const starGain = p.winStreak >= 3 && p.rank > 5 ? 2 : 1;
+          const starGain = p.rankedWinStreak >= 3 && p.rank > 5 ? 2 : 1;
           streakBonus = starGain === 2;
           p.stars += starGain;
           while (p.rank > 0 && p.stars >= getStarsNeededForRank(p.rank)) {
@@ -1463,14 +1939,22 @@ class HearthstoneStorage {
       p.gold += baseWinGold + bonusGold;
       p.packs += packsEarned;
     } else {
-      p.winStreak = 0;
-      if (mode === 'RANKED' && p.rank > 0 && p.rank <= 20) {
-        if (p.stars > 0) {
-          p.stars -= 1;
-        } else if (p.rank < 20) {
-          p.rank += 1;
-          p.stars = getStarsNeededForRank(p.rank) - 1;
+      if (mode === 'RANKED') {
+        p.rankedWinStreak = 0;
+        p.winStreak = 0;
+        if (p.rank > 0 && p.rank <= 20) {
+          if (p.stars > 0) {
+            p.stars -= 1;
+          } else if (p.rank < 20) {
+            p.rank += 1;
+            p.stars = getStarsNeededForRank(p.rank) - 1;
+          }
         }
+      } else if (mode === 'BOGART_GAMBLE') {
+        const stake = Math.max(100, Math.floor(bogartStakeGold || 100));
+        bogartPayoutGold = 0;
+        p.bogartStats.totalMatches += 1;
+        p.bogartStats.netGoldProfit -= stake;
       }
       if (mode === 'TUTORIAL') {
         nextEpisode = p.journeyEpisode;
@@ -1480,11 +1964,13 @@ class HearthstoneStorage {
 
     this.saveProfile(p);
     const questGold = didWin ? this.recordQuestProgress('WIN', 1) : 0;
+    const totalEarned = baseWinGold + bonusGold + questGold;
 
     return {
       mode,
       didWin,
-      goldEarned: baseWinGold + bonusGold + questGold,
+      goldEarned: totalEarned,
+      goldDelta: totalEarned,
       baseWinGold,
       bonusGold,
       bonusLabel,
@@ -1496,6 +1982,9 @@ class HearthstoneStorage {
       newStars: p.stars,
       streakBonus,
       threeWinProgress: p.threeWinCounter,
+      bogartStakeGold: mode === 'BOGART_GAMBLE' ? Math.max(100, Math.floor(bogartStakeGold || 100)) : undefined,
+      bogartPayoutGold,
+      isOfficialRanked: mode === 'RANKED',
       clearedEpisode,
       nextEpisode,
       nextReincarnation,

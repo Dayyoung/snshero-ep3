@@ -120,6 +120,108 @@
   .hs-arcane-btn:active:not(:disabled) {
     transform: translateY(1.5px) scale(0.985);
   }
+
+  /* ==========================================================================
+   * DEV-030: Zelda (Ocarina of Time) Sanctuary Glass & Gem Buttons + Mario Spring
+   * ========================================================================== */
+  .hs-ocarina-dialog {
+    background: linear-gradient(180deg, rgba(15, 34, 76, 0.94) 0%, rgba(8, 18, 44, 0.97) 100%);
+    border: 2.5px solid #f4d483;
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.88),
+      0 0 0 1.5px #7c5821,
+      inset 0 0 0 2px rgba(147, 197, 253, 0.25),
+      inset 0 2px 12px rgba(56, 189, 248, 0.18);
+  }
+
+  .hs-zelda-a-btn {
+    background:
+      radial-gradient(ellipse at 50% 18%, rgba(186, 230, 253, 0.65) 0%, transparent 58%),
+      linear-gradient(180deg, #38bdf8 0%, #0284c7 52%, #1e3a8a 100%);
+    border: 2.5px solid #f6d889;
+    color: #ffffff;
+    box-shadow:
+      0 8px 20px rgba(2, 132, 199, 0.45),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -3px 6px rgba(15, 23, 42, 0.75);
+    transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.14s ease;
+  }
+  .hs-zelda-a-btn:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-2px) scale(1.03, 0.985);
+  }
+  .hs-zelda-a-btn:active:not(:disabled) {
+    transform: translateY(2px) scale(1.05, 0.93);
+  }
+
+  .hs-zelda-b-btn {
+    background:
+      radial-gradient(ellipse at 50% 18%, rgba(167, 243, 208, 0.6) 0%, transparent 58%),
+      linear-gradient(180deg, #34d399 0%, #059669 52%, #064e3b 100%);
+    border: 2.5px solid #f6d889;
+    color: #ffffff;
+    box-shadow:
+      0 8px 20px rgba(5, 150, 105, 0.42),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -3px 6px rgba(6, 46, 34, 0.75);
+    transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.14s ease;
+  }
+  .hs-zelda-b-btn:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-2px) scale(1.03, 0.985);
+  }
+  .hs-zelda-b-btn:active:not(:disabled) {
+    transform: translateY(2px) scale(1.05, 0.93);
+  }
+
+  .hs-zelda-c-btn {
+    background:
+      radial-gradient(ellipse at 50% 18%, rgba(254, 249, 195, 0.75) 0%, transparent 58%),
+      linear-gradient(180deg, #facc15 0%, #d97706 54%, #78350f 100%);
+    border: 2.5px solid #fef08a;
+    color: #1c1004;
+    box-shadow:
+      0 8px 22px rgba(217, 119, 6, 0.48),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -3px 6px rgba(69, 26, 3, 0.65);
+    transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.14s ease;
+  }
+  .hs-zelda-c-btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: translateY(-2px) scale(1.035, 0.985);
+  }
+  .hs-zelda-c-btn:active:not(:disabled) {
+    transform: translateY(2px) scale(1.06, 0.92);
+  }
+
+  .hs-mario-spring {
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.14s ease;
+  }
+  .hs-mario-spring:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.028);
+  }
+  .hs-mario-spring:active:not(:disabled) {
+    transform: translateY(2px) scale(1.055, 0.925);
+  }
+}
+
+@keyframes hsCoinArcPop {
+  0% {
+    transform: translate3d(0, 6px, 0) scale(0.65) rotateY(0deg);
+    opacity: 0;
+  }
+  25% {
+    transform: translate3d(0, -22px, 0) scale(1.12) rotateY(180deg);
+    opacity: 1;
+  }
+  75% {
+    transform: translate3d(0, -30px, 0) scale(1) rotateY(360deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, -42px, 0) scale(0.82) rotateY(540deg);
+    opacity: 0;
+  }
 }
 
 /* Alpha-Contour Card Silhouette Glow Filters (Zero Rectangular Box-Shadow!) */
