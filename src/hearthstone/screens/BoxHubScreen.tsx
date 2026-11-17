@@ -232,13 +232,31 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 toggleBrowserFullscreen();
               }}
               onMouseEnter={() => hsAudio.playSfx('box_hover', 0.5)}
-              title={fullscreenActive ? tr('전체화면 해제', 'Exit Fullscreen') : tr('전체화면 전환', 'Enter Fullscreen')}
-              className="hs-brass-btn flex min-h-[42px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-amber-100 sm:px-3 sm:py-2"
+              title={
+                fullscreenActive
+                  ? tr('전체화면 해제', 'Exit Fullscreen')
+                  : tr('전체화면 전환 (프레임·성능 향상)', 'Enter Fullscreen (Performance Boost!)')
+              }
+              className={`hs-brass-btn hs-mario-spring relative flex min-h-[44px] items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-extrabold transition sm:px-3 sm:py-2 ${
+                fullscreenActive
+                  ? 'text-sky-200 border-sky-400/70'
+                  : 'border-emerald-300/85 text-amber-100 shadow-[0_0_16px_rgba(52,211,153,0.45)]'
+              }`}
             >
-              <span className="text-amber-300">{fullscreenActive ? '🗗' : '⛶'}</span>
+              <span className={fullscreenActive ? 'text-sky-300' : 'text-emerald-300'}>
+                {fullscreenActive ? '🗗' : '⛶'}
+              </span>
               <span className="hidden sm:inline">
                 {fullscreenActive ? tr('창모드', 'Windowed') : tr('전체화면', 'Fullscreen')}
               </span>
+              {!fullscreenActive && (
+                <span
+                  data-testid="hub-fullscreen-boost-badge"
+                  className="rounded-full border border-yellow-200/80 bg-gradient-to-b from-emerald-400 to-emerald-700 px-1.5 py-0.5 text-[9.5px] font-black leading-none text-stone-950 shadow"
+                >
+                  {tr('성능Up!', 'FPS Up!')}
+                </span>
+              )}
             </button>
           )}
 

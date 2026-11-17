@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-17 15:42 KST] [게임 메뉴 팝업 디자인 가이드 준수 리디자인 및 전체화면 성능Up! 라벨 추가 (푸시 대기)]
+- **요청**:
+  1. 게임 메뉴/환경설정 팝업(`GameOptionsModal`)을 SNSHero 공식 팝업 디자인 가이드(`.hs-wood-panel`, `.hs-ocarina-dialog`, 이중 주조 황동 베젤, `.hs-brass-btn`/`.hs-zelda-a|b|c-btn`/`.hs-arcane-btn`/`.hs-mario-spring`)에 맞게 전면 재디자인
+  2. 전체화면 모드 플레이 유도 및 프레임 향상을 알리는 **`성능Up!`** (`FPS Up!`) 라벨을 로비 상단 버튼과 게임 메뉴 팝업 내부에 추가
+- **수정 파일**:
+  - `src/hearthstone/components/Modals.tsx` (`GameOptionsModal` 선술집 목재 프레임 + 이중 황동 테두리 + 성소 다이얼로그 적용, `⚡ 성능Up!` 배지 및 안내 추가, `hs-zelda-c-btn` 탭 대비 적용 및 `z-[120]` 레이어 정비)
+  - `src/hearthstone/screens/BoxHubScreen.tsx` (`hub-fullscreen-btn` 최소 높이 `44px` 및 `hub-fullscreen-boost-badge` `성능Up!` / `FPS Up!` 라벨 추가)
+  - `src/hearthstone/hearthstone.css` (`.hs-gold-btn`을 `.hs-zelda-c-btn`과 동일 황금 주조 그라데이션 규칙으로 보강)
+- **검증 결과**:
+  - `npx tsc --noEmit` 및 `npm run build` 성공 (`0` 에러)
+  - Playwright E2E 및 시각 스크린샷 검증 완료 (`desktop_ko` `1280×800`, `mobile_ko` `390×844`, `desktop_en` `?lang=en`, `mobile_en` `?lang=en` 모두 통과, 모바일 터치 타깃 `44px+`/`54px`, 콘솔/페이지 에러 `0`건, 활성 탭 대비·레이아웃 확인 완료)
+- **상태**: 로컬 커밋 완료 (원격 푸시 보류) · 구글 폼 보고 완료
+
 ## [2026-11-17 15:30 KST] [카드팩 개봉 전 미개봉 팩 카드 뒷면 선택 스킨 실시간 동기화 적용 (푸시 대기)]
 - **요청**: 상점에서 카드 뒷면을 변경해 선택했을 때 카드팩 뽑기 전 미개봉 카드 팩의 겹친 카드들도 변경된 카드 뒷면 스킨으로 표시되도록 수정
 - **원인**: [`SnsHeroArtKit.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SnsHeroArtKit.tsx)의 `SnsBoosterPackArt`가 `variant`를 받지 않고 `/hs-assets/cardbacks/snshero-gold.png` 이미지를 고정 렌더링하고 있었음.

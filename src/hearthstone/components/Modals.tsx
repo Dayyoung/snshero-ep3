@@ -2146,23 +2146,26 @@ export const GameOptionsModal: React.FC<{
     <div
       data-testid="game-options-modal"
       onClick={onClose}
-      className="fixed inset-0 z-[95] flex items-center justify-center bg-black/82 p-3 backdrop-blur-sm sm:p-4"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/82 p-3 backdrop-blur-sm sm:p-4"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#090d16] text-slate-100 shadow-[0_24px_60px_rgba(0,0,0,0.92)]"
+        className="hs-wood-panel relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl text-amber-100 shadow-[0_24px_60px_rgba(0,0,0,0.92)]"
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3.5">
+        {/* Inner Forged Brass Bezel Outline */}
+        <div className="pointer-events-none absolute inset-2 rounded-[20px] border border-[#e2be75]/35" />
+
+        {/* Modal Header (Matches Tavern Wood & Double Brass Sanctuary Design Guide) */}
+        <div className="relative z-10 flex items-center justify-between gap-2 border-b border-amber-500/35 bg-black/25 px-4 py-3.5 sm:px-5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-400/35 bg-amber-500/10 text-amber-300">
-              <Settings className="h-4 w-4" strokeWidth={1.75} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#d4af63] bg-stone-950/85 text-amber-300 shadow">
+              <Settings className="h-5 w-5" strokeWidth={1.75} />
             </div>
             <div>
-              <h2 className="hs-title text-base font-extrabold tracking-wide text-amber-100 sm:text-lg">
+              <h2 className="hs-title text-base font-extrabold tracking-wide text-amber-100 sm:text-xl">
                 {tr('게임 메뉴 · 환경 설정', 'Game Menu · Settings')}
               </h2>
-              <p className="text-[11px] font-semibold text-slate-400">
+              <p className="text-[11px] font-semibold text-amber-200/80">
                 {inBattle
                   ? tr('전투 중 빠른 제어 및 시스템 관리', 'Battle controls & system settings')
                   : tr('시스템 설정 · 세이브 백업 · 세계관 안내', 'System · Backup · Universe Links')}
@@ -2177,15 +2180,15 @@ export const GameOptionsModal: React.FC<{
               onClose();
             }}
             aria-label={tr('닫기', 'Close')}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-slate-200 transition hover:border-amber-300/60 hover:bg-white/10"
+            className="hs-brass-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-amber-100"
           >
-            <X className="h-4 w-4" strokeWidth={1.75} />
+            <X className="h-4 w-4" strokeWidth={2} />
           </button>
         </div>
 
         {/* Scrollable Body (`p-4` = 16px Padding) */}
-        <div className="flex-1 space-y-4 overflow-y-auto p-4">
-          {/* Tier 1: Top 2x2 Quick Action Vector Icon Grid (`min-h-[48px]` touch targets) */}
+        <div className="relative z-10 flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+          {/* Tier 1: Top 2x2 Quick Action Grid (Sanctuary Glass & Brass Style) */}
           <div
             data-testid="options-quick-grid"
             className="grid grid-cols-2 gap-2.5"
@@ -2194,10 +2197,10 @@ export const GameOptionsModal: React.FC<{
               type="button"
               data-testid="options-quick-sound"
               onClick={() => update({ muted: !settings.muted })}
-              className={`flex min-h-[52px] items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition ${
+              className={`hs-mario-spring flex min-h-[54px] items-center gap-2.5 rounded-2xl border-2 px-3 py-2 text-left shadow-lg transition ${
                 settings.muted
-                  ? 'border-rose-400/45 bg-rose-950/35 text-rose-100'
-                  : 'border-emerald-400/45 bg-emerald-950/30 text-emerald-100 hover:bg-emerald-950/50'
+                  ? 'border-rose-400/75 bg-rose-950/80 text-rose-100'
+                  : 'border-emerald-400/75 bg-emerald-950/75 text-emerald-100 hover:brightness-110'
               }`}
             >
               {settings.muted ? (
@@ -2209,7 +2212,7 @@ export const GameOptionsModal: React.FC<{
                 <div className="truncate text-xs font-extrabold">
                   {settings.muted ? tr('음소거 중', 'Muted') : tr('사운드 켜짐', 'Sound ON')}
                 </div>
-                <div className="truncate text-[10px] text-slate-400">
+                <div className="truncate text-[10px] text-amber-200/80">
                   {tr('전체 오디오 전환', 'Toggle master sound')}
                 </div>
               </div>
@@ -2223,19 +2226,29 @@ export const GameOptionsModal: React.FC<{
                 hsAudio.playSfx('ui_click', 0.75);
                 if (!standaloneApp && fullscreenSupported) toggleBrowserFullscreen();
               }}
-              className={`flex min-h-[52px] items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition ${
+              className={`hs-mario-spring relative flex min-h-[54px] items-center gap-2.5 rounded-2xl border-2 px-3 py-2 text-left shadow-lg transition ${
                 fullscreenOn
-                  ? 'border-sky-400/50 bg-sky-950/35 text-sky-100'
-                  : 'border-white/12 bg-white/[0.03] text-slate-100 hover:border-amber-300/45 hover:bg-white/[0.07]'
+                  ? 'border-sky-300 bg-sky-950/85 text-sky-100 shadow-[0_0_16px_rgba(56,189,248,0.35)]'
+                  : 'hs-ocarina-dialog text-amber-100 hover:brightness-110'
               } disabled:opacity-45`}
             >
+              {!fullscreenOn && (
+                <span
+                  data-testid="options-fullscreen-boost-badge"
+                  className="absolute -right-1 -top-2 rounded-full border border-yellow-200 bg-gradient-to-b from-emerald-400 to-emerald-700 px-2 py-0.5 text-[9.5px] font-black text-stone-950 shadow-md"
+                >
+                  ⚡ {tr('성능Up!', 'FPS Up!')}
+                </span>
+              )}
               <Maximize2 className="h-5 w-5 shrink-0 text-sky-300" strokeWidth={1.75} />
               <div className="min-w-0">
-                <div className="truncate text-xs font-extrabold">
-                  {fullscreenOn ? tr('전체화면 켜짐', 'Fullscreen ON') : tr('전체화면 전환', 'Fullscreen')}
+                <div className="truncate text-xs font-extrabold text-white">
+                  {fullscreenOn ? tr('전체화면 켜짐 ✓', 'Fullscreen ON ✓') : tr('전체화면 전환', 'Fullscreen Mode')}
                 </div>
-                <div className="truncate text-[10px] text-slate-400">
-                  {tr('몰입형 화면 비율', 'Immersive view')}
+                <div className="truncate text-[10px] font-bold text-emerald-300/95">
+                  {fullscreenOn
+                    ? tr('최적 성능 가동 중', 'Peak FPS active')
+                    : tr('전체화면 시 성능Up!', 'Boost FPS & responsiveness')}
                 </div>
               </div>
             </button>
@@ -2247,14 +2260,14 @@ export const GameOptionsModal: React.FC<{
                 setActiveTab('BACKUP');
                 void handleCopyBackup();
               }}
-              className="flex min-h-[52px] items-center gap-2.5 rounded-xl border border-white/12 bg-white/[0.03] px-3 py-2 text-left text-slate-100 transition hover:border-amber-300/45 hover:bg-white/[0.07]"
+              className="hs-brass-btn hs-mario-spring flex min-h-[54px] items-center gap-2.5 rounded-2xl px-3 py-2 text-left text-amber-100"
             >
               <Database className="h-5 w-5 shrink-0 text-amber-300" strokeWidth={1.75} />
               <div className="min-w-0">
                 <div className="truncate text-xs font-extrabold">
                   {tr('백업 코드 복사', 'Quick Backup')}
                 </div>
-                <div className="truncate text-[10px] text-slate-400">
+                <div className="truncate text-[10px] text-amber-200/80">
                   {tr('데이터 복원·QR 이동', 'Backup / Restore')}
                 </div>
               </div>
@@ -2268,24 +2281,24 @@ export const GameOptionsModal: React.FC<{
                 if (onGoHome) onGoHome();
                 else onClose();
               }}
-              className="flex min-h-[52px] items-center gap-2.5 rounded-xl border border-white/12 bg-white/[0.03] px-3 py-2 text-left text-slate-100 transition hover:border-amber-300/45 hover:bg-white/[0.07]"
+              className="hs-brass-btn hs-mario-spring flex min-h-[54px] items-center gap-2.5 rounded-2xl px-3 py-2 text-left text-amber-100"
             >
-              <Home className="h-5 w-5 shrink-0 text-violet-300" strokeWidth={1.75} />
+              <Home className="h-5 w-5 shrink-0 text-sky-300" strokeWidth={1.75} />
               <div className="min-w-0">
                 <div className="truncate text-xs font-extrabold">
                   {inBattle ? tr('엘윈 로비로 이동', 'Return to Hub') : tr('로비로 닫기', 'Return to Lobby')}
                 </div>
-                <div className="truncate text-[10px] text-slate-400">
+                <div className="truncate text-[10px] text-amber-200/80">
                   {inBattle ? tr('대결 종료 후 로비 복귀', 'Exit match to Hub') : tr('성소 메인 화면', 'Sanctuary Hub')}
                 </div>
               </div>
             </button>
           </div>
 
-          {/* Tier 2: 3 Category Switcher Tabs */}
+          {/* Tier 2: 3 Category Switcher Tabs (Brass & Sapphire Sanctuary Tabs) */}
           <div
             role="tablist"
-            className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-black/45 p-1"
+            className="grid grid-cols-3 gap-1.5 rounded-2xl border-2 border-[#c8a158]/50 bg-black/50 p-1.5 shadow-inner"
           >
             <button
               type="button"
@@ -2296,10 +2309,10 @@ export const GameOptionsModal: React.FC<{
                 hsAudio.playSfx('ui_click', 0.65);
                 setActiveTab('SYSTEM');
               }}
-              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-extrabold transition ${
+              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-extrabold transition ${
                 activeTab === 'SYSTEM'
-                  ? 'border border-amber-400/50 bg-amber-500/20 text-amber-100 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'hs-zelda-c-btn text-stone-950 shadow'
+                  : 'text-amber-200/80 hover:bg-amber-950/45 hover:text-white'
               }`}
             >
               <Settings className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
@@ -2314,10 +2327,10 @@ export const GameOptionsModal: React.FC<{
                 hsAudio.playSfx('ui_click', 0.65);
                 setActiveTab('BACKUP');
               }}
-              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-extrabold transition ${
+              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-extrabold transition ${
                 activeTab === 'BACKUP'
-                  ? 'border border-sky-400/50 bg-sky-500/20 text-sky-100 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'hs-zelda-a-btn text-white shadow'
+                  : 'text-amber-200/80 hover:bg-sky-950/45 hover:text-white'
               }`}
             >
               <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
@@ -2332,10 +2345,10 @@ export const GameOptionsModal: React.FC<{
                 hsAudio.playSfx('ui_click', 0.65);
                 setActiveTab('COMMUNITY');
               }}
-              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-extrabold transition ${
+              className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-extrabold transition ${
                 activeTab === 'COMMUNITY'
-                  ? 'border border-emerald-400/50 bg-emerald-500/20 text-emerald-100 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'hs-zelda-b-btn text-white shadow'
+                  : 'text-amber-200/80 hover:bg-emerald-950/45 hover:text-white'
               }`}
             >
               <Globe className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
@@ -2346,7 +2359,7 @@ export const GameOptionsModal: React.FC<{
           {dataNotice && (
             <div
               data-testid="hs-data-notice"
-              className="rounded-xl border border-emerald-400/45 bg-emerald-950/70 px-3 py-2 text-xs font-bold text-emerald-200"
+              className="rounded-xl border border-emerald-400/60 bg-emerald-950/80 px-3 py-2 text-xs font-extrabold text-emerald-100 shadow"
             >
               {dataNotice}
             </div>
@@ -2354,20 +2367,20 @@ export const GameOptionsModal: React.FC<{
 
           {/* Tab Panel 1: 전투·시스템 설정 */}
           {activeTab === 'SYSTEM' && (
-            <div className="space-y-4 rounded-xl border border-white/10 bg-white/[0.025] p-4">
+            <div className="hs-ocarina-dialog space-y-4 rounded-2xl p-4">
               {/* Language Switcher */}
-              <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div className="flex items-center justify-between gap-2 border-b border-amber-400/25 pb-3">
                 <div className="min-w-0">
-                  <div className="text-sm font-extrabold text-slate-100">
+                  <div className="text-sm font-extrabold text-amber-100">
                     {tr('언어 설정 (Language)', 'Language')}
                   </div>
-                  <div className="mt-0.5 text-[11px] font-medium text-slate-400">
+                  <div className="mt-0.5 text-[11px] font-medium text-sky-200/80">
                     {tr('한국어 또는 영어로 전환', 'Switch between Korean and English')}
                   </div>
                 </div>
                 <div
                   data-testid="options-language-selector"
-                  className="flex shrink-0 overflow-hidden rounded-lg border border-white/15 bg-black/60 p-0.5 text-xs font-extrabold"
+                  className="flex shrink-0 overflow-hidden rounded-xl border border-[#c8a158]/60 bg-stone-950/80 p-0.5 text-xs font-extrabold"
                 >
                   <button
                     type="button"
@@ -2376,10 +2389,10 @@ export const GameOptionsModal: React.FC<{
                       hsAudio.playSfx('ui_click', 0.75);
                       setLang('en');
                     }}
-                    className={`min-h-[38px] rounded-md px-2.5 transition ${
+                    className={`min-h-[38px] rounded-lg px-2.5 transition ${
                       lang === 'en'
                         ? 'bg-amber-400 text-stone-950 shadow'
-                        : 'text-slate-300 hover:text-white'
+                        : 'text-amber-200/80 hover:text-white'
                     }`}
                   >
                     English
@@ -2391,10 +2404,10 @@ export const GameOptionsModal: React.FC<{
                       hsAudio.playSfx('ui_click', 0.75);
                       setLang('ko');
                     }}
-                    className={`min-h-[38px] rounded-md px-2.5 transition ${
+                    className={`min-h-[38px] rounded-lg px-2.5 transition ${
                       lang === 'ko'
                         ? 'bg-amber-400 text-stone-950 shadow'
-                        : 'text-slate-300 hover:text-white'
+                        : 'text-amber-200/80 hover:text-white'
                     }`}
                   >
                     한국어
@@ -2403,7 +2416,7 @@ export const GameOptionsModal: React.FC<{
               </div>
 
               {/* Compact Feature Toggles */}
-              <div className="grid grid-cols-2 gap-2 border-b border-white/10 pb-3">
+              <div className="grid grid-cols-2 gap-2 border-b border-amber-400/25 pb-3">
                 <button
                   type="button"
                   data-testid="toggle-tts-reading"
@@ -2414,14 +2427,14 @@ export const GameOptionsModal: React.FC<{
                   }}
                   className={`flex min-h-[48px] flex-col justify-center rounded-xl border px-3 py-2 text-left transition ${
                     settings.ttsEnabled
-                      ? 'border-emerald-400/50 bg-emerald-950/35 text-emerald-100'
-                      : 'border-white/10 bg-black/40 text-slate-300'
+                      ? 'border-emerald-400/70 bg-emerald-950/60 text-emerald-100 shadow'
+                      : 'border-amber-400/30 bg-black/45 text-amber-100/80'
                   }`}
                 >
                   <span className="text-xs font-extrabold">
                     {settings.ttsEnabled ? tr('스토리 TTS 켜짐', 'Story TTS ON') : tr('스토리 TTS 꺼짐', 'Story TTS OFF')}
                   </span>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-amber-200/75">
                     {tr('영웅명 · 대사 낭독', 'Narration voiceover')}
                   </span>
                 </button>
@@ -2437,27 +2450,27 @@ export const GameOptionsModal: React.FC<{
                   }}
                   className={`flex min-h-[48px] flex-col justify-center rounded-xl border px-3 py-2 text-left transition ${
                     settings.vibrateEnabled
-                      ? 'border-sky-400/50 bg-sky-950/35 text-sky-100'
-                      : 'border-white/10 bg-black/40 text-slate-300'
+                      ? 'border-sky-300/70 bg-sky-900/55 text-sky-100 shadow'
+                      : 'border-amber-400/30 bg-black/45 text-amber-100/80'
                   }`}
                 >
                   <span className="text-xs font-extrabold">
                     {settings.vibrateEnabled ? tr('타격 진동 켜짐', 'Haptics ON') : tr('타격 진동 꺼짐', 'Haptics OFF')}
                   </span>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-amber-200/75">
                     {vibSupport.supportedOnDevice ? tr('안드로이드 진동 지원', 'Device haptics ready') : tr('모바일 타격 피드백', 'Damage-scaled haptic')}
                   </span>
                 </button>
               </div>
 
               {canInstallPwa && (
-                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+                <div className="flex items-center justify-between gap-2 border-b border-amber-400/25 pb-3">
                   <div className="min-w-0">
-                    <div className="text-xs font-extrabold text-sky-200">
-                      {tr('홈 화면에 앱 설치 (+100G)', 'Install PWA App (+100G)')}
+                    <div className="text-xs font-extrabold text-yellow-200">
+                      {tr('홈 화면에 앱 설치 (+100G · 성능Up!)', 'Install PWA App (+100G · FPS Up!)')}
                     </div>
-                    <div className="text-[10.5px] text-slate-400">
-                      {tr('전체화면 앱 아이콘으로 즉시 실행', 'Fullscreen home shortcut')}
+                    <div className="text-[10.5px] text-sky-200/80">
+                      {tr('전체화면 앱 아이콘으로 즉시 쾌적하게 실행', 'Fullscreen home shortcut')}
                     </div>
                   </div>
                   <button
@@ -2472,7 +2485,7 @@ export const GameOptionsModal: React.FC<{
                         setInstallGuideOpen(true);
                       }
                     }}
-                    className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl border border-sky-400/50 bg-sky-900/50 px-3 text-xs font-extrabold text-sky-100"
+                    className="hs-zelda-a-btn flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-extrabold text-white"
                   >
                     <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
                     <span>{tr('앱 설치', 'Install')}</span>
@@ -2487,9 +2500,9 @@ export const GameOptionsModal: React.FC<{
               {/* Volume Sliders */}
               <div className="space-y-2.5">
                 <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-200">
+                  <div className="flex justify-between text-xs font-bold text-amber-100">
                     <span>{tr('배경음악 (BGM · 기본 15%)', 'Music Volume (BGM)')}</span>
-                    <span className="text-amber-300">{Math.round(settings.bgmVolume * 100)}%</span>
+                    <span className="text-yellow-300">{Math.round(settings.bgmVolume * 100)}%</span>
                   </div>
                   <input
                     type="range"
@@ -2501,9 +2514,9 @@ export const GameOptionsModal: React.FC<{
                   />
                 </div>
                 <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-200">
+                  <div className="flex justify-between text-xs font-bold text-amber-100">
                     <span>{tr('타격 · 원소 효과음 (SFX)', 'Combat & Spell SFX')}</span>
-                    <span className="text-amber-300">{Math.round(settings.sfxVolume * 100)}%</span>
+                    <span className="text-yellow-300">{Math.round(settings.sfxVolume * 100)}%</span>
                   </div>
                   <input
                     type="range"
@@ -2515,9 +2528,9 @@ export const GameOptionsModal: React.FC<{
                   />
                 </div>
                 <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-200">
+                  <div className="flex justify-between text-xs font-bold text-amber-100">
                     <span>{tr('영웅 성우 음성 (VO)', 'Hero Voiceovers (VO)')}</span>
-                    <span className="text-amber-300">{Math.round(settings.voVolume * 100)}%</span>
+                    <span className="text-yellow-300">{Math.round(settings.voVolume * 100)}%</span>
                   </div>
                   <input
                     type="range"
@@ -2534,12 +2547,12 @@ export const GameOptionsModal: React.FC<{
 
           {/* Tab Panel 2: 백업·계정 (hero_hs_*) */}
           {activeTab === 'BACKUP' && (
-            <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.025] p-4">
+            <div className="hs-ocarina-dialog space-y-3 rounded-2xl p-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-amber-200">
+                <span className="text-xs font-extrabold text-yellow-200">
                   {tr('데이터 백업 · 복원', 'Save Backup & Restore')}
                 </span>
-                <span className="rounded-md border border-white/15 bg-black/50 px-2 py-0.5 font-mono text-[10px] text-slate-300">
+                <span className="rounded-md border border-[#c8a158]/50 bg-black/50 px-2 py-0.5 font-mono text-[10px] text-amber-200">
                   hero_hs_*
                 </span>
               </div>
@@ -2558,23 +2571,23 @@ export const GameOptionsModal: React.FC<{
                       ),
                     );
                   }}
-                  className="flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.04] px-2 text-xs font-extrabold text-slate-100 hover:border-amber-300/50"
+                  className="hs-brass-btn flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-extrabold text-amber-100"
                 >
-                  <Download className="h-4 w-4 text-amber-300" strokeWidth={1.75} />
+                  <Download className="h-4 w-4 text-yellow-300" strokeWidth={1.75} />
                   <span>{tr('파일 저장', 'Save File')}</span>
                 </button>
                 <button
                   type="button"
                   data-testid="hs-backup-copy-btn"
                   onClick={handleCopyBackup}
-                  className="flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.04] px-2 text-xs font-extrabold text-slate-100 hover:border-amber-300/50"
+                  className="hs-brass-btn flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-extrabold text-amber-100"
                 >
-                  <Copy className="h-4 w-4 text-amber-300" strokeWidth={1.75} />
+                  <Copy className="h-4 w-4 text-yellow-300" strokeWidth={1.75} />
                   <span>{tr('코드 복사', 'Copy Code')}</span>
                 </button>
                 <label
                   data-testid="hs-restore-file-label"
-                  className="flex min-h-[48px] cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.04] px-2 text-xs font-extrabold text-slate-100 hover:border-sky-300/50"
+                  className="hs-brass-btn flex min-h-[48px] cursor-pointer items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-extrabold text-sky-100"
                 >
                   <Upload className="h-4 w-4 text-sky-300" strokeWidth={1.75} />
                   <span>{tr('파일 복원', 'Load File')}</span>
@@ -2600,7 +2613,7 @@ export const GameOptionsModal: React.FC<{
                   type="button"
                   data-testid="hs-restore-paste-btn"
                   onClick={handlePasteRestore}
-                  className="flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.04] px-2 text-xs font-extrabold text-slate-100 hover:border-sky-300/50"
+                  className="hs-brass-btn flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-extrabold text-sky-100"
                 >
                   <ClipboardPaste className="h-4 w-4 text-sky-300" strokeWidth={1.75} />
                   <span>{tr('코드 입력', 'Paste Code')}</span>
@@ -2610,7 +2623,7 @@ export const GameOptionsModal: React.FC<{
               {pasteModalOpen && (
                 <div
                   data-testid="hs-restore-paste-modal"
-                  className="space-y-2 rounded-xl border border-amber-400/40 bg-black/60 p-3 text-left"
+                  className="space-y-2 rounded-xl border border-amber-400/55 bg-black/65 p-3 text-left"
                 >
                   <div className="text-[11px] font-bold text-amber-200">
                     {tr(
@@ -2624,21 +2637,21 @@ export const GameOptionsModal: React.FC<{
                     onChange={(e) => setPasteCodeInput(e.target.value)}
                     rows={3}
                     placeholder='{"version":1,"keys":{...}}'
-                    className="w-full rounded-lg border border-white/15 bg-[#050810] p-2 font-mono text-[11px] text-amber-100 placeholder:text-slate-500 focus:border-amber-300 focus:outline-none"
+                    className="w-full rounded-lg border border-amber-400/35 bg-stone-950 p-2 font-mono text-[11px] text-amber-100 placeholder:text-stone-500 focus:border-amber-300 focus:outline-none"
                   />
                   <div className="flex gap-2">
                     <button
                       type="button"
                       data-testid="hs-restore-paste-apply-btn"
                       onClick={applyPastedBackup}
-                      className="min-h-[44px] flex-1 rounded-xl border border-sky-400/50 bg-sky-700 text-xs font-extrabold text-white"
+                      className="hs-zelda-a-btn min-h-[44px] flex-1 rounded-xl text-xs font-extrabold text-white"
                     >
                       {tr('복원 적용', 'Apply Restore')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setPasteModalOpen(false)}
-                      className="min-h-[44px] rounded-xl border border-white/15 bg-white/5 px-4 text-xs font-extrabold text-slate-200"
+                      className="hs-brass-btn min-h-[44px] rounded-xl px-4 text-xs font-extrabold text-amber-100"
                     >
                       {tr('취소', 'Cancel')}
                     </button>
@@ -2671,14 +2684,14 @@ export const GameOptionsModal: React.FC<{
                     );
                   }
                 }}
-                className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-sky-400/45 bg-sky-950/50 px-3 text-xs font-extrabold text-sky-100 hover:bg-sky-900/60"
+                className="hs-zelda-a-btn flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold text-white"
               >
-                <QrCode className="h-4 w-4 shrink-0 text-sky-300" strokeWidth={1.75} />
+                <QrCode className="h-4 w-4 shrink-0 text-yellow-200" strokeWidth={1.75} />
                 <span>{tr('모바일로 덱 3초 연동 (QR 스캔)', 'Move My Decks to Phone in 3s (QR)')}</span>
               </button>
 
               {mobileQrUrl && mobileQrSvg && (
-                <div className="flex flex-col items-center gap-2 rounded-xl border border-sky-400/45 bg-black/60 p-3 text-center">
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-300/50 bg-black/65 p-3 text-center">
                   <div
                     className="rounded-lg bg-white p-1.5"
                     dangerouslySetInnerHTML={{ __html: mobileQrSvg }}
@@ -2693,14 +2706,14 @@ export const GameOptionsModal: React.FC<{
                         window.prompt('Restore URL:', mobileQrUrl);
                       }
                     }}
-                    className="min-h-[44px] w-full rounded-xl border border-amber-400/50 bg-amber-500/20 text-xs font-extrabold text-amber-100"
+                    className="hs-zelda-c-btn min-h-[44px] w-full rounded-xl text-xs font-extrabold text-stone-950"
                   >
                     {tr('1클릭 복원 URL 복사하기', 'Copy 1-Click Restore URL')}
                   </button>
                 </div>
               )}
 
-              <div className="border-t border-white/10 pt-3">
+              <div className="border-t border-amber-400/25 pt-3">
                 {!confirmReset ? (
                   <button
                     type="button"
@@ -2709,13 +2722,13 @@ export const GameOptionsModal: React.FC<{
                       hsAudio.playSfx('ui_click', 0.8);
                       setConfirmReset(true);
                     }}
-                    className="flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-xl border border-rose-500/40 bg-rose-950/40 text-xs font-extrabold text-rose-200 hover:bg-rose-900/55"
+                    className="flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-xl border-2 border-rose-400/60 bg-rose-950/60 text-xs font-extrabold text-rose-100 hover:bg-rose-900/75"
                   >
                     <Trash2 className="h-4 w-4" strokeWidth={1.75} />
                     <span>{tr('세이브 데이터 초기화 (/game 전용)', 'Reset Save Data (/game only)')}</span>
                   </button>
                 ) : (
-                  <div className="flex items-center gap-2 rounded-xl border border-rose-400/60 bg-rose-950/80 p-2.5">
+                  <div className="flex items-center gap-2 rounded-xl border-2 border-rose-400/75 bg-rose-950/90 p-2.5">
                     <span className="flex-1 text-[11px] font-extrabold text-rose-100">
                       {tr('카드배틀(hero_hs_*) 데이터만 초기화할까요?', 'Reset all Card Battle progress?')}
                     </span>
@@ -2735,7 +2748,7 @@ export const GameOptionsModal: React.FC<{
                     <button
                       type="button"
                       onClick={() => setConfirmReset(false)}
-                      className="min-h-[40px] rounded-lg bg-slate-700 px-3 text-xs font-extrabold text-slate-200"
+                      className="hs-brass-btn min-h-[40px] rounded-lg px-3 text-xs font-extrabold text-amber-100"
                     >
                       {tr('취소', 'Cancel')}
                     </button>
@@ -2747,38 +2760,38 @@ export const GameOptionsModal: React.FC<{
 
           {/* Tab Panel 3: 세계관·커뮤니티 바로가기 */}
           {activeTab === 'COMMUNITY' && (
-            <div className="space-y-2.5 rounded-xl border border-white/10 bg-white/[0.025] p-4">
+            <div className="hs-ocarina-dialog space-y-2.5 rounded-2xl p-4">
               <a
                 href="/book"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-h-[48px] items-center justify-between rounded-xl border border-white/12 bg-white/[0.03] px-3.5 py-2 transition hover:border-amber-300/55 hover:bg-white/[0.07]"
+                className="hs-brass-btn flex min-h-[48px] items-center justify-between rounded-xl px-3.5 py-2 text-amber-100"
               >
                 <div className="flex items-center gap-2.5">
-                  <BookOpen className="h-4 w-4 text-amber-300" strokeWidth={1.75} />
+                  <BookOpen className="h-4 w-4 text-yellow-300" strokeWidth={1.75} />
                   <div>
-                    <div className="text-xs font-extrabold text-slate-100">
+                    <div className="text-xs font-extrabold text-amber-100">
                       {tr('공식 웹소설 《카단의 여정》 40화', 'Official Web Novel (40 EPs)')}
                     </div>
-                    <div className="text-[10.5px] text-slate-400">snshero.com/book</div>
+                    <div className="text-[10.5px] text-amber-200/75">snshero.com/book</div>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-amber-300">→</span>
+                <span className="text-xs font-bold text-yellow-300">→</span>
               </a>
 
               <a
                 href="/webtoon"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-h-[48px] items-center justify-between rounded-xl border border-white/12 bg-white/[0.03] px-3.5 py-2 transition hover:border-emerald-300/55 hover:bg-white/[0.07]"
+                className="hs-brass-btn flex min-h-[48px] items-center justify-between rounded-xl px-3.5 py-2 text-amber-100"
               >
                 <div className="flex items-center gap-2.5">
                   <Sparkles className="h-4 w-4 text-emerald-300" strokeWidth={1.75} />
                   <div>
-                    <div className="text-xs font-extrabold text-slate-100">
+                    <div className="text-xs font-extrabold text-amber-100">
                       {tr('공식 웹툰 840컷 풀컬러 정주행', 'Official Webtoon (840+ Panels)')}
                     </div>
-                    <div className="text-[10.5px] text-slate-400">snshero.com/webtoon</div>
+                    <div className="text-[10.5px] text-amber-200/75">snshero.com/webtoon</div>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-emerald-300">→</span>
@@ -2788,15 +2801,15 @@ export const GameOptionsModal: React.FC<{
                 href="https://comic.naver.com/challenge/list?titleId=857363"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-h-[48px] items-center justify-between rounded-xl border border-white/12 bg-white/[0.03] px-3.5 py-2 transition hover:border-green-400/55 hover:bg-white/[0.07]"
+                className="hs-brass-btn flex min-h-[48px] items-center justify-between rounded-xl px-3.5 py-2 text-amber-100"
               >
                 <div className="flex items-center gap-2.5">
-                  <Tv className="h-4 w-4 text-green-400" strokeWidth={1.75} />
+                  <Tv className="h-4 w-4 text-green-300" strokeWidth={1.75} />
                   <div>
-                    <div className="text-xs font-extrabold text-slate-100">
+                    <div className="text-xs font-extrabold text-amber-100">
                       {tr('네이버 도전만화 공식 연재관', 'Naver Webtoon Challenge')}
                     </div>
-                    <div className="text-[10.5px] text-slate-400">titleId=857363</div>
+                    <div className="text-[10.5px] text-amber-200/75">titleId=857363</div>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-green-300">→</span>
@@ -2806,15 +2819,15 @@ export const GameOptionsModal: React.FC<{
                 href="/promotion"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-h-[48px] items-center justify-between rounded-xl border border-white/12 bg-white/[0.03] px-3.5 py-2 transition hover:border-sky-300/55 hover:bg-white/[0.07]"
+                className="hs-brass-btn flex min-h-[48px] items-center justify-between rounded-xl px-3.5 py-2 text-amber-100"
               >
                 <div className="flex items-center gap-2.5">
                   <Globe className="h-4 w-4 text-sky-300" strokeWidth={1.75} />
                   <div>
-                    <div className="text-xs font-extrabold text-slate-100">
+                    <div className="text-xs font-extrabold text-amber-100">
                       {tr('공식 소개 & 382종 도감 허브', 'Promotion & 382-Card Codex')}
                     </div>
-                    <div className="text-[10.5px] text-slate-400">snshero.com/promotion</div>
+                    <div className="text-[10.5px] text-amber-200/75">snshero.com/promotion</div>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-sky-300">→</span>
@@ -2824,7 +2837,7 @@ export const GameOptionsModal: React.FC<{
         </div>
 
         {/* Bottom Separated Action Zone (Danger Concede Action Isolated at Footer) */}
-        <div className="border-t border-white/10 bg-black/50 p-4 space-y-2.5">
+        <div className="relative z-10 space-y-2.5 border-t border-amber-500/35 bg-black/35 p-4 sm:px-5">
           {inBattle && onConcede && (
             <button
               type="button"
@@ -2834,9 +2847,9 @@ export const GameOptionsModal: React.FC<{
                 onClose();
                 onConcede();
               }}
-              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-rose-400/60 bg-rose-950/75 text-sm font-extrabold text-rose-100 shadow transition hover:bg-rose-900"
+              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-rose-400/75 bg-gradient-to-b from-rose-700 to-rose-950 text-sm font-extrabold text-rose-50 shadow-lg transition hover:brightness-110"
             >
-              <Flag className="h-4 w-4 text-rose-300" strokeWidth={1.75} />
+              <Flag className="h-4 w-4 text-rose-200" strokeWidth={1.75} />
               <span>{tr('대결 항복하기', 'Concede Match')}</span>
             </button>
           )}
@@ -2846,7 +2859,7 @@ export const GameOptionsModal: React.FC<{
               hsAudio.playSfx('box_close');
               onClose();
             }}
-            className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-amber-400/45 bg-amber-500/15 text-sm font-extrabold text-amber-100 transition hover:bg-amber-500/25"
+            className="hs-arcane-btn hs-title hs-outline-sm hs-mario-spring flex min-h-[48px] w-full items-center justify-center rounded-2xl text-base font-extrabold text-white shadow-xl"
           >
             {tr('게임으로 돌아가기', 'Return to Game')}
           </button>
