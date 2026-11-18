@@ -101,8 +101,8 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
       '자동플레이 시 우상단 [카단 리듬 지휘 오브]에서 공격·방어·각성 전술을 바꾸고, BGM 박자에 수축하는 황금 오카리나 링을 탭(또는 Space)하면 화음과 함께 1.5x·2.0x 공명(경쟁모드는 골드 피버)이 발동합니다!',
     descEn:
       'During Auto-Play, switch Attack/Defense/3x stances on the Kadan Command Orb and tap the shrinking Golden Ocarina Beat Ring (or Space) for 1.5x·2.0x harmonic resonance (or Gold Fever in Ranked/Bogart)!',
-    tipKo: '편의 기능: 사운드 OFF 시에도 시각 메트로놈 파동으로 박자를 맞출 수 있으며, 위기 순간엔 [승부처 브레이크]가 발동합니다.',
-    tipEn: 'Smart Assist: Works silently via Visual Metronome pulses when muted, plus Clutch Break on lethal/crisis turns.',
+    tipKo: '편의 기능: 사운드 OFF 시에도 시각 메트로놈 파동으로 박자를 맞출 수 있으며, 10배수(X10·X20…)마다 카단 눈보라 & 실리아 바람풍 연속 필살기가 발동합니다.',
+    tipEn: 'Smart Assist: Works silently via Visual Metronome pulses when muted, firing Kadan Blizzard & Silia Windstorm chain ultimates every 10 stacks (X10·X20…).',
     imageUrlKo: '/hs-assets/guide/guide_04_combat_ult.webp',
     imageUrlEn: '/hs-assets/guide/guide_en_04_combat_ult.webp',
   },

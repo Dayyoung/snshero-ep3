@@ -2669,42 +2669,24 @@ export const GameOptionsModal: React.FC<{
                     hsAudio.playSfx('ui_click', 0.75);
                     update({ emoteBubblesEnabled: !(settings.emoteBubblesEnabled ?? true) });
                   }}
-                  className={`flex min-h-[48px] flex-col justify-center rounded-xl border px-3 py-2 text-left transition ${
+                  className={`col-span-2 flex min-h-[46px] items-center justify-between rounded-xl border px-3 py-2 text-left transition ${
                     settings.emoteBubblesEnabled !== false
                       ? 'border-amber-300/70 bg-amber-950/60 text-amber-100 shadow'
                       : 'border-amber-400/30 bg-black/45 text-amber-100/75'
                   }`}
                 >
-                  <span className="text-xs font-extrabold">
-                    {settings.emoteBubblesEnabled !== false
-                      ? tr('도발 말풍선 켜짐', 'Emote Bubbles ON')
-                      : tr('도발 말풍선 꺼짐', 'Emote Bubbles OFF')}
-                  </span>
-                  <span className="text-[10px] text-amber-200/75">
-                    {tr('랭킹 도전자 실시간 대사', 'Challenger live emotes')}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  data-testid="toggle-clutch-break"
-                  onClick={() => {
-                    hsAudio.playSfx('ui_click', 0.75);
-                    update({ kadanClutchBreakEnabled: !(settings.kadanClutchBreakEnabled ?? true) });
-                  }}
-                  className={`flex min-h-[48px] flex-col justify-center rounded-xl border px-3 py-2 text-left transition ${
-                    settings.kadanClutchBreakEnabled !== false
-                      ? 'border-purple-300/70 bg-purple-950/60 text-purple-100 shadow'
-                      : 'border-amber-400/30 bg-black/45 text-amber-100/75'
-                  }`}
-                >
-                  <span className="text-xs font-extrabold">
-                    {settings.kadanClutchBreakEnabled !== false
-                      ? tr('카단 승부처 ON', 'Clutch Break ON')
-                      : tr('카단 승부처 OFF', 'Clutch Break OFF')}
-                  </span>
-                  <span className="text-[10px] text-amber-200/75">
-                    {tr('자동 중 위기·킬각 5초 선택', '5s choice on lethal/crisis')}
+                  <div>
+                    <div className="text-xs font-extrabold">
+                      {settings.emoteBubblesEnabled !== false
+                        ? tr('💬 도발 말풍선 켜짐', '💬 Emote Bubbles ON')
+                        : tr('💬 도발 말풍선 꺼짐', '💬 Emote Bubbles OFF')}
+                    </div>
+                    <div className="text-[10px] text-amber-200/75">
+                      {tr('랭킹 도전자 실시간 대사 표시', 'Show challenger live emotes')}
+                    </div>
+                  </div>
+                  <span className="rounded-lg border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] font-black">
+                    {settings.emoteBubblesEnabled !== false ? 'ON' : 'OFF'}
                   </span>
                 </button>
 

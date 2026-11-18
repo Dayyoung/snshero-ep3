@@ -50,7 +50,6 @@ export interface AudioSettings {
   ttsEnabled: boolean;
   lobbySkyTime: LobbySkyTimePref;
   emoteBubblesEnabled: boolean;
-  kadanClutchBreakEnabled: boolean;
   compactCleanCardView: boolean;
   rhythmAutoEnabled: boolean;
   rhythmOffsetMs: number;
@@ -78,7 +77,6 @@ const DEFAULT_AUDIO: AudioSettings = {
   ttsEnabled: true,
   lobbySkyTime: 'AUTO',
   emoteBubblesEnabled: true,
-  kadanClutchBreakEnabled: true,
   compactCleanCardView: false,
   rhythmAutoEnabled: true,
   rhythmOffsetMs: 0,

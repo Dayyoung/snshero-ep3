@@ -248,8 +248,6 @@ interface CenterRhythmRingHudProps {
     grade: 'NORMAL' | 'GOOD' | 'PERFECT';
     parried?: boolean;
   } | null;
-  clutchBreakEnabled: boolean;
-  onToggleClutchBreak: () => void;
   onTap: () => void;
 }
 
@@ -263,8 +261,6 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
   rhythmFeverPct,
   kadanMomentumCount,
   rhythmFlash,
-  clutchBreakEnabled,
-  onToggleClutchBreak,
   onTap,
 }) => {
   const { lang } = useHeroLanguage();
@@ -457,21 +453,6 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
             🪙{rhythmFeverPct}%
           </span>
         )}
-
-        <button
-          type="button"
-          data-testid="clutch-break-toggle"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleClutchBreak();
-          }}
-          className={`rounded-full px-0.5 py-0.2 text-[9px] font-black ${
-            clutchBreakEnabled ? 'text-amber-300' : 'text-stone-500'
-          }`}
-          title={tr('승부처 브레이크 ON/OFF', 'Toggle Clutch Choice Break')}
-        >
-          ⚡
-        </button>
       </div>
     </div>
   );
@@ -1013,9 +994,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [preBattleModalOpen, setPreBattleModalOpen] = useState<boolean>(() =>
     Boolean(openPresetModalOnStart),
   );
-  const [clutchBreakEnabled, setClutchBreakEnabled] = useState(
-    () => hsAudio.getSettings().kadanClutchBreakEnabled !== false,
-  );
   const [cleanCardView, setCleanCardView] = useState(
     () => Boolean(hsAudio.getSettings().compactCleanCardView),
   );
@@ -1063,7 +1041,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const s = hsAudio.getSettings();
       setRhythmEnabled(s.rhythmAutoEnabled !== false);
       setCleanCardView(Boolean(s.compactCleanCardView));
-      setClutchBreakEnabled(s.kadanClutchBreakEnabled !== false);
     };
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
@@ -1079,12 +1056,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   }, []);
 
   const [challengerPrestigeOpen, setChallengerPrestigeOpen] = useState(false);
-  const [clutchChoice, setClutchChoice] = useState<{
-    reasonKo: string;
-    reasonEn: string;
-    turn: number;
-  } | null>(null);
-  const clutchPromptedTurnRef = useRef<number>(-1);
   const onAutoPlayChangeRef = useRef(onAutoPlayChange);
   onAutoPlayChangeRef.current = onAutoPlayChange;
 
@@ -1281,7 +1252,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   useEffect(() => {
     const syncPrefs = () => {
       const s = hsAudio.getSettings();
-      setClutchBreakEnabled(s.kadanClutchBreakEnabled !== false);
       setCleanCardView(Boolean(s.compactCleanCardView));
       if (s.emoteBubblesEnabled === false) {
         setOpponentSquelched(true);
@@ -2585,13 +2555,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [focusTargetId, matchState.opponent.board]);
 
-  // Auto-dismiss Clutch Choice modal after 5 seconds so Auto-Play never stalls if AFK
-  useEffect(() => {
-    if (!clutchChoice) return;
-    const t = window.setTimeout(() => setClutchChoice(null), 5000);
-    return () => window.clearTimeout(t);
-  }, [clutchChoice]);
-
   // ==================== PLAYER AUTO-PLAY ENGINE (카단의 여정 기본 ON, 수동 전환 즉시 해제) ====================
   useEffect(() => {
     const cur = latestMatchRef.current;
@@ -2637,41 +2600,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return;
     }
 
-    // Pause auto-play tick while inspecting a card, casting Silia, or deciding Clutch Choice
-    if (zoomState || siliaAutoPaused || clutchChoice) return;
+    // Pause auto-play tick while inspecting a card or casting Silia
+    if (zoomState || siliaAutoPaused) return;
     if (selection) setSelection(null);
-
-    // DEV-023: Clutch Choice detection once per critical turn (<=10 HP crisis, lethal range, or 7+ ace)
-    if (
-      clutchBreakEnabled &&
-      !isEp0Tutorial &&
-      cur.turnNumber >= 2 &&
-      clutchPromptedTurnRef.current !== cur.turnNumber
-    ) {
-      const clutchEng = createEngine(cur);
-      const hasAceCard = cur.player.hand.some(
-        (h) => cardDb.mustGetCard(h.cardId).cost >= 7 && clutchEng.inspectPlayability('PLAYER', h).canPlay,
-      );
-      const crisisLowHp = cur.player.health <= 10;
-      const enemyLowHp = cur.opponent.health + cur.opponent.armor <= 10;
-      if (hasAceCard || crisisLowHp || enemyLowHp) {
-        clutchPromptedTurnRef.current = cur.turnNumber;
-        setClutchChoice({
-          turn: cur.turnNumber,
-          reasonKo: enemyLowHp
-            ? '적 영웅 체력이 10 이하입니다! 킬각·마무리 전술을 지시하세요.'
-            : crisisLowHp
-              ? '아군 영웅 체력이 10 이하로 위급합니다! 대응 전술을 선택하세요.'
-              : '7코스트+ 에이스 카드 출격이 가능합니다! 이번 턴 방향을 지시하세요.',
-          reasonEn: enemyLowHp
-            ? 'Enemy Hero <= 10 HP! Choose your finishing command.'
-            : crisisLowHp
-              ? 'Critical Hero HP <= 10! Pick emergency strategy.'
-              : '7+ Cost Ace ready! Direct Kadan for this turn.',
-        });
-        return;
-      }
-    }
 
     const plannedAction: AiAction | null =
       !cur.chooseOnePrompt && !cur.trackingPrompt
@@ -2876,8 +2807,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     selection,
     zoomState,
     siliaAutoPaused,
-    clutchChoice,
-    clutchBreakEnabled,
     activeStance,
     focusTargetId,
     attackAnim,
@@ -7937,75 +7866,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           rhythmFeverPct={rhythmFeverPct}
           kadanMomentumCount={kadanMomentumCount}
           rhythmFlash={rhythmFlash}
-          clutchBreakEnabled={clutchBreakEnabled}
-          onToggleClutchBreak={() => setClutchBreakEnabled((v) => !v)}
           onTap={handleRhythmOrbTap}
         />
-      )}
-
-      {/* DEV-023: 5-Second Semi-Auto Clutch Choice Break Modal */}
-      {clutchChoice && (
-        <div
-          data-testid="kadan-clutch-choice-modal"
-          onClick={(e) => e.stopPropagation()}
-          className="fixed inset-x-3 bottom-24 z-[88] mx-auto max-w-md rounded-2xl border-2 border-amber-300 bg-[#090d16]/96 p-3.5 text-amber-50 shadow-[0_20px_50px_rgba(0,0,0,0.92)] backdrop-blur-md sm:bottom-28"
-        >
-          <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
-            <span className="text-xs font-extrabold text-yellow-300 sm:text-sm">
-              ⚡ {tr(`승부처 카단 지휘 (${clutchChoice.turn}턴 · 5초 자동 진행)`, `Clutch Choice (T${clutchChoice.turn} · 5s)`)}
-            </span>
-            <button
-              type="button"
-              onClick={() => setClutchChoice(null)}
-              className="rounded-lg border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-slate-300"
-            >
-              {tr('계속 ▶', 'Skip ▶')}
-            </button>
-          </div>
-          <p className="mt-1.5 text-[11px] font-bold text-amber-100/90">
-            {isKo ? clutchChoice.reasonKo : clutchChoice.reasonEn}
-          </p>
-          <div className="mt-2.5 grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              data-testid="clutch-choice-aoe"
-              onClick={() => {
-                hsAudio.playSfx('ui_click', 0.8);
-                setActiveStance('CONTROL');
-                setFocusTargetId(null);
-                setClutchChoice(null);
-              }}
-              className="min-h-[44px] rounded-xl border border-sky-400/70 bg-sky-950/75 px-2 py-1.5 text-[10.5px] font-extrabold text-sky-100 hover:bg-sky-900"
-            >
-              🛡 {tr('A안: 필드·수비 정리', 'A: Field Control')}
-            </button>
-            <button
-              type="button"
-              data-testid="clutch-choice-face"
-              onClick={() => {
-                hsAudio.playSfx('ui_click', 0.8);
-                setActiveStance('AGGRO');
-                setFocusTargetId('OPPONENT_HERO');
-                setClutchChoice(null);
-              }}
-              className="min-h-[44px] rounded-xl border border-rose-400/70 bg-rose-950/75 px-2 py-1.5 text-[10.5px] font-extrabold text-rose-100 hover:bg-rose-900"
-            >
-              ⚔ {tr('B안: 본체 총공격', 'B: All-Out Face')}
-            </button>
-            <button
-              type="button"
-              data-testid="clutch-choice-manual"
-              onClick={() => {
-                hsAudio.playSfx('ui_click', 0.85);
-                setAutoPlay(false);
-                setClutchChoice(null);
-              }}
-              className="min-h-[44px] rounded-xl border border-amber-300/70 bg-amber-950/75 px-2 py-1.5 text-[10.5px] font-extrabold text-amber-100 hover:bg-amber-900"
-            >
-              🎮 {tr('C: 직접 조작', 'C: Manual Turn')}
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Story Mode Left-Side Silia Companion Ultimate Widget (1 skill per turn) */}

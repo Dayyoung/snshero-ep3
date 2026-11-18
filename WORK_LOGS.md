@@ -2,6 +2,18 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 10:52 KST] [`승부처 카단 지휘` (`Clutch Choice` / `Clutch Break`) 기능·모달·설정·가이드 완전 제거]
+- **요청 및 개선 내역**:
+  1. **전장 자동플레이 `승부처 카단 지휘` 중단 로직 및 팝업 완전 제거 (`src/hearthstone/screens/BattleScreen.tsx`)**:
+     - 자동플레이 진행 중 체력 10 이하 위기·킬각·7코스트+ 에이스 카드 보유 시 흐름을 멈추고 띄우던 `승부처 카단 지휘` (`kadan-clutch-choice-modal`) 팝업 UI, 감지 로직, 5초 자동 해제 타이머, 하단 중앙 `카단의 기세` 링 필의 `⚡` (`clutch-break-toggle`) 토글 버튼을 모두 제거해 전투 흐름이 끊기지 않도록 개선.
+  2. **게임 옵션 설정 및 오디오 설정 정리 (`src/hearthstone/components/Modals.tsx`, `src/hearthstone/audio.ts`)**:
+     - 설정 모달의 `카단 승부처 ON/OFF` (`toggle-clutch-break`) 토글을 제거하고 `도발 말풍선 켜짐/꺼짐` (`toggle-emote-bubbles`) 버튼을 2열 전체 폭(`col-span-2`)으로 정렬해 빈 칸 없이 정돈.
+     - `AudioSettings` 인터페이스 및 `DEFAULT_AUDIO`에서 미사용 `kadanClutchBreakEnabled` 필드를 정리.
+  3. **게임 가이드 STEP 4 안내 문구 최신화 (`src/hearthstone/components/OnboardingGuideModal.tsx`)**:
+     - STEP 4 한·영 팁 문구에서 `[승부처 브레이크]` / `Clutch Break` 언급을 제거하고, `10배수(X10·X20…)마다 카단 눈보라 & 실리아 바람풍 연속 필살기가 발동` 안내로 최신화.
+- **빌드 & E2E 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, Playwright 한·영(`ko` 360×844 / `en` 390×844 / 데스크톱 1280×800) 설정·가이드·전장(`story_battle`) 검증 통과(`center_diff=0.0px`, `0 clutch elements`, `0 errors`).
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(`git push` 미실행 · 수동 푸시 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-18 10:35 KST] [전투 BGM 원속 긴박감 복원 + 2박 1스택 · `X10`/`X22` 누적 스택 표기 · 카단 공격 시 실리아 연속 무작위 필살기 연계 · 눈보라/바람풍 대형 폭풍 VFX 고도화]
 - **요청 및 개선 내역**:
   1. **전투 배경음악 원속 긴박감 복원 & 2박 1회 스택 유지 (`src/hearthstone/audio.ts`)**:
