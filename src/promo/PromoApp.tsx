@@ -775,10 +775,10 @@ export const PromoApp: React.FC = () => {
                 },
                 {
                   icon: <Swords className="h-6 w-6 text-emerald-300" />,
-                  title: tr('카단 전술 & 리듬 오토', 'Tactics & Rhythm Auto'),
+                  title: tr('카단의 기세 & 필살기', "Kadan's Spirit & Ultimate"),
                   desc: tr(
-                    '자동플레이 중 배경음악 맥박(초록 링)에 맞춰 탭하면 1.5x·2.0x 시너지가 발동합니다.',
-                    'Tap the green beat ring in sync with the BGM pulse during Auto-Play for 1.5x·2.0x boosts.',
+                    '배경음악 맥박(초록 링)을 탭해 10배수 X스택을 쌓으면 카단의 눈히어로 필살기가 작렬합니다.',
+                    'Tap the green beat ring to stack 10x Spirit and unleash Kadan’s SNSHero Ultimate.',
                   ),
                 },
                 {
@@ -1343,8 +1343,8 @@ export const PromoApp: React.FC = () => {
                   price: '300G~',
                   where: tr('영웅 초상화 장착', 'Hero Portrait Pin'),
                   img: isKo
-                    ? '/hs-assets/screenshots/ingame_prestige_shop_ko.webp'
-                    : '/hs-assets/screenshots/ingame_prestige_shop_en.webp',
+                    ? '/hs-assets/prestige/preview_badge_ko.webp'
+                    : '/hs-assets/prestige/preview_badge_en.webp',
                 },
                 {
                   id: 'frame',
@@ -1352,15 +1352,17 @@ export const PromoApp: React.FC = () => {
                   price: '500G~',
                   where: tr('전장·로비 테두리', 'Board & Hub Frame'),
                   img: isKo
-                    ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
-                    : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116',
+                    ? '/hs-assets/prestige/preview_frame_ko.webp'
+                    : '/hs-assets/prestige/preview_frame_en.webp',
                 },
                 {
                   id: 'cardback',
                   title: tr('황금 카드 뒷면', 'Gold Card Backs'),
                   price: '800G~',
                   where: tr('덱·패 뒷면 스킨', 'Deck & Hand Skin'),
-                  img: '/hs-assets/screenshots/ingame_pack_altar.png?v=20261116',
+                  img: isKo
+                    ? '/hs-assets/prestige/preview_cardback_ko.webp'
+                    : '/hs-assets/prestige/preview_cardback_en.webp',
                 },
                 {
                   id: 'title',
@@ -1368,8 +1370,8 @@ export const PromoApp: React.FC = () => {
                   price: '400G~',
                   where: tr('닉네임 상단 표시', 'Displayed on Profile'),
                   img: isKo
-                    ? '/hs-assets/screenshots/ingame_bogart_battle_ko.webp'
-                    : '/hs-assets/screenshots/ingame_bogart_battle_en.webp',
+                    ? '/hs-assets/prestige/preview_title_ko.webp'
+                    : '/hs-assets/prestige/preview_title_en.webp',
                 },
               ].map((item) => (
                 <a

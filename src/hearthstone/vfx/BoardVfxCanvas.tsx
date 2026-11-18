@@ -83,6 +83,7 @@ function getEntityCenter(entityId?: string): { x: number; y: number } {
   if (entityId === 'PLAYER_HERO') return { x: w * 0.5, y: h * 0.77 };
   if (entityId === 'OPPONENT_HERO') return { x: w * 0.5, y: h * 0.17 };
   if (entityId === 'SILIA_WIDGET') return { x: w * 0.08, y: h * 0.86 };
+  if (entityId === 'KADAN_WIDGET') return { x: w * 0.92, y: h * 0.86 };
   if (entityId === 'PLAYER_DECK') return { x: w * 0.94, y: h * 0.62 };
   if (entityId === 'OPPONENT_DECK') return { x: w * 0.94, y: h * 0.31 };
   if (entityId === 'TOY_TL') return { x: w * 0.08, y: h * 0.12 };
@@ -369,7 +370,10 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           const isStageSummary = ev.targetId === 'PLAYER_HERO';
           if (isStageSummary) {
             hsAudio.playSfx('whoosh', 0.98);
+            hsAudio.playSfx('big_attack', 0.82);
             hsAudio.playProceduralVfxSound('HOLY');
+            hsAudio.vibrateByDamage(10);
+            impactCbRef.current?.(12);
             const yBand = stageH * 0.58;
             for (let i = 0; i < 6; i++) {
               windGustsRef.current.push({
@@ -447,9 +451,9 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           const isStageSummary = ev.targetId === 'OPPONENT_HERO';
           if (isStageSummary) {
             hsAudio.playSfx('whoosh', 1.0);
-            hsAudio.playSfx('big_attack', 0.8);
-            hsAudio.vibrateByDamage(3);
-            impactCbRef.current?.(3);
+            hsAudio.playSfx('big_attack', 0.92);
+            hsAudio.vibrateByDamage(12);
+            impactCbRef.current?.(14);
             const yBand = stageH * 0.34;
             for (let i = 0; i < 6; i++) {
               windGustsRef.current.push({
@@ -516,8 +520,11 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
         }
 
         case 'SILIA_WIND_HEAL': {
-          hsAudio.playSfx('whoosh', 0.92);
+          hsAudio.playSfx('whoosh', 0.95);
+          hsAudio.playSfx('big_attack', 0.78);
           hsAudio.playProceduralVfxSound('HOLY');
+          hsAudio.vibrateByDamage(10);
+          impactCbRef.current?.(11);
           const heroPt = getEntityCenter('PLAYER_HERO');
           for (let i = 0; i < 4; i++) {
             windGustsRef.current.push({
@@ -557,6 +564,105 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
             life: 0,
             maxLife: 66,
           });
+          ensureLoopRef.current();
+          break;
+        }
+
+        case 'KADAN_SNS_ULTIMATE': {
+          const isStageSummary = ev.targetId === 'OPPONENT_HERO';
+          const tier = Math.max(1, ev.value || 1);
+          if (isStageSummary) {
+            hsAudio.playSfx('big_attack', 1.0);
+            hsAudio.playSfx('hero_power', 0.95);
+            hsAudio.playProceduralVfxSound('HOLY');
+            hsAudio.vibrateByDamage(14 + tier * 3, { isFinisher: true });
+            impactCbRef.current?.(14 + Math.min(12, tier * 3));
+
+            const enemyHeroPt = getEntityCenter('OPPONENT_HERO');
+            const yBand = stageH * 0.3;
+            const sweepCount = Math.min(10, 5 + tier * 2);
+            for (let i = 0; i < sweepCount; i++) {
+              windGustsRef.current.push({
+                kind: 'SWEEP',
+                x0: stageW * 0.92,
+                y0: stageH * 0.86,
+                x1: stageW * (0.1 + ((i * 0.16) % 0.8)),
+                y1: yBand + ((i % 3) - 1) * 32,
+                curveOffset: (i % 2 === 0 ? -1 : 1) * (48 + i * 9),
+                color: i % 2 === 0 ? '#38bdf8' : '#facc15',
+                accentColor: '#ffffff',
+                life: 0,
+                maxLife: 48 + i * 3,
+              });
+            }
+            for (let i = 0; i < 6; i++) {
+              const px = stageW * (0.18 + i * 0.13);
+              spawnBurst(
+                px,
+                yBand,
+                12 + tier * 2,
+                ['#38bdf8', '#facc15', '#fde047', '#bae6fd', '#ffffff'],
+                9.5,
+                6.5,
+                i % 2 === 0 ? 'STAR' : 'SHARD',
+                0,
+              );
+              spawnRing(px, yBand, i % 2 === 0 ? '#38bdf8' : '#facc15', 140 + tier * 18);
+            }
+            spawnRing(enemyHeroPt.x, enemyHeroPt.y, '#facc15', 220 + tier * 24);
+            spawnRing(enemyHeroPt.x, enemyHeroPt.y, '#38bdf8', 175 + tier * 20);
+            badgesRef.current.push({
+              x: stageW * 0.5,
+              y: stageH * 0.42,
+              vy: -0.75,
+              text:
+                ev.label ||
+                (isKoreanLanguage()
+                  ? `❄️⚔ 카단 눈히어로 필살기 X${tier} 작렬!`
+                  : `❄️⚔ Kadan SNSHero Ultimate X${tier}!`),
+              subKind: 'BANNER',
+              life: 0,
+              maxLife: 76,
+            });
+          } else {
+            windGustsRef.current.push(
+              {
+                kind: 'STREAM',
+                x0: sourcePos.x,
+                y0: sourcePos.y,
+                x1: targetPos.x,
+                y1: targetPos.y,
+                curveOffset: 54,
+                color: '#38bdf8',
+                accentColor: '#fde047',
+                life: 0,
+                maxLife: 34,
+              },
+              {
+                kind: 'TARGET_RING',
+                x0: targetPos.x,
+                y0: targetPos.y,
+                x1: targetPos.x,
+                y1: targetPos.y,
+                curveOffset: 0,
+                color: '#facc15',
+                accentColor: '#38bdf8',
+                life: 0,
+                maxLife: 58,
+              },
+            );
+            spawnBurst(
+              targetPos.x,
+              targetPos.y,
+              14,
+              ['#38bdf8', '#facc15', '#ffffff'],
+              8.0,
+              6,
+              'STAR',
+              0,
+            );
+            spawnRing(targetPos.x, targetPos.y, '#38bdf8', 112);
+          }
           ensureLoopRef.current();
           break;
         }

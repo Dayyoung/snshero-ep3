@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { SiliaSkillPowerSpec, getSiliaSkillPowerSpec } from '../types';
-import { useAnimaleseTypewriter } from './StoryEncounterOverlays';
 
 export type SiliaSkillKind = 'DEFENSE' | 'ATTACK' | 'HEAL';
 
@@ -104,15 +103,13 @@ interface SiliaDialogueCutsceneOverlayProps {
 }
 
 /**
- * Story-dialogue-style Ultimate Cutscene Overlay (`대사화면` exact match):
- * - Large waist-up Silia cutout (`상반신`) with Animalese voice & `talkBob` bounce
- * - Floating 3-head-tall chibi action badge showing the active casting sprite
- * - Dark trapezoid nameplate + cream-white dialogue plate with click/auto-advance
+ * Instant Non-Blocking Ultimate Cut-In Overlay:
+ * - Zero typewriter / zero voice reading (`읽지말고 바로 표시`)
+ * - Displays Silia's upper-body cutout + full speech line immediately while the board shakes & explodes underneath!
  */
 const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> = ({
   skillKind,
   power,
-  chibiFrameUrl,
   isKo,
   onComplete,
 }) => {
@@ -142,190 +139,65 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
     r > 0
       ? skillKind === 'DEFENSE'
         ? isKo
-          ? `아군 보드 전체 방어막 & +${power.defenseBuffAtk}/+${power.defenseBuffHp}`
-          : `Divine Shield & +${power.defenseBuffAtk}/+${power.defenseBuffHp} to all allies`
+          ? `아군 전체 방어막 & +${power.defenseBuffAtk}/+${power.defenseBuffHp}`
+          : `Shield & +${power.defenseBuffAtk}/+${power.defenseBuffHp} to all allies`
         : skillKind === 'ATTACK'
           ? isKo
-            ? `적 하수인 전체 피해 -${power.attackDamage}`
-            : `Deal ${power.attackDamage} damage to all enemy minions`
+            ? `적 하수인 전체 -${power.attackDamage}`
+            : `All enemies -${power.attackDamage} HP`
           : isKo
-            ? `아군 영웅 체력 +${power.healAmount} · 방어도 +${power.armorAmount}`
-            : `Restore +${power.healAmount} Hero HP & +${power.armorAmount} Armor`
+            ? `영웅 +${power.healAmount} 회복 · 방어도 +${power.armorAmount}`
+            : `+${power.healAmount} Hero HP · +${power.armorAmount} Armor`
       : isKo
         ? meta.effectKo
         : meta.effectEn;
 
-  const { displayedText, isTyping, talkBob, handleInteract } = useAnimaleseTypewriter({
-    fullText: speechLine,
-    speakerLabel,
-    speakerSide: 'LEFT',
-    resetKey: `silia-ult:${skillKind}:r${r}`,
-    isKo,
-    enabled: true,
-    onAutoAdvance: onComplete,
-  });
-
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
-        e.preventDefault();
-        e.stopPropagation();
-        handleInteract();
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        hsAudio.playSfx('ui_click', 0.65);
-        onComplete();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [handleInteract, onComplete]);
+    const timer = window.setTimeout(() => {
+      onComplete();
+    }, 1450);
+    return () => window.clearTimeout(timer);
+  }, [onComplete]);
 
   return (
     <div
       data-testid="silia-ultimate-cutscene-overlay"
       data-silia-cutscene={skillKind}
-      onClick={(e) => {
-        e.stopPropagation();
-        handleInteract();
-      }}
-      className="fixed inset-0 z-[92] cursor-pointer select-none overflow-hidden bg-black/62"
+      className="pointer-events-none fixed inset-0 z-[92] select-none overflow-hidden"
     >
-      {/* Subtle Top & Bottom Cinematic Vignette */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/75" />
+      {/* Emerald Impact Flash Border */}
+      <div className="absolute inset-0 animate-pulse border-4 border-emerald-300/70 bg-radial from-emerald-400/18 via-transparent to-transparent" />
 
-      {/* Top Skill Cutscene Strip + 1-Tap Skip Button */}
-      <div className="relative z-30 flex items-center justify-between gap-2 px-3 pt-2.5 sm:px-6 sm:pt-4">
-        <div
-          className={`flex items-center gap-2 rounded-full border ${meta.accentBorder} bg-stone-950/88 px-3.5 py-1.5 shadow-lg`}
-        >
-          <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_8px_#6ee7b7]" />
-          <span className="hs-title truncate text-xs font-extrabold tracking-wide text-emerald-100 sm:text-sm">
-            {meta.icon} {tr('실리아 필살기', 'Silia Ultimate')}
-            {r > 0 ? ` · ${tr(`${r}환생 각성`, `NG+${r} Awakened`)}` : ''} · {skillTitle}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          data-testid="silia-cutscene-skip-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            hsAudio.playSfx('ui_click', 0.7);
-            onComplete();
-          }}
-          className="min-h-[44px] rounded-xl border border-white/25 bg-stone-950/85 px-3.5 py-1.5 text-xs font-extrabold text-stone-200 shadow-lg transition hover:border-emerald-300 hover:text-emerald-200"
-        >
-          {tr('건너뛰기 ▸▸', 'SKIP ▸▸')}
-        </button>
-      </div>
-
-      {/* Elemental Wind Aura Behind Upper-Body Silia */}
+      {/* Left/Bottom Instant Cut-In Banner with Upper-Body Silia + Full Speech Line */}
       <div
-        aria-hidden="true"
-        style={{ background: meta.auraBg }}
-        className="pointer-events-none absolute bottom-10 left-[26%] z-10 h-[56vh] w-[56vh] -translate-x-1/2 rounded-full blur-2xl sm:bottom-16 sm:left-[30%]"
-      />
-
-      {/* Right-Side Floating 3-Head-Tall Chibi Action Cut-in Card */}
-      <div className="pointer-events-none absolute right-[8%] top-[18%] z-20 hidden flex-col items-center sm:flex">
-        <div className="relative flex h-36 w-36 items-center justify-center rounded-full border border-emerald-300/45 bg-stone-950/65 p-2 shadow-[0_0_32px_rgba(16,185,129,0.45)] backdrop-blur-sm">
-          <img
-            src={chibiFrameUrl}
-            alt={skillTitle}
-            draggable={false}
-            className="h-full w-full object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,0.85)]"
-          />
-        </div>
-        <span
-          className={`-mt-2 rounded-full border border-white/25 px-3 py-0.5 text-[11px] font-extrabold shadow ${meta.accentBadge}`}
-        >
-          {meta.icon} {skillTitle}
-        </span>
-      </div>
-
-      {/* Left/Center Silia Upper-Body Cutout (1024px HD Waist-Up `상반신` 51%~55% Viewport Height) */}
-      <div
-        data-testid="silia-cutscene-portrait"
         style={{
-          transformOrigin: 'bottom center',
-          transform: `translate3d(-50%, ${talkBob ? '-8px' : '0px'}, 0) scale(1.04)`,
-          transition: 'transform 140ms cubic-bezier(0.22, 1, 0.36, 1)',
-        }}
-        className="pointer-events-none absolute bottom-[112px] left-[28%] z-20 flex h-[50%] items-end justify-center sm:bottom-[132px] sm:left-[30%] sm:h-[56%]"
+          '--hs-shake-x': '8px',
+          '--hs-shake-y': '5px',
+          '--hs-shake-dur': '340ms',
+        } as React.CSSProperties}
+        className="hs-damage-shake-a absolute inset-x-2.5 top-[16%] mx-auto flex max-w-lg items-end gap-2.5 rounded-2xl border-2 border-emerald-300/90 bg-[#041b13]/92 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.92),0_0_28px_rgba(16,185,129,0.55)] backdrop-blur-md sm:top-[18%] sm:p-4"
       >
         <img
+          data-testid="silia-cutscene-portrait"
           src={SILIA_UPPER_CUTOUT_URL}
           alt={speakerLabel}
           decoding="async"
           draggable={false}
-          style={{
-            maskImage:
-              'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.85) 12%, #000 24%, #000 100%)',
-            WebkitMaskImage:
-              'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.85) 12%, #000 24%, #000 100%)',
-          }}
-          className="h-full w-auto max-w-none select-none"
+          className="h-24 w-24 shrink-0 rounded-xl border border-emerald-300/60 bg-emerald-950/60 object-cover object-top sm:h-28 sm:w-28"
         />
-      </div>
-
-      {/* Speech Bubble Box Aligned to Silia (`캐릭터 대사 장면` Exact Style!) */}
-      <div className="inset-x-3 absolute bottom-5 z-30 sm:inset-x-auto sm:bottom-8 sm:left-[8%] sm:w-[460px]">
-        {/* Top Dark Trapezoid Speaker Nameplate */}
-        <div
-          className="relative z-10 mx-auto -mb-3 flex w-fit min-w-[140px] max-w-[280px] items-center justify-center px-6 py-1.5 text-center shadow-md"
-          style={{
-            backgroundColor: '#23262e',
-            clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
-          }}
-        >
-          <span className="truncate text-xs font-extrabold tracking-wide text-white sm:text-sm">
-            {speakerLabel}
-          </span>
-        </div>
-
-        {/* Cream-White Dialogue Plate */}
-        <div className="relative min-h-[96px] rounded-[12px] border border-stone-300 bg-[#f2f2f0] px-5 pb-4 pt-5 text-left shadow-[0_18px_42px_rgba(0,0,0,0.88)] sm:min-h-[108px] sm:px-6 sm:pt-6">
-          {/* Compact Skill Tag Bar */}
-          <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+        <div className="min-w-0 flex-1 text-left">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className={`rounded-md px-2 py-0.5 text-[10.5px] font-black ${meta.accentBadge}`}>
-              {meta.icon} {skillTitle}
+              {meta.icon} {speakerLabel} 필살기 · {skillTitle}
             </span>
-            <span className="text-[11px] font-extrabold text-emerald-800">{effectSummary}</span>
+            <span className="text-[10.5px] font-extrabold text-emerald-300">{effectSummary}</span>
           </div>
-
           <p
             data-testid="silia-cutscene-dialogue-text"
-            data-full-text={speechLine}
-            aria-label={speechLine}
-            className="relative text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
+            className="mt-1.5 text-xs font-extrabold leading-snug text-white sm:text-sm"
           >
-            <span aria-hidden="true" className="invisible block">
-              {speechLine}
-            </span>
-            <span className="absolute inset-0 block">{displayedText}</span>
+            “{speechLine}”
           </p>
-
-          <div className="mt-2 flex items-center justify-between text-[11px] font-bold text-stone-500">
-            <span>
-              {isTyping
-                ? tr(
-                    '클릭 시 대사 한번에 표시 · 자동 진행',
-                    'Tap to reveal full line · Auto-advances',
-                  )
-                : tr('잠시 후 전장으로 복귀합니다...', 'Returning to battle shortly...')}
-            </span>
-          </div>
-
-          <span
-            aria-hidden="true"
-            className={`pointer-events-none absolute bottom-2.5 right-3.5 text-xs font-black text-[#1b1d22] ${
-              isTyping ? 'opacity-45' : 'animate-bounce opacity-100'
-            }`}
-          >
-            ▼
-          </span>
         </div>
       </div>
     </div>
@@ -482,74 +354,20 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
     });
   };
 
-  const formatTargetSummary = (names: string[], count: number): string => {
-    if (names.length > 0) {
-      if (names.length <= 2) return names.join(', ');
-      return isKo
-        ? `${names.slice(0, 2).join(', ')} 외 ${names.length - 2}`
-        : `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
-    }
-    return isKo ? `${count}체` : `${count} unit(s)`;
-  };
-
   const triggerSkill = (skill: SiliaSkillKind) => {
     if (!canCastAny) return;
     setMenuOpen(false);
     setSpeechText(null);
     setCastingSkill(skill);
+    setWindstormSkill(skill);
+    // Fire the board skill & screen shake IMMEDIATELY alongside the instant speech cut-in!
+    onCastSkill(skill);
   };
 
-  // After Silia finishes her upper-body dialogue, close the dark overlay first
-  // so the Windstorm VFX + per-target highlights play visibly over the live board!
   const handleDialogueComplete = () => {
     const finishedSkill = castingSkill;
     if (!finishedSkill) return;
     setCastingSkill(null);
-    setWindstormSkill(finishedSkill);
-
-    if (finishedSkill === 'DEFENSE') {
-      const buffNote =
-        reinc > 0 ? ` & +${power.defenseBuffAtk}/+${power.defenseBuffHp}` : '';
-      setSpeechText(
-        friendlyBoardCount > 0
-          ? tr(
-              `🛡 바람 결계 발동! 아군 ${friendlyBoardCount}체(${formatTargetSummary(friendlyNames, friendlyBoardCount)})에게 보호막${buffNote}을 부여했어요!`,
-              `🛡 Wind Barrier! Granted Shield${buffNote} to ${formatTargetSummary(friendlyNames, friendlyBoardCount)}!`,
-            )
-          : tr(
-              '🛡 바람 결계 발동! (내 전장에 하수인이 없어 보호막 대상이 없어요)',
-              '🛡 Wind Barrier! (No friendly minions on board to shield)',
-            ),
-      );
-    } else if (finishedSkill === 'ATTACK') {
-      setSpeechText(
-        enemyBoardCount > 0
-          ? tr(
-              `🌪 녹풍 바람폭풍! 적 ${enemyBoardCount}체(${formatTargetSummary(enemyNames, enemyBoardCount)})에게 -${power.attackDamage} 피해!`,
-              `🌪 Emerald Windstorm! Hit ${formatTargetSummary(enemyNames, enemyBoardCount)} for -${power.attackDamage} HP!`,
-            )
-          : tr(
-              '🌪 녹풍 바람폭풍 발동! (적 전장에 하수인이 없어요)',
-              '🌪 Emerald Windstorm! (No enemy minions on board)',
-            ),
-      );
-    } else {
-      setSpeechText(
-        reinc > 0
-          ? tr(
-              `💚 생명의 미풍 발동! 영웅 체력 +${power.healAmount} 회복 & 방어도 +${power.armorAmount} 획득!`,
-              `💚 Vital Breeze! Restored +${power.healAmount} Hero HP & +${power.armorAmount} Armor!`,
-            )
-          : tr(
-              '💚 생명의 미풍 발동! 아군 영웅(카단)의 생명력을 치유했어요!',
-              '💚 Vital Breeze! Restored Friendly Hero HP!',
-            ),
-      );
-    }
-
-    window.setTimeout(() => {
-      onCastSkill(finishedSkill);
-    }, 45);
   };
 
   return (
@@ -769,17 +587,15 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
             }`}
           >
             <span>
-              {castingSkill
-                ? tr('✦ 대사 영창 중...', '✦ Speaking...')
-                : windstormSkill
-                  ? tr('🌪 바람폭풍 발동!', '🌪 Windstorm!')
-                  : canCastAny
-                    ? reinc > 0
-                      ? tr(`실리아 ★${reinc} · 필살기`, `Silia ★${reinc} · Ult ▾`)
-                      : tr('실리아 · 필살기', 'Silia · Ult ▾')
-                    : usedThisTurn
-                      ? tr('실리아 (완료)', 'Silia (Used)')
-                      : tr('실리아 (대기)', 'Silia (Wait)')}
+              {castingSkill || windstormSkill
+                ? tr('🌪 필살기 작렬!', '🌪 Ultimate!')
+                : canCastAny
+                  ? reinc > 0
+                    ? tr(`실리아 ★${reinc} · 필살기`, `Silia ★${reinc} · Ult ▾`)
+                    : tr('실리아 · 필살기', 'Silia · Ult ▾')
+                  : usedThisTurn
+                    ? tr('실리아 (완료)', 'Silia (Used)')
+                    : tr('실리아 (대기)', 'Silia (Wait)')}
             </span>
           </div>
         </button>

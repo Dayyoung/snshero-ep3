@@ -30,12 +30,15 @@ export interface RhythmBeatPhaseInfo {
   silentVisualMode: boolean;
 }
 
-const BGM_TRACK_BEAT_SPEC: Record<string, { bpm: number; firstBeatOffsetSec: number }> = {
-  duel_1: { bpm: 128, firstBeatOffsetSec: 0.29 },
-  duel_2: { bpm: 132, firstBeatOffsetSec: 0.15 },
-  mulligan: { bpm: 122, firstBeatOffsetSec: 0.255 },
-  tavern_hub: { bpm: 116, firstBeatOffsetSec: 0.04 },
-  collection: { bpm: 120, firstBeatOffsetSec: 0.1 },
+const BGM_TRACK_BEAT_SPEC: Record<
+  string,
+  { bpm: number; firstBeatOffsetSec: number; playbackRate: number }
+> = {
+  duel_1: { bpm: 128, firstBeatOffsetSec: 0.29, playbackRate: 0.78 },
+  duel_2: { bpm: 132, firstBeatOffsetSec: 0.15, playbackRate: 0.75 },
+  mulligan: { bpm: 122, firstBeatOffsetSec: 0.255, playbackRate: 0.88 },
+  tavern_hub: { bpm: 116, firstBeatOffsetSec: 0.04, playbackRate: 1.0 },
+  collection: { bpm: 120, firstBeatOffsetSec: 0.1, playbackRate: 1.0 },
 };
 
 export interface AudioSettings {
@@ -558,7 +561,22 @@ class SnsHeroCardAudioEngine {
       this.currentBgm = null;
     }
     this.currentBgmKey = track;
+    const targetRate = BGM_TRACK_BEAT_SPEC[track]?.playbackRate ?? 1.0;
     const audio = new Audio(`/hs-assets/snshero-audio/bgm/${track}.mp3?v=fantasy_orch2`);
+    const pitchAudio = audio as HTMLAudioElement & {
+      preservesPitch?: boolean;
+      webkitPreservesPitch?: boolean;
+      mozPreservesPitch?: boolean;
+    };
+    pitchAudio.preservesPitch = true;
+    pitchAudio.webkitPreservesPitch = true;
+    pitchAudio.mozPreservesPitch = true;
+    audio.defaultPlaybackRate = targetRate;
+    audio.playbackRate = targetRate;
+    audio.addEventListener('loadedmetadata', () => {
+      pitchAudio.preservesPitch = true;
+      audio.playbackRate = targetRate;
+    });
     audio.loop = track !== 'mulligan';
     audio.volume = this.settings.muted ? 0 : this.settings.bgmVolume;
     this.currentBgm = audio;
@@ -1895,11 +1913,18 @@ class SnsHeroCardAudioEngine {
     const trackSpec = BGM_TRACK_BEAT_SPEC[activeTrackKey] || {
       bpm: Math.max(60, Math.min(200, fallbackBpm)),
       firstBeatOffsetSec: 0,
+      playbackRate: 0.78,
     };
-    const safeBpm = trackSpec.bpm;
-    const beatSec = 60 / safeBpm;
+    const fileBpm = trackSpec.bpm;
+    const fileBeatSec = 60 / fileBpm;
+    const activeRate =
+      bgmPlaying && this.currentBgm
+        ? this.currentBgm.playbackRate || trackSpec.playbackRate || 1
+        : trackSpec.playbackRate || 0.78;
+    const realBeatSec = fileBeatSec / activeRate;
+    const effectiveBpm = Math.round(fileBpm * activeRate);
 
-    let elapsed: number;
+    let totalBeats: number;
     if (bgmPlaying && this.currentBgm) {
       const curAudio = this.currentBgm.currentTime;
       if (
@@ -1911,50 +1936,51 @@ class SnsHeroCardAudioEngine {
         this.lastBgmPerfMs = nowPerfMs;
       }
       const interpDelta =
-        Math.min(0.04, Math.max(0, (nowPerfMs - this.lastBgmPerfMs) / 1000)) *
-        (this.currentBgm.playbackRate || 1);
+        Math.min(0.04, Math.max(0, (nowPerfMs - this.lastBgmPerfMs) / 1000)) * activeRate;
       const smoothAudioSec = this.lastBgmAudioTimeSec + interpDelta;
-      elapsed = smoothAudioSec - trackSpec.firstBeatOffsetSec - offsetSec;
+      totalBeats =
+        (smoothAudioSec - trackSpec.firstBeatOffsetSec - offsetSec * activeRate) / fileBeatSec;
     } else {
-      elapsed = rawSec - this.beatClockAnchorSec - offsetSec;
+      totalBeats = (rawSec - this.beatClockAnchorSec - offsetSec) / realBeatSec;
     }
 
-    const totalBeats = elapsed / beatSec;
     const beatIndex = Math.floor(totalBeats);
     const phase01 = (((totalBeats - beatIndex) % 1) + 1) % 1;
     const barIndex = Math.floor(beatIndex / 4);
     const beatInBar = ((beatIndex % 4) + 4) % 4;
     const barPhase01 = (beatInBar + phase01) / 4;
-    const nearestBeat = Math.round(totalBeats);
-    const deltaMs = (totalBeats - nearestBeat) * beatSec * 1000;
 
-    // Audible BGM heartbeat pulse: peaks at 1.0 right on the drum beat (phase01 = 0) and decays smoothly
-    const pulse01 = Math.exp(-phase01 * 9.0);
+    // Comfortable 2-Beat Strong Pulse (~1.20s cycle in 1x mode, ~2.40s in 2x bar mode)
+    const beatsPerRing = speed2x ? 4 : 2;
+    const cycleTotal = totalBeats / beatsPerRing;
+    const cycleIdx = Math.floor(cycleTotal);
+    const cyclePhase01 = (((cycleTotal - cycleIdx) % 1) + 1) % 1;
+    const cycleDurMs = beatsPerRing * realBeatSec * 1000;
+    const activeDeltaMs =
+      cyclePhase01 <= 0.5 ? cyclePhase01 * cycleDurMs : (cyclePhase01 - 1) * cycleDurMs;
 
-    const cycleDurMs = speed2x ? beatSec * 4000 : beatSec * 1000;
-    const cyclePhase01 = speed2x ? barPhase01 : phase01;
-    const activeDeltaMs = speed2x
-      ? cyclePhase01 <= 0.5
-        ? cyclePhase01 * cycleDurMs
-        : (cyclePhase01 - 1) * cycleDurMs
-      : deltaMs;
+    // Strong BGM heartbeat pulse synced to the 2-beat downbeat + gentle sub-beat pulse
+    const pulse01 = Math.min(
+      1,
+      Math.max(Math.exp(-cyclePhase01 * 5.8), 0.32 * Math.exp(-phase01 * 8.0)),
+    );
 
-    const earlyGreenMs = speed2x ? 165 : 130;
-    const lateGreenMs = speed2x ? 150 : 115;
+    const earlyGreenMs = speed2x ? 340 : 270;
+    const lateGreenMs = speed2x ? 300 : 250;
     const isTapWindow = activeDeltaMs >= -earlyGreenMs && activeDeltaMs <= lateGreenMs;
 
-    const holdFrac = Math.min(0.35, lateGreenMs / cycleDurMs);
+    const holdFrac = Math.min(0.32, lateGreenMs / cycleDurMs);
     const ringScale =
       cyclePhase01 <= holdFrac
         ? 1.0
         : 1.72 - ((cyclePhase01 - holdFrac) / Math.max(0.01, 1 - holdFrac)) * 0.72;
 
     return {
-      bpm: safeBpm,
-      beatSec,
+      bpm: effectiveBpm,
+      beatSec: realBeatSec,
       barIndex,
       beatInBar,
-      phase01,
+      phase01: cyclePhase01,
       barPhase01,
       deltaMs: activeDeltaMs,
       isTapWindow,
@@ -1966,7 +1992,7 @@ class SnsHeroCardAudioEngine {
 
   /**
    * Evaluate player Rhythm Tap using the EXACT same Green/Red window shown on the ring:
-   * - Green ring + center beat (<= 68ms): PERFECT (2.0x)
+   * - Green ring + center beat (<= 135ms): PERFECT (2.0x)
    * - Green ring (`isTapWindow === true`): GOOD (1.5x)
    * - Red ring (`isTapWindow === false`): NORMAL (1.0x / off-beat miss)
    */
@@ -1977,7 +2003,7 @@ class SnsHeroCardAudioEngine {
   ): { grade: RhythmGrade; multiplier: 1 | 1.5 | 2; deltaMs: number } {
     const info = this.getBeatPhaseInfo(bpm, speed2x);
     const absDeltaMs = Math.abs(info.deltaMs);
-    const perfectThresholdMs = speed2x ? 85 : 68;
+    const perfectThresholdMs = speed2x ? 165 : 135;
 
     let grade: RhythmGrade = 'NORMAL';
     let multiplier: 1 | 1.5 | 2 = 1;

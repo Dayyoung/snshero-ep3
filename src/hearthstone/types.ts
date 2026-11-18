@@ -576,7 +576,8 @@ export type VfxKind =
   | 'TOY_DRUM'
   | 'SILIA_WIND_DEFENSE'
   | 'SILIA_WIND_ATTACK'
-  | 'SILIA_WIND_HEAL';
+  | 'SILIA_WIND_HEAL'
+  | 'KADAN_SNS_ULTIMATE';
 
 export interface VfxEvent {
   id: string;

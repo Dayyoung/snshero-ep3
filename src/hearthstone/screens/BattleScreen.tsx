@@ -242,7 +242,7 @@ interface CenterRhythmRingHudProps {
   isBossParryReady: boolean;
   mode: GameMode;
   rhythmFeverPct: number;
-  rhythmPerfectCombo: number;
+  kadanMomentumCount: number;
   rhythmFlash: {
     mult: 1 | 1.5 | 2;
     grade: 'NORMAL' | 'GOOD' | 'PERFECT';
@@ -261,7 +261,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
   isBossParryReady,
   mode,
   rhythmFeverPct,
-  rhythmPerfectCombo,
+  kadanMomentumCount,
   rhythmFlash,
   clutchBreakEnabled,
   onToggleClutchBreak,
@@ -273,6 +273,9 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
   const pulseCoreRef = useRef<HTMLSpanElement | null>(null);
   const pulseWaveRef = useRef<HTMLSpanElement | null>(null);
   const cueTextRef = useRef<HTMLSpanElement | null>(null);
+
+  const kadanStack = Math.floor(kadanMomentumCount / 10);
+  const subCharge = kadanMomentumCount % 10;
 
   useEffect(() => {
     if (!rhythmEnabled) return;
@@ -291,7 +294,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
           ringEl.style.transform = `scale(${info.ringScale.toFixed(3)})`;
           if (info.isTapWindow) {
             ringEl.style.borderColor = '#22c55e';
-            ringEl.style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+            ringEl.style.backgroundColor = 'rgba(34, 197, 94, 0.22)';
             ringEl.style.boxShadow =
               '0 0 22px rgba(34, 197, 94, 0.95), inset 0 0 12px rgba(74, 222, 128, 0.55)';
             ringEl.dataset.ringState = 'green';
@@ -336,7 +339,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
       className="pointer-events-none fixed bottom-2.5 left-1/2 z-[71] flex -translate-x-1/2 select-none flex-col items-center sm:bottom-3.5"
     >
       {rhythmEnabled && (
-        <div className="relative flex h-[74px] w-[74px] items-center justify-center sm:h-[86px] sm:w-[86px]">
+        <div className="relative flex h-[68px] w-[62px] items-center justify-center sm:h-[80px] sm:w-[74px]">
           <button
             type="button"
             data-testid="ocarina-rhythm-ring-btn"
@@ -345,8 +348,8 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
               onTap();
             }}
             title={tr(
-              '배경음악 맥박에 맞춰 초록색일 때 탭! (빨간색은 대기)',
-              'Tap on GREEN with the BGM pulse! (Wait on RED)',
+              '카단의 기세 — 초록색일 때 탭! (10배수마다 X스택 & 카단 눈히어로 필살기 발동)',
+              "Kadan's Spirit — Tap on GREEN! (Every 10 hits stacks X-tier & fires Kadan's Ultimate)",
             )}
             className="pointer-events-auto relative flex h-14 w-14 touch-manipulation items-center justify-center rounded-full focus:outline-none active:scale-92 sm:h-16 sm:w-16"
           >
@@ -364,13 +367,13 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
               className="pointer-events-none absolute inset-0 rounded-full border-[3px] border-rose-500"
             />
 
-            {/* Inner Heartbeat Core Circle (Pulses 1:1 with BGM Drum Beat) */}
+            {/* Inner Heartbeat Core Circle */}
             <span
               ref={pulseCoreRef}
               className="pointer-events-none relative flex h-full w-full flex-col items-center justify-center rounded-full border-2 border-rose-400/85 bg-[#090d16]/95 shadow-[0_6px_18px_rgba(0,0,0,0.9)]"
             >
               <span className="text-sm leading-none sm:text-base">
-                {isBossParryReady ? '🛡' : '🎵'}
+                {isBossParryReady ? '🛡' : '⚔️'}
               </span>
               <span
                 ref={cueTextRef}
@@ -402,11 +405,32 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
               </span>
             )}
           </button>
+
+          {/* Side X-Stack & 10x Charge Display (`정박 10배수 넘을 때마다 옆에 X스택 표시`) */}
+          <div
+            data-testid="kadan-momentum-side-box"
+            className="pointer-events-none absolute left-[calc(100%-6px)] top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center gap-0.5 sm:left-full sm:ml-1.5"
+          >
+            {kadanStack >= 1 && (
+              <span
+                data-testid="kadan-x-stack-badge"
+                className="rounded-md border border-yellow-300 bg-gradient-to-b from-sky-500 via-blue-700 to-indigo-950 px-1 py-0.5 text-[10px] font-black leading-none text-yellow-200 shadow-[0_0_12px_rgba(56,189,248,0.85)] sm:px-2 sm:text-xs"
+              >
+                X{kadanStack}
+              </span>
+            )}
+            <span
+              data-testid="kadan-momentum-charge"
+              className="rounded border border-sky-400/50 bg-stone-950/90 px-1 py-0.5 text-[8.5px] font-extrabold leading-none text-sky-200 sm:text-[10px]"
+            >
+              {subCharge}/10
+            </span>
+          </div>
         </div>
       )}
 
-      {/* Slim Boot Pill Matching Silia (Left) & Kadan (Right) */}
-      <div className="pointer-events-auto -mt-1 flex items-center gap-1 rounded-full border border-amber-300/60 bg-stone-950/95 px-2 py-0.5 text-[9.5px] font-extrabold text-amber-100 shadow-[0_4px_10px_rgba(0,0,0,0.9)] sm:px-2.5 sm:text-[10.5px]">
+      {/* Slim Boot Pill: `카단의 기세` */}
+      <div className="pointer-events-auto -mt-0.5 flex items-center gap-1 whitespace-nowrap rounded-full border border-sky-300/65 bg-stone-950/95 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-100 shadow-[0_4px_10px_rgba(0,0,0,0.9)] sm:px-2.5 sm:text-[10.5px]">
         <button
           type="button"
           data-testid="rhythm-speed-2x-btn"
@@ -415,26 +439,26 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
             hsAudio.playSfx('ui_click', 0.65);
             onToggleSpeed2x();
           }}
-          className={`rounded-full px-1.5 py-0.2 font-black ${
+          className={`rounded-full px-1 py-0.2 font-black ${
             autoSpeed2x ? 'bg-cyan-400 text-stone-950' : 'bg-white/10 text-emerald-300'
           }`}
-          title={tr('1박 정박 / 4박 강박 전환', 'Toggle 1-Beat / 4-Beat Bar Mode')}
+          title={tr('2박 강박 / 4박 마디 전환', 'Toggle 2-Beat / 4-Beat Mode')}
         >
-          {autoSpeed2x ? '2x' : '1x'}
+          {autoSpeed2x ? '4B' : '2B'}
         </button>
 
-        {mode !== 'TUTORIAL' && rhythmEnabled ? (
+        <span className="font-black text-sky-200">
+          {tr('카단의 기세', 'Kadan Spirit')}
+        </span>
+
+        {mode !== 'TUTORIAL' && rhythmEnabled && rhythmFeverPct > 0 && (
           <span
             data-testid="rhythm-fever-gauge"
             className="text-yellow-300"
-            title={tr('경쟁모드 피버 골드 게이지', 'Bonus Gold Fever Gauge')}
+            title={tr('피버 골드 게이지', 'Bonus Gold Fever Gauge')}
           >
             🪙{rhythmFeverPct}%
           </span>
-        ) : rhythmPerfectCombo >= 2 ? (
-          <span className="font-black text-emerald-300">★{rhythmPerfectCombo}</span>
-        ) : (
-          <span className="text-emerald-200">{tr('정박 탭', 'Beat Tap')}</span>
         )}
 
         <button
@@ -444,7 +468,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
             e.stopPropagation();
             onToggleClutchBreak();
           }}
-          className={`rounded-full px-1 py-0.2 text-[9px] font-black ${
+          className={`rounded-full px-0.5 py-0.2 text-[9px] font-black ${
             clutchBreakEnabled ? 'text-amber-300' : 'text-stone-500'
           }`}
           title={tr('승부처 브레이크 ON/OFF', 'Toggle Clutch Choice Break')}
@@ -1008,13 +1032,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     grade: 'NORMAL' | 'GOOD' | 'PERFECT';
     parried?: boolean;
   } | null>(null);
-  const [rhythmPerfectCombo, setRhythmPerfectCombo] = useState<number>(0);
   const [rhythmSanctuaryAura, setRhythmSanctuaryAura] = useState<boolean>(false);
   const [rhythmFeverPct, setRhythmFeverPct] = useState<number>(0);
   const [rhythmFeverBonusGold, setRhythmFeverBonusGold] = useState<number>(0);
+  const [kadanMomentumCount, setKadanMomentumCount] = useState<number>(0);
+  const [kadanUltCutIn, setKadanUltCutIn] = useState<{
+    stackTier: number;
+    seq: number;
+  } | null>(null);
   const [battleLogExpanded, setBattleLogExpanded] = useState<boolean>(false);
   const rhythmResonanceUsedTurnRef = useRef<number>(-1);
   const rhythmComboRef = useRef<number>(0);
+  const kadanMomentumRef = useRef<number>(0);
+  const triggerUltimateShakeRef = useRef<(tier?: number) => void>(() => {});
+  const fireKadanUltimateRef = useRef<(stackTier: number) => void>(() => {});
 
   const battleBpm = 128;
 
@@ -1095,6 +1126,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   useEffect(() => {
     if (prevMatchIdRef.current !== matchState.matchId) {
       prevMatchIdRef.current = matchState.matchId;
+      kadanMomentumRef.current = 0;
+      setKadanMomentumCount(0);
+      setKadanUltCutIn(null);
       if (!externalAutoPlay) {
         setAutoPlay(false);
       }
@@ -1110,19 +1144,35 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [matchState.phase, storyPhase, vsIntroActive]);
 
-  // DEV-043 / 044 / 050 / 053 / 054: Handle Ocarina Rhythm Tap (Orb Click or Spacebar)
+  // Handle Kadan's Spirit Beat Tap (Orb Click or Spacebar)
   const handleRhythmOrbTap = useCallback(() => {
     if (!autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING') return;
     const nextPotentialCombo = rhythmComboRef.current + 1;
     const res = hsAudio.evaluateRhythmTap(battleBpm, autoSpeed2x, nextPotentialCombo);
     const nextCombo = res.grade === 'PERFECT' ? nextPotentialCombo : 0;
     rhythmComboRef.current = nextCombo;
-    setRhythmPerfectCombo(nextCombo);
 
-    // DEV-053(3): 3 consecutive PERFECTs -> Wordless Golden Sanctuary Aura Finale!
     if (nextCombo >= 3 && res.grade === 'PERFECT') {
       setRhythmSanctuaryAura(true);
       window.setTimeout(() => setRhythmSanctuaryAura(false), 1300);
+    }
+
+    // Build Kadan's Spirit (`카단의 기세`): every 10 green hits stacks X-tier & unleashes Kadan's SNSHero Ultimate!
+    if (res.grade !== 'NORMAL') {
+      const nextMomentum = kadanMomentumRef.current + 1;
+      kadanMomentumRef.current = nextMomentum;
+      setKadanMomentumCount(nextMomentum);
+
+      if (nextMomentum > 0 && nextMomentum % 10 === 0) {
+        const stackTier = Math.floor(nextMomentum / 10);
+        const seqId = Date.now();
+        setKadanUltCutIn({ stackTier, seq: seqId });
+        window.setTimeout(() => {
+          setKadanUltCutIn((cur) => (cur?.seq === seqId ? null : cur));
+        }, 1600);
+        triggerUltimateShakeRef.current(stackTier);
+        fireKadanUltimateRef.current(stackTier);
+      }
     }
 
     let parriedBoss = false;
@@ -2150,10 +2200,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
    * - 1~2 경미한 진동(±2px, 195ms) ➔ 4~6 일반 타격(±5.5px, 285ms) ➔ 8~11 강타(±10.5px, 385ms) ➔ 12+ 대격돌(±15~22px, 490~560ms)
    */
   const triggerDamageImpact = useCallback(
-    (rawDamage: number, opts?: { isFinisher?: boolean }) => {
+    (rawDamage: number, opts?: { isFinisher?: boolean; customDurationMs?: number }) => {
       const dmg = Math.max(1, Math.round(rawDamage || 1));
       const isFinisher = Boolean(opts?.isFinisher);
-      const strength = isFinisher ? 120 : dmg;
+      const strength = isFinisher ? 150 : dmg;
       const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
       if (now < activeShakeRef.current.until && strength < activeShakeRef.current.strength) {
         return;
@@ -2164,8 +2214,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       let durationMs: number;
 
       if (isFinisher) {
-        ampX = 12;
-        durationMs = 360;
+        ampX = 12.5;
+        durationMs = opts?.customDurationMs ?? 380;
       } else if (dmg <= 2) {
         ampX = Number((1.2 + dmg * 0.5).toFixed(2));
         durationMs = 180;
@@ -2403,6 +2453,32 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const latestMatchRef = useRef(matchState);
   latestMatchRef.current = matchState;
+
+  triggerUltimateShakeRef.current = (tier = 1) => {
+    triggerDamageImpact(18 + tier * 3, { isFinisher: true, customDurationMs: 520 });
+  };
+
+  fireKadanUltimateRef.current = (stackTier: number) => {
+    const runBlast = () => {
+      if (attackLockRef.current) {
+        window.setTimeout(runBlast, 60);
+        return;
+      }
+      const cur = latestMatchRef.current;
+      if (cur.phase !== 'PLAYING') return;
+      document.querySelectorAll('[data-hs-entity]').forEach((el) => {
+        const id = el.getAttribute('data-hs-entity');
+        if (id) recordEntityStagePosition(id, elementCenterInStage(el));
+      });
+      const kadanEl = document.querySelector('[data-testid="kadan-chatbot-avatar-btn"]');
+      if (kadanEl) {
+        recordEntityStagePosition('KADAN_WIDGET', elementCenterInStage(kadanEl));
+      }
+      const next = createEngine(cur).useKadanMomentumUltimate(stackTier);
+      setMatchState(next);
+    };
+    runBlast();
+  };
 
   const playerActionStateKey = useMemo(() => {
     const p = matchState.player;
@@ -7649,7 +7725,82 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         />
       )}
 
-      {/* Bottom-Center Shrinking BGM Pulse Ring Tap (Centered Between Silia & Kadan!) */}
+      {/* Kadan 10x Spirit Instant Ultimate Cut-In (Zero TTS Reading · Immediate Speech + Screen Shake + SNSHero Ultimate!) */}
+      {kadanUltCutIn && (() => {
+        const tier = Math.max(1, Math.min(8, kadanUltCutIn.stackTier));
+        const aoeDmg = 2 * tier;
+        const armorGain = 3 * tier;
+        const skillName =
+          tier === 1
+            ? tr('눈꽃 방패 성역파', 'Snowflake Shield Burst')
+            : tier === 2
+              ? tr('서리성광 십자참', 'Frostlight Cross Slash')
+              : tr('창성 눈보라 심판', 'Genesis Blizzard');
+        const kadanSpeech =
+          tier === 1
+            ? tr(
+                '엘윈의 눈꽃 방패여! X1 성역파로 적진을 단숨에 분쇄하라!',
+                'Snowflake Shield of Elwin! Shatter their ranks with X1 Sanctuary Burst!',
+              )
+            : tier === 2
+              ? tr(
+                  '카단의 기세 X2 폭발! 서리성광 십자참, 심연을 갈라라!',
+                  "Kadan's Spirit X2! Frostlight Cross Slash—cleave the abyss!",
+                )
+              : tr(
+                  `이것이 눈히어로의 진정한 각성이다! X${kadanUltCutIn.stackTier} 창성 눈보라 심판 작렬!!`,
+                  `Witness the true awakening of SNSHero! X${kadanUltCutIn.stackTier} Genesis Blizzard—ERUPT!!`,
+                );
+        const effectTag = tr(
+          `적 전체·영웅 -${aoeDmg} 피해 · 방어도 +${armorGain} · 아군 +${tier}/+${tier}${tier >= 2 ? ' & 보호막' : ''}`,
+          `Enemies & Hero -${aoeDmg} · +${armorGain} Armor · Allies +${tier}/+${tier}${tier >= 2 ? ' & Shield' : ''}`,
+        );
+        return (
+          <div
+            key={kadanUltCutIn.seq}
+            data-testid="kadan-ultimate-cutin-overlay"
+            data-kadan-ult-tier={kadanUltCutIn.stackTier}
+            className="pointer-events-none fixed inset-0 z-[93] select-none overflow-hidden"
+          >
+            <div className="absolute inset-0 animate-pulse border-4 border-sky-300/85 bg-radial from-sky-400/22 via-amber-300/12 to-transparent" />
+            <div
+              style={
+                {
+                  '--hs-shake-x': '9px',
+                  '--hs-shake-y': '6px',
+                  '--hs-shake-dur': '380ms',
+                } as React.CSSProperties
+              }
+              className="hs-damage-shake-a absolute inset-x-2.5 top-[15%] mx-auto flex max-w-lg items-end gap-2.5 rounded-2xl border-2 border-yellow-300 bg-[#071326]/95 p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_32px_rgba(56,189,248,0.68)] backdrop-blur-md sm:top-[17%] sm:p-4"
+            >
+              <img
+                data-testid="kadan-cutin-portrait"
+                src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
+                alt={tr('카단', 'Kadan')}
+                decoding="async"
+                draggable={false}
+                className="h-24 w-24 shrink-0 rounded-xl border-2 border-yellow-300/80 bg-sky-950/75 object-cover object-top sm:h-28 sm:w-28"
+              />
+              <div className="min-w-0 flex-1 text-left">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-md border border-yellow-200 bg-gradient-to-r from-sky-600 to-blue-800 px-2 py-0.5 text-[10.5px] font-black text-yellow-200 shadow">
+                    ❄️⚔ {tr(`카단 눈히어로 필살기 · X${kadanUltCutIn.stackTier}`, `Kadan SNSHero Ultimate · X${kadanUltCutIn.stackTier}`)} · {skillName}
+                  </span>
+                  <span className="text-[10.5px] font-extrabold text-sky-200">{effectTag}</span>
+                </div>
+                <p
+                  data-testid="kadan-cutin-dialogue-text"
+                  className="mt-1.5 text-xs font-extrabold leading-snug text-white sm:text-sm"
+                >
+                  “{kadanSpeech}”
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Bottom-Center Shrinking BGM Pulse Ring Tap (`카단의 기세`, Centered Between Silia & Kadan!) */}
       {autoPlay && matchState.phase === 'PLAYING' && storyPhase === 'CLOSED' && !vsIntroActive && (
         <CenterRhythmRingHud
           rhythmEnabled={rhythmEnabled}
@@ -7659,7 +7810,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           isBossParryReady={isBossParryReady}
           mode={mode}
           rhythmFeverPct={rhythmFeverPct}
-          rhythmPerfectCombo={rhythmPerfectCombo}
+          kadanMomentumCount={kadanMomentumCount}
           rhythmFlash={rhythmFlash}
           clutchBreakEnabled={clutchBreakEnabled}
           onToggleClutchBreak={() => setClutchBreakEnabled((v) => !v)}
@@ -7765,6 +7916,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           if (siliaEl) {
             recordEntityStagePosition('SILIA_WIDGET', elementCenterInStage(siliaEl));
           }
+          triggerDamageImpact(16, { isFinisher: true, customDurationMs: 480 });
           const next = createEngine(latestMatchRef.current).useSiliaSkill(skillKind);
           setMatchState(next);
         }}

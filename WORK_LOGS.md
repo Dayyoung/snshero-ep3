@@ -2,6 +2,21 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 10:17 KST] [프로모션 치장품 깨진 이미지 복구 · 전투 BGM/정박 주기 완화 · `카단의 기세` X스택 & 카단·실리아 즉발 대사·화면진동 필살기 구현]
+- **요청 및 개선 내역**:
+  1. **프로모션 치장품 스크린샷 깨짐 복구 (`public/hs-assets/screenshots/ingame_prestige_shop_{ko,en}.webp`, `src/promo/PromoApp.tsx`)**:
+     - 누락되어 404가 발생하던 `/hs-assets/screenshots/ingame_prestige_shop_ko.webp` 및 `en.webp` 정적 파일을 생성·배치하고, 프로모션 황금 명예 컬렉션 4종 카드 모두 전용 인게임 적용 프리뷰(`/hs-assets/prestige/preview_{badge,frame,cardback,title}_{ko,en}.webp`)로 연결해 한·영 전 페이지 깨진 이미지 `0건` 검증 완료.
+  2. **카드 전투 배경음악 템포 완화 & 여유로운 2박 강박 링 주기 (`src/hearthstone/audio.ts`)**:
+     - 전투 BGM(`duel_1` 128 BPM · `duel_2` 132 BPM)에 피치 보존(`preservesPitch = true`) 기반 템포 완화(`playbackRate = 0.78 / 0.75`, 약 `99 BPM`)를 적용해 여유롭고 웅장한 템포로 조정.
+     - 수축 링 주기를 빠른 1박(`0.46초`)에서 **2박 강박(`약 1.20초`)** 으로 넓히고 초록색 탭 가능 구간을 **`520ms`** 로 대폭 확장해 누구나 사운드에 맞춰 편안하게 탭할 수 있도록 개선.
+  3. **`정박 탭` → `카단의 기세` 명칭 변경 & 10배수 `X스택` 옆면 표시 + 배수 비례 카단 눈히어로 필살기 (`src/hearthstone/screens/BattleScreen.tsx`, `src/hearthstone/engine/GameEngine.ts`, `src/hearthstone/vfx/BoardVfxCanvas.tsx`, `src/hearthstone/types.ts`)**:
+     - 하단 중앙 링 라벨을 **`카단의 기세`**(`Kadan Spirit`)로 변경하고, 링 바로 옆에 충전도(`0/10`~`9/10`)와 10배수 돌파 시마다 누적되는 **`X1`, `X2`, `X3`... 스택 배지**(`kadan-x-stack-badge`)를 표시.
+     - 10배수(10·20·30회...) 달성 즉시 카단 상반신 컷인과 전체 대사를 **음성/타이핑 없이 즉시 표시**하고, 강력한 **화면 흔들림(`520ms`)** 과 함께 배수(`X1`: 적 전체·영웅 `-2` & 방어 `+3` & 아군 `+1/+1`, `X2`: `-4` & 방어 `+6` & 아군 `+2/+2·보호막`, `X3+`: `-2×N` 창성 눈보라 심판)에 비례하는 **카단 눈히어로 필살기**(`useKadanMomentumUltimate`)가 전장에 즉시 작렬하도록 구현.
+  4. **실리아 필살기 대사 즉발 표시 & 화면 진동 동시 작렬 (`src/hearthstone/components/SiliaUltimateWidget.tsx`, `src/hearthstone/vfx/BoardVfxCanvas.tsx`, `src/hearthstone/screens/BattleScreen.tsx`)**:
+     - 기존 글자 단위 타이핑/보이스 읽기(`useAnimaleseTypewriter`) 대기를 제거하고, 스킬 선택 즉시 전체 대사를 화면에 바로 띄우면서 전장 화면이 강하게 떨리고 바람 필살기가 즉시 폭발하도록 개선.
+- **빌드 & E2E 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, Playwright 한·영(`ko`/`en`) 모바일(`360×844`, `390×844`) 및 이미지 무결성 검증 전원 통과.
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(`git push` 미실행 · 수동 푸시 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-18 09:18 KST] [전장 하단 중앙 BGM 맥박 동기화 초록/빨강 정박 링탭 · 로비 의뢰/보급소 뱃지 정리 · 프로모션 전 섹션 상시 노출 간결화]
 - **요청 및 개선 내역**:
   1. **전장 수축 정박 링탭 하단 중앙 배치 & BGM 실시간 맥박·초록/빨강 타이밍 표시 (`src/hearthstone/audio.ts`, `src/hearthstone/screens/BattleScreen.tsx`, `src/hearthstone/components/SiliaUltimateWidget.tsx`)**:

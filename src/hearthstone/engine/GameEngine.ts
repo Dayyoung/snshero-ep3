@@ -2593,6 +2593,82 @@ export function createEngine(rawState: BattleMatchState) {
     return state;
   };
 
+  /**
+   * Kadan's Spirit 10x Stack SNSHero Ultimate (`카단 눈히어로 필살기`):
+   * Scales directly with X-stack tier (X1 at 10 hits, X2 at 20 hits, X3 at 30 hits...).
+   */
+  const useKadanMomentumUltimate = (stackTier: number): BattleMatchState => {
+    if (state.phase !== 'PLAYING') return state;
+    const tier = Math.max(1, Math.min(8, Math.floor(stackTier || 1)));
+    const aoeDmg = 2 * tier;
+    const armorGain = 3 * tier;
+    const buffStat = tier;
+
+    const skillTitleKo =
+      tier === 1
+        ? '눈꽃 방패 성역파'
+        : tier === 2
+          ? '서리성광 십자참'
+          : '창성 눈보라 심판';
+    const skillTitleEn =
+      tier === 1
+        ? 'Snowflake Shield Burst'
+        : tier === 2
+          ? 'Frostlight Cross Slash'
+          : 'Genesis Blizzard';
+
+    pushVfx(
+      'KADAN_SNS_ULTIMATE',
+      'OPPONENT_HERO',
+      'KADAN_WIDGET',
+      tier,
+      ko
+        ? `❄️⚔ 카단 필살기 [X${tier} ${skillTitleKo}] · 적 전체 -${aoeDmg} & 방어 +${armorGain}!`
+        : `❄️⚔ Kadan Ultimate [X${tier} ${skillTitleEn}] · Enemies -${aoeDmg} & +${armorGain} Armor!`,
+    );
+
+    addArmor('PLAYER', armorGain);
+
+    for (const fm of state.player.board) {
+      fm.permAttack += buffStat;
+      fm.maxHealth += buffStat;
+      fm.health += buffStat;
+      if (tier >= 2) {
+        fm.divineShield = true;
+      }
+      pushVfx(
+        'KADAN_SNS_ULTIMATE',
+        fm.uid,
+        'KADAN_WIDGET',
+        tier,
+        ko ? `⚔ +${buffStat}/+${buffStat}` : `⚔ +${buffStat}/+${buffStat}`,
+      );
+    }
+    if (state.player.board.length > 0) {
+      recalculateAuras();
+    }
+
+    const enemySnapshot = [...state.opponent.board];
+    for (const em of enemySnapshot) {
+      pushVfx('KADAN_SNS_ULTIMATE', em.uid, 'KADAN_WIDGET', tier);
+      dealDamage(em.uid, aoeDmg, 'PLAYER', undefined, 'KADAN_WIDGET');
+    }
+    dealDamage('OPPONENT_HERO', aoeDmg, 'PLAYER', undefined, 'KADAN_WIDGET');
+
+    pushHistory({
+      actorSide: 'PLAYER',
+      cardId: 'HERO_09bp',
+      title: ko ? `카단 필살기 X${tier}` : `Kadan Ultimate X${tier}`,
+      detail: ko
+        ? `[${skillTitleKo} X${tier}] 적 전체·영웅 -${aoeDmg} 피해, 아군 방어도 +${armorGain} 및 하수인 +${buffStat}/+${buffStat}${tier >= 2 ? '·보호막' : ''}`
+        : `[${skillTitleEn} X${tier}] Dealt ${aoeDmg} to all enemies & Hero, +${armorGain} Armor, allies +${buffStat}/+${buffStat}${tier >= 2 ? ' + Shield' : ''}`,
+      kind: 'HERO_POWER',
+    });
+
+    resolveDeaths();
+    return state;
+  };
+
   const concede = (side: PlayerSide): BattleMatchState => {
     state.phase = 'GAME_OVER';
     state.winner = getEnemySide(side);
@@ -2628,6 +2704,7 @@ export function createEngine(rawState: BattleMatchState) {
     resolveTrackingChoice,
     useHeroPower,
     useSiliaSkill,
+    useKadanMomentumUltimate,
     performAttack,
     endTurn,
     concede,
