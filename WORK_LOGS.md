@@ -2,6 +2,12 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 16:17 KST] [Google Ads 웹 콘솔 일괄 업로드 전용 엑셀 5종(`docs/ads/web_upload/`) 생성 (푸시 대기)]
+- **요청**: Google Ads 웹 콘솔(`도구 → 일괄 작업 → 업로드`) 방식에 맞춘 전용 엑셀 분할 제작
+- **산출물 (`docs/ads/web_upload/`)**:
+  - `01_web_campaigns.xlsx`, `02_web_ad_groups.xlsx`, `03_web_keywords.xlsx`, `04_web_negative_keywords.xlsx`, `05_web_responsive_search_ads.xlsx` (각 파일 `Action: Add`, 웹 업로드 표준 헤더 반영, OOXML XML 파싱 무결성 검증 통과)
+- **상태**: 로컬 커밋 완료 (원격 푸시 보류) · 구글 폼 보고 완료
+
 ## [2026-11-18 16:15 KST] [Google Ads 캠페인 대량 업로드용 Excel(`.xlsx`) 및 Editor `.csv` 생성 (푸시 대기)]
 - **요청**: `SNSHero_Search_TCG_KR` · `SNSHero_Search_TCG_EN` 캠페인 구조를 한 번에 업로드할 수 있는 엑셀/CSV 파일 제작
 - **산출물**:
