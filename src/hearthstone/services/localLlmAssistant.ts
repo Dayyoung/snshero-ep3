@@ -127,6 +127,7 @@ function buildSystemPrompt(opts: {
       '규칙 요약: 총 382장 카드(9종족 × 25장 + 중립 157장), 40화 풀보이스 스토리모드, 1배수 공정 랭킹전, 9종족 AI대전.',
       '핵심 성장: 스토리모드 전용 [3장=3배 각성] 법칙 (동일 카드 3장 보유 시 공격력/생명력 3배, N환생 시 추가 비례 상승). 팩 천장: 10팩마다 24K 전설 100% 확정.',
       '동료 스킬: 좌측 하단 요정 실리아 3등신 필살기(바람 결계 보호막/스탯 버프, 녹풍 참격 광역 피해, 생명의 미풍 회복/방어도 — 환생할수록 강화).',
+      '자동플레이 [카단의 기세]: 자동플레이 ON 시 실리아와 카단 사이 하단 중앙에 BGM 맥박과 동기화된 [카단의 기세] 수축 링이 표시됨. 빨간색(대기)일 때는 기다리고 초록색(TAP!)일 때 터치(또는 Space 키)하면 2박마다 X1, X2… 누적 스택이 쌓임. 10배수(X10, X20, X30…) 달성 즉시 카단의 눈보라 광역 필살기가 발동하고 직후 실리아의 무작위 바람풍 필살기가 연속 발동함 (경쟁 모드는 피버 골드 충전).',
       '유저의 질문에 친절하고 간결하게 2~4문장 이내의 한국어로 답하세요.',
       `현재 상태: 화면=${screen}, 골드=${profile.gold}G, 가루=${profile.arcaneDust}, 보유팩=${profile.packs}, 여정=${profile.journeyEpisode}화(환생 ${profile.journeyReincarnation}회), 카단전술=${tacticalStance}. ${battleSummary}`,
     ].join('\n');
@@ -135,7 +136,7 @@ function buildSystemPrompt(opts: {
   return [
     'You are Paladin Kadan, the helpful on-device AI guide inside the web card battle game SNSHero.',
     'Game facts: 382 collectible cards (9 factions x 25 + 157 neutral), 40-episode full-voice Story Mode, fair 1x Ranked Mode, 9-Faction AI Practice.',
-    'Core systems: Story Mode [3 Copies = 3x Power] awakening rule (NG+ Reincarnation scales stats further), Guaranteed Legendary within 10 card packs, bottom-left Chibi Silia Ultimate Skills (Wind Barrier, Gale Slash, Vital Breeze scaling with Reincarnation).',
+    'Core systems: Story Mode [3 Copies = 3x Power] awakening rule (NG+ Reincarnation scales stats further), Guaranteed Legendary within 10 card packs, bottom-left Chibi Silia Ultimate Skills (Wind Barrier, Gale Slash, Vital Breeze scaling with Reincarnation), and Auto-Play [Kadan\'s Spirit] beat ring at bottom-center (wait on RED, tap on GREEN or Spacebar to stack X1, X2…; every 10 stacks X10/X20 triggers Kadan\'s Blizzard Ultimate followed immediately by Silia\'s random Windstorm Ultimate).',
     'Answer concisely in 2-4 friendly English sentences.',
     `Live context: Screen=${screen}, Gold=${profile.gold}G, Dust=${profile.arcaneDust}, Packs=${profile.packs}, Story=EP.${profile.journeyEpisode}(NG+${profile.journeyReincarnation}), Stance=${tacticalStance}. ${battleSummary}`,
   ].join('\n');
@@ -152,6 +153,12 @@ function answerWithBuiltInSnsHeroKnowledge(
 ): string {
   const { isKo, profile, battleSnapshot } = opts;
   const q = question.toLowerCase();
+
+  if (/기세|정박|링|스택|x10|x20|초록|빨강|눈보라|리듬|박자|spirit|rhythm|ring|stack|blizzard|green/i.test(q)) {
+    return isKo
+      ? `자동플레이를 켜면 실리아와 저 사이 하단 중앙에 [카단의 기세] 수축 링이 열립니다! 🔴 빨간색(대기)일 때는 참았다가 🟢 초록색(TAP!)일 때 터치(또는 Space 키)하면 X1, X2… 스택이 쌓이고, 10배수(X10·X20·X30…)마다 제 눈보라 광역 필살기와 실리아의 무작위 바람풍 필살기가 연속으로 작렬합니다! ([2B/4B] 버튼으로 박자 주기도 조절 가능해요.)`
+      : `During Auto-Play, the [Kadan's Spirit] beat ring appears at bottom-center between Silia and me! Hold on RED (WAIT) and tap on GREEN (TAP! or Spacebar) to build X1, X2… stacks—every 10 stacks (X10·X20·X30…) fires my Blizzard Ultimate followed right away by Silia's random Windstorm Ultimate!`;
+  }
 
   if (/실리아|필살기|바람|녹풍|결계|미풍|silia|ult|barrier|gale|breeze/i.test(q)) {
     return isKo

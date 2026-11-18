@@ -775,10 +775,10 @@ export const PromoApp: React.FC = () => {
                 },
                 {
                   icon: <Swords className="h-6 w-6 text-emerald-300" />,
-                  title: tr('카단의 기세 & 필살기', "Kadan's Spirit & Ultimate"),
+                  title: tr('카단의 기세 & 합동 필살기', "Kadan's Spirit & Dual Ultimate"),
                   desc: tr(
-                    '배경음악 맥박(초록 링)을 탭해 10배수 X스택을 쌓으면 카단의 눈히어로 필살기가 작렬합니다.',
-                    'Tap the green beat ring to stack 10x Spirit and unleash Kadan’s SNSHero Ultimate.',
+                    '자동플레이 중 하단 중앙 초록 링(TAP!)을 눌러 X10·X20 스택을 쌓으면 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다.',
+                    'During Auto-Play, tap the bottom-center green beat ring (TAP!) to stack X10·X20 and unleash Kadan Blizzard + Silia Windstorm!',
                   ),
                 },
                 {

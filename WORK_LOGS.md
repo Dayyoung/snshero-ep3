@@ -2,6 +2,18 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 11:22 KST] [게임 방법(`How to Play`) · 전투 규칙 · 카단 도우미 내 자동플레이 『카단의 기세』 활용법 및 한·영 최신 스크린샷 반영]
+- **요청 및 개선 내역**:
+  1. **게임 방법 6단계 가이드 STEP 4 『카단의 기세』 전용 가이드 및 3단계 시각 카드 추가 (`src/hearthstone/components/OnboardingGuideModal.tsx`, `src/promo/PromoApp.tsx`)**:
+     - 상단 4번 탭 명칭을 **`4. 카단의 기세` (`4. Kadan Spirit`)** 으로 명확히 표시하고, 자동플레이 시 하단 중앙 수축 링 활용법(**① 🔴 빨강(대기) · 🟢 초록(TAP!) 탭 타이밍** → **② `X1` → `X10` → `X20` 누적 스택** → **③ 10배수 달성 즉시 카단 눈보라 + 실리아 무작위 바람풍 연속 합동 필살기**)을 3단계 요약 카드(`howto-kadan-spirit-breakdown`)와 본문·팁에 한·영 모두 상세히 수록.
+     - 하단 핵심 키워드 아코디언(`QuickRulesModal`)에도 **`🟢 카단의 기세 (X10 합동 필살기)`** 항목을 추가해 로비 `[게임 방법]`, 전장 `[? 규칙]`, 프로모션 `#how-to-play` 전 화면에서 즉시 확인 가능하도록 구성.
+  2. **한국어·영문 전용 최신 인게임 가이드 스크린샷 재캡처 반영 (`public/hs-assets/guide/guide_04_combat_ult.webp`, `public/hs-assets/guide/guide_en_04_combat_ult.webp`)**:
+     - 기존 구버전 스크린샷을 대체하여 하단 중앙 `카단의 기세` 링·`X10` 스택 배지·눈보라 및 바람풍 연속 필살기가 실제 작동 중인 한국어/영문 화면(`960×570` WebP)으로 각각 최신화.
+  3. **카단 전장/로비 챗봇 및 온디바이스 AI 문답 지식 추가 (`src/hearthstone/components/KadanChatbotWidget.tsx`, `src/hearthstone/services/localLlmAssistant.ts`)**:
+     - 전장 카단 메뉴에 **`🟢 자동플레이 [카단의 기세] 활용법 알려줘`** 원탭 도움말 버튼을 추가하고, 로컬 AI 질의응답에 `카단의 기세`·`초록 링`·`X10 스택` 규칙을 등록.
+- **빌드 & E2E 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, Playwright 한·영(`ko` `360×844`, `en` `390×844` / `1280×800`) `[게임 방법]` 모달·프로모션 `#how-to-play`·언어별 스크린샷 분기 검증 통과.
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(`git push` 미실행 · 수동 푸시 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-18 11:14 KST] [필살기 내 축포형 리본·폭죽 별 파티클 전량 제거 및 카단 『눈보라』·실리아 『바람풍』 본격 원소 폭풍 VFX 전면 재구현]
 - **요청 및 개선 내역**:
   1. **축포처럼 보이던 구석 발사 리본(`SWEEP`/`STREAM`) 및 별·파편 폭죽(`STAR` 폭발) 100% 제거 (`src/hearthstone/vfx/BoardVfxCanvas.tsx`)**:

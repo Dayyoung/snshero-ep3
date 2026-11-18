@@ -423,6 +423,18 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
       return [
         autoPlayOption,
         {
+          id: 'battle_kadan_spirit_guide',
+          icon: '🟢',
+          label: tr('자동플레이 [카단의 기세] 활용법 알려줘', "How do I use [Kadan's Spirit] in Auto-Play?"),
+          highlight: 'tip',
+          onSelect: () => {
+            speak(
+              '자동플레이를 켜면 실리아와 저 사이 하단 중앙에 [카단의 기세] 링이 나타나요! 빨간색(대기)일 때는 기다렸다가 초록색(TAP!)일 때 누르면(또는 Space 키) X1, X2… 기세 스택이 쌓이고, 10배수(X10·X20…)마다 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속으로 작렬합니다!',
+              "Turn on Auto-Play to open the [Kadan's Spirit] ring between Silia and me! Wait on RED, tap on GREEN (or Spacebar) to stack X1, X2… Every 10 stacks (X10·X20…) unleashes my Blizzard Ultimate + Silia's Windstorm Ultimate back-to-back!",
+            );
+          },
+        },
+        {
           id: 'battle_recommend_play',
           icon: '🃏',
           label: tr('지금 낼 수 있는 추천 카드 알려줘', 'Which card should I play right now?'),
@@ -748,12 +760,12 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
       {
         id: 'hub_card_basics',
         icon: '💡',
-        label: tr('초보자 필수 카드 도움말 듣기', 'Beginner Card Battle Tips'),
+        label: tr('초보자 필수 카드 & [카단의 기세] 도움말', "Beginner Battle & [Kadan's Spirit] Tips"),
         highlight: 'tip',
         onSelect: () =>
           speak(
-            '눈히어로의 382장 카드는 [하수인·주문·무기]로 나뉘어요! 매 턴 늘어나는 파란 마나 수정 범위 안에서 카드를 내어 적 영웅의 생명력을 0으로 만들면 승리합니다!',
-            'All 382 cards are Minions, Spells, or Weapons! Spend Mana crystals each turn to reduce the enemy Hero to 0 Health!',
+            '매 턴 마나로 [하수인·주문·무기]를 내어 적 영웅 체력을 0으로 만들면 승리해요! 자동플레이 중에는 하단 중앙 [카단의 기세] 링이 초록색(TAP!)일 때 눌러 X10·X20 스택을 채우면 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 발동합니다!',
+            "Spend Mana on Minions, Spells & Weapons to drop the enemy Hero to 0 HP! During Auto-Play, tap the bottom-center [Kadan's Spirit] ring on GREEN (TAP!)—every 10 stacks (X10·X20) triggers my Blizzard + Silia's Windstorm Ultimates!",
           ),
       },
       {

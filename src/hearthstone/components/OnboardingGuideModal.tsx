@@ -91,18 +91,20 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
   },
   {
     step: 4,
-    shortLabelKo: '전술·리듬오토',
-    shortLabelEn: 'Tactic & Rhythm',
-    badgeKo: 'STEP 4 · 카단 전술 & BGM 리듬 오토(1.5x·2.0x)',
-    badgeEn: 'STEP 4 · KADAN COMMAND ORB & BGM RHYTHM AUTO',
-    titleKo: '카단 리듬 지휘 오브(1.5x·2.0x) & 실리아 필살기',
-    titleEn: 'Kadan Rhythm Command Orb (1.5x·2.0x) & Silia Ultimates',
+    shortLabelKo: '카단의 기세',
+    shortLabelEn: 'Kadan Spirit',
+    badgeKo: 'STEP 4 · 자동플레이 & 카단의 기세 (X10 연속 필살기)',
+    badgeEn: "STEP 4 · AUTO-PLAY & KADAN'S SPIRIT (X10 CHAIN ULTIMATE)",
+    titleKo: '자동플레이 중 [카단의 기세] 초록 링 탭 → X10 눈보라·바람풍 연속 필살기!',
+    titleEn: "Auto-Play [Kadan's Spirit]: Tap on GREEN → X10 Blizzard & Windstorm Chain!",
     descKo:
-      '자동플레이 시 우상단 [카단 리듬 지휘 오브]에서 공격·방어·각성 전술을 바꾸고, BGM 박자에 수축하는 황금 오카리나 링을 탭(또는 Space)하면 화음과 함께 1.5x·2.0x 공명(경쟁모드는 골드 피버)이 발동합니다!',
+      '자동플레이를 켜면 실리아와 카단 사이 하단 중앙에 BGM 맥박에 맞춰 수축하는 [카단의 기세] 링이 열립니다. 빨간색(대기)일 때는 기다렸다가 초록색(TAP!) 타이밍에 터치(또는 Space 키)하면 X1, X2… 기세 스택이 쌓이며, 10배수(X10·X20·X30…)마다 카단의 눈보라 광역 필살기와 실리아의 무작위 바람풍 필살기가 연속으로 작렬합니다!',
     descEn:
-      'During Auto-Play, switch Attack/Defense/3x stances on the Kadan Command Orb and tap the shrinking Golden Ocarina Beat Ring (or Space) for 1.5x·2.0x harmonic resonance (or Gold Fever in Ranked/Bogart)!',
-    tipKo: '편의 기능: 사운드 OFF 시에도 시각 메트로놈 파동으로 박자를 맞출 수 있으며, 10배수(X10·X20…)마다 카단 눈보라 & 실리아 바람풍 연속 필살기가 발동합니다.',
-    tipEn: 'Smart Assist: Works silently via Visual Metronome pulses when muted, firing Kadan Blizzard & Silia Windstorm chain ultimates every 10 stacks (X10·X20…).',
+      "When Auto-Play is ON, the [Kadan's Spirit] beat ring appears at bottom-center between Silia and Kadan. Hold on RED (WAIT) and tap on GREEN (TAP! or Spacebar) to build X1, X2… stacks—every 10 stacks (X10·X20·X30…) unleashes Kadan's Blizzard Ultimate followed immediately by Silia's random Windstorm Ultimate!",
+    tipKo:
+      '박자·전술 팁: 링 아래 [2B/4B] 버튼으로 2박(기본)·4박 주기를 전환할 수 있고, 우하단 [맹공·수비·각성]으로 카단의 자동 전술을 실시간 변경하며, 랭킹·도박장에서는 공정하게 피버 골드만 충전됩니다.',
+    tipEn:
+      'Beat & Stance Tip: Switch [2B/4B] cadence below the ring, change [Aggro · Ctrl · Awkn] AI stances at bottom-right, and earn fair bonus Fever Gold in Ranked/Bogart.',
     imageUrlKo: '/hs-assets/guide/guide_04_combat_ult.webp',
     imageUrlEn: '/hs-assets/guide/guide_en_04_combat_ult.webp',
   },
@@ -270,6 +272,48 @@ export const HowToPlayCarousel: React.FC<{
           <p className="mt-1.5 text-xs font-semibold leading-relaxed text-amber-100/90 sm:text-sm">
             {isKo ? slide.descKo : slide.descEn}
           </p>
+
+          {slide.step === 4 && (
+            <div
+              data-testid="howto-kadan-spirit-breakdown"
+              className="mt-2.5 grid grid-cols-1 gap-1.5 sm:grid-cols-3"
+            >
+              <div className="rounded-xl border border-emerald-400/45 bg-black/50 px-2.5 py-2">
+                <div className="text-[11px] font-black text-emerald-300">
+                  {tr('① 🟢 초록(TAP!) · 🔴 빨강(대기)', '① 🟢 GREEN (TAP!) · 🔴 RED (WAIT)')}
+                </div>
+                <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
+                  {tr(
+                    '링이 초록색일 때 터치(또는 Space)! 빨간색에 누르면 엇박(MISS)으로 스택이 오르지 않습니다.',
+                    'Tap (or press Space) when the ring turns GREEN! Tapping on RED counts as a MISS.',
+                  )}
+                </div>
+              </div>
+              <div className="rounded-xl border border-sky-400/45 bg-black/50 px-2.5 py-2">
+                <div className="text-[11px] font-black text-sky-300">
+                  {tr('② 📈 X1 → X10 → X20 기세 누적', '② 📈 Stack X1 → X10 → X20 Spirit')}
+                </div>
+                <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
+                  {tr(
+                    '2박마다 1스택씩 옆 배지(X1, X2…)에 누적되며, 스토리 매 턴 방어도·공격력 공명 보너스도 부여됩니다.',
+                    'Every 2-beat hit stacks X1, X2… on the side badge and grants turn Armor/Buff resonance in Story.',
+                  )}
+                </div>
+              </div>
+              <div className="rounded-xl border border-cyan-300/55 bg-sky-950/45 px-2.5 py-2">
+                <div className="text-[11px] font-black text-cyan-200">
+                  {tr('③ ❄️🌪 10배수 합동 필살기 작렬', '③ ❄️🌪 10x Dual Ultimate Combo')}
+                </div>
+                <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
+                  {tr(
+                    'X10·X20·X30 달성 즉시 배수 비례 [카단 눈보라 필살기] + [실리아 무작위 바람풍 필살기]가 연속 발동합니다!',
+                    'Hitting X10·X20·X30 fires tier-scaled [Kadan Blizzard] + [Silia Random Windstorm] back-to-back!',
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mt-2.5 rounded-xl border border-emerald-400/40 bg-emerald-950/60 px-3 py-2 text-[11px] font-bold text-emerald-100 sm:text-xs">
             💡 {isKo ? slide.tipKo : slide.tipEn}
           </div>
@@ -373,6 +417,13 @@ export const QuickRulesModal: React.FC<QuickRulesModalProps> = ({
         'In Story Mode, owning 3+ copies boosts a minion’s Attack & Health by 3x or more!',
       ),
     },
+    {
+      name: tr('🟢 카단의 기세 (X10 합동 필살기)', "🟢 Kadan's Spirit (X10 Combo Ult)"),
+      desc: tr(
+        '자동플레이 중 하단 중앙 링이 초록색(TAP!)일 때 누르면 X스택이 쌓이고, 10배수(X10·X20…)마다 카단 눈보라 + 실리아 바람풍 연속 필살기가 발동합니다!',
+        'During Auto-Play, tap the bottom-center ring on GREEN (TAP!) to stack X1, X2… Every 10 stacks (X10·X20…) fires Kadan Blizzard + Silia Windstorm!',
+      ),
+    },
   ];
 
   const handleClose = () => {
@@ -429,7 +480,7 @@ export const QuickRulesModal: React.FC<QuickRulesModalProps> = ({
             }}
             className="flex min-h-[44px] w-full items-center justify-between rounded-xl border border-[#c8a158]/50 bg-black/45 px-3.5 py-2 text-xs font-extrabold text-amber-200 transition hover:border-amber-300 sm:text-sm"
           >
-            <span>{tr('📖 자주 나오는 카드 능력(키워드) 6가지 보기', '📖 View 6 Core Card Keywords')}</span>
+            <span>{tr('📖 자주 나오는 카드 능력 & 핵심 시스템 7가지 보기', '📖 View 7 Core Card Keywords & Systems')}</span>
             <span>{showKeywords ? tr('접기 ▲', 'Hide ▲') : tr('펼치기 ▼', 'Show ▼')}</span>
           </button>
 
