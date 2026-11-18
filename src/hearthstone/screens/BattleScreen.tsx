@@ -7168,12 +7168,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                           {(() => {
                             const nextTarget =
                               liveProfile.gold < 300
-                                ? { cost: 300, ko: '프로필 배지(300G)', en: 'Profile Badge (300G)' }
-                                : liveProfile.gold < 500
-                                  ? { cost: 500, ko: '황금 카드 프레임(500G)', en: 'Card Frame (500G)' }
-                                  : liveProfile.gold < 800
-                                    ? { cost: 800, ko: '카드 뒷면 스킨(800G)', en: 'Card Back Skin (800G)' }
-                                    : { cost: 1500, ko: '전설 호칭(1,500G)', en: 'Legend Title (1,500G)' };
+                                ? { cost: 300, ko: '신비한 가루 보석함(300G)', en: 'Arcane Dust Chest (300G)' }
+                                : liveProfile.gold < 450
+                                  ? { cost: 450, ko: '3배 각성 5팩 상자(450G)', en: '5-Pack Awakening Chest (450G)' }
+                                  : liveProfile.gold < 1000
+                                    ? { cost: 1000, ko: '24K 전설 영웅 확정 상자(1,000G)', en: '24K Legendary Chest (1,000G)' }
+                                    : { cost: 2200, ko: '왕실 황금 대금고(2,200G)', en: 'Royal Grand Vault (2,200G)' };
                             const pct = Math.min(100, Math.round((liveProfile.gold / nextTarget.cost) * 100));
                             return (
                               <>

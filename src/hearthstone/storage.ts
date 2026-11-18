@@ -272,6 +272,15 @@ export interface PrestigeCategoryShowcase {
 }
 
 export const PRESTIGE_CATEGORY_SHOWCASES: Record<PrestigeCategory, PrestigeCategoryShowcase> = {
+  CHEST: {
+    category: 'CHEST',
+    titleKo: '황금 보물 상자 즉시 교환',
+    titleEn: 'Gold Treasure Chests',
+    whereKo: '골드로 24K 전설 영웅 확정 상자 · 각성 팩 · 영웅 가루를 즉시 수령합니다.',
+    whereEn: 'Spend Gold for guaranteed 24K Legendary Heroes, Awakening Packs & Dust.',
+    screenshotKo: '/hs-assets/prestige/shop_chest_legendary.webp',
+    screenshotEn: '/hs-assets/prestige/shop_chest_legendary.webp',
+  },
   BADGE: {
     category: 'BADGE',
     titleKo: '프로필 뱃지 인게임 적용 화면',
@@ -430,64 +439,64 @@ export const GOLD_PRESTIGE_ITEMS: GoldPrestigeItemDef[] = [
     descEn: 'Supreme 24K golden foil prestige frame',
     accentClass: 'border-yellow-200 bg-gradient-to-r from-yellow-800/80 to-amber-900/80 text-yellow-100',
   },
-  // 3. Card Back Skins (카드 뒷면 스킨)
-  {
-    id: 'back_gold',
-    category: 'CARDBACK',
-    costGold: 0,
-    icon: '🟨',
-    nameKo: '눈히어로 골드 뒷면',
-    nameEn: 'SNSHero Gold Back',
-    descKo: '공식 골드 엠블럼 기본 카드 뒷면',
-    descEn: 'Official Gold Emblem default card back',
-    accentClass: 'border-amber-400/60 bg-stone-900 text-amber-100',
-    cardBackId: 'gold',
-  },
-  {
-    id: 'back_silver',
-    category: 'CARDBACK',
-    costGold: 0,
-    icon: '⬜',
-    nameKo: '눈히어로 실버 뒷면',
-    nameEn: 'SNSHero Silver Back',
-    descKo: '공식 실버 플래티넘 기본 카드 뒷면',
-    descEn: 'Official Silver Platinum default card back',
-    accentClass: 'border-slate-300/60 bg-stone-900 text-slate-100',
-    cardBackId: 'silver',
-  },
+  // 3. Card Back Skins (카드 뒷면 스킨 — 브론즈 기본 외 전종 유료 판매)
   {
     id: 'back_bronze',
     category: 'CARDBACK',
     costGold: 0,
     icon: '🟫',
-    nameKo: '눈히어로 브론즈 뒷면',
-    nameEn: 'SNSHero Bronze Back',
-    descKo: '공식 브론즈 클래식 기본 카드 뒷면',
-    descEn: 'Official Bronze Classic default card back',
+    nameKo: '클래식 브론즈 뒷면',
+    nameEn: 'Classic Bronze Back',
+    descKo: '모험가 기본 지급 클래식 카드 뒷면',
+    descEn: 'Default starter bronze card back',
     accentClass: 'border-orange-400/60 bg-stone-900 text-orange-100',
     cardBackId: 'bronze',
   },
   {
+    id: 'back_silver',
+    category: 'CARDBACK',
+    costGold: 500,
+    icon: '⬜',
+    nameKo: '프로스트 실버 뒷면',
+    nameEn: 'Frost Silver Back',
+    descKo: '백은 서리 엠블럼이 빛나는 정예 카드 스킨',
+    descEn: 'Platinum frost emblem premium card skin',
+    accentClass: 'border-slate-300/80 bg-slate-900/90 text-slate-100',
+    cardBackId: 'silver',
+  },
+  {
+    id: 'back_gold',
+    category: 'CARDBACK',
+    costGold: 1000,
+    icon: '🟨',
+    nameKo: '24K 로얄 골드 뒷면',
+    nameEn: '24K Royal Gold Back',
+    descKo: '순금 황실 엠블럼 챔피언 전용 카드 스킨',
+    descEn: '24K Sovereign Gold emblem champion card skin',
+    accentClass: 'border-yellow-300/85 bg-amber-950/80 text-yellow-100',
+    cardBackId: 'gold',
+  },
+  {
     id: 'back_ocarina_crest',
     category: 'CARDBACK',
-    costGold: 800,
+    costGold: 1500,
     icon: '🛡️',
-    nameKo: '엘윈 성소의 문장 뒷면',
-    nameEn: 'Elwin Sanctuary Back',
-    descKo: '성검·방패·성소 문장이 각인된 사파이어 카드 스킨',
-    descEn: 'Sapphire card skin emblazoned with the Elwin Sanctuary Crest',
+    nameKo: '엘윈 눈꽃 성소 뒷면',
+    nameEn: 'Elwin Frost Sanctuary Back',
+    descKo: '빙하 쌍검과 눈꽃 성기사 방패 사파이어 카드 스킨',
+    descEn: 'Twin frostblades & snowflake shield sapphire card skin',
     accentClass: 'border-sky-300/85 bg-blue-950/80 text-sky-100',
     cardBackId: 'ocarina_crest',
   },
   {
     id: 'back_bogart_vip',
     category: 'CARDBACK',
-    costGold: 1800,
-    icon: '🎲',
-    nameKo: '보가트 VIP 하이롤러 뒷면',
-    nameEn: 'Bogart VIP High-Roller Back',
-    descKo: '보가트 도박장 VIP 전용 루비·골드 카드 스킨',
-    descEn: 'Ruby & 24K Gold VIP card skin from Bogart’s Hall',
+    costGold: 2400,
+    icon: '🐉',
+    nameKo: '황금 용옥새 VIP 뒷면',
+    nameEn: 'Royal Dragon VIP Back',
+    descKo: '24K 황금 용문양 · 심홍 루비 최상위 하이롤러 스킨',
+    descEn: '24K Golden Dragon Seal & crimson ruby VIP card skin',
     accentClass: 'border-yellow-300/90 bg-red-950/80 text-yellow-100',
     cardBackId: 'bogart_vip',
   },
@@ -568,6 +577,169 @@ export const GOLD_PRESTIGE_ITEMS: GoldPrestigeItemDef[] = [
     descKo: '원작 40부작 완독 달성 또는 골드로 해금하는 성소 전승 호칭',
     descEn: 'Unlocked by completing all 40 Novel/Webtoon episodes or via Gold',
     accentClass: 'border-indigo-300/85 bg-indigo-950/80 text-indigo-100',
+  },
+];
+
+export interface GoldExchangeChestDef {
+  id: 'chest_dust' | 'chest_awakening' | 'chest_legendary' | 'chest_royal_vault';
+  costGold: number;
+  badgeKo: string;
+  badgeEn: string;
+  nameKo: string;
+  nameEn: string;
+  rewardKo: string;
+  rewardEn: string;
+  descKo: string;
+  descEn: string;
+  imageUrl: string;
+  accentClass: string;
+  packsGranted: number;
+  dustGranted: number;
+  legendaryCardsGranted: number;
+}
+
+export const GOLD_EXCHANGE_CHESTS: GoldExchangeChestDef[] = [
+  {
+    id: 'chest_dust',
+    costGold: 300,
+    badgeKo: '원하는 카드 제작',
+    badgeEn: 'Craft Any Card',
+    nameKo: '신비한 마력 가루 보석함',
+    nameEn: 'Arcane Dust Gem Casket',
+    rewardKo: '💎 영웅 가루 +250 즉시 획득',
+    rewardEn: '💎 +250 Arcane Dust Instantly',
+    descKo: '[내 카드첩]에서 원하는 핵심 카드를 직접 제작할 수 있는 고순도 마력 가루 상자입니다.',
+    descEn: 'High-purity Arcane Dust chest to craft missing key cards directly in Collection.',
+    imageUrl: '/hs-assets/prestige/shop_chest_dust.webp',
+    accentClass: 'border-sky-400/75 bg-[#09152b]/95',
+    packsGranted: 0,
+    dustGranted: 250,
+    legendaryCardsGranted: 0,
+  },
+  {
+    id: 'chest_awakening',
+    costGold: 450,
+    badgeKo: '🔥 10% 할인 + 가루 보너스',
+    badgeEn: '🔥 10% OFF + Bonus Dust',
+    nameKo: '3배 각성 5팩 특급 보급함',
+    nameEn: '3x Awakening 5-Pack Chest',
+    rewardKo: '🎁 카드팩 5개 + 💎 가루 +100',
+    rewardEn: '🎁 5 Card Packs + 💎 +100 Dust',
+    descKo: '총 25장 소환과 보너스 가루를 한 번에 받아 스토리 3장=3배 각성을 빠르게 완성합니다.',
+    descEn: 'Open 25 cards plus bonus Dust at once to accelerate your 3x Story Awakening.',
+    imageUrl: '/hs-assets/prestige/shop_chest_awakening.webp',
+    accentClass: 'border-emerald-400/80 bg-[#071f19]/95',
+    packsGranted: 5,
+    dustGranted: 100,
+    legendaryCardsGranted: 0,
+  },
+  {
+    id: 'chest_legendary',
+    costGold: 1000,
+    badgeKo: '👑 미보유 24K 전설 100%',
+    badgeEn: '👑 100% Unowned Legendary',
+    nameKo: '24K 전설 영웅 확정 보물상자',
+    nameEn: '24K Guaranteed Legendary Chest',
+    rewardKo: '🐉 미보유 전설 1장 확정 + 💎 가루 +100',
+    rewardEn: '🐉 1 Unowned Legendary + 💎 +100 Dust',
+    descKo: '내 카드첩에 아직 없는 24K 전설 영웅 1장을 중복 없이 100% 확정 소환하여 즉시 영구 지급합니다!',
+    descEn: 'Summons 1 guaranteed unowned 24K Legendary Hero directly into your Collection!',
+    imageUrl: '/hs-assets/prestige/shop_chest_legendary.webp',
+    accentClass: 'border-amber-300/90 bg-gradient-to-b from-[#2b1506]/95 to-[#140a04]/95',
+    packsGranted: 0,
+    dustGranted: 100,
+    legendaryCardsGranted: 1,
+  },
+  {
+    id: 'chest_royal_vault',
+    costGold: 2200,
+    badgeKo: '✨ 최고급 왕실 올인원',
+    badgeEn: '✨ Supreme Royal Bundle',
+    nameKo: '엘윈 왕실 황금 대금고',
+    nameEn: 'Elwin Royal Grand Vault',
+    rewardKo: '🐉 미보유 전설 2장 + 🎁 10팩 + 💎 400가루',
+    rewardEn: '🐉 2 Legendaries + 🎁 10 Packs + 💎 400 Dust',
+    descKo: '미보유 전설 영웅 2장 즉시 확정 지급에 카드팩 10개(50장)·400가루까지 담긴 왕실 대금고입니다!',
+    descEn: '2 guaranteed unowned Legendaries, 10 Booster Packs (50 cards), and +400 Dust in one vault!',
+    imageUrl: '/hs-assets/prestige/shop_chest_royal_vault.webp',
+    accentClass: 'border-yellow-200 bg-gradient-to-b from-[#34111d]/95 to-[#17090f]/95',
+    packsGranted: 10,
+    dustGranted: 400,
+    legendaryCardsGranted: 2,
+  },
+];
+
+export interface GoldRoyalSetDef {
+  id: 'set_classic' | 'set_brass' | 'set_sapphire' | 'set_royal_24k';
+  costGold: number;
+  frameId: string;
+  badgeId: string;
+  titleId: string;
+  badgeIcon: string;
+  nameKo: string;
+  nameEn: string;
+  perksKo: string;
+  perksEn: string;
+  imageUrl: string;
+  accentClass: string;
+}
+
+export const GOLD_ROYAL_SETS: GoldRoyalSetDef[] = [
+  {
+    id: 'set_classic',
+    costGold: 0,
+    frameId: 'frame_classic',
+    badgeId: 'badge_compass',
+    titleId: 'title_adventurer',
+    badgeIcon: '❄️',
+    nameKo: '엘윈 참나무 기본 세트',
+    nameEn: 'Classic Elwin Oak Set',
+    perksKo: '참나무 카드 테두리 · ❄️ 눈나침반 · 〈엘윈의 모험가〉',
+    perksEn: 'Oak Card Frame · ❄️ Snow Compass · <Adventurer of Elwin>',
+    imageUrl: '/hs-assets/prestige/shop_set_classic.webp',
+    accentClass: 'border-stone-500/70 bg-stone-900/90',
+  },
+  {
+    id: 'set_brass',
+    costGold: 600,
+    frameId: 'frame_zelda_brass',
+    badgeId: 'badge_sacred_shield',
+    titleId: 'title_ocarina_hero',
+    badgeIcon: '🛡️',
+    nameKo: '성소 황동 기사단 세트',
+    nameEn: 'Sanctuary Brass Knight Set',
+    perksKo: '이중 황동 테두리 · 🛡️ 성소 방패 뱃지 · 〈엘윈 성소의 수호자〉',
+    perksEn: 'Double-Brass Frame · 🛡️ Shield Badge · <Guardian of Elwin>',
+    imageUrl: '/hs-assets/prestige/shop_set_brass.webp',
+    accentClass: 'border-amber-300/80 bg-[#1d1709]/95',
+  },
+  {
+    id: 'set_sapphire',
+    costGold: 1200,
+    frameId: 'frame_sapphire_rune',
+    badgeId: 'badge_ocarina',
+    titleId: 'title_awakener',
+    badgeIcon: '💎',
+    nameKo: '심연 사파이어 현자 세트',
+    nameEn: 'Sapphire Rune Sage Set',
+    perksKo: '사파이어 룬 테두리 · 🎵 사파이어 문장 · 〈3배 각성의 지배자〉',
+    perksEn: 'Sapphire Rune Frame · 🎵 Crest Badge · <Sovereign of 3x>',
+    imageUrl: '/hs-assets/prestige/shop_set_sapphire.webp',
+    accentClass: 'border-cyan-300/85 bg-[#081a34]/95',
+  },
+  {
+    id: 'set_royal_24k',
+    costGold: 2000,
+    frameId: 'frame_royal_24k',
+    badgeId: 'badge_abyss_crown',
+    titleId: 'title_legend_king',
+    badgeIcon: '👑',
+    nameKo: '24K 순금 대평원 황제 세트',
+    nameEn: '24K Royal Sovereign Set',
+    perksKo: '24K 순금 포일 테두리 · 👑 황금 왕관 · 〈엘윈 대평원의 전설〉',
+    perksEn: '24K Gold Foil Frame · 👑 Royal Crown · <Legend of Elwin>',
+    imageUrl: '/hs-assets/prestige/shop_set_royal_24k.webp',
+    accentClass: 'border-yellow-200 bg-gradient-to-b from-[#2f1608]/95 to-[#160a04]/95',
   },
 ];
 
@@ -667,10 +839,10 @@ function emitStateChanged() {
 
 function normalizeCardBack(raw: unknown): PlayerProfile['selectedCardBack'] {
   if (raw === 'silver' || raw === 'frost') return 'silver';
-  if (raw === 'bronze') return 'bronze';
+  if (raw === 'gold') return 'gold';
   if (raw === 'ocarina_crest') return 'ocarina_crest';
   if (raw === 'bogart_vip') return 'bogart_vip';
-  return 'gold';
+  return 'bronze';
 }
 
 function defaultPrestigeState(): PlayerPrestigeState {
@@ -679,9 +851,10 @@ function defaultPrestigeState(): PlayerPrestigeState {
     equippedBadge: 'badge_compass',
     ownedFrames: ['frame_classic'],
     equippedFrame: 'frame_classic',
-    ownedCardBacks: ['gold', 'silver', 'bronze'],
+    ownedCardBacks: ['bronze'],
     ownedTitles: ['title_adventurer'],
     equippedTitle: 'title_adventurer',
+    cardBacksPaidV2: true,
   };
 }
 
@@ -711,7 +884,7 @@ function defaultProfile(): PlayerProfile {
     rankedWinStreak: 0,
     rankedBestStreak: 0,
     classWins,
-    selectedCardBack: 'gold',
+    selectedCardBack: 'bronze',
     prestige: defaultPrestigeState(),
     bogartStats: defaultBogartStats(),
     masterUnlocked: false,
@@ -904,6 +1077,20 @@ class HearthstoneStorage {
             : Math.max(minEp, Math.min(40, Math.floor(Number(rawEp))));
         const defPrest = defaultPrestigeState();
         const rawPrest = parsed?.prestige || {};
+        const migratedOwnedBacks: SnsCardBackId[] = rawPrest.cardBacksPaidV2
+          ? Array.isArray(rawPrest.ownedCardBacks) && rawPrest.ownedCardBacks.length > 0
+            ? (Array.from(new Set(['bronze', ...rawPrest.ownedCardBacks])) as SnsCardBackId[])
+            : ['bronze']
+          : (Array.from(
+              new Set([
+                'bronze',
+                ...(Array.isArray(rawPrest.ownedCardBacks)
+                  ? rawPrest.ownedCardBacks.filter(
+                      (cb: string) => cb === 'ocarina_crest' || cb === 'bogart_vip',
+                    )
+                  : []),
+              ]),
+            ) as SnsCardBackId[]);
         const mergedPrestige: PlayerPrestigeState = {
           ownedBadges: Array.isArray(rawPrest.ownedBadges) && rawPrest.ownedBadges.length > 0
             ? Array.from(new Set(['badge_compass', ...rawPrest.ownedBadges]))
@@ -913,14 +1100,19 @@ class HearthstoneStorage {
             ? Array.from(new Set(['frame_classic', ...rawPrest.ownedFrames]))
             : defPrest.ownedFrames,
           equippedFrame: rawPrest.equippedFrame || defPrest.equippedFrame,
-          ownedCardBacks: Array.isArray(rawPrest.ownedCardBacks) && rawPrest.ownedCardBacks.length > 0
-            ? (Array.from(new Set(['gold', 'silver', 'bronze', ...rawPrest.ownedCardBacks])) as SnsCardBackId[])
-            : defPrest.ownedCardBacks,
+          ownedCardBacks: migratedOwnedBacks,
           ownedTitles: Array.isArray(rawPrest.ownedTitles) && rawPrest.ownedTitles.length > 0
             ? Array.from(new Set(['title_adventurer', ...rawPrest.ownedTitles]))
             : defPrest.ownedTitles,
           equippedTitle: rawPrest.equippedTitle || defPrest.equippedTitle,
+          cardBacksPaidV2: true,
         };
+        const normalizedSelectedBack = normalizeCardBack(parsed?.selectedCardBack);
+        const validSelectedBack: SnsCardBackId = mergedPrestige.ownedCardBacks.includes(
+          normalizedSelectedBack,
+        )
+          ? normalizedSelectedBack
+          : 'bronze';
         const rawBogart = parsed?.bogartStats || {};
         return {
           ...defaultProfile(),
@@ -929,7 +1121,7 @@ class HearthstoneStorage {
           rankedGames: Math.max(0, Number(parsed?.rankedGames) || 0),
           rankedWinStreak: Math.max(0, Number(parsed?.rankedWinStreak) || 0),
           rankedBestStreak: Math.max(0, Number(parsed?.rankedBestStreak) || 0),
-          selectedCardBack: normalizeCardBack(parsed?.selectedCardBack),
+          selectedCardBack: validSelectedBack,
           prestige: mergedPrestige,
           bogartStats: {
             totalMatches: Math.max(0, Number(rawBogart.totalMatches) || 0),
@@ -1935,6 +2127,117 @@ class HearthstoneStorage {
       action: isOwned ? 'EQUIPPED' : 'PURCHASED',
       remainingGold: p.gold,
     };
+  }
+
+  purchaseGoldTreasureChest(chestId: GoldExchangeChestDef['id']): {
+    ok: boolean;
+    remainingGold: number;
+    packsGranted: number;
+    dustGranted: number;
+    grantedLegendaries: ClassicCardDef[];
+  } {
+    const chest = GOLD_EXCHANGE_CHESTS.find((c) => c.id === chestId);
+    const p = this.getProfile();
+    if (!chest || p.gold < chest.costGold) {
+      return {
+        ok: false,
+        remainingGold: p.gold,
+        packsGranted: 0,
+        dustGranted: 0,
+        grantedLegendaries: [],
+      };
+    }
+
+    p.gold -= chest.costGold;
+    p.packs = Math.max(0, (p.packs || 0) + chest.packsGranted);
+    p.arcaneDust = Math.max(0, (p.arcaneDust || 0) + chest.dustGranted);
+
+    const grantedLegendaries: ClassicCardDef[] = [];
+    if (chest.legendaryCardsGranted > 0) {
+      const col = this.getCollection();
+      const allLegs = cardDb
+        .getAllCollectible()
+        .filter((c) => c.rarity === 'LEGENDARY');
+      for (let k = 0; k < chest.legendaryCardsGranted; k++) {
+        if (allLegs.length === 0) break;
+        const unowned = allLegs.filter(
+          (c) => (col[c.id] || 0) === 0 && !grantedLegendaries.some((g) => g.id === c.id),
+        );
+        const pool = unowned.length > 0 ? unowned : allLegs;
+        const picked = pool[Math.floor(Math.random() * pool.length)];
+        col[picked.id] = (col[picked.id] || 0) + 1;
+        grantedLegendaries.push(picked);
+      }
+      this.saveCollection(col);
+    }
+
+    this.saveProfile(p);
+    return {
+      ok: true,
+      remainingGold: p.gold,
+      packsGranted: chest.packsGranted,
+      dustGranted: chest.dustGranted,
+      grantedLegendaries,
+    };
+  }
+
+  purchaseOrEquipRoyalSet(setId: GoldRoyalSetDef['id']): {
+    ok: boolean;
+    action: 'PURCHASED' | 'EQUIPPED' | 'INSUFFICIENT_GOLD';
+    remainingGold: number;
+  } {
+    const setDef = GOLD_ROYAL_SETS.find((s) => s.id === setId);
+    const p = this.getProfile();
+    if (!setDef) {
+      return { ok: false, action: 'INSUFFICIENT_GOLD', remainingGold: p.gold };
+    }
+    const isOwned =
+      setDef.costGold === 0 || p.prestige.ownedFrames.includes(setDef.frameId);
+    if (!isOwned) {
+      if (p.gold < setDef.costGold) {
+        return { ok: false, action: 'INSUFFICIENT_GOLD', remainingGold: p.gold };
+      }
+      p.gold -= setDef.costGold;
+    }
+    p.prestige.ownedFrames = Array.from(new Set([...p.prestige.ownedFrames, setDef.frameId]));
+    p.prestige.ownedBadges = Array.from(new Set([...p.prestige.ownedBadges, setDef.badgeId]));
+    p.prestige.ownedTitles = Array.from(new Set([...p.prestige.ownedTitles, setDef.titleId]));
+    p.prestige.equippedFrame = setDef.frameId;
+    p.prestige.equippedBadge = setDef.badgeId;
+    p.prestige.equippedTitle = setDef.titleId;
+    this.saveProfile(p);
+    return {
+      ok: true,
+      action: isOwned ? 'EQUIPPED' : 'PURCHASED',
+      remainingGold: p.gold,
+    };
+  }
+
+  unlockAndEquipCardBack(cardBackId: SnsCardBackId) {
+    const p = this.getProfile();
+    p.prestige.cardBacksPaidV2 = true;
+    p.prestige.ownedCardBacks = Array.from(
+      new Set(['bronze', ...p.prestige.ownedCardBacks, cardBackId]),
+    ) as SnsCardBackId[];
+    p.selectedCardBack = cardBackId;
+    this.saveProfile(p);
+  }
+
+  unlockAllCardBacks(bonusPacks = 0) {
+    const p = this.getProfile();
+    p.prestige.cardBacksPaidV2 = true;
+    p.prestige.ownedCardBacks = [
+      'bronze',
+      'silver',
+      'gold',
+      'ocarina_crest',
+      'bogart_vip',
+    ];
+    p.selectedCardBack = 'bogart_vip';
+    if (bonusPacks > 0) {
+      p.packs = Math.max(0, (p.packs || 0) + bonusPacks);
+    }
+    this.saveProfile(p);
   }
 
   recordMatchOutcome(

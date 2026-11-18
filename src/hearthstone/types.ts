@@ -673,7 +673,7 @@ export type ClutchChoiceOption = 'AOE_CLEAR' | 'ALL_FACE' | 'MANUAL_TURN';
 
 export type SnsCardBackId = 'gold' | 'silver' | 'bronze' | 'ocarina_crest' | 'bogart_vip';
 
-export type PrestigeCategory = 'BADGE' | 'FRAME' | 'CARDBACK' | 'TITLE';
+export type PrestigeCategory = 'CHEST' | 'BADGE' | 'FRAME' | 'CARDBACK' | 'TITLE';
 
 export interface PlayerPrestigeState {
   ownedBadges: string[];
@@ -683,6 +683,7 @@ export interface PlayerPrestigeState {
   ownedCardBacks: SnsCardBackId[];
   ownedTitles: string[];
   equippedTitle: string;
+  cardBacksPaidV2?: boolean;
 }
 
 export interface BogartGambleStats {

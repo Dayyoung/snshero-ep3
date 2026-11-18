@@ -21,6 +21,7 @@ import {
   resolveCryptoDepositDetails,
 } from './services/qrCodeSvg';
 import { hsStorage } from './storage';
+import { SnsCardBackId } from './types';
 
 export { CRYPTO_COINS_CATALOG, CRYPTO_QUICK_CHIPS, resolveCryptoDepositDetails };
 export type { CryptoCoinOption, CryptoDepositDetails };
@@ -32,9 +33,27 @@ export type CheckoutPopupMethod =
   | 'naverpay'
   | 'applepay';
 
+export type GameShopPackageId =
+  | 'pack_1'
+  | 'pack_5'
+  | 'ad_removal'
+  | 'cb_silver'
+  | 'cb_gold'
+  | 'cb_ocarina'
+  | 'cb_vip'
+  | 'cb_all_pass';
+
 export interface GameShopPackage {
-  id: 'pack_1' | 'pack_5' | 'ad_removal';
-  returnParam: 'hs_pack_1' | 'hs_pack_5' | 'ad_removal';
+  id: GameShopPackageId;
+  returnParam:
+    | 'hs_pack_1'
+    | 'hs_pack_5'
+    | 'ad_removal'
+    | 'hs_cb_silver'
+    | 'hs_cb_gold'
+    | 'hs_cb_ocarina'
+    | 'hs_cb_vip'
+    | 'hs_cb_all_pass';
   name: string;
   badge: string;
   packs: number;
@@ -43,6 +62,8 @@ export interface GameShopPackage {
   description: string;
   shortSpec: string;
   isAdRemoval?: boolean;
+  cardBackId?: SnsCardBackId;
+  isAllCardBacks?: boolean;
 }
 
 export interface CheckoutCountryOption {
@@ -90,6 +111,69 @@ export const GAME_SHOP_PACKAGES: GameShopPackage[] = [
       'PC 좌우 배너 및 태블릿·스마트폰 상단 배너 광고를 계정에서 영구적으로 제거합니다.',
     shortSpec: '전체 화면 광고 영구 제거 · 즉시 적용',
     isAdRemoval: true,
+  },
+];
+
+export const CARDBACK_PAID_PACKAGES: GameShopPackage[] = [
+  {
+    id: 'cb_silver',
+    returnParam: 'hs_cb_silver',
+    name: '프로스트 실버 카드 뒷면',
+    badge: '프리미엄 스킨',
+    packs: 0,
+    priceUsd: 0.99,
+    priceKrw: 1400,
+    description: '백은 서리 엠블럼이 빛나는 프로스트 실버 카드 뒷면을 영구 해금 및 장착합니다.',
+    shortSpec: '프로스트 실버 카드 뒷면 영구 해금',
+    cardBackId: 'silver',
+  },
+  {
+    id: 'cb_gold',
+    returnParam: 'hs_cb_gold',
+    name: '24K 로얄 골드 카드 뒷면',
+    badge: '인기 스킨',
+    packs: 0,
+    priceUsd: 1.49,
+    priceKrw: 1900,
+    description: '순금 황실 엠블럼이 새겨진 24K 로얄 골드 카드 뒷면을 영구 해금 및 장착합니다.',
+    shortSpec: '24K 로얄 골드 카드 뒷면 영구 해금',
+    cardBackId: 'gold',
+  },
+  {
+    id: 'cb_ocarina',
+    returnParam: 'hs_cb_ocarina',
+    name: '엘윈 눈꽃 성소 카드 뒷면',
+    badge: '성소 스페셜',
+    packs: 0,
+    priceUsd: 1.99,
+    priceKrw: 2500,
+    description: '빙하 쌍검과 눈꽃 성기사 방패가 각인된 사파이어 카드 뒷면을 영구 해금합니다.',
+    shortSpec: '엘윈 눈꽃 성소 카드 뒷면 영구 해금',
+    cardBackId: 'ocarina_crest',
+  },
+  {
+    id: 'cb_vip',
+    returnParam: 'hs_cb_vip',
+    name: '황금 용옥새 VIP 카드 뒷면',
+    badge: 'VIP 최상위',
+    packs: 0,
+    priceUsd: 2.99,
+    priceKrw: 3900,
+    description: '24K 황금 용문양 옥새와 심홍 루비가 새겨진 최상위 VIP 카드 뒷면을 영구 해금합니다.',
+    shortSpec: '황금 용옥새 VIP 카드 뒷면 영구 해금',
+    cardBackId: 'bogart_vip',
+  },
+  {
+    id: 'cb_all_pass',
+    returnParam: 'hs_cb_all_pass',
+    name: '프리미엄 카드 뒷면 4종 올패스 (+2팩)',
+    badge: '33% 할인 · 올인원',
+    packs: 2,
+    priceUsd: 4.99,
+    priceKrw: 6500,
+    description: '프로스트 실버 · 24K 골드 · 엘윈 눈꽃 성소 · 황금 용옥새 VIP 뒷면 4종 전체 해금 + 보너스 카드팩 2개를 즉시 지급합니다!',
+    shortSpec: '프리미엄 카드 뒷면 4종 전체 영구 해금 + 2팩 보너스',
+    isAllCardBacks: true,
   },
 ];
 
@@ -153,7 +237,8 @@ const PAYAPP_SHOPNAME = 'Applet Store';
 const PAYPAL_BUSINESS = 'dryudryu@gmail.com';
 
 export function getShopPackageById(id: string | null): GameShopPackage {
-  return GAME_SHOP_PACKAGES.find((p) => p.id === id) || GAME_SHOP_PACKAGES[0];
+  const all = [...GAME_SHOP_PACKAGES, ...CARDBACK_PAID_PACKAGES];
+  return all.find((p) => p.id === id) || GAME_SHOP_PACKAGES[0];
 }
 
 export function loadPayAppSdk(): Promise<boolean> {
@@ -345,6 +430,37 @@ export function checkAndProcessGamePaymentReturn(): GamePaymentReturnResult {
       handled: true,
       isAdRemoval: true,
       label: '광고 영구 제거 패키지 ($2.99)',
+    };
+  } else if (successVal === 'hs_cb_silver') {
+    hsStorage.unlockAndEquipCardBack('silver');
+    result = {
+      handled: true,
+      label: '프로스트 실버 카드 뒷면 ($0.99)',
+    };
+  } else if (successVal === 'hs_cb_gold') {
+    hsStorage.unlockAndEquipCardBack('gold');
+    result = {
+      handled: true,
+      label: '24K 로얄 골드 카드 뒷면 ($1.49)',
+    };
+  } else if (successVal === 'hs_cb_ocarina') {
+    hsStorage.unlockAndEquipCardBack('ocarina_crest');
+    result = {
+      handled: true,
+      label: '엘윈 눈꽃 성소 카드 뒷면 ($1.99)',
+    };
+  } else if (successVal === 'hs_cb_vip') {
+    hsStorage.unlockAndEquipCardBack('bogart_vip');
+    result = {
+      handled: true,
+      label: '황금 용옥새 VIP 카드 뒷면 ($2.99)',
+    };
+  } else if (successVal === 'hs_cb_all_pass') {
+    hsStorage.unlockAllCardBacks(2);
+    result = {
+      handled: true,
+      packsGranted: 2,
+      label: '프리미엄 카드 뒷면 4종 올패스 + 보너스 2팩 ($4.99)',
     };
   }
 

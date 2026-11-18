@@ -1322,15 +1322,15 @@ export const PromoApp: React.FC = () => {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="text-center">
               <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-yellow-300">
-                GOLD PRESTIGE SHOP
+                GOLD TREASURE & SKIN EXCHANGE
               </div>
               <h2 className="promo-outline mt-1 text-2xl font-black text-white sm:text-4xl">
-                {tr('황금 주화 명예 컬렉션', 'Gold Prestige Cosmetics')}
+                {tr('황금 주화 보물 교환소', 'Gold Treasure & Skin Exchange')}
               </h2>
               <p className="mx-auto mt-2 max-w-xl text-xs font-bold text-sky-100/85 sm:text-sm">
                 {tr(
-                  '게임 플레이로 모은 골드로 전용 프로필 뱃지·24K 프레임·카드 뒷면·칭호를 해금하세요.',
-                  'Spend earned Gold on exclusive Profile Badges, 24K Frames, Card Backs, and Titles.',
+                  '플레이로 모은 골드로 미보유 24K 전설 영웅 상자·각성 팩·마력 가루를 교환하고 프리미엄 카드 뒷면을 소장하세요.',
+                  'Spend earned Gold on guaranteed 24K Legendary Chests, Awakening Packs & Dust, plus Premium Card Backs.',
                 )}
               </p>
             </div>
@@ -1338,45 +1338,38 @@ export const PromoApp: React.FC = () => {
             <div className="mt-7 grid grid-cols-2 gap-3.5 lg:grid-cols-4">
               {[
                 {
-                  id: 'badge',
-                  title: tr('명예 프로필 뱃지', 'Prestige Badges'),
-                  price: '300G~',
-                  where: tr('영웅 초상화 장착', 'Hero Portrait Pin'),
-                  img: isKo
-                    ? '/hs-assets/prestige/preview_badge_ko.webp'
-                    : '/hs-assets/prestige/preview_badge_en.webp',
+                  id: 'chest',
+                  title: tr('24K 전설 영웅 상자', '24K Legendary Chest'),
+                  price: '1,000G',
+                  where: tr('미보유 전설 100% 확정', '100% Unowned Legendary'),
+                  img: '/hs-assets/prestige/shop_chest_legendary.webp',
                 },
                 {
-                  id: 'frame',
-                  title: tr('24K 카드 프레임', '24K Card Frames'),
-                  price: '500G~',
-                  where: tr('전장·로비 테두리', 'Board & Hub Frame'),
-                  img: isKo
-                    ? '/hs-assets/prestige/preview_frame_ko.webp'
-                    : '/hs-assets/prestige/preview_frame_en.webp',
+                  id: 'chest_awakening',
+                  cat: 'chest',
+                  title: tr('3배 각성 5팩 보급함', '3x Awakening 5-Pack'),
+                  price: '450G',
+                  where: tr('카드팩 5개 + 100 가루', '5 Packs + 100 Dust'),
+                  img: '/hs-assets/prestige/shop_chest_awakening.webp',
                 },
                 {
                   id: 'cardback',
-                  title: tr('황금 카드 뒷면', 'Gold Card Backs'),
-                  price: '800G~',
-                  where: tr('덱·패 뒷면 스킨', 'Deck & Hand Skin'),
-                  img: isKo
-                    ? '/hs-assets/prestige/preview_cardback_ko.webp'
-                    : '/hs-assets/prestige/preview_cardback_en.webp',
+                  title: tr('프리미엄 카드 뒷면', 'Premium Card Backs'),
+                  price: isKo ? '1,400원~ / 500G~' : '$0.99~ / 500G~',
+                  where: tr('실버·24K골드·성소·VIP 용옥새', 'Silver · 24K Gold · Sanctuary · VIP'),
+                  img: '/hs-assets/prestige/shop_chest_royal_vault.webp',
                 },
                 {
-                  id: 'title',
-                  title: tr('전용 황금 칭호', 'Exclusive Titles'),
-                  price: '400G~',
-                  where: tr('닉네임 상단 표시', 'Displayed on Profile'),
-                  img: isKo
-                    ? '/hs-assets/prestige/preview_title_ko.webp'
-                    : '/hs-assets/prestige/preview_title_en.webp',
+                  id: 'set',
+                  title: tr('24K 순금 황제 세트', '24K Royal Sovereign Set'),
+                  price: '600G~',
+                  where: tr('24K 테두리 + 왕관 + 칭호', '24K Frame + Crown + Title'),
+                  img: '/hs-assets/prestige/shop_set_royal_24k.webp',
                 },
               ].map((item) => (
                 <a
                   key={item.id}
-                  href={`/game?tab=shop&category=${item.id}`}
+                  href={`/game?tab=shop&category=${'cat' in item && item.cat ? item.cat : item.id}`}
                   className="overflow-hidden rounded-2xl border border-amber-300/45 bg-stone-950/90 transition hover:-translate-y-1 hover:border-yellow-300"
                 >
                   <div className="relative h-28 w-full overflow-hidden bg-black sm:h-32">

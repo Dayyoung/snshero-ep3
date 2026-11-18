@@ -2,6 +2,25 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 12:08 KST] [황금 주화 교환소(`Gold Exchange`) 전면 개편(골드 보물상자·스튜디오 일러스트) 및 카드 뒷면 교환소 통합·유료 판매 전환]
+- **요청 및 개선 내역**:
+  1. **복잡했던 황금 주화 교환소 UI 단순화 및 고매력 골드 보물상자 4종 도입 (`src/hearthstone/components/Modals.tsx`, `src/hearthstone/storage.ts`, `src/hearthstone/types.ts`)**:
+     - 중첩 헤더·4단 추상 서브탭·갈색 표 크롭 스크린샷 배너를 전면 제거하고, 한눈에 들어오는 3탭(`🎁 보물 상자` · `🎴 카드 뒷면` · `👑 24K 세트`) 구조로 직관화.
+     - 플레이어가 골드를 모아 반복 구매할 수 있는 실질 성장형 **`🎁 보물 상자` 4종** 신규 구성:
+       - `300G` **신비한 마력 가루 보석함** (`영웅 가루 +250` 즉시 획득)
+       - `450G` **3배 각성 5팩 특급 보급함** (`카드팩 5개 + 가루 100`, 10% 할인)
+       - `1,000G` **24K 전설 영웅 확정 보물상자** (`미보유 전설 영웅 1장 100% 확정 소환 + 가루 100`, 구매 즉시 황금 전설 소환 축하 배너 연출)
+       - `2,200G` **엘윈 왕실 황금 대금고** (`미보유 전설 영웅 2장 + 카드팩 10개 + 가루 400`)
+  2. **스튜디오 판타지 쇼케이스 일러스트 8종 및 전용 신규 카드 뒷면 아트 2종 제작 (`public/hs-assets/prestige/shop_*.webp`, `public/hs-assets/cardbacks/snshero-*.webp`, `src/hearthstone/components/SnsHeroArtKit.tsx`)**:
+     - 기존 텍스트/이모지(`🎲👑`) 오버레이 및 깨진 크롭 이미지를 제거하고, 눈히어로 고유 성물·영웅 일러스트 기반 고해상도 쇼케이스 배너 8종(`shop_chest_*`, `shop_set_*`)과 신규 카드 뒷면 전용 아트워크 2종(`snshero-sanctuary.webp` 엘윈 눈꽃 성소, `snshero-vip-dragon.webp` 황금 용옥새 VIP)을 제작·적용.
+  3. **카드 뒷면 변경 기능을 교환소(`🎴 카드 뒷면`)로 완전 이동 및 유료 판매 전환 (`src/hearthstone/paymentGateway.ts`, `src/hearthstone/storage.ts`, `src/hearthstone/components/Modals.tsx`)**:
+     - 기존 `[카드팩 · 보급 패키지]` 탭 하단의 무료 카드 뒷면 변경 위젯을 제거(교환소 바로가기 버튼으로 대체)하고 `[황금 주화 교환소 → 🎴 카드 뒷면]` 탭으로 일원화.
+     - 기본 지급 스킨(`클래식 브론즈`, `0G`) 외 프리미엄 카드 뒷면 4종(`프로스트 실버`, `24K 로얄 골드`, `엘윈 눈꽃 성소`, `황금 용옥새 VIP`)을 유료 상품으로 전환하여 **유료 즉시 결제(`CARDBACK_PAID_PACKAGES`: 단품 `1,400~3,900원` / `$0.99~$2.99`, 4종 올패스+보너스 2팩 `6,500원` / `$4.99`)** 및 **골드 교환(`500G~2,400G`)** 을 모두 지원(`?payapp_success=hs_cb_*` 자동 해금 연동 포함).
+  4. **16종 파편화 치장품을 『👑 24K 세트』 3-in-1 왕실 세트로 정예화 및 프로모션/가이드 스크린샷 동기화 (`src/promo/PromoApp.tsx`, `src/hearthstone/screens/BattleScreen.tsx`, `public/hs-assets/screenshots/ingame_prestige_shop_{ko,en}.webp`)**:
+     - 테두리 프레임 + 영웅 초상화 뱃지 + 전용 칭호가 한 번에 해금·장착되는 4단계 왕실 세트(`참나무 기본 0G` / `성소 황동 기사단 600G` / `사파이어 현자 1,200G` / `24K 순금 황제 2,000G`)로 정리하고, 한·영 인게임 교환소 스크린샷 및 프로모션 `#gold-prestige` 섹션을 최신화.
+- **빌드 & E2E 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, Playwright 모바일(`360×844` / `390×844` `ko`) · 데스크톱(`1280×800` `en`) 양방향 보물상자 골드 구매·전설 확정 소환·카드 뒷면 유료 결제창 연동·24K 세트 장착 실측 검증 통과 (382장 카드 동결 및 `/stone.html` 격리 준수).
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(`git push` 미실행 · 수동 푸시 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-18 11:43 KST] [Google Analytics MCP(`analytics-mcp`) 설치·연동 및 전 페이지 GA4(`G-MT60DTV1KJ`) 방문자 집계 복구]
 - **요청 및 개선 내역**:
   1. **공식 Google Analytics MCP(`analytics-mcp` v1.1.0) 설치 및 전용 서비스 계정 연동 (`~/.gemini/config/mcp_config.json`, `ga4-mcp-reader@gen-lang-client-0764739742.iam.gserviceaccount.com`)**:

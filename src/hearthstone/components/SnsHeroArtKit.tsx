@@ -30,55 +30,55 @@ export const SNS_CARD_BACK_THEMES: Record<
     glowColor: string;
   }
 > = {
-  gold: {
-    name: '눈히어로 골드',
-    subtitle: '공식 골드 엠블럼 카드 뒷면',
-    imageUrl: '/hs-assets/cardbacks/snshero-gold.png',
-    glowColor: 'rgba(250, 204, 21, 0.55)',
-  },
-  silver: {
-    name: '눈히어로 실버',
-    subtitle: '공식 실버 플래티넘 카드 뒷면',
-    imageUrl: '/hs-assets/cardbacks/snshero-silver.png',
-    glowColor: 'rgba(226, 232, 240, 0.55)',
-  },
   bronze: {
-    name: '눈히어로 브론즈',
-    subtitle: '공식 브론즈 클래식 카드 뒷면',
+    name: '클래식 브론즈',
+    subtitle: '엘윈 모험가 기본 지급 카드 뒷면',
     imageUrl: '/hs-assets/cardbacks/snshero-bronze.png',
     glowColor: 'rgba(217, 119, 6, 0.55)',
   },
-  ocarina_crest: {
-    name: '엘윈 성소의 문장',
-    subtitle: '사파이어 문장 · 프레스티지 골드 뒷면',
+  silver: {
+    name: '프로스트 실버',
+    subtitle: '백은 서리 엠블럼 프리미엄 카드 뒷면',
     imageUrl: '/hs-assets/cardbacks/snshero-silver.png',
-    glowColor: 'rgba(56, 189, 248, 0.72)',
+    glowColor: 'rgba(226, 232, 240, 0.65)',
+  },
+  gold: {
+    name: '24K 로얄 골드',
+    subtitle: '순금 황실 엠블럼 챔피언 카드 뒷면',
+    imageUrl: '/hs-assets/cardbacks/snshero-gold.png',
+    glowColor: 'rgba(250, 204, 21, 0.75)',
+  },
+  ocarina_crest: {
+    name: '엘윈 눈꽃 성소',
+    subtitle: '쌍검과 눈꽃 성기사 방패 사파이어 뒷면',
+    imageUrl: '/hs-assets/cardbacks/snshero-sanctuary.webp',
+    glowColor: 'rgba(56, 189, 248, 0.8)',
   },
   bogart_vip: {
-    name: '보가트 VIP 하이롤러',
-    subtitle: '황금 주사위 · 도박장 챔피언 뒷면',
-    imageUrl: '/hs-assets/cardbacks/snshero-gold.png',
-    glowColor: 'rgba(250, 204, 21, 0.85)',
+    name: '황금 용옥새 VIP',
+    subtitle: '24K 황금 용문양 · 루비 하이롤러 뒷면',
+    imageUrl: '/hs-assets/cardbacks/snshero-vip-dragon.webp',
+    glowColor: 'rgba(250, 204, 21, 0.9)',
   },
 };
 
 export function getSnsCardBackLabel(id: SnsCardBackId): { name: string; subtitle: string } {
   if (isKoreanLanguage()) {
-    return SNS_CARD_BACK_THEMES[id] || SNS_CARD_BACK_THEMES.gold;
+    return SNS_CARD_BACK_THEMES[id] || SNS_CARD_BACK_THEMES.bronze;
   }
   if (id === 'silver') {
-    return { name: 'SNSHero Silver', subtitle: 'Official Silver Platinum Card Back' };
+    return { name: 'Frost Silver', subtitle: 'Platinum Frost Emblem Card Back' };
   }
   if (id === 'bronze') {
-    return { name: 'SNSHero Bronze', subtitle: 'Official Bronze Classic Card Back' };
+    return { name: 'Classic Bronze', subtitle: 'Default Starter Card Back' };
   }
   if (id === 'ocarina_crest') {
-    return { name: 'Elwin Sanctuary Crest', subtitle: 'Sapphire Royal Prestige Card Back' };
+    return { name: 'Elwin Frost Sanctuary', subtitle: 'Twin Frostblades & Snowflake Shield Back' };
   }
   if (id === 'bogart_vip') {
-    return { name: 'Bogart VIP High-Roller', subtitle: 'Golden Dice Champion Card Back' };
+    return { name: 'Royal Dragon VIP', subtitle: '24K Golden Dragon Seal & Ruby Card Back' };
   }
-  return { name: 'SNSHero Gold', subtitle: 'Official Gold Emblem Card Back' };
+  return { name: '24K Royal Gold', subtitle: '24K Sovereign Gold Emblem Card Back' };
 }
 
 export interface ElwinTimeOfDayTheme {
@@ -207,19 +207,19 @@ export const SnsOcarinaCrestSeal: React.FC<{ size?: number; className?: string }
 function resolveCardBackKey(variant?: SnsCardBackId | string): SnsCardBackId {
   return variant === 'silver' || variant === 'frost'
     ? 'silver'
-    : variant === 'bronze'
-      ? 'bronze'
+    : variant === 'gold'
+      ? 'gold'
       : variant === 'ocarina_crest'
         ? 'ocarina_crest'
         : variant === 'bogart_vip'
           ? 'bogart_vip'
-          : 'gold';
+          : 'bronze';
 }
 
 export const SnsCardBackArt: React.FC<{
   variant?: SnsCardBackId | string;
   className?: string;
-}> = ({ variant = 'gold', className = 'w-full h-full' }) => {
+}> = ({ variant = 'bronze', className = 'w-full h-full' }) => {
   const key = resolveCardBackKey(variant);
   const theme = SNS_CARD_BACK_THEMES[key];
   const label = getSnsCardBackLabel(key);
@@ -238,30 +238,6 @@ export const SnsCardBackArt: React.FC<{
         draggable={false}
         className="h-full w-full object-fill select-none"
       />
-      {key === 'ocarina_crest' && (
-        <div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[8%]"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(56,189,248,0.45) 0%, rgba(29,78,216,0.52) 65%, rgba(15,23,42,0.72) 100%)',
-          }}
-        >
-          <SnsSnowCompassSeal size={38} />
-        </div>
-      )}
-      {key === 'bogart_vip' && (
-        <div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[8%]"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(250,204,21,0.38) 0%, rgba(185,28,28,0.48) 70%, rgba(28,10,4,0.68) 100%)',
-          }}
-        >
-          <span className="rounded-full border-2 border-yellow-200 bg-amber-950/85 px-2 py-1 text-base shadow-lg">
-            🎲👑
-          </span>
-        </div>
-      )}
       {/* Subtle glossy foil highlight */}
       <div
         className="pointer-events-none absolute inset-0 rounded-[8%]"
