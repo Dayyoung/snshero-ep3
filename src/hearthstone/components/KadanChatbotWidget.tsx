@@ -435,8 +435,8 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
                 highlight: 'tip' as const,
                 onSelect: () => {
                   speak(
-                    '스토리 모드 자동플레이를 켜면 실리아와 저 사이 하단 중앙에 [카단의 기세] 링이 열려요! 마구 연타해도 +1씩 쌓이고, 초록색(TAP+10) 타이밍에 맞춰 누르면 한 번에 +10이 쌓여 즉시 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 작렬합니다!',
-                    "In Story Mode Auto-Play, the [Kadan's Spirit] ring opens between Silia and me! Mash anytime for +1 per tap, or tap on GREEN (TAP+10) for +10 at once—every 10-multiple unleashes my Blizzard + Silia's Windstorm Ultimates!",
+                    '스토리 자동플레이 중 하단 중앙 [카단의 기세] 링을 연타(+1)하거나 초록 정박(+10)에 맞춰 100을 채워보세요! 100이 되면 버튼이 불타오르며 1초 점화 후 [🔥필살기!]로 변하고, 그때 다시 누르면 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 작렬합니다!',
+                    "In Story Auto-Play, charge [Kadan's Spirit] to 100 via mash (+1) or GREEN beat (+10)! At 100, the orb blazes and locks for 1s—then tap the blazing [🔥FIRE!] orb to unleash my Blizzard + Silia's Windstorm Ultimates!",
                   );
                 },
               },
@@ -772,8 +772,8 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
         highlight: 'tip',
         onSelect: () =>
           speak(
-            '매 턴 마나로 [하수인·주문·무기]를 내어 적 영웅 체력을 0으로 만들면 승리해요! 스토리 모드 자동플레이 중에는 하단 중앙 [카단의 기세] 링을 마구 눌러 +1씩 쌓거나 초록색(TAP+10) 타이밍에 눌러 단번에 +10을 채우면 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 발동합니다!',
-            "Spend Mana on Minions, Spells & Weapons to drop the enemy Hero to 0 HP! In Story Auto-Play, mash [Kadan's Spirit] for +1 or tap on GREEN (TAP+10) for +10—every 10-multiple triggers my Blizzard + Silia's Windstorm Ultimates!",
+            '매 턴 마나로 [하수인·주문·무기]를 내어 적 영웅 체력을 0으로 만들면 승리해요! 스토리 자동플레이 중 [카단의 기세]를 연타(+1)·초록 정박(+10)으로 100까지 채우면 버튼이 불타오르고, 1초 점화 후 누르면 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 발동합니다!',
+            "Spend Mana on Minions, Spells & Weapons to drop the enemy Hero to 0 HP! In Story Auto-Play, charge [Kadan's Spirit] to 100 via mash (+1) or GREEN beat (+10)—after 1s of blazing ignition, tap it to unleash my Blizzard + Silia's Windstorm Ultimates!",
           ),
       },
       {

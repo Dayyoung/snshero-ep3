@@ -26,6 +26,11 @@ import {
   trackHeroBattleCompleted,
   trackHeroBattleStarted,
 } from '../services/analyticsEvents';
+import {
+  gradeRhythmPerformance,
+  playFactionChord,
+  playRhythmCue,
+} from '../services/rhythmCueEngine';
 import { downloadVictoryCertificatePng } from '../utils/victoryCardShare';
 import {
   StoryDuelDialogueOverlay,
@@ -238,6 +243,8 @@ function computeBattleMvpCard(
   return { card, mult: multMap[card.id] || 1, plays: bestPlays };
 }
 
+type KadanSpiritPhase = 'CHARGING' | 'IGNITING' | 'READY';
+
 interface CenterRhythmRingHudProps {
   rhythmEnabled: boolean;
   battleBpm: number;
@@ -245,6 +252,7 @@ interface CenterRhythmRingHudProps {
   onToggleSpeed2x: () => void;
   isBossParryReady: boolean;
   kadanMomentumCount: number;
+  spiritPhase: KadanSpiritPhase;
   rhythmFlash: {
     mult: 1 | 1.5 | 2;
     grade: 'NORMAL' | 'GOOD' | 'PERFECT';
@@ -262,6 +270,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
   onToggleSpeed2x,
   isBossParryReady,
   kadanMomentumCount,
+  spiritPhase,
   rhythmFlash,
   onTap,
 }) => {
@@ -272,10 +281,12 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
   const pulseWaveRef = useRef<HTMLSpanElement | null>(null);
   const cueTextRef = useRef<HTMLSpanElement | null>(null);
 
-  const isTierCharged = kadanMomentumCount >= 10;
+  const isBlazing = spiritPhase === 'IGNITING' || spiritPhase === 'READY';
+  const isIgniting = spiritPhase === 'IGNITING';
+  const isReady = spiritPhase === 'READY';
 
   useEffect(() => {
-    if (!rhythmEnabled) return;
+    if (!rhythmEnabled || isBlazing) return;
     let rafId = 0;
     let lastTapState: boolean | null = null;
 
@@ -328,103 +339,234 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
 
     rafId = window.requestAnimationFrame(applyFrame);
     return () => window.cancelAnimationFrame(rafId);
-  }, [rhythmEnabled, battleBpm, autoSpeed2x, isKo]);
+  }, [rhythmEnabled, isBlazing, battleBpm, autoSpeed2x, isKo]);
 
   return (
     <div
       data-testid="kadan-command-orb"
-      className="pointer-events-none fixed bottom-2.5 left-1/2 z-[71] flex -translate-x-1/2 select-none flex-col items-center sm:bottom-3.5"
+      data-spirit-phase={spiritPhase}
+      className={`pointer-events-none fixed bottom-2.5 left-1/2 flex -translate-x-1/2 select-none flex-col items-center sm:bottom-3.5 ${
+        isBlazing ? 'z-[93]' : 'z-[71]'
+      }`}
     >
       {rhythmEnabled && (
         <div className="relative flex h-[68px] w-[62px] items-center justify-center sm:h-[80px] sm:w-[74px]">
           <button
             type="button"
             data-testid="ocarina-rhythm-ring-btn"
+            data-spirit-phase={spiritPhase}
+            disabled={isIgniting}
             onClick={(e) => {
               e.stopPropagation();
+              if (isIgniting) return;
               onTap();
             }}
-            title={tr(
-              '카단의 기세 (스토리 전용) — 마구 연타 시 +1 · 초록 링 타이밍 탭 시 +10! (10배수마다 합동 필살기)',
-              "Kadan's Spirit (Story Mode) — Mash for +1 · Tap on GREEN for +10! (Every 10 stacks fires Dual Ultimate)",
-            )}
-            className="pointer-events-auto relative flex h-14 w-14 touch-manipulation items-center justify-center rounded-full focus:outline-none active:scale-92 sm:h-16 sm:w-16"
+            title={
+              isIgniting
+                ? tr('🔥 카단의 기세 100 충전! 1초간 점화 중...', "🔥 Kadan's Spirit 100 Charged! Igniting for 1s...")
+                : isReady
+                  ? tr('🔥 필살기 준비 완료! 지금 탭하여 필살기 작렬!', '🔥 Ultimate Ready! Tap now to UNLEASH!')
+                  : tr(
+                      '카단의 기세 (스토리 전용) — 연타 +1 · 초록 정박 +10! (100 충전 후 탭하여 필살기 발동)',
+                      "Kadan's Spirit (Story Mode) — Mash +1 · Green Beat +10! (Charge to 100, then tap to unleash)",
+                    )
+            }
+            className={`pointer-events-auto relative flex h-14 w-14 touch-manipulation items-center justify-center rounded-full focus:outline-none sm:h-16 sm:w-16 ${
+              isIgniting
+                ? 'cursor-not-allowed scale-105'
+                : isReady
+                  ? 'cursor-pointer scale-110 active:scale-95'
+                  : 'cursor-pointer active:scale-92'
+            }`}
           >
-            {/* BGM Heartbeat Expanding Pulse Ripple */}
-            <span
-              ref={pulseWaveRef}
-              className="pointer-events-none absolute inset-0 rounded-full border-2 border-emerald-400 opacity-0"
-            />
+            {/* X100 Blazing Fire Aura, Dancing SVG Flame Crown & Rising Embers */}
+            {isBlazing && (
+              <>
+                <span
+                  data-testid="kadan-spirit-flame-aura"
+                  className="hs-spirit-flame-aura pointer-events-none absolute -inset-5 rounded-full"
+                  style={{
+                    background: isReady
+                      ? 'radial-gradient(circle, rgba(254,249,195,0.98) 0%, rgba(251,146,60,0.92) 44%, rgba(220,38,38,0.72) 70%, rgba(127,29,29,0) 100%)'
+                      : 'radial-gradient(circle, rgba(253,224,71,0.9) 0%, rgba(249,115,22,0.85) 46%, rgba(185,28,28,0.6) 72%, rgba(127,29,29,0) 100%)',
+                    filter: 'blur(3px)',
+                  }}
+                />
+                <svg
+                  viewBox="-24 -44 128 148"
+                  className="pointer-events-none absolute -inset-6 h-[calc(100%+48px)] w-[calc(100%+48px)] overflow-visible drop-shadow-[0_0_10px_rgba(249,115,22,0.95)]"
+                >
+                  <g className="hs-spirit-flame-a">
+                    <path
+                      d="M40,-42 C50,-22 58,-8 54,12 C66,-14 78,-6 74,18 C88,6 92,28 82,52 C72,76 54,88 40,88 C26,88 8,76 -2,52 C-12,28 -8,6 6,18 C2,-6 14,-14 26,12 C22,-8 30,-22 40,-42 Z"
+                      fill="#dc2626"
+                    />
+                    <path
+                      d="M40,-30 C48,-14 54,0 50,18 C62,-2 70,6 66,26 C76,18 78,34 70,52 C62,70 50,80 40,80 C30,80 18,70 10,52 C2,34 4,18 14,26 C10,6 18,-2 30,18 C26,0 32,-14 40,-30 Z"
+                      fill="#f97316"
+                    />
+                  </g>
+                  <g className="hs-spirit-flame-b">
+                    <path
+                      d="M20,-24 C28,-8 32,6 28,22 C35,-4 43,-24 52,-26 C57,-8 60,8 56,24 C66,12 72,28 64,48 C54,68 26,68 16,48 C8,28 14,12 24,24 C20,8 15,-8 20,-24 Z"
+                      fill="#facc15"
+                    />
+                    <path
+                      d="M40,-18 C48,-2 54,14 50,32 C45,52 35,52 30,32 C26,14 32,-2 40,-18 Z"
+                      fill="#fef9c3"
+                    />
+                  </g>
+                  {isIgniting && (
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="30"
+                      fill="none"
+                      stroke="#ffffff"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      transform="rotate(-90 40 40)"
+                      className="hs-spirit-ignite-ring"
+                    />
+                  )}
+                </svg>
+                {[
+                  { left: '10%', delay: '0s' },
+                  { left: '28%', delay: '0.16s' },
+                  { left: '50%', delay: '0.32s' },
+                  { left: '72%', delay: '0.1s' },
+                  { left: '88%', delay: '0.44s' },
+                ].map((emb, idx) => (
+                  <span
+                    key={idx}
+                    style={{ left: emb.left, animationDelay: emb.delay }}
+                    className="hs-spirit-ember pointer-events-none absolute -top-1 h-2 w-2 rounded-full bg-yellow-100 shadow-[0_0_10px_#f97316]"
+                  />
+                ))}
+              </>
+            )}
 
-            {/* Shrinking Green (+10!) / Red (+1 Mash) Outer Ring */}
-            <span
-              ref={ringRef}
-              data-testid="ocarina-shrinking-ring"
-              data-ring-state="red"
-              className="pointer-events-none absolute inset-0 rounded-full border-[3px] border-rose-500"
-            />
+            {/* Charging Phase: BGM Heartbeat Expanding Pulse + Shrinking Green/Red Ring */}
+            {!isBlazing && (
+              <>
+                <span
+                  ref={pulseWaveRef}
+                  className="pointer-events-none absolute inset-0 rounded-full border-2 border-emerald-400 opacity-0"
+                />
+                <span
+                  ref={ringRef}
+                  data-testid="ocarina-shrinking-ring"
+                  data-ring-state="red"
+                  className="pointer-events-none absolute inset-0 rounded-full border-[3px] border-rose-500"
+                />
+              </>
+            )}
 
-            {/* Inner Heartbeat Core Circle */}
+            {/* Inner Core Circle */}
             <span
               ref={pulseCoreRef}
-              className="pointer-events-none relative flex h-full w-full flex-col items-center justify-center rounded-full border-2 border-rose-400/85 bg-[#090d16]/95 shadow-[0_6px_18px_rgba(0,0,0,0.9)]"
+              className={`pointer-events-none relative flex h-full w-full flex-col items-center justify-center rounded-full border-2 shadow-[0_6px_18px_rgba(0,0,0,0.9)] ${
+                isReady
+                  ? 'border-yellow-200 bg-gradient-to-b from-amber-500 via-orange-600 to-red-900 shadow-[0_0_24px_rgba(251,146,60,0.95)]'
+                  : isIgniting
+                    ? 'border-orange-300 bg-gradient-to-b from-orange-700 via-red-800 to-stone-950 shadow-[0_0_18px_rgba(239,68,68,0.9)]'
+                    : 'border-rose-400/85 bg-[#090d16]/95'
+              }`}
             >
               <span className="text-sm leading-none sm:text-base">
-                {isBossParryReady ? '🛡' : '⚔️'}
+                {isBlazing ? '🔥' : isBossParryReady ? '🛡' : '⚔️'}
               </span>
               <span
-                ref={cueTextRef}
-                className="mt-0.5 text-[8.5px] font-black leading-none tracking-tight text-rose-300 sm:text-[9.5px]"
+                ref={isBlazing ? undefined : cueTextRef}
+                className={`mt-0.5 text-[8.5px] font-black leading-none tracking-tight sm:text-[9.5px] ${
+                  isReady
+                    ? 'text-yellow-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]'
+                    : isIgniting
+                      ? 'text-amber-200'
+                      : 'text-rose-300'
+                }`}
               >
-                {isKo ? '연타+1' : 'TAP+1'}
+                {isIgniting
+                  ? isKo
+                    ? '1초대기'
+                    : 'WAIT 1s'
+                  : isReady
+                    ? isKo
+                      ? '필살기!'
+                      : 'FIRE!'
+                    : isKo
+                      ? '연타+1'
+                      : 'TAP+1'}
               </span>
             </span>
 
-            {/* Hit Feedback Badge (+10⚡ on Green Beat / +1 on Mash) */}
-            {rhythmFlash && (
+            {/* Top Floating Status / Hit Feedback Badge */}
+            {isIgniting ? (
               <span
-                key={rhythmFlash.seq}
-                data-testid="rhythm-multiplier-badge"
-                className={`pointer-events-none absolute -top-2.5 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-black shadow-lg ${
-                  rhythmFlash.parried
-                    ? 'border-cyan-200 bg-cyan-500 text-stone-950'
-                    : rhythmFlash.stackGain === 10
-                      ? 'border-yellow-100 bg-emerald-400 text-stone-950 shadow-[0_0_12px_rgba(74,222,128,0.85)]'
-                      : 'border-sky-300/90 bg-sky-900/95 text-sky-100'
-                }`}
+                data-testid="spirit-igniting-badge"
+                className="pointer-events-none absolute -top-5 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-full border border-amber-200 bg-gradient-to-r from-orange-600 to-red-700 px-2 py-0.5 text-[9.5px] font-black text-yellow-100 shadow-[0_0_12px_rgba(249,115,22,0.9)]"
               >
-                {rhythmFlash.parried
-                  ? '🛡+10'
-                  : rhythmFlash.stackGain === 10
-                    ? '+10⚡'
-                    : '+1'}
+                {tr('🔥 100 점화 중 (1초)', '🔥 IGNITING (1s)')}
               </span>
+            ) : isReady ? (
+              <span
+                data-testid="spirit-ready-badge"
+                className="pointer-events-none absolute -top-5 left-1/2 z-30 -translate-x-1/2 animate-bounce whitespace-nowrap rounded-full border-2 border-yellow-100 bg-gradient-to-r from-yellow-300 via-amber-500 to-orange-600 px-2.5 py-0.5 text-[10px] font-black text-stone-950 shadow-[0_0_16px_rgba(250,204,21,0.95)]"
+              >
+                {tr('🔥 필살기 작렬! (탭!)', '🔥 TAP TO UNLEASH!')}
+              </span>
+            ) : (
+              rhythmFlash && (
+                <span
+                  key={rhythmFlash.seq}
+                  data-testid="rhythm-multiplier-badge"
+                  className={`pointer-events-none absolute -top-2.5 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-black shadow-lg ${
+                    rhythmFlash.parried
+                      ? 'border-cyan-200 bg-cyan-500 text-stone-950'
+                      : rhythmFlash.stackGain === 10
+                        ? 'border-yellow-100 bg-emerald-400 text-stone-950 shadow-[0_0_12px_rgba(74,222,128,0.85)]'
+                        : 'border-sky-300/90 bg-sky-900/95 text-sky-100'
+                  }`}
+                >
+                  {rhythmFlash.parried
+                    ? '🛡+10'
+                    : rhythmFlash.stackGain === 10
+                      ? '+10⚡'
+                      : '+1'}
+                </span>
+              )
             )}
           </button>
 
-          {/* Side Cumulative X-Stack Badge (`X1` .. `X10` .. `X22` ...) */}
+          {/* Side Cumulative Gauge Badge (`0/100` .. `🔥100`) */}
           <div
             data-testid="kadan-momentum-side-box"
             className="pointer-events-none absolute right-[calc(100%-6px)] top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center sm:left-full sm:right-auto sm:ml-1.5"
           >
             <span
               data-testid="kadan-x-stack-badge"
-              className={`rounded-lg border px-1.5 py-0.5 font-black leading-none shadow-lg transition-transform duration-150 ${
-                isTierCharged
-                  ? 'border-2 border-yellow-300 bg-gradient-to-b from-sky-500 via-blue-700 to-indigo-950 text-[11px] text-yellow-200 shadow-[0_0_14px_rgba(56,189,248,0.9)] sm:px-2 sm:text-xs'
+              className={`whitespace-nowrap rounded-lg border px-1.5 py-0.5 font-black leading-none shadow-lg transition-transform duration-150 ${
+                isBlazing
+                  ? 'border-2 border-yellow-200 bg-gradient-to-b from-amber-500 via-orange-600 to-red-900 text-[10.5px] text-yellow-100 shadow-[0_0_16px_rgba(251,146,60,0.95)] sm:px-2 sm:text-xs'
                   : kadanMomentumCount > 0
                     ? 'border-emerald-300/80 bg-emerald-950/95 text-[10px] text-emerald-200 sm:text-[11px]'
                     : 'border-sky-400/40 bg-stone-950/90 text-[9.5px] text-sky-300/75 sm:text-[10.5px]'
               }`}
             >
-              X{kadanMomentumCount}
+              {isBlazing ? '🔥100' : `${kadanMomentumCount}/100`}
             </span>
           </div>
         </div>
       )}
 
       {/* Slim Boot Pill: `카단의 기세` */}
-      <div className="pointer-events-auto -mt-0.5 flex items-center gap-1 whitespace-nowrap rounded-full border border-sky-300/65 bg-stone-950/95 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-100 shadow-[0_4px_10px_rgba(0,0,0,0.9)] sm:px-2.5 sm:text-[10.5px]">
+      <div
+        className={`pointer-events-auto -mt-0.5 flex items-center gap-1 whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[9px] font-extrabold shadow-[0_4px_10px_rgba(0,0,0,0.9)] sm:px-2.5 sm:text-[10.5px] ${
+          isBlazing
+            ? 'border-amber-300 bg-red-950/95 text-yellow-200 shadow-[0_0_14px_rgba(249,115,22,0.75)]'
+            : 'border-sky-300/65 bg-stone-950/95 text-amber-100'
+        }`}
+      >
         <button
           type="button"
           data-testid="rhythm-speed-2x-btn"
@@ -441,8 +583,8 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
           {autoSpeed2x ? '4B' : '2B'}
         </button>
 
-        <span className="font-black text-sky-200">
-          {tr('카단의 기세', 'Kadan Spirit')}
+        <span className={isBlazing ? 'font-black text-yellow-200' : 'font-black text-sky-200'}>
+          {isBlazing ? tr('🔥 기세 폭발!', '🔥 MAX SPIRIT!') : tr('카단의 기세', 'Kadan Spirit')}
         </span>
       </div>
     </div>
@@ -1001,6 +1143,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [rhythmFeverPct] = useState<number>(0);
   const [rhythmFeverBonusGold, setRhythmFeverBonusGold] = useState<number>(0);
   const [kadanMomentumCount, setKadanMomentumCount] = useState<number>(0);
+  const [kadanSpiritPhase, setKadanSpiritPhase] = useState<KadanSpiritPhase>('CHARGING');
   const [kadanUltCutIn, setKadanUltCutIn] = useState<{
     stackTier: number;
     stackCount: number;
@@ -1015,6 +1158,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const rhythmResonanceUsedTurnRef = useRef<number>(-1);
   const rhythmComboRef = useRef<number>(0);
   const kadanMomentumRef = useRef<number>(0);
+  const kadanSpiritPhaseRef = useRef<KadanSpiritPhase>('CHARGING');
+  const kadanIgniteTimerRef = useRef<number | null>(null);
+  const kadanUltCastCountRef = useRef<number>(0);
   const lastRhythmTapMsRef = useRef<number>(0);
   const lastGreenBeatCycleRef = useRef<number>(-999999);
   const triggerUltimateShakeRef = useRef<(tier?: number) => void>(() => {});
@@ -1088,14 +1234,29 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const ep0OpponentPlaysRef = useRef<string[]>([]);
   const ep0SummaryShownTurnRef = useRef<string | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (kadanIgniteTimerRef.current !== null) {
+        window.clearTimeout(kadanIgniteTimerRef.current);
+      }
+    };
+  }, []);
+
   const prevMatchIdRef = useRef(matchState.matchId);
   useEffect(() => {
     if (prevMatchIdRef.current !== matchState.matchId) {
       prevMatchIdRef.current = matchState.matchId;
+      if (kadanIgniteTimerRef.current !== null) {
+        window.clearTimeout(kadanIgniteTimerRef.current);
+        kadanIgniteTimerRef.current = null;
+      }
       kadanMomentumRef.current = 0;
+      kadanSpiritPhaseRef.current = 'CHARGING';
+      kadanUltCastCountRef.current = 0;
       lastRhythmTapMsRef.current = 0;
       lastGreenBeatCycleRef.current = -999999;
       setKadanMomentumCount(0);
+      setKadanSpiritPhase('CHARGING');
       setKadanUltCutIn(null);
       setSiliaChainCutIn(null);
       if (!externalAutoPlay) {
@@ -1113,12 +1274,45 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [matchState.phase, storyPhase, vsIntroActive]);
 
-  // Handle Kadan's Spirit Beat Tap (Story Mode Exclusive · Mash = +1, Green Timing = +10)
+  // Handle Kadan's Spirit Beat Tap (Story Mode Exclusive · Charge 0->100 -> 1s Flame Lockout -> Tap to Unleash Ultimate!)
   const handleRhythmOrbTap = useCallback(() => {
     if (mode !== 'TUTORIAL' || !autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING') {
       return;
     }
 
+    // 1) During the 1-second flame ignition lockout at 100 charge, ignore all clicks/Spacebar!
+    if (kadanSpiritPhaseRef.current === 'IGNITING') {
+      return;
+    }
+
+    // 2) After 1-second lockout (`READY`), tapping unleashes Kadan Blizzard + Silia Windstorm Ultimate & resets to 0!
+    if (kadanSpiritPhaseRef.current === 'READY') {
+      kadanSpiritPhaseRef.current = 'CHARGING';
+      kadanMomentumRef.current = 0;
+      setKadanSpiritPhase('CHARGING');
+      setKadanMomentumCount(0);
+      setRhythmFlash(null);
+
+      const stackTier = Math.min(8, kadanUltCastCountRef.current + 1);
+      kadanUltCastCountRef.current = stackTier;
+      const seqId = Date.now() + stackTier;
+      setKadanUltCutIn({ stackTier, stackCount: 100, seq: seqId });
+      window.setTimeout(() => {
+        setKadanUltCutIn((cur) => (cur?.seq === seqId ? null : cur));
+      }, 1450);
+
+      hsAudio.playSfx('big_attack', 0.95);
+      triggerUltimateShakeRef.current(stackTier + 1);
+      fireKadanUltimateRef.current(stackTier);
+
+      // Chained Follow-Up: Right after Kadan's Blizzard Ultimate, Silia unleashes a random Windstorm Ultimate!
+      window.setTimeout(() => {
+        fireSiliaChainRef.current(stackTier);
+      }, 950);
+      return;
+    }
+
+    // 3) Charging Phase (`0 .. 99`): Mash = +1, Timed Green Beat = +10 (caps at 100 -> triggers 1s IGNITING!)
     const nowPerfMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
     const isRapidMash =
       lastRhythmTapMsRef.current > 0 && nowPerfMs - lastRhythmTapMsRef.current < 280;
@@ -1143,34 +1337,33 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       window.setTimeout(() => setRhythmSanctuaryAura(false), 1300);
     }
 
-    // Mash / off-beat tap = +1 stack; On-beat green timing tap = +10 stacks!
     const isTimedGreenHit = res.grade !== 'NORMAL';
     if (isTimedGreenHit) {
       lastGreenBeatCycleRef.current = res.beatCycleIndex;
     }
     const stackGain: 1 | 10 = isTimedGreenHit ? 10 : 1;
     const prevMomentum = kadanMomentumRef.current;
-    const nextMomentum = prevMomentum + stackGain;
+    const nextMomentum = Math.min(100, prevMomentum + stackGain);
     kadanMomentumRef.current = nextMomentum;
     setKadanMomentumCount(nextMomentum);
 
-    // Every time a 10-multiple threshold (10, 20, 30...) is reached or crossed, unleash Kadan + Silia Dual Ultimate!
-    const prevTier = Math.floor(prevMomentum / 10);
-    const nextTier = Math.floor(nextMomentum / 10);
-    if (nextTier > prevTier) {
-      const stackTier = nextTier;
-      const seqId = Date.now() + nextMomentum;
-      setKadanUltCutIn({ stackTier, stackCount: nextMomentum, seq: seqId });
-      window.setTimeout(() => {
-        setKadanUltCutIn((cur) => (cur?.seq === seqId ? null : cur));
-      }, 1250);
-      triggerUltimateShakeRef.current(stackTier);
-      fireKadanUltimateRef.current(stackTier);
-
-      // Chained Follow-Up: Right after Kadan's Blizzard Ultimate, Silia unleashes a random Windstorm Ultimate!
-      window.setTimeout(() => {
-        fireSiliaChainRef.current(stackTier);
-      }, 950);
+    // Upon reaching 100: button bursts into flames & pauses clicks for 1.0 second before becoming READY!
+    if (prevMomentum < 100 && nextMomentum >= 100) {
+      kadanSpiritPhaseRef.current = 'IGNITING';
+      setKadanSpiritPhase('IGNITING');
+      setRhythmFlash(null);
+      hsAudio.playSfx('pack_legendary', 0.85);
+      if (kadanIgniteTimerRef.current !== null) {
+        window.clearTimeout(kadanIgniteTimerRef.current);
+      }
+      kadanIgniteTimerRef.current = window.setTimeout(() => {
+        kadanIgniteTimerRef.current = null;
+        if (kadanSpiritPhaseRef.current === 'IGNITING') {
+          kadanSpiritPhaseRef.current = 'READY';
+          setKadanSpiritPhase('READY');
+          hsAudio.playSfx('hero_power', 0.8);
+        }
+      }, 1000);
     }
 
     let parriedBoss = false;
@@ -1203,17 +1396,19 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       });
     }
 
-    const flashSeq = Date.now() + nextMomentum;
-    setRhythmFlash({
-      mult: res.multiplier,
-      grade: res.grade,
-      stackGain,
-      parried: parriedBoss,
-      seq: flashSeq,
-    });
-    window.setTimeout(() => {
-      setRhythmFlash((cur) => (cur?.seq === flashSeq ? null : cur));
-    }, 900);
+    if (nextMomentum < 100) {
+      const flashSeq = Date.now() + nextMomentum;
+      setRhythmFlash({
+        mult: res.multiplier,
+        grade: res.grade,
+        stackGain,
+        parried: parriedBoss,
+        seq: flashSeq,
+      });
+      window.setTimeout(() => {
+        setRhythmFlash((cur) => (cur?.seq === flashSeq ? null : cur));
+      }, 900);
+    }
   }, [
     mode,
     autoPlay,
@@ -1919,12 +2114,27 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       trackedBattleStartRef.current = false;
     } else if (matchState.phase === 'PLAYING' && !trackedBattleStartRef.current) {
       trackedBattleStartRef.current = true;
+      const muted = hsAudio.getSettings().muted;
+      playRhythmCue('mulligan_start', { muted });
+      playFactionChord(matchState.player.heroClass, muted);
       trackHeroBattleStarted({
         mode,
         episode: matchState.journeyMeta?.episode,
       });
     }
-  }, [matchState.phase, mode, matchState.journeyMeta?.episode]);
+  }, [matchState.phase, mode, matchState.journeyMeta?.episode, matchState.player.heroClass]);
+
+  const handFullWarnedRef = useRef(false);
+  useEffect(() => {
+    if (matchState.phase === 'PLAYING' && matchState.player.hand.length >= 9) {
+      if (!handFullWarnedRef.current) {
+        handFullWarnedRef.current = true;
+        playRhythmCue('hand_full_heartbeat', { muted: hsAudio.getSettings().muted });
+      }
+    } else {
+      handFullWarnedRef.current = false;
+    }
+  }, [matchState.phase, matchState.player.hand.length]);
 
   useEffect(() => {
     if (matchState.phase === 'GAME_OVER' && !recordedResultRef.current) {
@@ -1969,8 +2179,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (didWin && mode === 'BOGART_GAMBLE') {
         hsAudio.playSfx('zelda_chest_open', 0.9);
         hsAudio.playSfx('mario_coin', 0.95);
+        playRhythmCue('lethal_finale', { muted: hsAudio.getSettings().muted });
       } else if (didWin) {
         hsAudio.playSfx('mario_coin', 0.75);
+        playRhythmCue('lethal_finale', { muted: hsAudio.getSettings().muted });
       }
       setOutcomeSummary(summary);
       setPostGameStep('SUMMARY');
@@ -2435,7 +2647,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         attackLockRef.current = false;
         // Story Mode Exclusive: If Kadan's Hero directly attacked, Silia immediately chains a random Windstorm Ultimate!
         if (mode === 'TUTORIAL' && side === 'PLAYER' && isHeroAttacker) {
-          const heroChainTier = Math.max(1, Math.floor(kadanMomentumRef.current / 10) || 1);
+          const heroChainTier = Math.max(1, kadanUltCastCountRef.current || 1);
           fireSiliaChainRef.current(heroChainTier);
         }
       }, 500);
@@ -7135,6 +7347,38 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       ? tr(`제${matchState.journeyMeta.episode}화 패배`, `Episode ${matchState.journeyMeta.episode} Defeat`)
                       : tr('패배', 'Defeat')}
                 </h2>
+                {(() => {
+                  const resGrade = gradeRhythmPerformance(
+                    Math.round(rhythmFeverPct / 12),
+                    Math.max(1, matchState.turnNumber),
+                  );
+                  return (
+                    <div
+                      data-testid="battle-rhythm-grade-bar"
+                      className="relative z-10 mt-1.5 flex flex-wrap items-center justify-center gap-2"
+                    >
+                      <span className="rounded-full border border-sky-400/50 bg-sky-950/75 px-3 py-0.5 text-[11px] font-extrabold text-sky-200">
+                        🎵 {isKo ? resGrade.summaryKo : resGrade.summaryEn}
+                      </span>
+                      {mode === 'TUTORIAL' &&
+                        matchState.journeyMeta &&
+                        matchState.journeyMeta.episode >= 1 && (
+                          <a
+                            href={`/book.html?ep=${matchState.journeyMeta.episode}&lang=${lang}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-testid="battle-result-novel-link"
+                            className="rounded-full border border-amber-400/55 bg-amber-950/75 px-3 py-0.5 text-[11px] font-extrabold text-amber-200 hover:bg-amber-900/80"
+                          >
+                            {tr(
+                              `📜 제${matchState.journeyMeta.episode}화 원작 웹소설 읽기`,
+                              `📜 Read EP.${matchState.journeyMeta.episode} Original Novel`,
+                            )}
+                          </a>
+                        )}
+                    </div>
+                  );
+                })()}
 
                 <p className="relative z-10 mt-1 text-xs font-bold text-amber-200/90">
                   {didWin
@@ -7726,12 +7970,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         />
       )}
 
-      {/* Kadan X10/X20 Blizzard Instant Ultimate Cut-In (Zero TTS Reading · Immediate Speech + Screen Shake + Blizzard Storm!) */}
+      {/* Kadan X100 Blizzard Instant Ultimate Cut-In (Zero TTS Reading · Immediate Speech + Screen Shake + Blizzard Storm!) */}
       {kadanUltCutIn && (() => {
         const tier = Math.max(1, Math.min(8, kadanUltCutIn.stackTier));
-        const stackNum = kadanUltCutIn.stackCount || tier * 10;
-        const aoeDmg = 2 * tier;
-        const armorGain = 3 * tier;
+        const stackNum = kadanUltCutIn.stackCount || 100;
+        const aoeDmg = 5 * tier;
+        const armorGain = 6 * tier;
+        const buffStat = 2 * tier;
         const skillName =
           tier === 1
             ? tr('혹한 눈보라 폭풍', 'Glacial Blizzard Storm')
@@ -7741,21 +7986,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         const kadanSpeech =
           tier === 1
             ? tr(
-                `모두 얼어붙어라! X${stackNum} 혹한 눈보라 폭풍으로 적진을 휩쓸어라!`,
-                `Freeze everything! Sweep their ranks with X${stackNum} Glacial Blizzard Storm!`,
+                `기세 100 폭발! 모두 얼어붙어라, 혹한 눈보라 폭풍으로 적진을 휩쓸어라!!`,
+                `Spirit 100 ERUPT! Freeze everything with Glacial Blizzard Storm!!`,
               )
             : tier === 2
               ? tr(
-                  `카단의 기세 X${stackNum} 폭발! 절대영도 빙하참, 심연을 얼려라!`,
-                  `Kadan's Spirit X${stackNum}! Absolute Zero Cleave—freeze the abyss!`,
+                  `카단의 기세 100 재각성! 절대영도 빙하참, 심연을 얼려라!!`,
+                  `Kadan's Spirit 100 Re-Awakened! Absolute Zero Cleave—freeze the abyss!!`,
                 )
               : tr(
-                  `이것이 눈히어로의 진정한 눈보라다! X${stackNum} 창성 대눈보라 심판 작렬!!`,
-                  `Witness the true Blizzard of SNSHero! X${stackNum} Genesis Blizzard—ERUPT!!`,
+                  `이것이 눈히어로의 진정한 눈보라다! 창성 대눈보라 심판 작렬!!`,
+                  `Witness the true Blizzard of SNSHero! Genesis Blizzard—ERUPT!!`,
                 );
         const effectTag = tr(
-          `❄️ 눈보라 적 전체·영웅 -${aoeDmg} · 방어도 +${armorGain} · 아군 +${tier}/+${tier}${tier >= 2 ? '·보호막' : ''}`,
-          `❄️ Blizzard -${aoeDmg} All Enemies · +${armorGain} Armor · Allies +${tier}/+${tier}${tier >= 2 ? '·Shield' : ''}`,
+          `❄️ 눈보라 적 전체·영웅 -${aoeDmg} · 방어도 +${armorGain} · 아군 +${buffStat}/+${buffStat}·보호막`,
+          `❄️ Blizzard -${aoeDmg} All Enemies · +${armorGain} Armor · Allies +${buffStat}/+${buffStat}·Shield`,
         );
         return (
           <div
@@ -7889,6 +8134,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             onToggleSpeed2x={() => setAutoSpeed2x((v) => !v)}
             isBossParryReady={isBossParryReady}
             kadanMomentumCount={kadanMomentumCount}
+            spiritPhase={kadanSpiritPhase}
             rhythmFlash={rhythmFlash}
             onTap={handleRhythmOrbTap}
           />

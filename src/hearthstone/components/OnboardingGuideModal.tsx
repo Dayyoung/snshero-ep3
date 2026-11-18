@@ -93,18 +93,18 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
     step: 4,
     shortLabelKo: '카단의 기세',
     shortLabelEn: 'Kadan Spirit',
-    badgeKo: 'STEP 4 · 스토리 전용 카단의 기세 (연타 +1 · 타이밍 +10)',
-    badgeEn: "STEP 4 · STORY-EXCLUSIVE KADAN'S SPIRIT (MASH +1 · BEAT +10)",
-    titleKo: '스토리 자동플레이 [카단의 기세] — 마구 연타 +1 · 초록 정박 +10 필살기!',
-    titleEn: "Story Auto-Play [Kadan's Spirit]: Mash +1 or Green Beat +10 Ultimate!",
+    badgeKo: 'STEP 4 · 스토리 전용 카단의 기세 (100 충전 → 🔥불꽃 필살기)',
+    badgeEn: "STEP 4 · STORY-EXCLUSIVE KADAN'S SPIRIT (100 CHARGE → 🔥BLAZING ULT)",
+    titleKo: '스토리 자동플레이 [카단의 기세] — 100 충전 후 불타오른 버튼 탭 → 필살기 작렬!',
+    titleEn: "Story Auto-Play [Kadan's Spirit]: Charge to 100 → Tap Blazing Orb to Unleash!",
     descKo:
-      '스토리 모드에서 자동플레이를 켜면 실리아와 카단 사이 하단 중앙에 [카단의 기세] 링이 열립니다. 마구 눌러도 +1씩 기세가 쌓이고, 링이 초록색(TAP+10) 타이밍에 맞춰 터치(또는 Space 키)하면 한 번에 +10씩 쌓여 즉시 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다!',
+      '스토리 모드 자동플레이 중 실리아와 카단 사이 하단 중앙에 [카단의 기세] 링이 열립니다. 마구 눌러 +1씩 쌓거나 초록 링(TAP+10) 타이밍에 눌러 +10씩 채워 기세 100을 달성하면, 기세 버튼이 활활 불타오르며 1초간 점화(클릭 중지)된 뒤 [🔥 필살기!] 버튼으로 변합니다. 1초 후 불타는 버튼을 누르면 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다!',
     descEn:
-      "In Story Mode Auto-Play, the [Kadan's Spirit] ring opens at bottom-center between Silia and Kadan. Rapidly mash at any time for +1 stack per tap, or tap right on the GREEN (TAP+10) beat for +10 stacks at once—every 10-multiple (X10·X20·X30…) fires Kadan's Blizzard + Silia's Windstorm Ultimates!",
+      "In Story Mode Auto-Play, mash (+1) or tap on the GREEN beat (+10) to fill [Kadan's Spirit] to 100! At 100, the orb bursts into flames and locks clicks for 1 second while igniting—then tap the blazing [🔥 FIRE!] orb (or Spacebar) to unleash Kadan's Blizzard + Silia's Windstorm Ultimates!",
     tipKo:
-      '스토리 모드 전용: [카단의 기세]는 스토리 여정 전용 각성 시스템이며, 랭킹·일반·연습·도박장 모드에서는 공정한 승부를 위해 비활성화됩니다.',
+      '스토리 모드 전용: 100 도달 시 1초 점화 잠금 덕분에 연타 중 실수로 발동되지 않으며, 원하는 순간 직접 터치해 필살기를 터뜨릴 수 있습니다.',
     tipEn:
-      "Story Mode Exclusive: [Kadan's Spirit] is exclusive to Story Journey and disabled in Ranked, Casual, Practice, and Bogart modes for fair play.",
+      "Story Mode Exclusive: The 1-second flame ignition lock at 100 prevents accidental misfires while mashing, letting you unleash the Ultimate on command!",
     imageUrlKo: '/hs-assets/guide/guide_04_combat_ult.webp',
     imageUrlEn: '/hs-assets/guide/guide_en_04_combat_ult.webp',
   },
@@ -280,34 +280,34 @@ export const HowToPlayCarousel: React.FC<{
             >
               <div className="rounded-xl border border-emerald-400/45 bg-black/50 px-2.5 py-2">
                 <div className="text-[11px] font-black text-emerald-300">
-                  {tr('① ⚡ 마구 연타(+1) · 초록 정박(+10)', '① ⚡ Mash (+1) · Green Beat (+10)')}
+                  {tr('① ⚡ 연타(+1) · 초록 정박(+10) → 100', '① ⚡ Mash (+1) · Green (+10) → 100')}
                 </div>
                 <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
                   {tr(
-                    '아무 때나 마구 눌러도 +1씩 쌓이고, 초록 링(TAP+10) 타이밍에 누르면 단번에 +10이 쌓입니다!',
-                    'Mash anytime for +1 per tap, or hit right on the GREEN (TAP+10) beat for +10 at once!',
+                    '마구 눌러 +1씩 채우거나 초록 링(TAP+10) 정박에 맞춰 +10씩 빠르게 100까지 충전합니다.',
+                    'Mash anytime for +1 or hit GREEN (TAP+10) for +10 to rapidly charge up to 100.',
                   )}
                 </div>
               </div>
-              <div className="rounded-xl border border-sky-400/45 bg-black/50 px-2.5 py-2">
-                <div className="text-[11px] font-black text-sky-300">
-                  {tr('② 📖 스토리 모드 전용 각성', '② 📖 Story Mode Exclusive')}
+              <div className="rounded-xl border border-orange-400/55 bg-black/50 px-2.5 py-2">
+                <div className="text-[11px] font-black text-orange-300">
+                  {tr('② 🔥 100 달성! 불꽃 점화 & 1초 대기', '② 🔥 100 MAX! Flame & 1s Lock')}
                 </div>
                 <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
                   {tr(
-                    '[카단의 기세]는 스토리 여정 전용이며, 정박 적중 시 매 턴 방어도·공격력 공명 보너스도 부여됩니다.',
-                    "Exclusive to Story Journey—on-beat hits also grant per-turn Armor & Attack resonance.",
+                    '기세가 100이 되면 버튼이 활활 불타오르며 1초 동안 클릭이 중지되어 오작동을 막아줍니다.',
+                    'Reaching 100 engulfs the orb in flames and pauses clicks for 1 second to prevent misfires.',
                   )}
                 </div>
               </div>
               <div className="rounded-xl border border-cyan-300/55 bg-sky-950/45 px-2.5 py-2">
                 <div className="text-[11px] font-black text-cyan-200">
-                  {tr('③ ❄️🌪 10배수 합동 필살기 작렬', '③ ❄️🌪 10x Dual Ultimate Combo')}
+                  {tr('③ ❄️🌪 1초 후 탭 → 합동 필살기 작렬!', '③ ❄️🌪 Tap After 1s → Dual Ult!')}
                 </div>
                 <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
                   {tr(
-                    '10배수(X10·X20·X30…) 돌파 시마다 배수 비례 [카단 눈보라] + [실리아 바람풍] 연속 필살기가 발동합니다!',
-                    'Crossing every 10-multiple (X10·X20·X30…) fires tier-scaled [Kadan Blizzard] + [Silia Windstorm]!',
+                    '1초 후 불타는 [🔥필살기!] 버튼을 누르면 카단 눈보라 + 실리아 바람풍 연속 필살기가 폭발합니다!',
+                    'After 1s, tap the blazing [🔥FIRE!] orb to unleash Kadan Blizzard + Silia Windstorm!',
                   )}
                 </div>
               </div>
@@ -418,10 +418,10 @@ export const QuickRulesModal: React.FC<QuickRulesModalProps> = ({
       ),
     },
     {
-      name: tr('🟢 카단의 기세 (스토리 전용 · 연타+1 / 정박+10)', "🟢 Kadan's Spirit (Story · Mash +1 / Beat +10)"),
+      name: tr('🔥 카단의 기세 (100 충전 · 불꽃 필살기)', "🔥 Kadan's Spirit (100 Charge · Blazing Ult)"),
       desc: tr(
-        '스토리 모드 자동플레이 전용! 마구 눌러도 +1씩 쌓이고 초록 링(TAP+10) 타이밍에 누르면 +10씩 쌓여, 10배수마다 카단 눈보라 + 실리아 바람풍 연속 필살기가 발동합니다!',
-        'Story Auto-Play exclusive! Mash anytime for +1 or tap on GREEN (TAP+10) for +10—every 10-multiple triggers Kadan Blizzard + Silia Windstorm!',
+        '스토리 자동플레이 전용! 연타(+1)·초록 정박(+10)으로 100을 채우면 버튼이 불타오르며 1초 점화 후, 다시 탭할 때 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다!',
+        'Story Auto-Play exclusive! Charge to 100 via mash (+1) or green beat (+10)—the orb blazes for 1s, then tap to unleash Kadan Blizzard + Silia Windstorm!',
       ),
     },
   ];

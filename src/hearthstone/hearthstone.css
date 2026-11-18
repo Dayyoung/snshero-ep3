@@ -690,3 +690,87 @@
 .hs-dragging-active * {
   cursor: grabbing !important;
 }
+
+/* Kadan's Spirit X100 Blazing Ignition & Ready Flame Animations */
+@keyframes hsSpiritFlameAura {
+  0%, 100% {
+    transform: scale(1) translateY(0px);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.16) translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes hsSpiritFlameFlickerA {
+  0%, 100% {
+    transform: scaleY(1) scaleX(1) skewX(-2deg);
+  }
+  35% {
+    transform: scaleY(1.18) scaleX(0.94) skewX(3deg);
+  }
+  70% {
+    transform: scaleY(0.93) scaleX(1.06) skewX(-3deg);
+  }
+}
+
+@keyframes hsSpiritFlameFlickerB {
+  0%, 100% {
+    transform: scaleY(1.06) scaleX(0.96) skewX(2deg);
+  }
+  45% {
+    transform: scaleY(0.9) scaleX(1.08) skewX(-4deg);
+  }
+  80% {
+    transform: scaleY(1.22) scaleX(0.92) skewX(3deg);
+  }
+}
+
+@keyframes hsSpiritEmberRise {
+  0% {
+    transform: translateY(4px) scale(0.9);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-28px) scale(0.35);
+    opacity: 0;
+  }
+}
+
+@keyframes hsSpiritIgniteSweep {
+  from {
+    stroke-dashoffset: 188.5;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.hs-spirit-flame-aura {
+  animation: hsSpiritFlameAura 0.55s ease-in-out infinite;
+}
+
+.hs-spirit-flame-a {
+  transform-origin: 50% 85%;
+  animation: hsSpiritFlameFlickerA 0.38s ease-in-out infinite;
+}
+
+.hs-spirit-flame-b {
+  transform-origin: 50% 85%;
+  animation: hsSpiritFlameFlickerB 0.44s ease-in-out infinite;
+}
+
+.hs-spirit-ember {
+  animation: hsSpiritEmberRise 0.85s ease-out infinite;
+}
+
+.hs-spirit-ignite-ring {
+  stroke-dasharray: 188.5;
+  stroke-dashoffset: 188.5;
+  animation: hsSpiritIgniteSweep 1s linear forwards;
+}
+

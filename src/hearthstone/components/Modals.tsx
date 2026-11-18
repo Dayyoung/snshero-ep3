@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { trackHeroEvent, trackHeroRewardedAdCompleted } from '../services/analyticsEvents';
+import { computeBluetoothSyncOffsetMs, playRhythmCue } from '../services/rhythmCueEngine';
 import { renderQrCodeSvg } from '../services/qrCodeSvg';
 import { requestRewardedGoldAd } from '../services/h5RewardedAds';
 import { AudioSettings, hsAudio } from '../audio';
@@ -2706,6 +2707,7 @@ export const GameOptionsModal: React.FC<{
   const [pasteCodeInput, setPasteCodeInput] = useState<string>('');
   const [mobileQrUrl, setMobileQrUrl] = useState<string | null>(null);
   const [mobileQrSvg, setMobileQrSvg] = useState<string | null>(null);
+  const [btSyncTaps, setBtSyncTaps] = useState<number[]>([]);
   const vibSupport = useMemo(() => hsAudio.getVibrationSupportInfo(), []);
 
   useEffect(() => {
@@ -3166,8 +3168,8 @@ export const GameOptionsModal: React.FC<{
                       </div>
                       <div className="text-[10px] text-amber-200/75">
                         {tr(
-                          '마구 연타 시 +1 · 초록 정박 탭 시 +10 (10배수마다 합동 필살기)',
-                          'Mash for +1 · Tap on GREEN for +10 (Dual Ultimate every 10x)',
+                          '연타 +1 · 초록 정박 +10 → 100 충전 후 불꽃 버튼 탭 시 합동 필살기',
+                          'Mash +1 · Green +10 → Charge 100 & tap blazing orb for Dual Ult',
                         )}
                       </div>
                     </div>
@@ -3194,13 +3196,35 @@ export const GameOptionsModal: React.FC<{
                     <input
                       type="range"
                       data-testid="rhythm-offset-slider"
-                      min={-100}
-                      max={100}
+                      min={-200}
+                      max={200}
                       step={5}
                       value={settings.rhythmOffsetMs || 0}
                       onChange={(e) => update({ rhythmOffsetMs: Number(e.target.value) || 0 })}
                       className="h-2 flex-1 cursor-pointer accent-amber-400"
                     />
+                    <button
+                      type="button"
+                      data-testid="rhythm-bt-sync-btn"
+                      onClick={() => {
+                        const now = performance.now();
+                        playRhythmCue('mulligan_count_1', { muted: settings.muted });
+                        const next = [...btSyncTaps, now].slice(-3);
+                        if (next.length >= 3) {
+                          const intervals = [next[1] - next[0], next[2] - next[1]];
+                          const offset = computeBluetoothSyncOffsetMs(intervals);
+                          update({ rhythmOffsetMs: offset });
+                          setBtSyncTaps([]);
+                        } else {
+                          setBtSyncTaps(next);
+                        }
+                      }}
+                      className="min-h-[34px] shrink-0 rounded-lg border border-sky-400/50 bg-sky-950/70 px-2 text-[10.5px] font-extrabold text-sky-200 hover:bg-sky-900"
+                    >
+                      {btSyncTaps.length > 0
+                        ? tr(`🎧 ${btSyncTaps.length}/3 탭`, `🎧 ${btSyncTaps.length}/3 Tap`)
+                        : tr('🎧 3탭 싱크', '🎧 3-Tap Sync')}
+                    </button>
                   </div>
                 </div>
               </div>

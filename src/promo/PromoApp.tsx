@@ -31,6 +31,7 @@ import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget
 import { HowToPlayCarousel } from '../hearthstone/components/OnboardingGuideModal';
 import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
 import { hsAudio } from '../hearthstone/audio';
+import { playFactionChord, playRhythmCue } from '../hearthstone/services/rhythmCueEngine';
 import { appendAttributionToGameUrl, trackHeroEvent } from '../hearthstone/services/analyticsEvents';
 import { hsStorage } from '../hearthstone/storage';
 import { resolveDialogueSpriteUrl } from '../hearthstone/storyEncounterData';
@@ -85,6 +86,7 @@ export const PromoApp: React.FC = () => {
   const [showAwakened3x, setShowAwakened3x] = useState(false);
   const [visibleLimit, setVisibleLimit] = useState(12);
   const [zoomedCard, setZoomedCard] = useState<ClassicCardDef | null>(null);
+  const [rhythmPreviewMsg, setRhythmPreviewMsg] = useState<string | null>(null);
 
   // Pre-Game Free Pack Modal & Ep.1 Mini Theater Modal
   const [promoPackModalOpen, setPromoPackModalOpen] = useState(false);
@@ -780,8 +782,8 @@ export const PromoApp: React.FC = () => {
                   icon: <Swords className="h-6 w-6 text-emerald-300" />,
                   title: tr('카단의 기세 & 합동 필살기', "Kadan's Spirit & Dual Ultimate"),
                   desc: tr(
-                    '스토리 자동플레이 중 연타(+1) 또는 초록 정박(+10)으로 10배수를 채우면 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다.',
-                    'In Story Auto-Play, mash (+1) or hit the green beat (+10) to trigger Kadan Blizzard + Silia Windstorm every 10x!',
+                    '스토리 자동플레이 중 연타(+1)·초록 정박(+10)으로 100을 채우고 불타오른 기세 버튼을 누르면 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다.',
+                    'In Story Auto-Play, charge to 100 via mash (+1) or green beat (+10), then tap the blazing orb to unleash Kadan Blizzard + Silia Windstorm!',
                   ),
                 },
                 {
@@ -1765,12 +1767,45 @@ export const PromoApp: React.FC = () => {
                   )}
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-5 flex flex-col gap-2.5">
+                  <button
+                    type="button"
+                    data-testid="promo-card-rhythm-test-btn"
+                    onClick={() => {
+                      const cls =
+                        zoomedCard.cardClass === 'NEUTRAL' || zoomedCard.cardClass === 'DREAM'
+                          ? 'PRIEST'
+                          : zoomedCard.cardClass;
+                      playFactionChord(cls as any, false);
+                      playRhythmCue('awakening_3x_trill', { muted: false });
+                      setRhythmPreviewMsg(
+                        tr(
+                          '🎵 1.5x·2.0x 오카리나 정박 공명 완료!',
+                          '🎵 1.5x·2.0x Ocarina Beat Resonance Triggered!',
+                        ),
+                      );
+                      window.setTimeout(() => setRhythmPreviewMsg(null), 2200);
+                    }}
+                    className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-emerald-400/50 bg-emerald-950/75 px-4 py-2.5 text-sm font-extrabold text-emerald-100 transition hover:bg-emerald-900/80"
+                  >
+                    <span>
+                      {rhythmPreviewMsg ||
+                        tr('🎵 1.5x·2.0x 리듬 공명 시험', '🎵 Test 1.5x·2.0x Rhythm Resonance')}
+                    </span>
+                  </button>
                   <a
-                    href={`/game?faction=${zoomedCard.cardClass === 'NEUTRAL' || zoomedCard.cardClass === 'DREAM' ? 'PRIEST' : zoomedCard.cardClass}`}
+                    data-testid="promo-card-deck-focus-cta"
+                    href={appendAttributionToGameUrl(
+                      `/game?deck_focus=${encodeURIComponent(zoomedCard.id)}&rhythm=on`,
+                    )}
                     className="hs-promo-cta-purple inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-extrabold"
                   >
-                    <span>{tr('이 종족으로 플레이 →', 'Play With This Faction →')}</span>
+                    <span>
+                      {tr(
+                        '⚔️ 이 카드 주력 덱으로 즉시 출격 →',
+                        '⚔️ Launch With This Card Deck →',
+                      )}
+                    </span>
                   </a>
                 </div>
               </div>

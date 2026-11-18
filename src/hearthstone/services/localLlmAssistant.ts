@@ -127,7 +127,7 @@ function buildSystemPrompt(opts: {
       '규칙 요약: 총 382장 카드(9종족 × 25장 + 중립 157장), 40화 풀보이스 스토리모드, 1배수 공정 랭킹전, 9종족 AI대전.',
       '핵심 성장: 스토리모드 전용 [3장=3배 각성] 법칙 (동일 카드 3장 보유 시 공격력/생명력 3배, N환생 시 추가 비례 상승). 팩 천장: 10팩마다 24K 전설 100% 확정.',
       '동료 스킬: 좌측 하단 요정 실리아 3등신 필살기(바람 결계 보호막/스탯 버프, 녹풍 참격 광역 피해, 생명의 미풍 회복/방어도 — 환생할수록 강화).',
-      '스토리 전용 [카단의 기세]: 스토리 모드 자동플레이 ON 시 실리아와 카단 사이 하단 중앙에 BGM 맥박과 동기화된 [카단의 기세] 수축 링이 표시됨(랭킹/연습/도박장 모드에서는 비활성). 마구 연타하면 +1씩 쌓이고, 초록색(TAP+10) 타이밍에 맞춰 터치(또는 Space 키)하면 한 번에 +10이 쌓임. 10배수(X10, X20, X30…) 돌파 시마다 카단의 눈보라 광역 필살기가 발동하고 직후 실리아의 무작위 바람풍 필살기가 연속 발동함.',
+      '스토리 전용 [카단의 기세]: 스토리 모드 자동플레이 ON 시 실리아와 카단 사이 하단 중앙에 [카단의 기세] 수축 링이 표시됨(랭킹/연습/도박장 비활성). 마구 연타하면 +1씩, 초록색(TAP+10) 정박 타이밍에 터치(또는 Space)하면 +10씩 쌓여 100까지 충전됨. 100 도달 시 기세 버튼이 활활 불타오르며 1초 동안 클릭이 중지되고, 1초 후 불타는 버튼을 누르면 카단 눈보라 광역 필살기 + 실리아 무작위 바람풍 연속 필살기가 작렬함.',
       '유저의 질문에 친절하고 간결하게 2~4문장 이내의 한국어로 답하세요.',
       `현재 상태: 화면=${screen}, 골드=${profile.gold}G, 가루=${profile.arcaneDust}, 보유팩=${profile.packs}, 여정=${profile.journeyEpisode}화(환생 ${profile.journeyReincarnation}회), 카단전술=${tacticalStance}. ${battleSummary}`,
     ].join('\n');
@@ -136,7 +136,7 @@ function buildSystemPrompt(opts: {
   return [
     'You are Paladin Kadan, the helpful on-device AI guide inside the web card battle game SNSHero.',
     'Game facts: 382 collectible cards (9 factions x 25 + 157 neutral), 40-episode full-voice Story Mode, fair 1x Ranked Mode, 9-Faction AI Practice.',
-    'Core systems: Story Mode [3 Copies = 3x Power] awakening rule (NG+ Reincarnation scales stats further), Guaranteed Legendary within 10 card packs, bottom-left Chibi Silia Ultimate Skills (Wind Barrier, Gale Slash, Vital Breeze scaling with Reincarnation), and Story-exclusive Auto-Play [Kadan\'s Spirit] beat ring at bottom-center (mash anytime for +1 stack per tap, or tap on GREEN / Spacebar for +10 stacks at once; crossing every 10-multiple X10/X20 triggers Kadan\'s Blizzard Ultimate followed immediately by Silia\'s random Windstorm Ultimate).',
+    'Core systems: Story Mode [3 Copies = 3x Power] awakening rule (NG+ Reincarnation scales stats further), Guaranteed Legendary within 10 card packs, bottom-left Chibi Silia Ultimate Skills (Wind Barrier, Gale Slash, Vital Breeze scaling with Reincarnation), and Story-exclusive Auto-Play [Kadan\'s Spirit] beat ring at bottom-center (mash for +1 or tap on GREEN for +10 up to 100; at 100 the orb bursts into flames and locks clicks for 1 second, after which tapping the blazing orb unleashes Kadan\'s Blizzard Ultimate + Silia\'s random Windstorm Ultimate).',
     'Answer concisely in 2-4 friendly English sentences.',
     `Live context: Screen=${screen}, Gold=${profile.gold}G, Dust=${profile.arcaneDust}, Packs=${profile.packs}, Story=EP.${profile.journeyEpisode}(NG+${profile.journeyReincarnation}), Stance=${tacticalStance}. ${battleSummary}`,
   ].join('\n');
@@ -154,10 +154,10 @@ function answerWithBuiltInSnsHeroKnowledge(
   const { isKo, profile, battleSnapshot } = opts;
   const q = question.toLowerCase();
 
-  if (/기세|정박|링|스택|x10|x20|초록|빨강|눈보라|리듬|박자|연타|spirit|rhythm|ring|stack|blizzard|green|mash/i.test(q)) {
+  if (/기세|정박|링|스택|100|초록|빨강|눈보라|리듬|박자|연타|불|점화|spirit|rhythm|ring|stack|blizzard|green|mash|flame/i.test(q)) {
     return isKo
-      ? `[카단의 기세]는 스토리 모드 자동플레이 전용 각성 시스템입니다! 실리아와 저 사이 하단 중앙 링을 마구 눌러도 +1씩 쌓이고, 🟢 초록색(TAP+10) 정박 타이밍에 맞춰 누르면 한 번에 +10이 쌓여 10배수(X10·X20·X30…)마다 제 눈보라 광역 필살기와 실리아의 바람풍 필살기가 연속으로 작렬합니다!`
-      : `[Kadan's Spirit] is exclusive to Story Mode Auto-Play! Mash the bottom-center ring anytime for +1 stack per tap, or hit right on GREEN (TAP+10) for +10 stacks at once—crossing every 10-multiple (X10·X20·X30…) unleashes my Blizzard Ultimate + Silia's Windstorm Ultimate back-to-back!`;
+      ? `[카단의 기세]는 스토리 모드 자동플레이 전용 필살기 게이지입니다! 마구 눌러 +1씩 채우거나 🟢 초록 정박(TAP+10)에 맞춰 +10씩 채워 100이 되면 기세 버튼이 활활 불타오르며 1초간 점화(클릭 잠금)되고, 1초 후 불타는 버튼을 누르면 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 작렬합니다!`
+      : `[Kadan's Spirit] is exclusive to Story Mode Auto-Play! Charge to 100 via mash (+1) or GREEN beat (+10)—at 100 the orb bursts into flames and pauses clicks for 1 second, then tap the blazing orb to unleash my Blizzard Ultimate + Silia's Windstorm Ultimate!`;
   }
 
   if (/실리아|필살기|바람|녹풍|결계|미풍|silia|ult|barrier|gale|breeze/i.test(q)) {

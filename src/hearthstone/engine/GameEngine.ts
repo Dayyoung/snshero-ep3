@@ -2600,10 +2600,10 @@ export function createEngine(rawState: BattleMatchState) {
   const useKadanMomentumUltimate = (stackTier: number): BattleMatchState => {
     if (state.phase !== 'PLAYING') return state;
     const tier = Math.max(1, Math.min(8, Math.floor(stackTier || 1)));
-    const stackNum = tier * 10;
-    const aoeDmg = 2 * tier;
-    const armorGain = 3 * tier;
-    const buffStat = tier;
+    const stackNum = 100;
+    const aoeDmg = 5 * tier;
+    const armorGain = 6 * tier;
+    const buffStat = 2 * tier;
 
     const skillTitleKo =
       tier === 1
@@ -2622,7 +2622,7 @@ export function createEngine(rawState: BattleMatchState) {
       'KADAN_SNS_ULTIMATE',
       'OPPONENT_HERO',
       'KADAN_WIDGET',
-      tier,
+      tier + 1,
       ko
         ? `❄️ 카단 눈보라 필살기 [X${stackNum} ${skillTitleKo}] · 적 전체 -${aoeDmg}!`
         : `❄️ Kadan Blizzard [X${stackNum} ${skillTitleEn}] · Enemies -${aoeDmg}!`,
@@ -2634,15 +2634,13 @@ export function createEngine(rawState: BattleMatchState) {
       fm.permAttack += buffStat;
       fm.maxHealth += buffStat;
       fm.health += buffStat;
-      if (tier >= 2) {
-        fm.divineShield = true;
-      }
+      fm.divineShield = true;
       pushVfx(
         'KADAN_SNS_ULTIMATE',
         fm.uid,
         'KADAN_WIDGET',
-        tier,
-        ko ? `❄️ +${buffStat}/+${buffStat}` : `❄️ +${buffStat}/+${buffStat}`,
+        tier + 1,
+        ko ? `❄️ +${buffStat}/+${buffStat}·보호막` : `❄️ +${buffStat}/+${buffStat}·Shield`,
       );
     }
     if (state.player.board.length > 0) {
@@ -2651,7 +2649,7 @@ export function createEngine(rawState: BattleMatchState) {
 
     const enemySnapshot = [...state.opponent.board];
     for (const em of enemySnapshot) {
-      pushVfx('KADAN_SNS_ULTIMATE', em.uid, 'KADAN_WIDGET', tier);
+      pushVfx('KADAN_SNS_ULTIMATE', em.uid, 'KADAN_WIDGET', tier + 1);
       dealDamage(em.uid, aoeDmg, 'PLAYER', undefined, 'KADAN_WIDGET');
     }
     dealDamage('OPPONENT_HERO', aoeDmg, 'PLAYER', undefined, 'KADAN_WIDGET');
@@ -2661,8 +2659,8 @@ export function createEngine(rawState: BattleMatchState) {
       cardId: 'HERO_09bp',
       title: ko ? `카단 눈보라 필살기 X${stackNum}` : `Kadan Blizzard X${stackNum}`,
       detail: ko
-        ? `[${skillTitleKo} X${stackNum}] 적 전체·영웅 -${aoeDmg} 눈보라 피해, 방어도 +${armorGain}, 아군 +${buffStat}/+${buffStat}${tier >= 2 ? '·보호막' : ''}`
-        : `[${skillTitleEn} X${stackNum}] Dealt ${aoeDmg} Blizzard damage to all enemies & Hero, +${armorGain} Armor, allies +${buffStat}/+${buffStat}${tier >= 2 ? ' + Shield' : ''}`,
+        ? `[${skillTitleKo} X${stackNum}] 적 전체·영웅 -${aoeDmg} 눈보라 피해, 방어도 +${armorGain}, 아군 +${buffStat}/+${buffStat}·보호막`
+        : `[${skillTitleEn} X${stackNum}] Dealt ${aoeDmg} Blizzard damage to all enemies & Hero, +${armorGain} Armor, allies +${buffStat}/+${buffStat} + Shield`,
       kind: 'HERO_POWER',
     });
 
