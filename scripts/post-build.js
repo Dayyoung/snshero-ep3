@@ -102,6 +102,7 @@ fs.writeFileSync(
     gtag('js', new Date());
     if (!/^(localhost|127\\.0\\.0\\.1|.*\\.ts\\.net)$/i.test(location.hostname) || /[?&]ga_debug=1\\b/.test(location.search)) {
       gtag('config', 'G-MT60DTV1KJ');
+      gtag('config', 'AW-980426001');
     }
   </script>
 </head>

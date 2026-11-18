@@ -3,9 +3,10 @@ import path from 'path';
 
 const SITE_ORIGIN = 'https://snshero.com';
 const GA_MEASUREMENT_ID = 'G-MT60DTV1KJ';
+const GOOGLE_ADS_ID = 'AW-980426001';
 const TODAY_ISO = '2026-11-18';
 
-const GA_HEAD_SNIPPET = `  <!-- Google tag (gtag.js) - GA4 snshero.com -->
+const GA_HEAD_SNIPPET = `  <!-- Google tag (gtag.js) - GA4 + Google Ads snshero.com -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -13,6 +14,7 @@ const GA_HEAD_SNIPPET = `  <!-- Google tag (gtag.js) - GA4 snshero.com -->
     gtag('js', new Date());
     if (!/^(localhost|127\\.0\\.0\\.1|.*\\.ts\\.net)$/i.test(location.hostname) || /[?&]ga_debug=1\\b/.test(location.search)) {
       gtag('config', '${GA_MEASUREMENT_ID}');
+      gtag('config', '${GOOGLE_ADS_ID}');
     }
   </script>`;
 

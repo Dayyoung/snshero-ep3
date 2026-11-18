@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 15:56 KST] [Google Ads 태그 `AW-980426001` 전역 gtag 스니펫 결합 연동 (푸시 대기)]
+- **요청**: Google Ads 계정(`3072359722`)의 Google 태그 ID(`AW-980426001`)를 `snshero.com` 전체 페이지에 연동해 `Google 태그 사용: 아직 설치되지 않음` 해소 및 직접 전환/리마케팅 측정 기반 구축
+- **수정 파일 (9종)**:
+  - `index.html`, `game.html`, `book.html`, `sns.html`, `webtoon.html`, `novel.html`, `public/wiki/tip/index.html`: 기존 `gtag('config', 'G-MT60DTV1KJ')` 스니펫 내부에 `gtag('config', 'AW-980426001');` 결합 추가 (`localhost`/`127.0.0.1`/`*.ts.net` 비전송 및 `?ga_debug=1` 디버그 정책 동일 적용)
+  - `scripts/post-build.js` (`/mcp` 정적 페이지 템플릿) 및 `scripts/generate-seo-pages.mjs` (192개 KO/EN SEO 페이지 공통 `GA_HEAD_SNIPPET`)에 `AW-980426001` config 동시 반영
+- **검증 결과**:
+  - `npx tsc --noEmit` 및 `npm run build` 통과 (`1777 modules transformed`, 192개 SEO 페이지 생성, `0` 에러)
+  - Playwright 검증(`1280×800`, `?ga_debug=1`): `/` 및 `/game.html?open=pack3&lang=ko` 모두 `dataLayer` 내 `['config', 'G-MT60DTV1KJ']` + `['config', 'AW-980426001']` 초기화 및 팩 개봉 시 `hero_pack_opened`, `hero_first_pack_opened` 발화 확인 (`errors: []`)
+- **상태**: 로컬 커밋 완료 (원격 푸시 보류) · 구글 폼 보고 완료
+
 ## [2026-11-18 15:19 KST] [Google Ads 퍼널 전환 이벤트 추적 + UTM/GCLID 보존 및 캠페인 플레이북 수립 (푸시 대기)]
 - **요청**: Google Ads(`3072359722`) 및 GA4(`properties/223457203` / `G-MT60DTV1KJ`) 실측 분석을 바탕으로 실효성 있는 Google Ads 캠페인/전환 정리 플레이북 수립 및 광고 퍼널 어트리뷰션·전환 이벤트 코드 구현
 - **수정 및 추가 파일**:
