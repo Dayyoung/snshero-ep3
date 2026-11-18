@@ -37,6 +37,15 @@ export function getCurrentLanguage(): HeroLanguage {
       // Ignore URL parse error
     }
   }
+  if (typeof window !== 'undefined' && window.location?.pathname) {
+    const p = window.location.pathname.toLowerCase();
+    if (p === '/en' || p.startsWith('/en/')) {
+      return 'en';
+    }
+    if (p === '/ko' || p.startsWith('/ko/')) {
+      return 'ko';
+    }
+  }
   if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') {
     try {
       const saved = localStorage.getItem(HERO_LANG_STORAGE_KEY);

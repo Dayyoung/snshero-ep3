@@ -40,13 +40,21 @@ const MIME_TYPES: Record<string, string> = {
 
 const MPA_REWRITES: Record<string, string> = {
   '/': '/index.html',
+  '/en': '/en/index.html',
   '/game': '/game.html',
+  '/en/game': '/en/game/index.html',
   '/stone': '/stone.html',
   '/book': '/book.html',
+  '/en/book': '/en/book/index.html',
   '/novel': '/novel.html',
   '/webtoon': '/webtoon.html',
+  '/en/webtoon': '/en/webtoon/index.html',
   '/sns': '/sns.html',
+  '/en/sns': '/en/sns/index.html',
   '/wiki/tip': '/wiki/tip/index.html',
+  '/en/wiki/tip': '/en/wiki/tip/index.html',
+  '/wiki/cards': '/wiki/cards/index.html',
+  '/en/wiki/cards': '/en/wiki/cards/index.html',
 };
 
 const PROMO_REDIRECT_PATHS = new Set([
@@ -69,15 +77,53 @@ function mpaRewriteMiddleware(req: any, res: any, next: any) {
     return;
   }
   if (
+    cleanNormalized === '/home' ||
+    cleanNormalized.startsWith('/home/') ||
+    cleanNormalized === '/main' ||
+    cleanNormalized.startsWith('/main/') ||
     cleanNormalized === '/reddit' ||
     cleanNormalized.startsWith('/reddit/') ||
+    cleanNormalized.startsWith('/r/') ||
     cleanNormalized === '/wiki' ||
-    (cleanNormalized.startsWith('/wiki/') && cleanNormalized !== '/wiki/tip') ||
     cleanNormalized === '/bench' ||
     cleanNormalized.startsWith('/bench/')
   ) {
     res.statusCode = 301;
     res.setHeader('Location', `/${query}`);
+    res.end();
+    return;
+  }
+  if (
+    cleanNormalized === '/play' ||
+    cleanNormalized.startsWith('/play/') ||
+    cleanNormalized === '/card-play' ||
+    cleanNormalized.startsWith('/card-play/') ||
+    cleanNormalized === '/ranking' ||
+    cleanNormalized.startsWith('/ranking/') ||
+    cleanNormalized === '/setting' ||
+    cleanNormalized.startsWith('/setting/')
+  ) {
+    res.statusCode = 301;
+    res.setHeader('Location', `/game${query}`);
+    res.end();
+    return;
+  }
+  if (cleanNormalized === '/deck' || cleanNormalized.startsWith('/deck/')) {
+    res.statusCode = 301;
+    res.setHeader('Location', `/game?open=collection${search ? `&${search}` : ''}`);
+    res.end();
+    return;
+  }
+  if (
+    cleanNormalized === '/animation' ||
+    cleanNormalized.startsWith('/animation/') ||
+    cleanNormalized === '/cinema' ||
+    cleanNormalized.startsWith('/cinema/') ||
+    cleanNormalized === '/movie' ||
+    cleanNormalized.startsWith('/movie/')
+  ) {
+    res.statusCode = 301;
+    res.setHeader('Location', `/webtoon${query}`);
     res.end();
     return;
   }
@@ -87,8 +133,37 @@ function mpaRewriteMiddleware(req: any, res: any, next: any) {
     res.end();
     return;
   }
+  if (/^\/(?:en\/)?book\/ep-\d+$/.test(cleanNormalized)) {
+    const distTarget = path.join(process.cwd(), 'dist', cleanNormalized.slice(1), 'index.html');
+    req.url = fs.existsSync(distTarget) ? `${cleanNormalized}/index.html${query}` : `/book.html${query}`;
+    return next();
+  }
+  if (/^\/(?:en\/)?webtoon\/ep-\d+$/.test(cleanNormalized)) {
+    const distTarget = path.join(process.cwd(), 'dist', cleanNormalized.slice(1), 'index.html');
+    req.url = fs.existsSync(distTarget) ? `${cleanNormalized}/index.html${query}` : `/webtoon.html${query}`;
+    return next();
+  }
+  if (/^\/(?:en\/)?wiki\/faction-[a-z0-9-]+$/.test(cleanNormalized)) {
+    req.url = `${cleanNormalized}/index.html${query}`;
+    return next();
+  }
   if (MPA_REWRITES[cleanNormalized]) {
-    req.url = `${MPA_REWRITES[cleanNormalized]}${query}`;
+    const target = MPA_REWRITES[cleanNormalized];
+    if (target.startsWith('/en/') && !fs.existsSync(path.join(process.cwd(), 'dist', target.slice(1)))) {
+      // Dev fallback when dist/en/* hasn't been built yet
+      const devMap: Record<string, string> = {
+        '/en': '/index.html',
+        '/en/game': '/game.html',
+        '/en/book': '/book.html',
+        '/en/webtoon': '/webtoon.html',
+        '/en/sns': '/sns.html',
+      };
+      if (devMap[cleanNormalized]) {
+        req.url = `${devMap[cleanNormalized]}${query}`;
+        return next();
+      }
+    }
+    req.url = `${target}${query}`;
   }
   next();
 }

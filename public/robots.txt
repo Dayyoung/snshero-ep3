@@ -6,11 +6,12 @@
 
 User-agent: *
 Allow: /
+Allow: /en
 Allow: /game
 Allow: /book
 Allow: /webtoon
 Allow: /sns
-Allow: /wiki/tip
+Allow: /wiki/
 Allow: /llms.txt
 Allow: /llms-full.txt
 Disallow: /game.html
@@ -22,20 +23,17 @@ Disallow: /promo
 Disallow: /promo.html
 Disallow: /promotion
 Disallow: /promotion.html
-Disallow: /reddit
-Disallow: /shop
-Disallow: /bench
-Disallow: /setting
 Disallow: /*?lang=*
 Disallow: /test/
 
 User-agent: Googlebot
 Allow: /
+Allow: /en
 Allow: /game
 Allow: /book
 Allow: /webtoon
 Allow: /sns
-Allow: /wiki/tip
+Allow: /wiki/
 Disallow: /game.html
 Disallow: /stone
 Disallow: /stone.html
@@ -45,9 +43,6 @@ Disallow: /promo
 Disallow: /promo.html
 Disallow: /promotion
 Disallow: /promotion.html
-Disallow: /reddit
-Disallow: /shop
-Disallow: /bench
 
 User-agent: Mediapartners-Google
 Allow: /

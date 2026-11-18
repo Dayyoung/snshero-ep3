@@ -73,7 +73,12 @@ export function setBookEpisode(ep: number, updateUrl: boolean = true): void {
     try {
       const url = new URL(window.location.href);
       url.hash = '';
-      url.searchParams.set('ep', String(currentBookEpisode));
+      if (/\/(?:book|novel)\/ep-\d+\/?$/i.test(url.pathname)) {
+        url.pathname = url.pathname.replace(/\/ep-\d+\/?$/i, `/ep-${currentBookEpisode}`);
+        url.searchParams.delete('ep');
+      } else {
+        url.searchParams.set('ep', String(currentBookEpisode));
+      }
       window.history.replaceState({ view: 'book', ep: currentBookEpisode }, '', url.toString());
     } catch {
       // Ignore if URL replacement fails in sandbox
@@ -86,9 +91,10 @@ let savedResumeEpisodeNotice: number | null = null;
 
 export function initBookEpisodeFromUrl(): void {
   if (typeof window === 'undefined') return;
+  const pathMatch = (window.location.pathname || '').match(/\/(?:book|novel)\/ep-(\d+)/i);
   const searchMatch = (window.location.search || '').match(/[?&]ep=(\d+)/);
   const hashMatch = (window.location.hash || '').match(/ep=(\d+)/);
-  const match = searchMatch || hashMatch;
+  const match = pathMatch || searchMatch || hashMatch;
   if (match && match[1]) {
     const epNum = parseInt(match[1], 10);
     if (!isNaN(epNum) && epNum >= 1 && epNum <= 40) {

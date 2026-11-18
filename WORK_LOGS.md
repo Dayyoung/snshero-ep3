@@ -2,6 +2,17 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 12:13 KST] [구글 기색인 구 URL `404` 누수 100% 복구 및 한·영 192개 페이지 프로그래매틱 SEO(`sitemap.xml` 32배 확장) 구현]
+- **요청 및 개선 내역**:
+  1. **GA4 상위 유입 구 URL(`890+ 세션` 규모) `404` 누수 차단 (`scripts/generate-seo-pages.mjs`, `scripts/post-build.js`, `vite.config.ts`)**:
+     - `/home`, `/main` → `/`, `/play`, `/card-play`, `/ranking`, `/setting` → `/game`, `/deck` → `/game?open=collection`, `/shop` → `/game?open=shop`, `/animation`, `/cinema`, `/movie` → `/webtoon`에 대해 정적 `HTTP 200` `canonical` 리다이렉트 페이지(UTM 쿼리 보존 · GA4 포함)와 `404.html` 서브경로 라우터 및 Vite 미들웨어를 전수 구현.
+  2. **프로그래매틱 SEO 자동 생성기로 검색 노출 입구 `6개 → 192개` 한·영 정적 URL 확장 (`scripts/generate-seo-pages.mjs`, `public/sitemap.xml`, `public/robots.txt`, `public/llms.txt`)**:
+     - **영문 전용 클린 경로 허브(`/en`, `/en/game`, `/en/book`, `/en/webtoon`, `/en/sns`, `/en/wiki/tip`)**: 기존 `robots.txt`의 `/*?lang=*` 차단 제약을 해결하고 영문 고유 `<title>`, `description`, `VideoGame`/`Article` JSON-LD, 양방향 `hreflang="ko|en|x-default"` 태그를 탑재 (`src/i18n/heroLang.ts`에서 `/en/*` 자동 언어 감지 연동).
+     - **웹소설 40화 & 보이스 웹툰 40화 한·영 개별 회차 정적 페이지(`160개`: `/book/ep-1..40`, `/en/book/ep-1..40`, `/webtoon/ep-1..40`, `/en/webtoon/ep-1..40`)**: 실제 에피소드 원문 발췌·컷 수·대사 프리뷰·`Chapter`/`ComicIssue` JSON-LD·보스전 직행 CTA(`/game?mode=story&ep=N`)와 풀 인터랙티브 리더(`BookSection.tsx`, `WebtoonSection.tsx`, `bookMain.ts`, `webtoonMain.ts`)를 단일 URL에서 동시 렌더링.
+     - **382종 카드 전체 도감 & 9대 종족 덱 공략 한·영 페이지(`20개`: `/wiki/cards`, `/wiki/faction-*`, `/en/wiki/*`)**: 382장 카드 동결 원칙을 준수하며 `classic-cards.json` 기반으로 종족별 수호자 능력·전용 25장 전수 도감·전략 가이드를 모바일 퍼스트(`46px+` 터치 타깃)로 자동 생성.
+- **빌드 & 한·영 E2E 검증**: `npx tsc --noEmit && npm run build` 통과, 192개 전 URL 고유 `<title>`·`hreflang`·`G-MT60DTV1KJ` 정적 감사 통과, Playwright 한국어·영어 모바일(`390×844`) 및 데스크톱(`1280×800`) 리다이렉트·가로 스크롤 `0`·영문 한글 잔존 `0` 검증 통과.
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(`git push` 미실행 · 수동 푸시 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-18 12:08 KST] [황금 주화 교환소(`Gold Exchange`) 전면 개편(골드 보물상자·스튜디오 일러스트) 및 카드 뒷면 교환소 통합·유료 판매 전환]
 - **요청 및 개선 내역**:
   1. **복잡했던 황금 주화 교환소 UI 단순화 및 고매력 골드 보물상자 4종 도입 (`src/hearthstone/components/Modals.tsx`, `src/hearthstone/storage.ts`, `src/hearthstone/types.ts`)**:

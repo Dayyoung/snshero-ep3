@@ -18,6 +18,11 @@
 - **핵심 메커니즘**: 스토리모드(카단의 여정) 전용 `3장=3배 각성` (하수인·무기 3장 이상, 전설 2장 이상 보유 시 공격력·생명력 보유 장수 배수 폭증) · 200트랙 한국어 성우 풀보이스 내레이션 · 40화 완주 후 무한 환생 모드
 - **저장 방식**: 브라우저 로컬스토리지(`hero_hs_*`) 100% 영구 보존 · JSON 백업 및 QR 3초 모바일 복원 지원
 
-## 상세 문서
+## 상세 문서 & 다국어 아카이브 (Programmatic SEO & Bilingual Hubs)
+- [영문 공식 쇼케이스 (/en)](https://snshero.com/en) · [영문 본 게임 (/en/game)](https://snshero.com/en/game) · [영문 AI 벤치마크 (/en/sns)](https://snshero.com/en/sns)
+- [382종 전체 카드 도감 (/wiki/cards)](https://snshero.com/wiki/cards) · [382-Card English Codex (/en/wiki/cards)](https://snshero.com/en/wiki/cards)
+- [공식 공략 가이드 (/wiki/tip)](https://snshero.com/wiki/tip) · [English Strategy Guide (/en/wiki/tip)](https://snshero.com/en/wiki/tip)
+- 9대 종족 덱 공략: `/wiki/faction-human`, `/wiki/faction-water`, `/wiki/faction-fire`, `/wiki/faction-wind`, `/wiki/faction-earth`, `/wiki/faction-undead`, `/wiki/faction-elf`, `/wiki/faction-dwarf`, `/wiki/faction-beast` (영문 `/en/wiki/faction-*`)
+- 40부작 웹소설 & 웹툰 개별 회차: `/book/ep-1` ~ `/book/ep-40` · `/webtoon/ep-1` ~ `/webtoon/ep-40` (영문 `/en/book/ep-1..40` · `/en/webtoon/ep-1..40`)
 - [전체 지식 베이스 (llms-full.txt)](https://snshero.com/llms-full.txt)
 - [사이트맵 (sitemap.xml)](https://snshero.com/sitemap.xml)

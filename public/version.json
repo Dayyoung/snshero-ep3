@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0-1794971317878",
-  "buildTime": "2026-11-18T03:08:37.878Z",
-  "buildTimestamp": 1794971317878,
+  "version": "2.1.0-1794971499749",
+  "buildTime": "2026-11-18T03:11:39.749Z",
+  "buildTimestamp": 1794971499749,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
-  "entryScript": "/assets/game-CoJMCAYt-v2.js"
+  "entryScript": "/assets/game-DGOhK1W1-v2.js"
 }

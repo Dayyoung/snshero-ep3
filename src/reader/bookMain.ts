@@ -1,4 +1,5 @@
 import './styles.css';
+import episodesSchema from '../content/episodes.json';
 import { getCurrentLanguage, setLanguage, SupportedLanguage, tr } from './i18n';
 import { renderReaderHeader, renderReaderFooter, toggleReaderMobileMenu, closeReaderMobileMenu, ensureReaderContentMount } from './ReaderChrome';
 import {
@@ -6,15 +7,31 @@ import {
   handleBookAction,
   isBookIndexOpen,
   closeBookIndex,
+  getBookEpisode,
+  initBookEpisodeFromUrl,
 } from './BookSection';
+
+initBookEpisodeFromUrl();
 
 function renderApp(): void {
   if (typeof document !== 'undefined') {
     document.documentElement.lang = getCurrentLanguage();
-    document.title = tr(
-      '눈히어로 공식 웹소설 — 카단의 여정 (40부작) | SNSHero.com',
-      "SNSHero Official Web Novel — Kadan's Journey (40 Episodes) | SNSHero.com"
-    );
+    const ep = getBookEpisode();
+    const epMeta = episodesSchema.find((x) => x.ep === ep);
+    const hasExplicitEp =
+      /\/(?:book|novel)\/ep-\d+/i.test(window.location.pathname) ||
+      /[?&]ep=\d+/.test(window.location.search);
+    if (epMeta && (hasExplicitEp || ep > 1)) {
+      document.title = tr(
+        `제${ep}화 ${epMeta.titleKo} — 눈히어로 공식 웹소설 카단의 여정 | SNSHero.com`,
+        `Episode ${ep}: ${epMeta.titleEn} — SNSHero Official Web Novel | SNSHero.com`,
+      );
+    } else {
+      document.title = tr(
+        '눈히어로 공식 웹소설 — 카단의 여정 (40부작) | SNSHero.com',
+        "SNSHero Official Web Novel — Kadan's Journey (40 Episodes) | SNSHero.com",
+      );
+    }
   }
   const root = ensureReaderContentMount('book');
   if (!root) return;

@@ -77,7 +77,12 @@ export function setWebtoonEpisodeNum(ep: number, updateUrl: boolean = true): voi
     try {
       const url = new URL(window.location.href);
       url.hash = '';
-      url.searchParams.set('ep', String(currentWebtoonEpisode));
+      if (/\/webtoon\/ep-\d+\/?$/i.test(url.pathname)) {
+        url.pathname = url.pathname.replace(/\/ep-\d+\/?$/i, `/ep-${currentWebtoonEpisode}`);
+        url.searchParams.delete('ep');
+      } else {
+        url.searchParams.set('ep', String(currentWebtoonEpisode));
+      }
       window.history.replaceState({ view: 'webtoon', ep: currentWebtoonEpisode }, '', url.toString());
     } catch {
       // Ignore URL replacement errors in sandboxed iframes
@@ -87,9 +92,10 @@ export function setWebtoonEpisodeNum(ep: number, updateUrl: boolean = true): voi
 
 export function initWebtoonEpisodeFromUrl(): void {
   if (typeof window === 'undefined') return;
+  const pathMatch = (window.location.pathname || '').match(/\/webtoon\/ep-(\d+)/i);
   const searchMatch = (window.location.search || '').match(/[?&]ep=(\d+)/);
   const hashMatch = (window.location.hash || '').match(/ep=(\d+)/);
-  const match = searchMatch || hashMatch;
+  const match = pathMatch || searchMatch || hashMatch;
   if (match && match[1]) {
     const epNum = parseInt(match[1], 10);
     if (!isNaN(epNum) && epNum >= 1 && epNum <= 40) {

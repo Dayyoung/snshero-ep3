@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { generateAllSeoPages } from './generate-seo-pages.mjs';
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist');
@@ -140,22 +141,60 @@ fs.writeFileSync(
         '/promo.html': '/',
         '/promotion': '/',
         '/promotion.html': '/',
+        '/home': '/',
+        '/main': '/',
+        '/play': '/game',
+        '/card-play': '/game',
+        '/ranking': '/game',
+        '/setting': '/game',
+        '/deck': '/game?open=collection',
+        '/animation': '/webtoon',
+        '/cinema': '/webtoon',
+        '/movie': '/webtoon',
         '/book': '/book',
         '/novel': '/book',
         '/webtoon': '/webtoon',
         '/game': '/game'
       };
       if (routes[p] && routes[p] !== window.location.pathname) {
-        window.location.replace(routes[p] + q + h);
+        var dest = routes[p];
+        if (q) {
+          dest += (dest.indexOf('?') >= 0 ? '&' : '?') + q.slice(1);
+        }
+        window.location.replace(dest + h);
         return;
       }
       if (p === '/shop' || p.indexOf('/shop/') === 0) {
         window.location.replace('/game?open=shop' + (q ? '&' + q.slice(1) : ''));
         return;
       }
+      if (p.indexOf('/deck/') === 0) {
+        window.location.replace('/game?open=collection' + (q ? '&' + q.slice(1) : ''));
+        return;
+      }
+      if (
+        p.indexOf('/play/') === 0 ||
+        p.indexOf('/card-play/') === 0 ||
+        p.indexOf('/ranking/') === 0 ||
+        p.indexOf('/setting/') === 0
+      ) {
+        window.location.replace('/game' + q + h);
+        return;
+      }
+      if (
+        p.indexOf('/animation/') === 0 ||
+        p.indexOf('/cinema/') === 0 ||
+        p.indexOf('/movie/') === 0
+      ) {
+        window.location.replace('/webtoon' + q + h);
+        return;
+      }
       if (
         p === '/reddit' || p.indexOf('/reddit/') === 0 ||
-        p === '/wiki' || (p.indexOf('/wiki/') === 0 && p !== '/wiki/tip') ||
+        p.indexOf('/r/') === 0 ||
+        p.indexOf('/home/') === 0 ||
+        p.indexOf('/main/') === 0 ||
+        p === '/wiki' ||
         p === '/bench' || p.indexOf('/bench/') === 0
       ) {
         window.location.replace('/' + q + h);
@@ -182,4 +221,7 @@ fs.writeFileSync(
   'utf8',
 );
 
-console.log('[post-build] Streamlined post-build completed (/, /game, /sns, /book, /webtoon, /mcp + 404 router).');
+// 7. Generate Legacy 200 Redirects + 192 Bilingual Programmatic SEO Pages & Sitemap
+generateAllSeoPages({ rootDir, distDir, publicDir });
+
+console.log('[post-build] Streamlined post-build completed (/, /game, /sns, /book, /webtoon, /mcp, /en/*, /wiki/* + 404 router).');
