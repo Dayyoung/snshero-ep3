@@ -4,7 +4,7 @@
  * HTML, JS 번들, CSS, JSON, API 등 모든 코드/데이터는 실시간 네트워크에서 즉시 받아옵니다.
  */
 
-const MEDIA_CACHE_NAME = 'snshero-media-v22-20261118';
+const MEDIA_CACHE_NAME = 'snshero-media-v23-20261118-cards768';
 
 // 정적 이미지 에셋만 캐싱 (iOS Safari AVPlayer의 HTTP 206 Range 오디오 스트림 충돌 원천 차단!)
 const MEDIA_EXT_REGEX = /\.(png|jpg|jpeg|webp|gif|svg|ico|avif)(\?.*)?$/i;

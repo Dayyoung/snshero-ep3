@@ -1011,7 +1011,11 @@ export const CollectionScreen: React.FC<{
                   >
                     <div
                       className={`relative transition ${
-                        owned === 0 ? 'opacity-55 saturate-[0.35]' : ''
+                        owned === 0
+                          ? card.rarity === 'LEGENDARY'
+                            ? 'opacity-75 saturate-[0.62]'
+                            : 'opacity-55 saturate-[0.38]'
+                          : ''
                       }`}
                     >
                       <HearthstoneCard
@@ -1069,11 +1073,19 @@ export const CollectionScreen: React.FC<{
                       <span
                         className={`rounded-md border px-1.5 py-0.5 text-[9.5px] font-extrabold shadow-sm sm:px-2 sm:text-[10px] ${
                           owned > 0
-                            ? 'border-[#8a6432] bg-[#432913] text-amber-100'
+                            ? card.rarity === 'LEGENDARY'
+                              ? 'border-yellow-300/85 bg-gradient-to-b from-amber-800 to-amber-950 text-yellow-100'
+                              : card.rarity === 'EPIC'
+                                ? 'border-purple-300/75 bg-purple-950/90 text-purple-100'
+                                : 'border-[#8a6432] bg-[#432913] text-amber-100'
                             : 'border-sky-800/60 bg-sky-950/85 text-sky-200'
                         }`}
                       >
-                        {owned > 0 ? tr(`보유 ×${owned}`, `Owned ×${owned}`) : tr('미보유', 'Unowned')}
+                        {owned > 0
+                          ? card.rarity === 'LEGENDARY'
+                            ? tr(`★ 보유 ×${owned}`, `★ Owned ×${owned}`)
+                            : tr(`보유 ×${owned}`, `Owned ×${owned}`)
+                          : tr('미보유', 'Unowned')}
                       </span>
                       <button
                         type="button"
@@ -1100,8 +1112,8 @@ export const CollectionScreen: React.FC<{
               )}
             </div>
 
-            {/* Bottom Filter Bar: Sapphire Mana Gems + Rarity + Search */}
-            <div className="mt-1 flex shrink-0 flex-col gap-1.5 border-t-2 border-[#8c6633]/35 pt-1.5 sm:mt-1.5 sm:pt-2">
+            {/* Bottom Filter Bar: Sapphire Mana Gems + Rarity + Search (Mobile pr-16 clears KadanChatbotWidget!) */}
+            <div className="mt-1 flex shrink-0 flex-col gap-1.5 border-t-2 border-[#8c6633]/35 pr-16 pt-1.5 sm:mt-1.5 sm:pr-0 sm:pt-2">
               <div className="flex flex-wrap items-center justify-between gap-1.5">
                 {/* Sapphire Mana Crystal Filter Row */}
                 <div className="hs-no-scrollbar flex items-center gap-1 overflow-x-auto">

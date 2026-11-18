@@ -1,7 +1,7 @@
 {
-  "version": "2.1.0-1794971499749",
-  "buildTime": "2026-11-18T03:11:39.749Z",
-  "buildTimestamp": 1794971499749,
+  "version": "2.1.0-1794971876844",
+  "buildTime": "2026-11-18T03:17:56.844Z",
+  "buildTimestamp": 1794971876844,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
   "entryScript": "/assets/game-DGOhK1W1-v2.js"

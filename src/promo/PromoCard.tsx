@@ -51,7 +51,7 @@ export const PromoCard: React.FC<{
         size={hsSize}
         isGolden={isGolden}
         journeyMultiplier={journeyMultiplier}
-        compactCleanMode={compactCleanMode ?? size !== 'lg'}
+        compactCleanMode={compactCleanMode ?? false}
         enableTilt={Boolean(onClick)}
         rarityAura={rarityAura}
         onClick={onClick ? () => onClick(card) : undefined}

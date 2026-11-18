@@ -16,6 +16,7 @@ import {
   getCardTileUrl,
   getHeroArtUrl,
   getHeroPowerArtUrl,
+  resolveUpperBodyHeroUrl,
 } from '../cardDb';
 import {
   getHeroAttack,
@@ -537,13 +538,37 @@ const CLASS_PALETTES: Record<CardClass, ClassFramePalette> = {
 
 const RARITY_GEM_COLORS: Record<
   CardRarity,
-  { hi: string; mid: string; lo: string } | null
+  { hi: string; mid: string; deep: string; lo: string; glow: string } | null
 > = {
   FREE: null,
-  COMMON: { hi: '#ffffff', mid: '#cbd5e1', lo: '#475569' },
-  RARE: { hi: '#bae6fd', mid: '#2563eb', lo: '#172554' },
-  EPIC: { hi: '#f5d0fe', mid: '#9333ea', lo: '#3b0764' },
-  LEGENDARY: { hi: '#fef9c3', mid: '#f97316', lo: '#7c2d12' },
+  COMMON: {
+    hi: '#ffffff',
+    mid: '#e2e8f0',
+    deep: '#94a3b8',
+    lo: '#334155',
+    glow: 'rgba(248, 250, 252, 0.35)',
+  },
+  RARE: {
+    hi: '#e0f2fe',
+    mid: '#3b82f6',
+    deep: '#1d4ed8',
+    lo: '#0f172a',
+    glow: 'rgba(59, 130, 246, 0.65)',
+  },
+  EPIC: {
+    hi: '#fdf4ff',
+    mid: '#c084fc',
+    deep: '#7e22ce',
+    lo: '#2e1065',
+    glow: 'rgba(192, 132, 252, 0.72)',
+  },
+  LEGENDARY: {
+    hi: '#ffffff',
+    mid: '#fde047',
+    deep: '#f97316',
+    lo: '#7c2d12',
+    glow: 'rgba(251, 191, 36, 0.88)',
+  },
 };
 
 /**
@@ -698,20 +723,28 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             ? 'hs-card-glow-epic'
             : rarityAura === 'RARE'
               ? 'hs-card-glow-rare'
-              : 'hs-card-shadow-base';
+              : card.rarity === 'LEGENDARY'
+                ? 'hs-card-shadow-legendary-rest'
+                : card.rarity === 'EPIC'
+                  ? 'hs-card-shadow-epic-rest'
+                  : 'hs-card-shadow-base';
 
   const pal = CLASS_PALETTES[card.cardClass] || CLASS_PALETTES.NEUTRAL;
   const isWeapon = card.type === 'WEAPON';
   const isSpell = card.type === 'SPELL';
+  const isFree = card.rarity === 'FREE';
+  const isCommon = card.rarity === 'COMMON';
+  const isRare = card.rarity === 'RARE';
+  const isEpic = card.rarity === 'EPIC';
   const isLegendary = card.rarity === 'LEGENDARY';
   const gemCol = RARITY_GEM_COLORS[card.rarity];
 
-  // Prefer RGBA transparent hero cutout (`getCardArtUrl`) or full-frame bespoke card illustration!
+  // Prefer RGBA transparent hero cutout (`getCardArtUrl`) or full-frame bespoke Webtoon card illustration!
   const portraitSrc = useBustFallback ? getCardBustUrl(card) : getCardArtUrl(card);
-  const isCutoutArt = portraitSrc.includes('/cutouts/');
+  const isCutoutArt = portraitSrc.includes('/cutouts/') || portraitSrc.includes('/upper-hd/');
   const isSecretSpell = isSpell && Boolean(card.mechanics?.includes('SECRET'));
   const bottomTribeText = isWeapon
-    ? tr('⚔ 무기', '⚔ Weapon')
+    ? tr('무기', 'Weapon')
     : isSpell
       ? isSecretSpell
         ? tr('비밀', 'Secret')
@@ -728,23 +761,19 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
       ? Math.max(1, baseWeaponDurability * journeyMultiplier)
       : baseWeaponDurability;
 
-  const rawFormattedHtml = formatCardHtmlText(cardDisplayText || '', spellPowerBonus, velenMultiplier);
-  const formattedHtml = isWeapon
-    ? rawFormattedHtml
-      ? `<span style="color:#fcd34d;font-size:11.5px;font-weight:900">[${tr('영웅 장착 무기', 'Hero Weapon')}]</span><br/>${rawFormattedHtml}`
-      : `<span style="color:#fcd34d;font-weight:900">[${tr('영웅 장착 무기', 'Hero Weapon')}]</span><br/><span style="color:#e2e8f0;font-size:12.5px">${tr(`내 영웅이 장착하여 직접 공격<br/>(공격력 ${shownWeaponAttack} · 내구도 ${shownWeaponDurability})`, `Equips directly to your hero<br/>(Attack ${shownWeaponAttack} · Durability ${shownWeaponDurability})`)}</span>`
-    : rawFormattedHtml;
-  const plainTextLen = (cardDisplayText || '').replace(/<[^>]+>/g, '').length + (isWeapon ? 12 : 0);
+  // Authentic Hearthstone card description expression (clean ability text without non-HS header clutter)
+  const formattedHtml = formatCardHtmlText(cardDisplayText || '', spellPowerBonus, velenMultiplier);
+  const plainTextLen = (cardDisplayText || '').replace(/<[^>]+>/g, '').length;
   const bodyFontSize =
     plainTextLen > 88
-      ? 10.6
+      ? 10.8
       : plainTextLen > 62
-        ? 11.4
+        ? 11.6
         : plainTextLen > 46
-          ? 12.2
+          ? 12.5
           : plainTextLen > 30
-            ? 13.4
-            : 15;
+            ? 13.6
+            : 15.2;
 
   return (
     <div
@@ -844,7 +873,6 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             alt=""
             aria-hidden="true"
             draggable={false}
-            decoding="async"
             onError={() => {
               if (!useBustFallback) setUseBustFallback(true);
             }}
@@ -865,23 +893,55 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             />
           )}
 
-          {/* Deep Portrait Rim Shadow */}
+          {/* Rarity-Specific Portrait Shimmer & Inner Rim Lighting (Rare / Epic / Legendary) */}
+          {isLegendary && (
+            <div
+              style={{
+                background:
+                  'linear-gradient(118deg, transparent 22%, rgba(254,249,195,0.28) 43%, rgba(255,255,255,0.52) 50%, rgba(251,146,60,0.28) 57%, transparent 76%)',
+                backgroundSize: '250% 100%',
+                animation: 'hsLegendaryPrismaticSweep 3.8s linear infinite',
+                borderRadius: 'inherit',
+              }}
+              className="pointer-events-none absolute inset-0 mix-blend-screen"
+            />
+          )}
+          {isEpic && !isGolden && (
+            <div
+              style={{
+                background:
+                  'linear-gradient(118deg, transparent 28%, rgba(232,121,249,0.22) 48%, rgba(253,224,71,0.25) 52%, transparent 72%)',
+                backgroundSize: '250% 100%',
+                animation: 'hsEpicArcaneSweep 4.6s linear infinite',
+                borderRadius: 'inherit',
+              }}
+              className="pointer-events-none absolute inset-0 mix-blend-screen"
+            />
+          )}
+
+          {/* Deep Portrait Rim Shadow + Tiered Inner Aura */}
           <div
             style={{
-              boxShadow: 'inset 0 6px 16px rgba(0,0,0,0.72), inset 0 -22px 24px rgba(0,0,0,0.78)',
+              boxShadow: isLegendary
+                ? 'inset 0 0 18px rgba(251,191,36,0.42), inset 0 6px 14px rgba(0,0,0,0.62), inset 0 -20px 24px rgba(0,0,0,0.8)'
+                : isEpic
+                  ? 'inset 0 0 15px rgba(192,132,252,0.34), inset 0 6px 15px rgba(0,0,0,0.68), inset 0 -22px 24px rgba(0,0,0,0.78)'
+                  : isRare
+                    ? 'inset 0 0 12px rgba(56,189,248,0.28), inset 0 6px 16px rgba(0,0,0,0.7), inset 0 -22px 24px rgba(0,0,0,0.78)'
+                    : 'inset 0 6px 16px rgba(0,0,0,0.72), inset 0 -22px 24px rgba(0,0,0,0.78)',
               borderRadius: 'inherit',
             }}
             className="absolute inset-0"
           />
         </div>
 
-        {/* 2. LAYER B: Precision Sculpted Hearthstone-Caliber Frame, Bezel, Scroll & Arched Ribbon SVG */}
+        {/* 2. LAYER B: Precision Sculpted 5-Tier Rarity Hearthstone-Caliber Frame, Bezel, Scroll & Arched Ribbon SVG */}
         <svg
           viewBox="0 0 300 420"
           className="absolute inset-0 z-[12] h-full w-full overflow-visible"
         >
           <defs>
-            {/* Outer Card Body Gradient */}
+            {/* Outer Card Body Gradient (5-Tier Material Finish) */}
             <linearGradient id={`bodyGrad_${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
               {isGolden ? (
                 <>
@@ -892,46 +952,90 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                 </>
               ) : isWeapon ? (
                 <>
-                  <stop offset="0%" stopColor="#64748b" />
+                  <stop offset="0%" stopColor={isLegendary ? '#94a3b8' : '#64748b'} />
                   <stop offset="45%" stopColor="#1e293b" />
                   <stop offset="100%" stopColor="#090d16" />
+                </>
+              ) : isFree ? (
+                /* FREE (Basic): Matte Weathered Apprentice Stone */
+                <>
+                  <stop offset="0%" stopColor={pal.mid} />
+                  <stop offset="55%" stopColor={pal.bot} />
+                  <stop offset="100%" stopColor="#110e0c" />
                 </>
               ) : (
                 <>
                   <stop offset="0%" stopColor={pal.top} />
-                  <stop offset="42%" stopColor={pal.mid} />
+                  <stop offset="44%" stopColor={pal.mid} />
                   <stop offset="100%" stopColor={pal.bot} />
                 </>
               )}
             </linearGradient>
 
-            {/* Metallic Gold / Silver Rim Bezel */}
+            {/* 5-Tier Metallic Bezel Rim Gradient (Basic Iron -> Common Pewter -> Rare Moon-Silver -> Epic Amethyst-Gold -> Legendary 24K Gold) */}
             <linearGradient id={`bezelGrad_${uid}`} x1="0" y1="0" x2="1" y2="1">
               {isGolden || isLegendary ? (
                 <>
-                  <stop offset="0%" stopColor="#fffef0" />
-                  <stop offset="28%" stopColor="#fde047" />
-                  <stop offset="58%" stopColor="#eab308" />
-                  <stop offset="84%" stopColor="#b45309" />
-                  <stop offset="100%" stopColor="#facc15" />
+                  <stop offset="0%" stopColor="#ffffff" />
+                  <stop offset="22%" stopColor="#fef08a" />
+                  <stop offset="50%" stopColor="#eab308" />
+                  <stop offset="78%" stopColor="#b45309" />
+                  <stop offset="100%" stopColor="#fde047" />
+                </>
+              ) : isEpic ? (
+                <>
+                  <stop offset="0%" stopColor="#fdf4ff" />
+                  <stop offset="28%" stopColor="#f0abfc" />
+                  <stop offset="56%" stopColor="#eab308" />
+                  <stop offset="82%" stopColor="#7e22ce" />
+                  <stop offset="100%" stopColor="#fde68a" />
+                </>
+              ) : isRare ? (
+                <>
+                  <stop offset="0%" stopColor="#f0f9ff" />
+                  <stop offset="30%" stopColor="#bae6fd" />
+                  <stop offset="62%" stopColor="#3b82f6" />
+                  <stop offset="85%" stopColor="#1e40af" />
+                  <stop offset="100%" stopColor="#e2e8f0" />
+                </>
+              ) : isCommon ? (
+                <>
+                  <stop offset="0%" stopColor="#f8fafc" />
+                  <stop offset="38%" stopColor="#cbd5e1" />
+                  <stop offset="74%" stopColor="#64748b" />
+                  <stop offset="100%" stopColor="#334155" />
                 </>
               ) : (
+                /* FREE (Basic): Honest Forged Iron & Aged Bronze */
                 <>
-                  <stop offset="0%" stopColor="#fffbeb" />
-                  <stop offset="35%" stopColor={isWeapon ? '#cbd5e1' : pal.rimLight} />
-                  <stop offset="75%" stopColor={isWeapon ? '#475569' : '#b45309'} />
-                  <stop offset="100%" stopColor={isWeapon ? '#1e293b' : pal.rimDark} />
+                  <stop offset="0%" stopColor="#d6d3d1" />
+                  <stop offset="42%" stopColor={isWeapon ? '#64748b' : '#78716c'} />
+                  <stop offset="100%" stopColor="#292524" />
                 </>
               )}
             </linearGradient>
 
-            {/* Sculpted 3D Parchment Name Banner Gradient */}
+            {/* Sculpted 3D Parchment Name Banner Gradient (Tiered Elegance, Authentic HS Readability) */}
             <linearGradient id={`ribbonGrad_${uid}`} x1="0" y1="0" x2="0" y2="1">
               {isWeapon ? (
                 <>
                   <stop offset="0%" stopColor="#f1f5f9" />
                   <stop offset="52%" stopColor="#94a3b8" />
                   <stop offset="100%" stopColor="#334155" />
+                </>
+              ) : isLegendary || isGolden ? (
+                <>
+                  <stop offset="0%" stopColor="#fffff5" />
+                  <stop offset="38%" stopColor="#fef08a" />
+                  <stop offset="78%" stopColor="#eab308" />
+                  <stop offset="100%" stopColor="#a16207" />
+                </>
+              ) : isEpic ? (
+                <>
+                  <stop offset="0%" stopColor="#fffdf9" />
+                  <stop offset="45%" stopColor="#f5e6ca" />
+                  <stop offset="86%" stopColor="#d4aa6a" />
+                  <stop offset="100%" stopColor="#86592d" />
                 </>
               ) : (
                 <>
@@ -943,7 +1047,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
               )}
             </linearGradient>
 
-            {/* Recessed Ability Text Scroll Gradient */}
+            {/* Recessed Ability Text Scroll Gradient (Classic Hearthstone Parchment / Weapon Slate) */}
             <linearGradient id={`scrollGrad_${uid}`} x1="0" y1="0" x2="0" y2="1">
               {isWeapon ? (
                 <>
@@ -952,9 +1056,9 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                 </>
               ) : (
                 <>
-                  <stop offset="0%" stopColor="#fcf5e5" />
-                  <stop offset="55%" stopColor="#efe0be" />
-                  <stop offset="100%" stopColor="#dcc496" />
+                  <stop offset="0%" stopColor="#fdf7e7" />
+                  <stop offset="55%" stopColor="#f0e1bf" />
+                  <stop offset="100%" stopColor="#dec698" />
                 </>
               )}
             </linearGradient>
@@ -967,15 +1071,23 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
               patternUnits="userSpaceOnUse"
               patternTransform="rotate(35)"
             >
-              <line x1="0" y1="0" x2="0" y2="18" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="18"
+                stroke={isLegendary ? 'rgba(254,240,138,0.13)' : 'rgba(255,255,255,0.07)'}
+                strokeWidth="2"
+              />
               <line x1="9" y1="0" x2="9" y2="18" stroke="rgba(0,0,0,0.14)" strokeWidth="2" />
             </pattern>
 
-            {/* Rarity Gem Radial Gradient */}
+            {/* Multi-Stop Faceted Rarity Crystal Gradient */}
             {gemCol && (
-              <radialGradient id={`gemGrad_${uid}`} cx="36%" cy="32%" r="68%">
+              <radialGradient id={`gemGrad_${uid}`} cx="35%" cy="30%" r="70%">
                 <stop offset="0%" stopColor={gemCol.hi} />
-                <stop offset="48%" stopColor={gemCol.mid} />
+                <stop offset="34%" stopColor={gemCol.mid} />
+                <stop offset="72%" stopColor={gemCol.deep} />
                 <stop offset="100%" stopColor={gemCol.lo} />
               </radialGradient>
             )}
@@ -983,12 +1095,12 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             {/* Gentle Upward Arch Path for Card Name Typography */}
             <path
               id={`titleArch_${uid}`}
-              d="M 32 233 Q 150 207 268 233"
+              d="M 32 230 Q 150 204 268 230"
               fill="none"
             />
           </defs>
 
-          {/* Sculpted Outer Card Body with Pure Geometric Even-Odd Cutout Window (Zero Offscreen SVG Mask!) */}
+          {/* Sculpted Outer Card Body with Pure Geometric Even-Odd Cutout Window */}
           {(() => {
             const outerCardD =
               'M 40 26 Q 150 8 260 26 Q 282 30 282 54 V 374 Q 282 398 258 400 H 42 Q 18 398 18 374 V 54 Q 18 30 40 26 Z';
@@ -1001,12 +1113,14 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             return (
               <g>
                 <path d={cutoutBodyD} fillRule="evenodd" fill={`url(#bodyGrad_${uid})`} />
-                <path d={cutoutBodyD} fillRule="evenodd" fill={`url(#filigree_${uid})`} />
+                {!isFree && (
+                  <path d={cutoutBodyD} fillRule="evenodd" fill={`url(#filigree_${uid})`} />
+                )}
               </g>
             );
           })()}
 
-          {/* Outer Beveled Metallic Border & Inner Decorative Filigree Rail */}
+          {/* Outer Beveled Metallic Border (Escalating Thickness & Craftsmanship Across 5 Rarities) */}
           <path
             d="M 40 26
                Q 150 8 260 26
@@ -1018,8 +1132,8 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                V 54
                Q 18 30 40 26 Z"
             fill="none"
-            stroke={isLegendary || isGolden ? '#3b2104' : '#120a04'}
-            strokeWidth={isLegendary || isGolden ? '7.8' : '6.5'}
+            stroke={isLegendary || isGolden ? '#291502' : isEpic ? '#1e0b36' : '#120a04'}
+            strokeWidth={isLegendary || isGolden ? '8.4' : isEpic ? '7.4' : isRare ? '6.8' : '6.2'}
           />
           <path
             d="M 40 26
@@ -1033,8 +1147,20 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                Q 18 30 40 26 Z"
             fill="none"
             stroke={`url(#bezelGrad_${uid})`}
-            strokeWidth={isLegendary || isGolden ? '5.2' : '3.6'}
+            strokeWidth={
+              isLegendary || isGolden
+                ? '5.6'
+                : isEpic
+                  ? '4.6'
+                  : isRare
+                    ? '4.1'
+                    : isCommon
+                      ? '3.5'
+                      : '3.0'
+            }
           />
+
+          {/* Inner Decorative Filigree Rails & 5-Tier Corner Craftsmanship */}
           <rect
             x="25"
             y="34"
@@ -1042,35 +1168,141 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             height="358"
             rx="18"
             fill="none"
-            stroke={isLegendary || isGolden ? 'rgba(253,224,71,0.72)' : 'rgba(255,248,220,0.28)'}
-            strokeWidth={isLegendary || isGolden ? '1.8' : '1.4'}
+            stroke={
+              isLegendary || isGolden
+                ? 'rgba(254,240,138,0.84)'
+                : isEpic
+                  ? 'rgba(232,121,249,0.62)'
+                  : isRare
+                    ? 'rgba(147,197,253,0.56)'
+                    : isCommon
+                      ? 'rgba(226,232,240,0.34)'
+                      : 'rgba(255,248,220,0.16)'
+            }
+            strokeWidth={isLegendary || isGolden ? '2.1' : isEpic || isRare ? '1.6' : '1.2'}
           />
+          {(isRare || isEpic || isLegendary || isGolden) && (
+            <rect
+              x="29"
+              y="38"
+              width="242"
+              height="350"
+              rx="15"
+              fill="none"
+              stroke={
+                isLegendary || isGolden
+                  ? 'rgba(245,158,11,0.52)'
+                  : isEpic
+                    ? 'rgba(250,204,21,0.38)'
+                    : 'rgba(224,242,254,0.32)'
+              }
+              strokeWidth="1"
+              strokeDasharray={isRare ? '6 3' : undefined}
+            />
+          )}
 
-          {/* Sculpted Portrait Bezel Ring (Distinct per Card Type!) */}
+          {/* Tier 2 (COMMON): Clean Guild Pewter Corner Rivets */}
+          {isCommon && !isGolden && (
+            <g fill="#e2e8f0" stroke="#1e293b" strokeWidth="1.2">
+              <circle cx="31" cy="41" r="2.6" />
+              <circle cx="269" cy="41" r="2.6" />
+              <circle cx="31" cy="385" r="2.6" />
+              <circle cx="269" cy="385" r="2.6" />
+            </g>
+          )}
+
+          {/* Tier 3 (RARE): Sculpted Moon-Silver & Sapphire Diamond Corner Flourishes */}
+          {isRare && !isGolden && (
+            <g fill={`url(#bezelGrad_${uid})`} stroke="#0f172a" strokeWidth="1.3">
+              <polygon points="28,36 39,38 33,44 30,52 25,42" />
+              <polygon points="272,36 261,38 267,44 270,52 275,42" />
+              <polygon points="28,390 39,388 33,382 30,374 25,384" />
+              <polygon points="272,390 261,388 267,382 270,374 275,384" />
+              <polygon points="24,205 29,211 24,217 19,211" fill="#60a5fa" />
+              <polygon points="276,205 281,211 276,217 271,211" fill="#60a5fa" />
+            </g>
+          )}
+
+          {/* Tier 4 (EPIC): Royal Arcane Spire Corner Ornaments & Side Astral Sigils */}
+          {isEpic && !isGolden && (
+            <g stroke="#2e1065" strokeWidth="1.5" strokeLinejoin="round">
+              <path d="M 22 54 L 24 34 L 44 31 L 35 41 L 31 49 Z" fill={`url(#bezelGrad_${uid})`} />
+              <path d="M 278 54 L 276 34 L 256 31 L 265 41 L 269 49 Z" fill={`url(#bezelGrad_${uid})`} />
+              <path d="M 22 372 L 24 392 L 44 395 L 35 385 L 31 377 Z" fill={`url(#bezelGrad_${uid})`} />
+              <path d="M 278 372 L 276 392 L 256 395 L 265 385 L 269 377 Z" fill={`url(#bezelGrad_${uid})`} />
+              <polygon points="24,131 30,138 24,145 18,138" fill="#e879f9" stroke="#fde047" strokeWidth="1.1" />
+              <polygon points="276,131 282,138 276,145 270,138" fill="#e879f9" stroke="#fde047" strokeWidth="1.1" />
+            </g>
+          )}
+
+          {/* Tier 5 (LEGENDARY / GOLDEN): Sovereign 24K Dragon-Crown Corner Guards & Lower Royal Filigree */}
+          {(isLegendary || isGolden) && (
+            <g stroke="#291502" strokeWidth="1.6" strokeLinejoin="round">
+              {/* Upper & Lower Sculpted Sovereign Corner Plates */}
+              <path
+                d="M 19 60 L 21 31 L 50 26 L 40 37 L 45 42 L 33 45 L 28 56 Z"
+                fill={`url(#bezelGrad_${uid})`}
+              />
+              <path
+                d="M 281 60 L 279 31 L 250 26 L 260 37 L 255 42 L 267 45 L 272 56 Z"
+                fill={`url(#bezelGrad_${uid})`}
+              />
+              <path
+                d="M 19 366 L 21 395 L 52 399 L 41 388 L 46 382 L 33 380 L 28 369 Z"
+                fill={`url(#bezelGrad_${uid})`}
+              />
+              <path
+                d="M 281 366 L 279 395 L 248 399 L 259 388 L 254 382 L 267 380 L 272 369 Z"
+                fill={`url(#bezelGrad_${uid})`}
+              />
+              {/* Lower Sovereign Winged Scroll Finial Along Bottom Frame */}
+              <path
+                d="M 74 396 Q 110 387 150 392 Q 190 387 226 396 Q 190 405 150 401 Q 110 405 74 396 Z"
+                fill={`url(#bezelGrad_${uid})`}
+              />
+            </g>
+          )}
+
+          {/* Sculpted Portrait Bezel Ring (Distinct per Card Type & Rarity!) */}
           {isSpell ? (
             <>
               <path
                 d="M 38 142 V 132 C 38 64 88 32 150 32 C 212 32 262 64 262 132 V 210 Q 262 222 250 222 H 50 Q 38 222 38 210 Z"
                 fill="none"
                 stroke="#140b04"
-                strokeWidth="10"
+                strokeWidth={isLegendary || isEpic ? '10.8' : '9.8'}
               />
               <path
                 d="M 38 142 V 132 C 38 64 88 32 150 32 C 212 32 262 64 262 132 V 210 Q 262 222 250 222 H 50 Q 38 222 38 210 Z"
                 fill="none"
                 stroke={`url(#bezelGrad_${uid})`}
-                strokeWidth="6.2"
+                strokeWidth={isLegendary ? '7.2' : isEpic ? '6.6' : isFree ? '5.2' : '6.0'}
               />
             </>
           ) : isWeapon ? (
             <>
               <circle cx="150" cy="130" r="95" fill="none" stroke="#090d16" strokeWidth="11" />
-              <circle cx="150" cy="130" r="95" fill="none" stroke={`url(#bezelGrad_${uid})`} strokeWidth="7" />
-              <circle cx="150" cy="130" r="89" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.4" />
+              <circle
+                cx="150"
+                cy="130"
+                r="95"
+                fill="none"
+                stroke={`url(#bezelGrad_${uid})`}
+                strokeWidth={isLegendary || isEpic ? '7.6' : '6.8'}
+              />
+              <circle cx="150" cy="130" r="89" fill="none" stroke="rgba(255,255,255,0.34)" strokeWidth="1.5" />
             </>
           ) : (
             <>
-              <ellipse cx="150" cy="131" rx="96" ry="105" fill="none" stroke="#140b04" strokeWidth="10.5" />
+              <ellipse
+                cx="150"
+                cy="131"
+                rx="96"
+                ry="105"
+                fill="none"
+                stroke="#140b04"
+                strokeWidth={isLegendary ? '11.5' : '10.2'}
+              />
               <ellipse
                 cx="150"
                 cy="131"
@@ -1078,7 +1310,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                 ry="105"
                 fill="none"
                 stroke={`url(#bezelGrad_${uid})`}
-                strokeWidth="6.5"
+                strokeWidth={isLegendary ? '7.6' : isEpic ? '6.8' : isFree ? '5.4' : '6.2'}
               />
               <ellipse
                 cx="150"
@@ -1086,8 +1318,16 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                 rx="91"
                 ry="100"
                 fill="none"
-                stroke="rgba(255,251,235,0.38)"
-                strokeWidth="1.4"
+                stroke={
+                  isLegendary
+                    ? 'rgba(254,240,138,0.72)'
+                    : isEpic
+                      ? 'rgba(240,171,252,0.55)'
+                      : isRare
+                        ? 'rgba(186,230,253,0.52)'
+                        : 'rgba(255,251,235,0.34)'
+                }
+                strokeWidth={isLegendary ? '1.9' : '1.4'}
               />
             </>
           )}
@@ -1103,30 +1343,68 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                L 34 368
                V 256 Z"
             fill={`url(#scrollGrad_${uid})`}
-            stroke={isWeapon ? '#475569' : '#573818'}
-            strokeWidth="3.4"
+            stroke={
+              isWeapon
+                ? '#475569'
+                : isLegendary || isGolden
+                  ? '#b45309'
+                  : isEpic
+                    ? '#6b21a8'
+                    : '#573818'
+            }
+            strokeWidth={isLegendary || isGolden ? '3.8' : '3.4'}
             strokeLinejoin="round"
           />
           <path
             d="M 46 251 H 254 L 260 258 V 364 L 253 372 H 47 L 40 364 V 258 Z"
             fill="none"
-            stroke={isWeapon ? 'rgba(148,163,184,0.28)' : 'rgba(120,74,28,0.32)'}
+            stroke={
+              isWeapon
+                ? 'rgba(148,163,184,0.28)'
+                : isLegendary
+                  ? 'rgba(180,83,9,0.42)'
+                  : 'rgba(120,74,28,0.32)'
+            }
             strokeWidth="1.4"
           />
 
-          {/* 3D Folded Ribbon Tails (Left & Right) */}
+          {/* 3D Folded Ribbon Tails (Tiered Silk/Leather Colors: Basic Leather -> Rare Cobalt -> Epic Amethyst -> Legendary Imperial Crimson-Gold) */}
           <path
             d="M 11 232 L 34 216 L 38 246 L 13 254 L 21 239 Z"
-            fill={isWeapon ? '#475569' : '#9a6f32'}
-            stroke="#1f1106"
-            strokeWidth="2.8"
+            fill={
+              isWeapon
+                ? '#475569'
+                : isLegendary
+                  ? '#b91c1c'
+                  : isEpic
+                    ? '#6b21a8'
+                    : isRare
+                      ? '#1d4ed8'
+                      : isCommon
+                        ? '#9a6f32'
+                        : '#6b4c28'
+            }
+            stroke={isLegendary ? '#fde047' : '#1f1106'}
+            strokeWidth={isLegendary ? '2.4' : '2.8'}
             strokeLinejoin="round"
           />
           <path
             d="M 289 232 L 266 216 L 262 246 L 287 254 L 279 239 Z"
-            fill={isWeapon ? '#475569' : '#9a6f32'}
-            stroke="#1f1106"
-            strokeWidth="2.8"
+            fill={
+              isWeapon
+                ? '#475569'
+                : isLegendary
+                  ? '#b91c1c'
+                  : isEpic
+                    ? '#6b21a8'
+                    : isRare
+                      ? '#1d4ed8'
+                      : isCommon
+                        ? '#9a6f32'
+                        : '#6b4c28'
+            }
+            stroke={isLegendary ? '#fde047' : '#1f1106'}
+            strokeWidth={isLegendary ? '2.4' : '2.8'}
             strokeLinejoin="round"
           />
 
@@ -1137,16 +1415,24 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                L 270 247
                Q 150 222 30 247 Z"
             fill={`url(#ribbonGrad_${uid})`}
-            stroke="#241306"
-            strokeWidth="3.4"
+            stroke={isLegendary || isGolden ? '#3b1c04' : '#241306'}
+            strokeWidth={isLegendary || isGolden ? '3.8' : '3.4'}
             strokeLinejoin="round"
           />
           <path
             d="M 29 221 Q 150 196 271 221"
             fill="none"
-            stroke="rgba(255,255,255,0.65)"
-            strokeWidth="1.5"
+            stroke={isLegendary ? '#ffffff' : 'rgba(255,255,255,0.68)'}
+            strokeWidth={isLegendary ? '1.9' : '1.5'}
           />
+          {(isLegendary || isEpic) && (
+            <path
+              d="M 33 243 Q 150 219 267 243"
+              fill="none"
+              stroke={isLegendary ? 'rgba(180,83,9,0.65)' : 'rgba(126,34,206,0.45)'}
+              strokeWidth="1.2"
+            />
+          )}
 
           {/* Curved Card Name Along the Banner Arch */}
           <text
@@ -1168,41 +1454,119 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             </textPath>
           </text>
 
-          {/* Ornate Winged Rarity Gem Clasp Below Name Banner */}
-          <g transform="translate(150, 243)">
-            <path
-              d="M -24 0 Q -12 -7 0 -5 Q 12 -7 24 0 Q 12 7 0 5 Q -12 7 -24 0 Z"
-              fill={`url(#bezelGrad_${uid})`}
-              stroke="#1c0f05"
-              strokeWidth="2.2"
-            />
-            {gemCol ? (
+          {/* 5-Tier Sculpted Rarity Gem Clasp Below Name Banner (Basic = Gemless Stone Rivet, Common..Legendary = Escalating Winged Faceted Jewels!) */}
+          <g transform="translate(150, 246)">
+            {isLegendary ? (
               <>
+                {/* Sovereign Dragon-Winged Crown Setting + Sunfire Amber Halo */}
+                <circle cx="0" cy="0" r="18" fill={gemCol?.glow || 'none'} />
+                <path
+                  d="M -39 -1 L -26 -8 L -14 -4 L 0 -10 L 14 -4 L 26 -8 L 39 -1 L 25 6 L 13 4 L 0 9 L -13 4 L -25 6 Z"
+                  fill={`url(#bezelGrad_${uid})`}
+                  stroke="#241103"
+                  strokeWidth="2.1"
+                  strokeLinejoin="round"
+                />
                 <ellipse
                   cx="0"
                   cy="0"
-                  rx="8.5"
-                  ry="11"
+                  rx="9.8"
+                  ry="12.8"
+                  fill={`url(#gemGrad_${uid})`}
+                  stroke="#fef08a"
+                  strokeWidth="1.8"
+                />
+                <ellipse
+                  cx="0"
+                  cy="0"
+                  rx="11"
+                  ry="14"
+                  fill="none"
+                  stroke="#241103"
+                  strokeWidth="1.8"
+                />
+                <polygon points="0,-9.5 6,0 0,9.5 -6,0" fill="rgba(255,255,255,0.42)" />
+                <polygon points="0,-9.5 6,0 0,-2" fill="rgba(255,255,255,0.55)" />
+                <circle cx="-2.8" cy="-4.2" r="2.5" fill="#ffffff" />
+              </>
+            ) : isEpic ? (
+              <>
+                <circle cx="0" cy="0" r="15" fill={gemCol?.glow || 'none'} />
+                <path
+                  d="M -33 0 L -20 -7 L -10 -4 L 0 -8 L 10 -4 L 20 -7 L 33 0 L 20 6 L 0 7 L -20 6 Z"
+                  fill={`url(#bezelGrad_${uid})`}
+                  stroke="#1f0a33"
+                  strokeWidth="2.1"
+                  strokeLinejoin="round"
+                />
+                <ellipse
+                  cx="0"
+                  cy="0"
+                  rx="9.2"
+                  ry="11.8"
+                  fill={`url(#gemGrad_${uid})`}
+                  stroke="#f5d0fe"
+                  strokeWidth="1.5"
+                />
+                <ellipse cx="0" cy="0" rx="10.2" ry="12.8" fill="none" stroke="#1f0a33" strokeWidth="1.6" />
+                <polygon points="0,-8.5 5.4,0 0,8.5 -5.4,0" fill="rgba(255,255,255,0.38)" />
+                <circle cx="-2.5" cy="-3.8" r="2.3" fill="rgba(255,255,255,0.9)" />
+              </>
+            ) : isRare ? (
+              <>
+                <circle cx="0" cy="0" r="13" fill={gemCol?.glow || 'none'} />
+                <path
+                  d="M -28 0 Q -14 -7 0 -5.5 Q 14 -7 28 0 Q 14 7 0 5.5 Q -14 7 -28 0 Z"
+                  fill={`url(#bezelGrad_${uid})`}
+                  stroke="#0f172a"
+                  strokeWidth="2.1"
+                />
+                <ellipse
+                  cx="0"
+                  cy="0"
+                  rx="8.8"
+                  ry="11.4"
+                  fill={`url(#gemGrad_${uid})`}
+                  stroke="#bae6fd"
+                  strokeWidth="1.4"
+                />
+                <ellipse cx="0" cy="0" rx="9.8" ry="12.4" fill="none" stroke="#0f172a" strokeWidth="1.6" />
+                <polygon points="0,-8 5,0 0,8 -5,0" fill="rgba(255,255,255,0.36)" />
+                <circle cx="-2.4" cy="-3.5" r="2.2" fill="rgba(255,255,255,0.88)" />
+              </>
+            ) : gemCol ? (
+              /* COMMON: Clean Silver-Winged White Quartz Gem */
+              <>
+                <path
+                  d="M -23 0 Q -11 -6.5 0 -5 Q 11 -6.5 23 0 Q 11 6.5 0 5 Q -11 6.5 -23 0 Z"
+                  fill={`url(#bezelGrad_${uid})`}
+                  stroke="#1c0f05"
+                  strokeWidth="2.1"
+                />
+                <ellipse
+                  cx="0"
+                  cy="0"
+                  rx="8.4"
+                  ry="10.8"
                   fill={`url(#gemGrad_${uid})`}
                   stroke="#1c0f05"
-                  strokeWidth="2.4"
+                  strokeWidth="2.2"
                 />
-                <polygon points="0,-8 5,-1 0,8 -5,-1" fill="rgba(255,255,255,0.34)" />
-                <circle cx="-2.5" cy="-3.5" r="2.2" fill="rgba(255,255,255,0.8)" />
+                <polygon points="0,-7.5 4.6,0 0,7.5 -4.6,0" fill="rgba(255,255,255,0.42)" />
+                <circle cx="-2.3" cy="-3.3" r="2.1" fill="#ffffff" />
               </>
             ) : (
-              <circle
-                cx="0"
-                cy="0"
-                r="5.5"
-                fill={`url(#bezelGrad_${uid})`}
-                stroke="#1c0f05"
+              /* FREE (Basic): Authentic Hearthstone Gemless Carved Iron Clasp */
+              <path
+                d="M -16 0 Q -8 -4.5 0 -3.5 Q 8 -4.5 16 0 Q 8 4.5 0 3.5 Q -8 4.5 -16 0 Z"
+                fill="#57534e"
+                stroke="#1c1917"
                 strokeWidth="2"
               />
             )}
           </g>
 
-          {/* Chiseled Bottom Card Type / Minion Tribe Plaque (Matches /stone.html Clarity) */}
+          {/* Chiseled Bottom Card Type / Minion Tribe Plaque (Matches Hearthstone Clarity) */}
           {bottomTribeText && (
             <g transform="translate(150, 386)">
               <rect
@@ -1233,15 +1597,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
           )}
         </svg>
 
-        {/* Weapon Crossed-Blades Medallion Pin (Instant Visual Distinction for Weapons) */}
-        {isWeapon && (
-          <div className="pointer-events-none absolute right-[14px] top-[14px] z-[26] flex items-center gap-1 rounded-full border-2 border-slate-200 bg-gradient-to-b from-slate-600 via-slate-800 to-slate-950 px-2.5 py-0.5 text-[12px] font-black text-amber-200 shadow-[0_4px_10px_rgba(0,0,0,0.92)]">
-            <span>⚔</span>
-            <span>{tr('무기', 'Weapon')}</span>
-          </div>
-        )}
-
-        {/* 3. LAYER C: Ability Scroll Watermark + Crisp Korean Ability Copy */}
+        {/* 3. LAYER C: Authentic Hearthstone Ability Scroll Watermark + Bold-Keyword Copy */}
         <div
           style={{
             left: 44,
@@ -1249,13 +1605,13 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             width: 212,
             height: 112,
           }}
-          className="absolute z-[15] flex items-center justify-center overflow-hidden px-2 py-1 text-center"
+          className="absolute z-[15] flex items-center justify-center overflow-hidden px-2.5 py-1 text-center"
         >
           <img
             src={CLASS_CREST_URL[card.cardClass] || CLASS_CREST_URL.NEUTRAL}
             alt=""
             draggable={false}
-            className="pointer-events-none absolute h-20 w-20 rounded-full object-contain opacity-[0.13] grayscale-[25%]"
+            className="pointer-events-none absolute h-20 w-20 rounded-full object-contain opacity-[0.12] grayscale-[25%]"
           />
           {(() => {
             const useCleanArtBox =
@@ -1264,15 +1620,15 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             if (useCleanArtBox) {
               const kwChips: string[] = [];
               const mechs = card.mechanics || [];
-              if (mechs.includes('TAUNT')) kwChips.push(isKo ? '🛡도발' : '🛡Taunt');
-              if (mechs.includes('DIVINE_SHIELD')) kwChips.push(isKo ? '✨성막' : '✨Shield');
-              if (mechs.includes('CHARGE')) kwChips.push(isKo ? '⚡돌진' : '⚡Charge');
-              if (mechs.includes('BATTLECRY')) kwChips.push(isKo ? '🎺함성' : '🎺Battlecry');
-              if (mechs.includes('DEATHRATTLE')) kwChips.push(isKo ? '💀죽메' : '💀Deathrattle');
-              if (mechs.includes('WINDFURY')) kwChips.push(isKo ? '🌀질풍' : '🌀Windfury');
-              if (mechs.includes('STEALTH')) kwChips.push(isKo ? '🌙은신' : '🌙Stealth');
+              if (mechs.includes('TAUNT')) kwChips.push(isKo ? '도발' : 'Taunt');
+              if (mechs.includes('DIVINE_SHIELD')) kwChips.push(isKo ? '천상의 보호막' : 'Divine Shield');
+              if (mechs.includes('CHARGE')) kwChips.push(isKo ? '돌진' : 'Charge');
+              if (mechs.includes('BATTLECRY')) kwChips.push(isKo ? '전투의 함성' : 'Battlecry');
+              if (mechs.includes('DEATHRATTLE')) kwChips.push(isKo ? '죽음의 메아리' : 'Deathrattle');
+              if (mechs.includes('WINDFURY')) kwChips.push(isKo ? '질풍' : 'Windfury');
+              if (mechs.includes('STEALTH')) kwChips.push(isKo ? '은신' : 'Stealth');
               if (card.spellPower && card.spellPower > 0) {
-                kwChips.push(isKo ? `✨주문+${card.spellPower}` : `✨Spell+${card.spellPower}`);
+                kwChips.push(isKo ? `주문 공격력 +${card.spellPower}` : `Spell Damage +${card.spellPower}`);
               }
               return (
                 <div className="relative z-10 flex flex-wrap items-center justify-center gap-1 px-1">
@@ -1280,15 +1636,19 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
                     kwChips.slice(0, 3).map((kw) => (
                       <span
                         key={kw}
-                        className="rounded-md border border-amber-700/60 bg-amber-950/90 px-2 py-0.5 text-[14px] font-black text-amber-100 shadow"
+                        className="rounded border border-amber-800/45 bg-amber-950/15 px-1.5 py-0.5 text-[12.5px] font-black text-[#1a0d04]"
                       >
                         {kw}
                       </span>
                     ))
                   ) : formattedHtml ? (
-                    <span className="rounded-md border border-stone-600/50 bg-stone-900/80 px-2 py-0.5 text-[13px] font-extrabold text-amber-200">
-                      {isSpell ? (isKo ? '✨ 주문 효과' : '✨ Spell') : isKo ? '📜 특수 능력' : '📜 Ability'}
-                    </span>
+                    <div
+                      style={{ fontSize: bodyFontSize }}
+                      className={`relative z-10 line-clamp-4 leading-[1.22] ${
+                        isWeapon ? 'hs-card-ability-text-weapon text-slate-100' : 'hs-card-ability-text text-[#1f1206]'
+                      }`}
+                      dangerouslySetInnerHTML={{ __html: formattedHtml }}
+                    />
                   ) : null}
                 </div>
               );
@@ -1297,8 +1657,10 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
               formattedHtml && (
                 <div
                   style={{ fontSize: bodyFontSize }}
-                  className={`relative z-10 line-clamp-5 font-extrabold leading-[1.18] tracking-tight ${
-                    isWeapon ? 'text-slate-100' : 'text-[#211307]'
+                  className={`relative z-10 line-clamp-5 leading-[1.22] ${
+                    isWeapon
+                      ? 'hs-card-ability-text-weapon text-slate-100'
+                      : 'hs-card-ability-text text-[#1f1206]'
                   }`}
                   dangerouslySetInnerHTML={{ __html: formattedHtml }}
                 />
@@ -1307,16 +1669,16 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
           })()}
         </div>
 
-        {/* 4. LAYER D: Sculpted Asymmetric Hearthstone-Style Legendary Dragon Crest */}
+        {/* 4. LAYER D: Sculpted Sovereign Hearthstone-Style Legendary Dragon Crest */}
         {isLegendary && (
           <SnsLegendaryCardDragonSvg
             isGolden={isGolden}
-            className="absolute left-0 top-[-26px] z-[22] h-[266px] w-[300px] drop-shadow-[0_6px_12px_rgba(0,0,0,0.92)]"
+            className="absolute left-0 top-[-28px] z-[22] h-[270px] w-[300px] drop-shadow-[0_6px_12px_rgba(0,0,0,0.92)]"
           />
         )}
 
-        {/* 5. LAYER E: Golden Foil Specular Shimmer & Expanded 24K Gold Frame Rim */}
-        {isGolden && (
+        {/* 5. LAYER E: Golden Card / Sovereign Legendary Frame Shimmer */}
+        {isGolden ? (
           <div
             style={{
               left: 16,
@@ -1331,7 +1693,18 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             }}
             className="pointer-events-none absolute z-[24] rounded-[24px] mix-blend-screen"
           />
-        )}
+        ) : isLegendary ? (
+          <div
+            style={{
+              left: 18,
+              top: 24,
+              width: 264,
+              height: 376,
+              boxShadow: 'inset 0 0 0 1.5px rgba(254,240,138,0.55), 0 0 16px rgba(245,158,11,0.32)',
+            }}
+            className="pointer-events-none absolute z-[21] rounded-[22px]"
+          />
+        ) : null}
 
         {/* 6. LAYER F: Corner 3D Stat Jewels (Mana, Attack, Health / Durability) */}
         <div className="absolute left-[2px] top-[4px] z-[30]">
@@ -1570,7 +1943,7 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
         />
       )}
 
-      {/* Oval Portrait + Atmospheric Faction Sky + Character Portrait */}
+      {/* Oval Portrait + Atmospheric Faction Sky + Character Portrait (5-Tier Rarity Bezel) */}
       <div
         style={{
           background: `radial-gradient(circle at 50% 35%, ${pal.halo} 0%, ${pal.skyMid} 55%, ${pal.skyBot} 100%)`,
@@ -1579,10 +1952,16 @@ export const BoardMinionToken = React.memo<BoardMinionTokenProps>(({
           minion.frozen
             ? 'border-cyan-200 ring-2 ring-sky-400/75 sm:ring-4'
             : minion.rarity === 'LEGENDARY'
-              ? 'border-[#eab308] ring-[1.5px] ring-[#241305]'
-              : isTaunt
-                ? 'border-[#f2d694]'
-                : 'border-[#d4ab63]'
+              ? 'border-[#fde047] ring-[2px] ring-[#b45309] shadow-[0_0_12px_rgba(251,191,36,0.55),0_6px_12px_rgba(0,0,0,0.85)]'
+              : minion.rarity === 'EPIC'
+                ? 'border-[#e9d5ff] ring-[1.5px] ring-[#7e22ce]'
+                : minion.rarity === 'RARE'
+                  ? 'border-[#93c5fd] ring-[1px] ring-[#1d4ed8]'
+                  : minion.rarity === 'COMMON'
+                    ? 'border-[#e2e8f0]'
+                    : isTaunt
+                      ? 'border-[#f2d694]'
+                      : 'border-[#b89252]'
         }`}
       >
         {!imgErr ? (
@@ -1789,10 +2168,12 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
         skyBot: customHero.skyBot || basePal.skyBot,
       }
     : basePal;
-  const heroPortraitSrc = player.isJaraxxus
+  const rawHeroPortraitSrc = player.isJaraxxus
     ? getHeroArtUrl('EX1_323h')
     : customHero?.portraitUrl || getHeroArtUrl(player.heroId);
+  const heroPortraitSrc = resolveUpperBodyHeroUrl(rawHeroPortraitSrc);
   const isHeroCutout = heroPortraitSrc.includes('/cutouts/');
+  const isHeroUpperHd = heroPortraitSrc.includes('/upper-hd/');
   const heroPowerArtSrc = getHeroPowerArtUrl(
     player.heroPowerId,
     player.heroClass,
@@ -1962,9 +2343,11 @@ export const HeroPortraitZone = React.memo<HeroZoneProps>(({
             alt={heroDisplayName}
             decoding="async"
             className={
-              isHeroCutout
-                ? 'absolute left-1/2 top-[2%] h-[154%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top'
-                : 'absolute inset-0 h-full w-full scale-[1.05] object-cover object-center'
+              isHeroUpperHd
+                ? 'absolute inset-0 h-full w-full scale-[1.06] object-cover object-top'
+                : isHeroCutout
+                  ? 'absolute left-1/2 top-[2%] h-[154%] w-[124%] max-w-none -translate-x-1/2 object-cover object-top'
+                  : 'absolute inset-0 h-full w-full scale-[1.05] object-cover object-center'
             }
           />
           <img

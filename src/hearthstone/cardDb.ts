@@ -99,24 +99,67 @@ export function getCardTileUrl(artId: string): string {
   return getCardArtUrl(artId);
 }
 
+const HD_UPPER_HERO_FILES = new Set<string>([
+  '005_Aqualord.webp',
+  '006_Leviathan.webp',
+  '010_Poseidon.webp',
+  '011_Ignis.webp',
+  '013_Belphegor.webp',
+  '025_Aeolus.webp',
+  '030_Wind_God_Toram.webp',
+  '040_Colossus.webp',
+  '041_Kadan.webp',
+  '045_Gawain.webp',
+  '049_Hercul.webp',
+  '050_Aleksandar.webp',
+  '054_Arachne.webp',
+  '060_Death_Knight_Artus.webp',
+  '061_Lucian.webp',
+  '062_Celia.webp',
+  '066_Malfuon.webp',
+  '069_Gandar.webp',
+  '070_Aila.webp',
+  '074_Grimli.webp',
+  '080_Ironforge.webp',
+  '081_Fenrir.webp',
+  '086_Leonar.webp',
+  '089_Medusa_Gorgo.webp',
+]);
+
+/**
+ * Upgrades any character cutout path to its canonical 1024x1024 waist-up `upper-hd` portrait
+ * whenever available so Hero Portraits, Story Dialogue, and Card Illustrations match 100%.
+ */
+export function resolveUpperBodyHeroUrl(rawUrl: string): string {
+  if (!rawUrl) return '/hs-assets/upper-hd/041_Kadan.webp';
+  const clean = rawUrl.split('?')[0];
+  const fn = clean.split('/').pop() || '';
+  if (clean.includes('/hs-assets/characters/cutouts/') && HD_UPPER_HERO_FILES.has(fn)) {
+    return `/hs-assets/upper-hd/${fn}`;
+  }
+  return rawUrl;
+}
+
 const HERO_ID_TO_PORTRAIT: Record<string, string> = {
-  HERO_01: CLASSIC_HEROES.WARRIOR.heroCutoutUrl,
-  HERO_02: CLASSIC_HEROES.SHAMAN.heroCutoutUrl,
-  HERO_03: CLASSIC_HEROES.ROGUE.heroCutoutUrl,
-  HERO_04: CLASSIC_HEROES.PALADIN.heroCutoutUrl,
-  HERO_05: CLASSIC_HEROES.HUNTER.heroCutoutUrl,
-  HERO_06: CLASSIC_HEROES.DRUID.heroCutoutUrl,
-  HERO_07: CLASSIC_HEROES.WARLOCK.heroCutoutUrl,
-  HERO_08: CLASSIC_HEROES.MAGE.heroCutoutUrl,
-  HERO_09: CLASSIC_HEROES.PRIEST.heroCutoutUrl,
-  EX1_323h: '/hs-assets/characters/cutouts/080_Ironforge.webp',
-  EX1_323: '/hs-assets/characters/cutouts/080_Ironforge.webp',
+  HERO_01: resolveUpperBodyHeroUrl(CLASSIC_HEROES.WARRIOR.heroCutoutUrl),
+  HERO_02: resolveUpperBodyHeroUrl(CLASSIC_HEROES.SHAMAN.heroCutoutUrl),
+  HERO_03: resolveUpperBodyHeroUrl(CLASSIC_HEROES.ROGUE.heroCutoutUrl),
+  HERO_04: resolveUpperBodyHeroUrl(CLASSIC_HEROES.PALADIN.heroCutoutUrl),
+  HERO_05: resolveUpperBodyHeroUrl(CLASSIC_HEROES.HUNTER.heroCutoutUrl),
+  HERO_06: resolveUpperBodyHeroUrl(CLASSIC_HEROES.DRUID.heroCutoutUrl),
+  HERO_07: resolveUpperBodyHeroUrl(CLASSIC_HEROES.WARLOCK.heroCutoutUrl),
+  HERO_08: resolveUpperBodyHeroUrl(CLASSIC_HEROES.MAGE.heroCutoutUrl),
+  HERO_09: resolveUpperBodyHeroUrl(CLASSIC_HEROES.PRIEST.heroCutoutUrl),
+  EX1_323h: '/hs-assets/upper-hd/080_Ironforge.webp',
+  EX1_323: '/hs-assets/upper-hd/080_Ironforge.webp',
 };
 
 export function getHeroArtUrl(heroId: string): string {
   if (HERO_ID_TO_PORTRAIT[heroId]) return HERO_ID_TO_PORTRAIT[heroId];
   const c = cardDb.getCard(heroId);
-  return c?.artUrl || c?.bustUrl || '/hs-assets/characters/cutouts/041_Kadan.webp';
+  return resolveUpperBodyHeroUrl(
+    c?.artUrl || c?.bustUrl || '/hs-assets/upper-hd/041_Kadan.webp',
+  );
 }
 
 const HERO_POWER_ICON_URLS: Record<string, string> = {

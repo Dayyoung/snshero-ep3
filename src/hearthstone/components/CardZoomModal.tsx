@@ -213,6 +213,162 @@ const CHARACTER_LORE_RULES: Array<{
       hook: 'Final showdown against Chancellor Lucian atop the Obsidian Throne.',
     },
   },
+  {
+    keywords: ['엘윈', 'elwin'],
+    ko: {
+      ep: 1,
+      epTitle: '제1화 · 눈보라 아래 두 서약',
+      hook: '혹한의 북방 설원을 헤치며 아기 카단과 은빛 단검을 끝까지 지켜낸 강인한 어머니!',
+    },
+    en: {
+      ep: 1,
+      epTitle: 'EP.1 · Two Oaths Beneath the Blizzard',
+      hook: 'Lady Elwin braves the northern blizzard to protect infant Kadan and the Silver Dagger.',
+    },
+  },
+  {
+    keywords: ['가웨인', '로비냐드', '벨페고르', 'gawain', 'robinyard', 'belphegor'],
+    ko: {
+      ep: 3,
+      epTitle: '제3화 · 안개 절벽의 혈투',
+      hook: '맹인 검성 가웨인과 명궁 로비냐드가 안개 절벽에서 결정술사 벨페고르와 맞선 처절한 사투!',
+    },
+    en: {
+      ep: 3,
+      epTitle: 'EP.3 · Blood Battle on Mist Cliff',
+      hook: 'Blind swordmaster Gawain and archer Robinyard clash with Belphegor atop Mist Cliff.',
+    },
+  },
+  {
+    keywords: ['길가메시', '바르가스트', '우르삭', '그리폰', 'gilgamesh', 'barghest', 'ursoc', 'griffon'],
+    ko: {
+      ep: 4,
+      epTitle: '제4화 · 황야에서 자란 아이',
+      hook: '북방 설원 유목민 전우 길가메시와 야성 영수들이 소년 카단과 우정을 다진 대평원 서막!',
+    },
+    en: {
+      ep: 4,
+      epTitle: 'EP.4 · Child Raised by the Tundra',
+      hook: 'Northern steppe companion Gilgamesh and primal beasts stand beside young Kadan.',
+    },
+  },
+  {
+    keywords: ['고르고', '메두사', '카제', 'gorgo', 'medusa', 'kaze'],
+    ko: {
+      ep: 5,
+      epTitle: '제5화 · 독안개 속의 그림자',
+      hook: '자욱한 폭우와 독안개 속에서 그림자 자객의 비기를 깨우쳐 메두사 고르고를 파훼한 결투!',
+    },
+    en: {
+      ep: 5,
+      epTitle: 'EP.5 · Shadow Inside the Venom Fog',
+      hook: 'Kadan channels shadow-sense taught by Kaze to pierce Medusa Gorgo’s poison mist.',
+    },
+  },
+  {
+    keywords: ['말퓨온', '엘리아나', '티타니아', 'malfuon', 'eliana', 'titania'],
+    ko: {
+      ep: 6,
+      epTitle: '제6화 · 여섯 스승과 성진호흡',
+      hook: '별빛의 은자 말퓨온과 일곱 추적자 스승들의 비전이 하나의 성진호흡법으로 융합되는 순간!',
+    },
+    en: {
+      ep: 6,
+      epTitle: 'EP.6 · Six Masters & Star-Breathing',
+      hook: 'Archsage Malfuon harmonizes the Seven Trackers’ teachings into Star-Breathing.',
+    },
+  },
+  {
+    keywords: ['페가수스', '적갈기', '론돌', '발보', 'pegasus', 'rondol', 'balbo'],
+    ko: {
+      ep: 8,
+      epTitle: '제8화 · 적갈기의 기수',
+      hook: '폭풍처럼 설원을 가르는 명마 적갈기 페가수스와 의리파 스승들의 뜨거운 출정!',
+    },
+    en: {
+      ep: 8,
+      epTitle: 'EP.8 · Rider of the Crimson Mane',
+      hook: 'Taming the storm-swift Crimson Mane Pegasus across the northern plains.',
+    },
+  },
+  {
+    keywords: ['발리안', '이셀라', '콜로서스', 'balian', 'ysela', 'colossus'],
+    ko: {
+      ep: 10,
+      epTitle: '제10화 · 불꽃 궁정의 포로',
+      hook: '성창기사 발리안과 순백마도사 이셀라가 남긴 유산, 그리고 불꽃 궁정의 숨겨진 혈통 비밀!',
+    },
+    en: {
+      ep: 10,
+      epTitle: 'EP.10 · Prisoner of the Flame Court',
+      hook: 'The sealed legacy of Paladin Balian and White Mage Ysela inside the Flame Court.',
+    },
+  },
+  {
+    keywords: ['레오나르', 'leonar'],
+    ko: {
+      ep: 13,
+      epTitle: '제13화 · 녹옥 지팡이의 계승자',
+      hook: '유랑민 연맹의 노장 레오나르가 대련 시험 끝에 카단에게 녹옥 지팡이를 맡긴 명장면!',
+    },
+    en: {
+      ep: 13,
+      epTitle: 'EP.13 · Heir of the Jade Staff',
+      hook: 'Veteran Master Leonar entrusts the sacred Jade Staff after a trial by combat.',
+    },
+  },
+  {
+    keywords: ['아라크네', '워커', 'arachne', 'walker'],
+    ko: {
+      ep: 15,
+      epTitle: '제15화 · 네 수문의 독거미',
+      hook: '네 수문 장원을 덮친 맹독거미 아라크네와 언데드 암살단을 격파하고 해독제를 지켜낸 혈투!',
+    },
+    en: {
+      ep: 15,
+      epTitle: 'EP.15 · Venom Spider of Four Floodgates',
+      hook: 'Defeating spider-assassin Arachne to claim the amethyst antidote vial.',
+    },
+  },
+  {
+    keywords: ['실리아', '실피드', '에올루스', '토람', 'celia', 'sylphid', 'aeolus', 'toram'],
+    ko: {
+      ep: 17,
+      epTitle: '제17화 · 바람 속삭임 섬의 왕녀',
+      hook: '녹옥 지팡이로 폭풍을 다스리는 왕녀 실리아와 바람섬 왕실의 운명적 만남!',
+    },
+    en: {
+      ep: 17,
+      epTitle: 'EP.17 · Princess of Windwhisper Isle',
+      hook: 'Princess Celia wields her mother Sylphid’s Jade Staff amidst the sea-fog tempest.',
+    },
+  },
+  {
+    keywords: ['아쿠아로드', '레비아탄', '크라켄', 'aqualord', 'leviathan', 'kraken'],
+    ko: {
+      ep: 20,
+      epTitle: '제20화 · 꽃배를 삼킨 파도',
+      hook: '흑풍단 바다군주 아쿠아로드와 심연 마수 레비아탄이 격돌하는 대양 해상 결전!',
+    },
+    en: {
+      ep: 20,
+      epTitle: 'EP.20 · Waves Swallowing the Blossom Boat',
+      hook: 'Sea-Lord Aqualord and Abyssal Leviathan clash across storm-tossed waters.',
+    },
+  },
+  {
+    keywords: ['간다르', 'gandar'],
+    ko: {
+      ep: 23,
+      epTitle: '제23화 · 용의 석굴과 삼중 봉인',
+      hook: '용의 석굴 깊은 곳 제단에서 펼쳐진 간다르와의 숙명적인 마력 대결!',
+    },
+    en: {
+      ep: 23,
+      epTitle: 'EP.23 · Dragon Grotto & Tripartite Seal',
+      hook: 'Confronting Gandar before the sealed jade altar deep within Dragon Grotto.',
+    },
+  },
 ];
 
 const CLASS_LORE_FALLBACK: Record<string, { ko: CardNovelLoreEntry; en: CardNovelLoreEntry }> = {
@@ -640,8 +796,38 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
           ✕
         </button>
 
-        {/* Subtitle + Navigation Counter Row */}
-        <div className="mb-1 flex max-w-[84%] flex-wrap items-center justify-center gap-1.5">
+        {/* Subtitle + 5-Tier Rarity Prestige Badge + Navigation Counter Row */}
+        <div className="mb-1 flex max-w-[88%] flex-wrap items-center justify-center gap-1.5">
+          <div
+            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10.5px] font-black tracking-wide shadow ${
+              card.rarity === 'LEGENDARY'
+                ? 'border-yellow-200 bg-gradient-to-r from-amber-900 via-orange-700 to-amber-900 text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.7)]'
+                : card.rarity === 'EPIC'
+                  ? 'border-purple-300/85 bg-gradient-to-r from-purple-950 via-purple-800 to-purple-950 text-purple-100 shadow-[0_0_12px_rgba(192,132,252,0.55)]'
+                  : card.rarity === 'RARE'
+                    ? 'border-sky-300/80 bg-sky-950/95 text-sky-100 shadow-[0_0_10px_rgba(56,189,248,0.45)]'
+                    : card.rarity === 'COMMON'
+                      ? 'border-slate-300/70 bg-slate-900/95 text-slate-100'
+                      : 'border-stone-500/70 bg-stone-900/95 text-stone-300'
+            }`}
+          >
+            <span>
+              {card.rarity === 'LEGENDARY'
+                ? '★'
+                : card.rarity === 'EPIC'
+                  ? '◆'
+                  : card.rarity === 'RARE'
+                    ? '❖'
+                    : card.rarity === 'COMMON'
+                      ? '◇'
+                      : '•'}
+            </span>
+            <span>
+              {isGolden
+                ? tr(`황금 ${getRarityLabel(card.rarity)}`, `Golden ${getRarityLabel(card.rarity)}`)
+                : tr(`${getRarityLabel(card.rarity)} 카드`, `${getRarityLabel(card.rarity)} Card`)}
+            </span>
+          </div>
           {subtitleBadge && (
             <div className="truncate rounded-full border border-amber-300/60 bg-stone-950/90 px-3 py-0.5 text-[11px] font-extrabold text-amber-200 shadow">
               {subtitleBadge}
@@ -658,8 +844,21 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
           )}
         </div>
 
-        {/* Enlarged Card + Left/Right Prev/Next Buttons */}
+        {/* Enlarged Card + Pedestal Rarity Halo + Left/Right Prev/Next Buttons */}
         <div className="relative flex w-full items-center justify-center">
+          {(card.rarity === 'LEGENDARY' || card.rarity === 'EPIC' || card.rarity === 'RARE') && (
+            <div
+              style={{
+                background:
+                  card.rarity === 'LEGENDARY'
+                    ? 'radial-gradient(circle, rgba(251,191,36,0.38) 0%, rgba(234,88,12,0.16) 45%, transparent 72%)'
+                    : card.rarity === 'EPIC'
+                      ? 'radial-gradient(circle, rgba(192,132,252,0.32) 0%, rgba(126,34,206,0.14) 45%, transparent 72%)'
+                      : 'radial-gradient(circle, rgba(56,189,248,0.24) 0%, transparent 70%)',
+              }}
+              className="pointer-events-none absolute h-[290px] w-[260px] rounded-full"
+            />
+          )}
           {hasNav && (
             <button
               type="button"
@@ -844,9 +1043,9 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
                     )}
           </div>
 
-          <div className="mt-1.5 rounded-xl border border-[#b9965b]/55 bg-[#fffbf0] px-3 py-2 text-center text-[14px] font-bold leading-relaxed text-[#1a0f06] sm:text-[15px]">
+          <div className="mt-1.5 rounded-xl border border-[#b9965b]/55 bg-[#fffbf0] px-3 py-2 text-center text-[14px] leading-relaxed text-[#1a0f06] sm:text-[15px]">
             {cleanHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
+              <div className="hs-card-ability-text" dangerouslySetInnerHTML={{ __html: cleanHtml }} />
             ) : card.type === 'WEAPON' ? (
               <span className="text-xs font-extrabold text-slate-800">
                 {tr(

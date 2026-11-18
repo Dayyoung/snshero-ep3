@@ -420,341 +420,354 @@ export const SnsLegendaryCardDragonSvg: React.FC<{
   className?: string;
 }> = ({ isGolden = false, preserveAspectRatio = 'xMidYMid meet', className = '' }) => {
   const uid = React.useId().replace(/:/g, '');
-  // Cast Pewter/Silver relief (Standard Legendary) with Radiant Gold Borders,
-  // or Full Antique 24K Bronze-Gold relief (Golden Legendary)
-  const rimHighlight = isGolden ? '#fffef0' : '#fef08a';
-  const metalBright = isGolden ? '#f3cf72' : '#dce2eb';
-  const metalMid = isGolden ? '#ba8528' : '#94a0b0';
-  const metalDark = isGolden ? '#6b420b' : '#4a5565';
-  const metalCrevice = isGolden ? '#422205' : '#4a2e08';
-  const trimHighlight = isGolden ? '#fffef5' : '#fff9c4';
-  const trimMid = isGolden ? '#facc15' : '#eab308';
-  const trimDeep = isGolden ? '#854d0e' : '#a16207';
+  // Sovereign Forged Royal Gold & Sunfire-Bronze 3D Relief (Standard Legendary)
+  // and Blazing White-Hot 24K Diamond-Gold Relief (Golden Legendary)
+  const rimHighlight = isGolden ? '#ffffff' : '#fffbeb';
+  const metalPeak = isGolden ? '#fffef2' : '#fef9c3';
+  const metalBright = isGolden ? '#fde047' : '#f7ce68';
+  const metalMid = isGolden ? '#eab308' : '#d99026';
+  const metalDark = isGolden ? '#92400e' : '#783f0c';
+  const metalCrevice = isGolden ? '#3b1702' : '#261104';
+  const recessTop = isGolden ? '#a16207' : '#572c0c';
+  const recessBot = isGolden ? '#451a03' : '#1f0d03';
+  const trimBright = isGolden ? '#ffffff' : '#fef08a';
+  const trimMid = isGolden ? '#facc15' : '#f59e0b';
+  const trimDeep = isGolden ? '#854d0e' : '#92400e';
 
   return (
     <svg
-      viewBox="0 -26 300 266"
+      viewBox="0 -28 300 270"
       preserveAspectRatio={preserveAspectRatio}
       className={`pointer-events-none select-none overflow-visible ${className}`}
     >
       <defs>
-        <linearGradient id={`metalBody_${uid}`} x1="0.1" y1="0" x2="0.85" y2="1">
-          <stop offset="0%" stopColor={isGolden ? '#fffbe6' : '#f8fafc'} />
-          <stop offset="24%" stopColor={metalBright} />
-          <stop offset="58%" stopColor={metalMid} />
-          <stop offset="88%" stopColor={metalDark} />
+        <linearGradient id={`sovBody_${uid}`} x1="0.12" y1="0" x2="0.88" y2="1">
+          <stop offset="0%" stopColor={metalPeak} />
+          <stop offset="22%" stopColor={metalBright} />
+          <stop offset="56%" stopColor={metalMid} />
+          <stop offset="86%" stopColor={metalDark} />
           <stop offset="100%" stopColor={metalCrevice} />
         </linearGradient>
-        <linearGradient id={`metalBevel_${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={isGolden ? '#fffbe6' : '#f8fafc'} />
-          <stop offset="40%" stopColor={metalBright} />
-          <stop offset="84%" stopColor={metalDark} />
-          <stop offset="100%" stopColor={metalCrevice} />
-        </linearGradient>
-        <linearGradient id={`wingBlade_${uid}`} x1="0.15" y1="0" x2="0.9" y2="1">
-          <stop offset="0%" stopColor={isGolden ? '#fffbe6' : '#f1f5f9'} />
-          <stop offset="32%" stopColor={metalBright} />
-          <stop offset="70%" stopColor={metalMid} />
+        <linearGradient id={`sovWingSpar_${uid}`} x1="0.1" y1="0" x2="0.92" y2="1">
+          <stop offset="0%" stopColor={rimHighlight} />
+          <stop offset="28%" stopColor={metalBright} />
+          <stop offset="68%" stopColor={metalMid} />
           <stop offset="100%" stopColor={metalDark} />
         </linearGradient>
-        <linearGradient id={`wingRecess_${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={metalMid} />
-          <stop offset="58%" stopColor={metalDark} />
-          <stop offset="100%" stopColor={metalCrevice} />
+        <linearGradient id={`sovMembrane_${uid}`} x1="0.2" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor={recessTop} />
+          <stop offset="55%" stopColor={recessBot} />
+          <stop offset="100%" stopColor="#120702" />
         </linearGradient>
-        <linearGradient id={`goldFiligree_${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={trimHighlight} />
-          <stop offset="32%" stopColor="#fde047" />
-          <stop offset="68%" stopColor={trimMid} />
+        <linearGradient id={`sovTrim_${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={trimBright} />
+          <stop offset="35%" stopColor="#fde047" />
+          <stop offset="72%" stopColor={trimMid} />
           <stop offset="100%" stopColor={trimDeep} />
         </linearGradient>
-        <radialGradient id={`eyeEmber_${uid}`} cx="38%" cy="38%" r="65%">
+        <radialGradient id={`sovEye_${uid}`} cx="38%" cy="38%" r="65%">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="35%" stopColor="#fde047" />
-          <stop offset="75%" stopColor="#ea580c" />
+          <stop offset="28%" stopColor="#fef08a" />
+          <stop offset="68%" stopColor="#f97316" />
+          <stop offset="100%" stopColor="#9a3412" />
+        </radialGradient>
+        <radialGradient id={`sovCrownGem_${uid}`} cx="35%" cy="32%" r="68%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="32%" stopColor="#fde047" />
+          <stop offset="66%" stopColor="#ea580c" />
           <stop offset="100%" stopColor="#7c2d12" />
+        </radialGradient>
+        <radialGradient id={`sovAura_${uid}`} cx="52%" cy="22%" r="54%">
+          <stop offset="0%" stopColor="rgba(253, 224, 71, 0.38)" />
+          <stop offset="58%" stopColor="rgba(249, 115, 22, 0.14)" />
+          <stop offset="100%" stopColor="rgba(249, 115, 22, 0)" />
         </radialGradient>
       </defs>
 
       <g>
-        {/* 1. Left Coiled Tail & Sleek Secondary Pinion Hugging Upper-Left Oval Bezel (Behind Mana Gem) */}
-        <path
-          d="M 142 20
-             C 116 14, 92 22, 66 42
-             C 76 46, 84 52, 84 62
-             C 96 42, 118 29, 144 27
-             Z"
-          fill={`url(#wingRecess_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="2.3"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M 146 21 C 118 16, 94 25, 70 42"
-          fill="none"
-          stroke={rimHighlight}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          opacity="0.92"
-        />
-        {/* Sleek Armored Tail Curl Wrapping Lower-Left Rim Beneath Mana Gem */}
-        <path
-          d="M 74 52
-             C 62 66, 54 84, 53 105
-             C 52 119, 55 130, 62 140
-             C 59 124, 60 104, 67 84
-             C 72 70, 80 58, 90 50
-             Z"
-          fill={`url(#metalBody_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="2.4"
-          strokeLinejoin="round"
-        />
-        {/* Sculpted Left Bezel Talon Pair (Gold-rimmed) */}
-        <path
-          d="M 55 96 L 44 103 L 53 108 L 46 116 L 56 115 Z"
-          fill={`url(#goldFiligree_${uid})`}
-          stroke={metalCrevice}
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
+        {/* Subtle Sovereign Golden Crown Back-Glow */}
+        <ellipse cx="176" cy="24" rx="108" ry="52" fill={`url(#sovAura_${uid})`} />
 
-        {/* 2. Sweeping Sculpted Upper-Right Dragon Wing (Layered Forged Metal Pinions + Gold Border) */}
+        {/* 1. Left Sweeping Crest-Wing & Armored Tail Hugging Upper-Left Bezel (Cleanly Clear of Mana Gem) */}
         <path
-          d="M 176 24
-             C 192 -2, 222 -16, 256 -14
-             C 246 -2, 246 8, 252 14
-             C 264 6, 276 4, 286 8
-             C 276 22, 274 32, 278 40
-             C 284 36, 289 36, 291 42
-             C 281 56, 276 70, 276 86
-             C 266 94, 260 104, 256 114
-             C 244 82, 224 48, 188 32
+          d="M 142 18
+             C 116 10, 88 18, 66 38
+             C 75 41, 82 47, 84 56
+             C 98 37, 118 26, 145 25
              Z"
-          fill={`url(#wingRecess_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="2.8"
-          strokeLinejoin="round"
-        />
-        {/* Sculpted Overlapping Metallic Wing Pinion Blades */}
-        <path
-          d="M 176 22 C 198 -2, 226 -14, 255 -13 C 236 -1, 222 10, 212 24 Z"
-          fill={`url(#wingBlade_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="1.9"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M 206 24 C 232 10, 260 4, 285 9 C 266 20, 248 28, 234 38 Z"
-          fill={`url(#wingBlade_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="1.9"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M 228 40 C 252 34, 272 34, 289 42 C 272 50, 256 58, 246 68 Z"
-          fill={`url(#wingBlade_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="1.9"
-          strokeLinejoin="round"
-        />
-        {/* Forged Wing Arm Spar + Wing Elbow Talon */}
-        <path
-          d="M 168 24 C 186 2, 206 -12, 228 -16 L 234 -22 L 236 -11 C 216 -4, 198 10, 184 28 Z"
-          fill={`url(#goldFiligree_${uid})`}
+          fill={`url(#sovBody_${uid})`}
           stroke={metalCrevice}
-          strokeWidth="1.7"
+          strokeWidth="2.2"
           strokeLinejoin="round"
         />
-        {/* Crisp Golden Specular Bevel Edges on Wing Spars */}
         <path
-          d="M 178 18 C 198 -2, 222 -12, 248 -12
-             M 218 22 C 242 12, 262 8, 280 10
-             M 236 42 C 254 37, 270 37, 283 41"
+          d="M 140 19 C 115 13, 92 21, 71 37"
           fill="none"
           stroke={rimHighlight}
-          strokeWidth="1.45"
+          strokeWidth="1.6"
           strokeLinecap="round"
           opacity="0.95"
         />
-
-        {/* 3. Continuous Armored Serpentine Neck & Body Wrapping Outside Right Oval Bezel */}
+        {/* Sculpted Left Bezel Armored Curve & 3-Clawed Royal Talons (Below Mana Gem) */}
         <path
-          d="M 212 36
-             C 242 48, 268 78, 272 124
-             C 275 156, 264 186, 242 206
-             C 238 202, 232 198, 226 196
-             C 241 174, 249 150, 248 124
-             C 247 92, 234 64, 206 48
+          d="M 66 68
+             C 56 84, 51 104, 52 126
+             C 53 142, 57 156, 64 168
+             C 60 151, 59 131, 62 111
+             C 64 94, 69 80, 76 70
              Z"
-          fill={`url(#metalBody_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
+          fill={`url(#sovBody_${uid})`}
+          stroke={`url(#sovTrim_${uid})`}
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 54 98 L 41 105 L 52 110 L 42 119 L 53 121 L 46 131 L 57 127 Z"
+          fill={`url(#sovTrim_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+
+        {/* 2. Majestic 4-Pinion Sweeping Upper-Right Sovereign Dragon Wing */}
+        <path
+          d="M 174 22
+             C 192 -6, 224 -22, 262 -20
+             C 251 -7, 250 4, 256 10
+             C 270 1, 283 -1, 294 5
+             C 282 20, 279 31, 284 39
+             C 291 35, 296 36, 298 43
+             C 286 58, 280 74, 279 92
+             C 268 100, 261 110, 257 120
+             C 245 84, 224 48, 186 31
+             Z"
+          fill={`url(#sovMembrane_${uid})`}
+          stroke={`url(#sovTrim_${uid})`}
           strokeWidth="2.8"
           strokeLinejoin="round"
         />
-        {/* Overlapping Cast Armor Dorsal Segments & Gold Bevel Plates */}
+        {/* Layered Sculpted 24K Gold Wing Pinion Blades */}
         <path
-          d="M 220 50 Q 246 54 256 68
-             M 232 68 Q 256 72 266 88
-             M 240 88 Q 262 94 270 112
-             M 245 110 Q 264 116 271 134
-             M 246 132 Q 262 140 266 158
-             M 242 156 Q 256 164 256 180"
-          fill="none"
-          stroke={metalCrevice}
-          strokeWidth="2.1"
-          strokeLinecap="round"
-        />
-        <path
-          d="M 222 48 Q 246 52 256 66
-             M 234 66 Q 256 70 266 86
-             M 242 86 Q 262 92 270 110
-             M 247 108 Q 264 114 271 132
-             M 248 130 Q 262 138 266 156
-             M 244 154 Q 256 162 256 178"
-          fill="none"
-          stroke={rimHighlight}
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          opacity="0.88"
-        />
-        {/* Gilded Metallic Dorsal Ridge Spines Along Outer Spine */}
-        <path
-          d="M 256 62 L 274 56 L 263 76
-             M 267 90 L 284 88 L 271 106
-             M 272 120 L 286 122 L 271 136
-             M 268 152 L 281 158 L 263 168"
-          fill={`url(#goldFiligree_${uid})`}
-          stroke={metalCrevice}
-          strokeWidth="1.6"
-          strokeLinejoin="round"
-        />
-        {/* Gilded Tapered Tail Barb & Right Bezel Gripping Talons */}
-        <path
-          d="M 244 146 L 230 154 L 241 159 L 228 168 L 239 171 L 231 182 L 244 176 Z"
-          fill={`url(#goldFiligree_${uid})`}
-          stroke={metalCrevice}
-          strokeWidth="1.6"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M 239 186 L 226 212 L 244 198 Z"
-          fill={`url(#goldFiligree_${uid})`}
-          stroke={metalCrevice}
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-
-        {/* 4. Sculpted Fierce Dragon Skull (Perching Over Top-Center-Right Arch, Facing Left) */}
-        {/* Swept-Back Main Cranial Horns (Gold-trimmed) */}
-        <path
-          d="M 200 18 L 236 -18 L 224 12 L 214 26 Z"
-          fill={`url(#goldFiligree_${uid})`}
+          d="M 174 21 C 198 -6, 229 -19, 260 -19 C 240 -5, 224 8, 212 23 Z"
+          fill={`url(#sovWingSpar_${uid})`}
           stroke={metalCrevice}
           strokeWidth="1.8"
           strokeLinejoin="round"
         />
         <path
-          d="M 210 28 L 248 2 L 230 28 L 216 36 Z"
-          fill={`url(#metalBody_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="2.1"
+          d="M 206 23 C 234 7, 265 1, 292 6 C 271 18, 251 27, 235 38 Z"
+          fill={`url(#sovWingSpar_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.8"
           strokeLinejoin="round"
         />
         <path
-          d="M 204 16 L 232 -14 M 214 27 L 244 4"
+          d="M 228 39 C 254 32, 276 33, 296 42 C 277 51, 260 60, 248 70 Z"
+          fill={`url(#sovWingSpar_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 244 68 C 262 66, 274 72, 279 90 C 268 89, 259 94, 253 102 Z"
+          fill={`url(#sovWingSpar_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        {/* Forged Wing Thumb-Claw & Specular Gold Ridges */}
+        <path
+          d="M 168 22 C 186 -2, 208 -16, 232 -21 L 239 -27 L 241 -15 C 219 -7, 200 8, 184 27 Z"
+          fill={`url(#sovTrim_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 178 16 C 200 -5, 226 -16, 253 -17
+             M 218 20 C 244 9, 266 5, 286 7
+             M 236 41 C 256 35, 273 36, 289 41"
           fill="none"
           stroke={rimHighlight}
-          strokeWidth="1.3"
+          strokeWidth="1.5"
           strokeLinecap="round"
-          opacity="0.92"
+          opacity="0.95"
         />
 
-        {/* Deep Shadowed Roaring Jaw Cavity & Razor Metallic Fangs */}
+        {/* 3. Armored Serpentine Dragon Neck, Overlapping Scale Plates & Dorsal Spines (Right Arch) */}
         <path
-          d="M 142 36 L 164 46 L 194 42 L 198 30 L 160 28 Z"
-          fill="#1a0d04"
+          d="M 210 34
+             C 244 47, 271 78, 275 125
+             C 278 158, 266 188, 243 207
+             C 238 202, 232 198, 226 196
+             C 242 174, 250 150, 249 124
+             C 248 91, 234 62, 204 46
+             Z"
+          fill={`url(#sovBody_${uid})`}
+          stroke={`url(#sovTrim_${uid})`}
+          strokeWidth="2.8"
+          strokeLinejoin="round"
+        />
+        {/* Sculpted Overlapping Dragon Armor Chevrons */}
+        <path
+          d="M 219 49 Q 246 53 257 68
+             M 231 67 Q 257 72 267 89
+             M 240 88 Q 264 94 272 113
+             M 245 111 Q 266 117 273 136
+             M 246 134 Q 264 142 268 160
+             M 242 158 Q 257 166 257 182"
+          fill="none"
+          stroke={metalCrevice}
+          strokeWidth="2.3"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 221 47 Q 246 51 257 66
+             M 233 65 Q 257 70 267 87
+             M 242 86 Q 264 92 272 111
+             M 247 109 Q 266 115 273 134
+             M 248 132 Q 264 140 268 158"
+          fill="none"
+          stroke={rimHighlight}
+          strokeWidth="1.45"
+          strokeLinecap="round"
+          opacity="0.9"
+        />
+        {/* Gilded Outer Dorsal Spines */}
+        <path
+          d="M 257 60 L 277 53 L 265 75
+             M 269 89 L 288 86 L 273 106
+             M 274 120 L 290 122 L 273 138
+             M 269 153 L 284 159 L 264 170"
+          fill={`url(#sovTrim_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.7"
+          strokeLinejoin="round"
+        />
+        {/* Right Bezel-Gripping 3-Clawed Golden Talons & Tail Finial */}
+        <path
+          d="M 245 144 L 229 153 L 241 159 L 227 169 L 239 172 L 230 184 L 245 178 Z"
+          fill={`url(#sovTrim_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.7"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 240 186 L 226 211 L 246 198 Z"
+          fill={`url(#sovTrim_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+
+        {/* 4. Organic Sculpted Sovereign Dragon Head & Sunfire Crown (Top Arch Center-Right) */}
+        {/* Twin Swept-Back Royal Cranial Horns */}
+        <path
+          d="M 196 16 C 210 -1, 226 -14, 242 -21 C 235 -4, 226 10, 214 25 Z"
+          fill={`url(#sovTrim_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.9"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 208 26 C 224 14, 239 5, 254 1 C 244 16, 232 27, 216 36 Z"
+          fill={`url(#sovBody_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.9"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 200 14 C 213 0, 226 -11, 238 -17 M 212 25 C 226 15, 238 7, 249 3"
+          fill="none"
+          stroke={rimHighlight}
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+
+        {/* Roaring Jaw Interior, Golden Breath Wisps & Ivory Fangs */}
+        <path
+          d="M 136 34 C 148 45, 174 47, 196 41 L 199 28 L 154 26 Z"
+          fill="#1a0802"
           stroke={metalCrevice}
           strokeWidth="1.5"
         />
+        {/* Subtle Dragon-Breath Flame Tongue */}
         <path
-          d="M 149 35 L 152 43 L 156 36 M 162 36 L 165 43 L 169 36 M 157 45 L 160 39 L 163 45"
+          d="M 122 36 C 130 32, 138 33, 146 36 C 137 40, 129 41, 122 36 Z"
+          fill={`url(#sovEye_${uid})`}
+          opacity="0.92"
+        />
+        <path
+          d="M 143 33 L 146 42 L 150 34 M 156 34 L 159 42 L 163 34 M 150 44 L 153 38 L 156 44"
           fill="#fffef5"
           stroke={metalCrevice}
-          strokeWidth="0.9"
+          strokeWidth="0.95"
           strokeLinejoin="round"
         />
 
-        {/* Armored Lower Mandible & Chin Spur (Gold-bordered) */}
+        {/* Sculpted Lower Mandible & Chin Beard-Spur */}
         <path
-          d="M 144 41 L 156 50 L 188 49 L 208 39 L 190 36 L 162 43 Z"
-          fill={`url(#metalBody_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="2.2"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M 150 47 L 182 47"
-          fill="none"
-          stroke={rimHighlight}
-          strokeWidth="1.25"
-          strokeLinecap="round"
-          opacity="0.88"
-        />
-
-        {/* Chiseled Upper Skull, Snout Ridge, Brow Shield & Cheek Armor Plates */}
-        <path
-          d="M 136 33
-             L 146 21
-             L 164 20
-             L 182 10
-             L 204 14
-             L 220 28
-             L 216 42
-             L 196 36
-             L 174 37
-             L 152 36
-             L 140 37
-             Z"
-          fill={`url(#metalBody_${uid})`}
-          stroke={`url(#goldFiligree_${uid})`}
-          strokeWidth="2.6"
-          strokeLinejoin="round"
-        />
-        {/* Recessed Temporal Cheek Facet */}
-        <path
-          d="M 176 24 L 204 20 L 214 33 L 192 34 Z"
-          fill={`url(#wingRecess_${uid})`}
-          stroke={metalCrevice}
-          strokeWidth="1.4"
-          strokeLinejoin="round"
-        />
-        {/* Forged Golden Brow Plate & Nasal Horn */}
-        <path
-          d="M 138 30 L 145 18 L 152 24 L 166 20 L 186 12 L 202 16"
-          fill="none"
-          stroke={rimHighlight}
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {/* Filigree Crown Accent Crest */}
-        <path
-          d="M 168 23 Q 184 14 200 18"
-          fill="none"
-          stroke={`url(#goldFiligree_${uid})`}
+          d="M 138 40 C 150 51, 178 52, 208 39 L 192 35 C 174 42, 154 43, 138 40 Z"
+          fill={`url(#sovBody_${uid})`}
+          stroke={`url(#sovTrim_${uid})`}
           strokeWidth="2.1"
-          strokeLinecap="round"
+          strokeLinejoin="round"
         />
 
-        {/* Fierce Angled Glowing Dragon Eye Slit */}
+        {/* Curved Organic Upper Dragon Skull, Armored Brow & Nasal Horn */}
         <path
-          d="M 164 26 L 176 23 L 174 29 L 165 29 Z"
-          fill={`url(#eyeEmber_${uid})`}
+          d="M 130 32
+             C 134 23, 141 17, 147 15
+             L 152 21
+             C 162 17, 174 9, 186 8
+             C 201 7, 214 14, 222 27
+             L 216 41
+             C 201 35, 184 35, 168 36
+             C 153 37, 140 36, 130 32
+             Z"
+          fill={`url(#sovBody_${uid})`}
+          stroke={`url(#sovTrim_${uid})`}
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+        {/* Recessed Cheek Armor Plate */}
+        <path
+          d="M 178 22 C 192 17, 205 19, 214 31 C 202 33, 190 32, 178 22 Z"
+          fill={`url(#sovMembrane_${uid})`}
+          stroke={metalCrevice}
+          strokeWidth="1.3"
+          strokeLinejoin="round"
+        />
+        {/* Specular Brow & Snout Crest Highlight */}
+        <path
+          d="M 133 29 C 137 22, 142 18, 146 17 L 152 22 C 163 18, 175 11, 187 10 C 198 10, 208 14, 215 21"
+          fill="none"
+          stroke={rimHighlight}
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Forehead Sovereign Sunfire Crown Medallion */}
+        <g transform="translate(186, 16)">
+          <polygon
+            points="0,-8 6,0 0,8 -6,0"
+            fill={`url(#sovCrownGem_${uid})`}
+            stroke={trimBright}
+            strokeWidth="1.3"
+          />
+          <circle cx="-1.5" cy="-2.2" r="1.5" fill="#ffffff" opacity="0.9" />
+        </g>
+
+        {/* Blazing Slanted Dragon Eye Slit */}
+        <path
+          d="M 159 25 C 164 21, 172 21, 176 24 C 173 28, 165 29, 159 25 Z"
+          fill={`url(#sovEye_${uid})`}
           stroke={metalCrevice}
           strokeWidth="1.2"
           strokeLinejoin="round"
         />
+        <circle cx="166" cy="24.5" r="1.3" fill="#ffffff" />
       </g>
     </svg>
   );
