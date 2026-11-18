@@ -47,17 +47,13 @@ interface FloatingBadge {
   maxLife: number;
 }
 
-interface WindGust {
-  kind: 'SWEEP' | 'STREAM' | 'TARGET_RING';
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-  curveOffset: number;
-  color: string;
-  accentColor: string;
+interface ElementalImpact {
+  kind: 'FROST_PRISON' | 'AERO_SLASH' | 'WIND_DOME' | 'VITAL_UPDRAFT';
+  x: number;
+  y: number;
   life: number;
   maxLife: number;
+  scale: number;
 }
 
 interface BlizzardFlake {
@@ -68,7 +64,16 @@ interface BlizzardFlake {
   size: number;
   rot: number;
   vRot: number;
-  isCrystal: boolean;
+  depth: 0 | 1 | 2; // 0=far flurry, 1=mid snow, 2=foreground ornate 6-branch ice crystal
+  swayPhase: number;
+}
+
+interface BlizzardSleet {
+  x: number;
+  y: number;
+  len: number;
+  speed: number;
+  alpha: number;
 }
 
 interface IceSpear {
@@ -78,6 +83,7 @@ interface IceSpear {
   y1: number;
   delay: number;
   dur: number;
+  scale: number;
   impacted: boolean;
 }
 
@@ -88,6 +94,20 @@ interface WindBlade {
   vy: number;
   radius: number;
   tilt: number;
+  thickness: number;
+  hue: 'WHITE' | 'MINT' | 'JADE';
+}
+
+interface WindLeaf {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  rot: number;
+  vRot: number;
+  spin: number;
+  vSpin: number;
   color: string;
 }
 
@@ -96,18 +116,22 @@ interface WindTornado {
   x1: number;
   baseY: number;
   height: number;
-  baseWidth: number;
+  footRadius: number;
+  mouthRadius: number;
   phase: number;
 }
 
 interface UltimateStorm {
   kind: 'KADAN_BLIZZARD' | 'SILIA_WINDSTORM';
+  subVariant?: 'ATTACK' | 'DEFENSE' | 'HEAL';
   life: number;
   maxLife: number;
   tier: number;
   flakes: BlizzardFlake[];
+  sleets: BlizzardSleet[];
   spears: IceSpear[];
   blades: WindBlade[];
+  leaves: WindLeaf[];
   tornadoes: WindTornado[];
 }
 
@@ -171,7 +195,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
   const particlesRef = useRef<Particle[]>([]);
   const projectilesRef = useRef<Projectile[]>([]);
   const badgesRef = useRef<FloatingBadge[]>([]);
-  const windGustsRef = useRef<WindGust[]>([]);
+  const elementalImpactsRef = useRef<ElementalImpact[]>([]);
   const ultimateStormsRef = useRef<UltimateStorm[]>([]);
   const impactCbRef = useRef(onDamageImpact);
   impactCbRef.current = onDamageImpact;
@@ -179,54 +203,87 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
   const rafIdRef = useRef<number>(0);
   const ensureLoopRef = useRef<() => void>(() => {});
 
-  const spawnSiliaWindstormUltimate = (stageW: number, stageH: number, tier = 1) => {
+  const spawnSiliaWindstormUltimate = (
+    stageW: number,
+    stageH: number,
+    tier = 1,
+    subVariant: 'ATTACK' | 'DEFENSE' | 'HEAL' = 'ATTACK',
+  ) => {
     const blades: WindBlade[] = [];
-    const bladeCount = Math.min(44, 28 + tier * 4);
+    const bladeCount = Math.min(24, 15 + tier * 3);
+    const hues: WindBlade['hue'][] = ['WHITE', 'MINT', 'JADE'];
     for (let i = 0; i < bladeCount; i++) {
       blades.push({
-        x: -stageW * 0.15 - Math.random() * stageW * 0.55,
-        y: stageH * (0.08 + Math.random() * 0.72),
-        vx: 19 + Math.random() * 13,
-        vy: -2.4 + (Math.random() - 0.5) * 3.8,
-        radius: 18 + Math.random() * 22,
-        tilt: -0.25 + (Math.random() - 0.5) * 0.35,
-        color: i % 3 === 0 ? '#ecfdf5' : i % 3 === 1 ? '#34d399' : '#10b981',
+        x: -stageW * 0.2 - Math.random() * stageW * 0.9,
+        y: stageH * (0.08 + ((i * 0.067 + Math.random() * 0.08) % 0.72)),
+        vx: 22 + Math.random() * 14,
+        vy: -2.2 + (Math.random() - 0.5) * 3.4,
+        radius: 34 + Math.random() * 38,
+        tilt: -0.22 + (Math.random() - 0.5) * 0.28,
+        thickness: 6 + Math.random() * 6,
+        hue: hues[i % 3],
       });
     }
+
+    const leafPalette = ['#ecfdf5', '#a7f3d0', '#34d399', '#10b981', '#86efac'];
+    const leaves: WindLeaf[] = [];
+    const leafCount = Math.min(72, 48 + tier * 6);
+    for (let i = 0; i < leafCount; i++) {
+      leaves.push({
+        x: Math.random() * stageW * 1.3 - stageW * 0.2,
+        y: stageH * (0.04 + Math.random() * 0.84),
+        vx: 13 + Math.random() * 12,
+        vy: -2.6 + (Math.random() - 0.5) * 4.5,
+        size: 6 + Math.random() * 8.5,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.22,
+        spin: Math.random() * Math.PI * 2,
+        vSpin: 0.16 + Math.random() * 0.18,
+        color: leafPalette[i % leafPalette.length],
+      });
+    }
+
     const tornadoes: WindTornado[] = [
       {
-        x0: stageW * 0.08,
-        x1: stageW * 0.88,
-        baseY: stageH * 0.52,
-        height: stageH * 0.44,
-        baseWidth: 26,
+        x0: stageW * 0.12,
+        x1: stageW * 0.86,
+        baseY: stageH * 0.68,
+        height: stageH * 0.62,
+        footRadius: Math.max(18, stageW * 0.028),
+        mouthRadius: Math.max(76, stageW * 0.13),
         phase: 0,
       },
       {
-        x0: stageW * 0.22,
-        x1: stageW * 0.94,
-        baseY: stageH * 0.4,
-        height: stageH * 0.42,
-        baseWidth: 22,
-        phase: 2.1,
+        x0: stageW * 0.34,
+        x1: stageW * 0.96,
+        baseY: stageH * 0.54,
+        height: stageH * 0.5,
+        footRadius: Math.max(14, stageW * 0.022),
+        mouthRadius: Math.max(62, stageW * 0.105),
+        phase: 2.15,
       },
       {
-        x0: stageW * 0.02,
-        x1: stageW * 0.74,
-        baseY: stageH * 0.44,
-        height: stageH * 0.38,
-        baseWidth: 20,
-        phase: 4.2,
+        x0: -stageW * 0.02,
+        x1: stageW * 0.66,
+        baseY: stageH * 0.58,
+        height: stageH * 0.52,
+        footRadius: Math.max(15, stageW * 0.024),
+        mouthRadius: Math.max(66, stageW * 0.11),
+        phase: 4.3,
       },
     ];
+
     ultimateStormsRef.current.push({
       kind: 'SILIA_WINDSTORM',
+      subVariant,
       life: 0,
-      maxLife: 78,
+      maxLife: 88,
       tier,
       flakes: [],
+      sleets: [],
       spears: [],
       blades,
+      leaves,
       tornadoes,
     });
     ensureLoopRef.current();
@@ -234,42 +291,67 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
 
   const spawnKadanBlizzardUltimate = (stageW: number, stageH: number, tier = 1) => {
     const flakes: BlizzardFlake[] = [];
-    const flakeCount = Math.min(72, 48 + tier * 6);
+    const flakeCount = Math.min(135, 96 + tier * 10);
     for (let i = 0; i < flakeCount; i++) {
+      const depth: 0 | 1 | 2 = i % 7 === 0 ? 2 : i % 2 === 0 ? 1 : 0;
+      const spdMult = depth === 2 ? 1.25 : depth === 1 ? 1.0 : 0.78;
       flakes.push({
-        x: Math.random() * stageW * 1.45,
-        y: -Math.random() * stageH * 0.65 + (i % 3 === 0 ? Math.random() * stageH * 0.35 : 0),
-        vx: -(14 + Math.random() * 11),
-        vy: 9 + Math.random() * 7.5,
-        size: 6 + Math.random() * 10,
+        x: Math.random() * stageW * 1.45 - stageW * 0.1,
+        y: Math.random() * stageH * 1.15 - stageH * 0.25,
+        vx: -(13 + Math.random() * 11) * spdMult,
+        vy: (7.5 + Math.random() * 6.5) * spdMult,
+        size:
+          depth === 2
+            ? 11 + Math.random() * 9
+            : depth === 1
+              ? 6 + Math.random() * 7
+              : 2.5 + Math.random() * 3.5,
         rot: Math.random() * Math.PI * 2,
-        vRot: (Math.random() - 0.5) * 0.18,
-        isCrystal: i % 2 === 0,
+        vRot: (Math.random() - 0.5) * 0.1,
+        depth,
+        swayPhase: Math.random() * Math.PI * 2,
       });
     }
+
+    const sleets: BlizzardSleet[] = [];
+    const sleetCount = Math.min(78, 56 + tier * 6);
+    for (let i = 0; i < sleetCount; i++) {
+      sleets.push({
+        x: Math.random() * stageW * 1.5,
+        y: Math.random() * stageH,
+        len: 85 + Math.random() * 125,
+        speed: 28 + Math.random() * 18,
+        alpha: 0.4 + Math.random() * 0.55,
+      });
+    }
+
     const spears: IceSpear[] = [];
-    const spearCount = Math.min(14, 7 + tier * 2);
+    const spearCount = Math.min(6, 4 + Math.min(2, tier));
     for (let i = 0; i < spearCount; i++) {
-      const tx = stageW * (0.14 + ((i * 0.72) / Math.max(1, spearCount - 1)));
-      const ty = stageH * (0.18 + (i % 3) * 0.09);
+      const tx = stageW * (0.16 + ((i * 0.68) / Math.max(1, spearCount - 1)));
+      const ty = stageH * (0.24 + (i % 2) * 0.08);
       spears.push({
-        x0: tx + 220,
-        y0: -110 - (i % 4) * 35,
+        x0: tx + stageW * 0.34 + 120,
+        y0: -130 - (i % 3) * 45,
         x1: tx,
         y1: ty,
-        delay: i * 3,
-        dur: 18,
+        delay: i * 3.5,
+        dur: 14,
+        scale: 0.85 + (i % 2) * 0.18,
         impacted: false,
       });
     }
+
     ultimateStormsRef.current.push({
       kind: 'KADAN_BLIZZARD',
       life: 0,
-      maxLife: 82,
+      maxLife: 92,
       tier,
       flakes,
+      sleets,
       spears,
       blades: [],
+      leaves: [],
       tornadoes: [],
     });
     ensureLoopRef.current();
@@ -522,74 +604,24 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
             hsAudio.playProceduralVfxSound('HOLY');
             hsAudio.vibrateByDamage(10);
             impactCbRef.current?.(12);
-            spawnSiliaWindstormUltimate(stageW, stageH, Math.max(1, ev.value || 1));
-            const yBand = stageH * 0.58;
-            for (let i = 0; i < 6; i++) {
-              windGustsRef.current.push({
-                kind: 'SWEEP',
-                x0: stageW * 0.06,
-                y0: stageH * 0.86,
-                x1: stageW * 0.92,
-                y1: yBand + (i - 2.5) * 26,
-                curveOffset: (i % 2 === 0 ? -1 : 1) * (35 + i * 10),
-                color: '#34d399',
-                accentColor: '#bbf7d0',
-                life: 0,
-                maxLife: 46 + i * 3,
-              });
-            }
-            for (let i = 0; i < 5; i++) {
-              const px = stageW * (0.22 + i * 0.14);
-              spawnBurst(px, yBand, 8, ['#22c55e', '#4ade80', '#bbf7d0', '#fef08a'], 7.2, 6, 'STAR', -0.04);
-              spawnRing(px, yBand, '#4ade80', 110);
-            }
-            badgesRef.current.push({
-              x: stageW * 0.5,
-              y: yBand - 42,
-              vy: -0.65,
-              text: ev.label || (isKoreanLanguage() ? '🛡 바람 결계!' : '🛡 Wind Barrier!'),
-              subKind: 'BANNER',
-              life: 0,
-              maxLife: 68,
-            });
+            spawnSiliaWindstormUltimate(stageW, stageH, Math.max(1, ev.value || 1), 'DEFENSE');
           } else {
-            // Targeted minion highlight: wind stream from Silia -> minion + spotlight ring + tag
-            windGustsRef.current.push(
-              {
-                kind: 'STREAM',
-                x0: sourcePos.x,
-                y0: sourcePos.y,
-                x1: targetPos.x,
-                y1: targetPos.y,
-                curveOffset: -58,
-                color: '#34d399',
-                accentColor: '#fde047',
-                life: 0,
-                maxLife: 34,
-              },
-              {
-                kind: 'TARGET_RING',
-                x0: targetPos.x,
-                y0: targetPos.y,
-                x1: targetPos.x,
-                y1: targetPos.y,
-                curveOffset: 0,
-                color: '#22c55e',
-                accentColor: '#fef08a',
-                life: 0,
-                maxLife: 58,
-              },
-            );
-            spawnBurst(targetPos.x, targetPos.y, 12, ['#4ade80', '#fef08a', '#bbf7d0', '#ffffff'], 5.8, 6, 'STAR', -0.04);
-            spawnRing(targetPos.x, targetPos.y, '#34d399', 96);
+            elementalImpactsRef.current.push({
+              kind: 'WIND_DOME',
+              x: targetPos.x,
+              y: targetPos.y,
+              life: 0,
+              maxLife: 48,
+              scale: 1,
+            });
             badgesRef.current.push({
               x: targetPos.x,
               y: targetPos.y - 24,
               vy: -0.75,
-              text: ev.label || (isKoreanLanguage() ? '🛡 보호막!' : '🛡 Shield!'),
+              text: ev.label || (isKoreanLanguage() ? '🛡 바람 보호막!' : '🛡 Wind Shield!'),
               subKind: 'BUFF',
               life: 0,
-              maxLife: 58,
+              maxLife: 54,
             });
           }
           ensureLoopRef.current();
@@ -603,67 +635,25 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
             hsAudio.playSfx('big_attack', 0.95);
             hsAudio.vibrateByDamage(12);
             impactCbRef.current?.(14);
-            spawnSiliaWindstormUltimate(stageW, stageH, Math.max(2, ev.value || 2));
-            const yBand = stageH * 0.34;
-            for (let i = 0; i < 6; i++) {
-              windGustsRef.current.push({
-                kind: 'SWEEP',
-                x0: stageW * 0.06,
-                y0: stageH * 0.86,
-                x1: stageW * 0.92,
-                y1: yBand + (i - 2.5) * 26,
-                curveOffset: (i % 2 === 0 ? -1 : 1) * (42 + i * 11),
-                color: '#10b981',
-                accentColor: '#6ee7b7',
-                life: 0,
-                maxLife: 46 + i * 3,
-              });
-            }
-            const stormBursts = Math.min(18, 9 + Math.floor((ev.value || 1) / 2));
-            for (let i = 0; i < 5; i++) {
-              const px = stageW * (0.22 + i * 0.14);
-              spawnBurst(px, yBand, stormBursts, ['#10b981', '#34d399', '#6ee7b7', '#ffffff'], 8.8, 6, 'SHARD', 0);
-              spawnRing(px, yBand, '#10b981', 120 + Math.min(60, (ev.value || 1) * 6));
-            }
-            badgesRef.current.push({
-              x: stageW * 0.5,
-              y: yBand - 42,
-              vy: -0.65,
-              text: ev.label || (isKoreanLanguage() ? '🌪 녹풍 바람폭풍!' : '🌪 Emerald Windstorm!'),
-              subKind: 'BANNER',
+            spawnSiliaWindstormUltimate(stageW, stageH, Math.max(2, ev.value || 2), 'ATTACK');
+            const enemyHeroPt = getEntityCenter('OPPONENT_HERO');
+            elementalImpactsRef.current.push({
+              kind: 'AERO_SLASH',
+              x: enemyHeroPt.x,
+              y: enemyHeroPt.y,
               life: 0,
-              maxLife: 68,
+              maxLife: 42,
+              scale: 1.45,
             });
           } else {
-            // Targeted enemy minion windstorm slash + spotlight ring
-            windGustsRef.current.push(
-              {
-                kind: 'STREAM',
-                x0: sourcePos.x,
-                y0: sourcePos.y,
-                x1: targetPos.x,
-                y1: targetPos.y,
-                curveOffset: -64,
-                color: '#10b981',
-                accentColor: '#ffffff',
-                life: 0,
-                maxLife: 32,
-              },
-              {
-                kind: 'TARGET_RING',
-                x0: targetPos.x,
-                y0: targetPos.y,
-                x1: targetPos.x,
-                y1: targetPos.y,
-                curveOffset: 0,
-                color: '#34d399',
-                accentColor: '#f87171',
-                life: 0,
-                maxLife: 56,
-              },
-            );
-            spawnBurst(targetPos.x, targetPos.y, 12, ['#34d399', '#6ee7b7', '#ffffff'], 7.2, 6, 'SHARD', 0);
-            spawnRing(targetPos.x, targetPos.y, '#10b981', 98);
+            elementalImpactsRef.current.push({
+              kind: 'AERO_SLASH',
+              x: targetPos.x,
+              y: targetPos.y,
+              life: 0,
+              maxLife: 38,
+              scale: 1.05,
+            });
           }
           ensureLoopRef.current();
           break;
@@ -675,45 +665,20 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           hsAudio.playProceduralVfxSound('HOLY');
           hsAudio.vibrateByDamage(10);
           impactCbRef.current?.(11);
-          spawnSiliaWindstormUltimate(stageW, stageH, 1);
-          const heroPt = getEntityCenter('PLAYER_HERO');
-          for (let i = 0; i < 4; i++) {
-            windGustsRef.current.push({
-              kind: 'STREAM',
-              x0: sourcePos.x,
-              y0: sourcePos.y,
-              x1: heroPt.x,
-              y1: heroPt.y,
-              curveOffset: (i - 1.5) * 32,
-              color: '#84cc16',
-              accentColor: '#bbf7d0',
-              life: 0,
-              maxLife: 38 + i * 3,
-            });
+          const hasActiveWindstorm = ultimateStormsRef.current.some(
+            (s) => s.kind === 'SILIA_WINDSTORM' && s.life < 12,
+          );
+          if (!hasActiveWindstorm) {
+            spawnSiliaWindstormUltimate(stageW, stageH, 1, 'HEAL');
           }
-          windGustsRef.current.push({
-            kind: 'TARGET_RING',
-            x0: heroPt.x,
-            y0: heroPt.y,
-            x1: heroPt.x,
-            y1: heroPt.y,
-            curveOffset: 0,
-            color: '#4ade80',
-            accentColor: '#fef08a',
-            life: 0,
-            maxLife: 62,
-          });
-          spawnBurst(heroPt.x, heroPt.y, 20, ['#4ade80', '#86efac', '#fef08a', '#ffffff'], 7.5, 6, 'STAR', -0.05);
-          spawnRing(heroPt.x, heroPt.y, '#4ade80', 180);
-          spawnRing(heroPt.x, heroPt.y, '#86efac', 240);
-          badgesRef.current.push({
+          const heroPt = getEntityCenter('PLAYER_HERO');
+          elementalImpactsRef.current.push({
+            kind: 'VITAL_UPDRAFT',
             x: heroPt.x,
-            y: heroPt.y - 44,
-            vy: -0.7,
-            text: ev.label || '💚 +2 HP',
-            subKind: 'BANNER',
+            y: heroPt.y,
             life: 0,
-            maxLife: 66,
+            maxLife: 54,
+            scale: 1.3,
           });
           ensureLoopRef.current();
           break;
@@ -731,89 +696,23 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
             spawnKadanBlizzardUltimate(stageW, stageH, tier);
 
             const enemyHeroPt = getEntityCenter('OPPONENT_HERO');
-            const yBand = stageH * 0.3;
-            const sweepCount = Math.min(10, 5 + tier * 2);
-            for (let i = 0; i < sweepCount; i++) {
-              windGustsRef.current.push({
-                kind: 'SWEEP',
-                x0: stageW * 0.92,
-                y0: stageH * 0.86,
-                x1: stageW * (0.1 + ((i * 0.16) % 0.8)),
-                y1: yBand + ((i % 3) - 1) * 32,
-                curveOffset: (i % 2 === 0 ? -1 : 1) * (48 + i * 9),
-                color: i % 2 === 0 ? '#38bdf8' : '#facc15',
-                accentColor: '#ffffff',
-                life: 0,
-                maxLife: 48 + i * 3,
-              });
-            }
-            for (let i = 0; i < 6; i++) {
-              const px = stageW * (0.18 + i * 0.13);
-              spawnBurst(
-                px,
-                yBand,
-                12 + tier * 2,
-                ['#38bdf8', '#facc15', '#fde047', '#bae6fd', '#ffffff'],
-                9.5,
-                6.5,
-                i % 2 === 0 ? 'STAR' : 'SHARD',
-                0,
-              );
-              spawnRing(px, yBand, i % 2 === 0 ? '#38bdf8' : '#facc15', 140 + tier * 18);
-            }
-            spawnRing(enemyHeroPt.x, enemyHeroPt.y, '#facc15', 220 + tier * 24);
-            spawnRing(enemyHeroPt.x, enemyHeroPt.y, '#38bdf8', 175 + tier * 20);
-            badgesRef.current.push({
-              x: stageW * 0.5,
-              y: stageH * 0.42,
-              vy: -0.75,
-              text:
-                ev.label ||
-                (isKoreanLanguage()
-                  ? `❄️⚔ 카단 눈히어로 필살기 X${tier} 작렬!`
-                  : `❄️⚔ Kadan SNSHero Ultimate X${tier}!`),
-              subKind: 'BANNER',
+            elementalImpactsRef.current.push({
+              kind: 'FROST_PRISON',
+              x: enemyHeroPt.x,
+              y: enemyHeroPt.y,
               life: 0,
-              maxLife: 76,
+              maxLife: 56,
+              scale: 1.5,
             });
           } else {
-            windGustsRef.current.push(
-              {
-                kind: 'STREAM',
-                x0: sourcePos.x,
-                y0: sourcePos.y,
-                x1: targetPos.x,
-                y1: targetPos.y,
-                curveOffset: 54,
-                color: '#38bdf8',
-                accentColor: '#fde047',
-                life: 0,
-                maxLife: 34,
-              },
-              {
-                kind: 'TARGET_RING',
-                x0: targetPos.x,
-                y0: targetPos.y,
-                x1: targetPos.x,
-                y1: targetPos.y,
-                curveOffset: 0,
-                color: '#facc15',
-                accentColor: '#38bdf8',
-                life: 0,
-                maxLife: 58,
-              },
-            );
-            spawnBurst(
-              targetPos.x,
-              targetPos.y,
-              14,
-              ['#38bdf8', '#facc15', '#ffffff'],
-              8.0,
-              6,
-              'STAR',
-              0,
-            );
-            spawnRing(targetPos.x, targetPos.y, '#38bdf8', 112);
+            elementalImpactsRef.current.push({
+              kind: 'FROST_PRISON',
+              x: targetPos.x,
+              y: targetPos.y,
+              life: 0,
+              maxLife: 48,
+              scale: 1.0,
+            });
           }
           ensureLoopRef.current();
           break;
@@ -927,14 +826,17 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
 
         case 'DAMAGE_POP': {
           const hitDmg = Math.max(1, ev.value || 1);
-          if (hitDmg >= 5) {
-            hsAudio.playSfx('big_attack', 0.8);
-          } else {
-            hsAudio.playSfx('attack', 0.68);
+          const isUltimateSource = ev.sourceId === 'KADAN_WIDGET' || ev.sourceId === 'SILIA';
+          if (!isUltimateSource) {
+            if (hitDmg >= 5) {
+              hsAudio.playSfx('big_attack', 0.8);
+            } else {
+              hsAudio.playSfx('attack', 0.68);
+            }
+            hsAudio.vibrateByDamage(hitDmg);
+            impactCbRef.current?.(hitDmg);
+            spawnBurst(targetPos.x, targetPos.y, 8, ['#ef4444', '#fca5a5', '#fde047'], 4.5, 5, 'SHARD', 0.1);
           }
-          hsAudio.vibrateByDamage(hitDmg);
-          impactCbRef.current?.(hitDmg);
-          spawnBurst(targetPos.x, targetPos.y, 8, ['#ef4444', '#fca5a5', '#fde047'], 4.5, 5, 'SHARD', 0.1);
           badgesRef.current.push({
             x: targetPos.x + (Math.random() * 10 - 5),
             y: targetPos.y - 6,
@@ -1267,7 +1169,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
         projectilesRef.current.length === 0 &&
         particlesRef.current.length === 0 &&
         badgesRef.current.length === 0 &&
-        windGustsRef.current.length === 0 &&
+        elementalImpactsRef.current.length === 0 &&
         ultimateStormsRef.current.length === 0
       ) {
         ctx.clearRect(0, 0, width, height);
@@ -1277,37 +1179,116 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
 
       ctx.clearRect(0, 0, width, height);
 
-      // -1. Full-Screen Elemental Ultimate Storms (`카단 눈보라 공격` & `실리아 바람풍 공격`)
+      // -1. Full-Screen AAA Elemental Ultimate Storms (`카단 눈보라 대폭풍` & `실리아 바람풍 대폭풍`)
       const nextStorms: UltimateStorm[] = [];
       for (const st of ultimateStormsRef.current) {
         st.life += 1;
         if (st.life >= st.maxLife) continue;
         const prog = st.life / st.maxLife;
-        const envAlpha = prog < 0.14 ? prog / 0.14 : prog > 0.72 ? (1 - prog) / 0.28 : 1;
+        const envAlpha = prog < 0.1 ? prog / 0.1 : prog > 0.74 ? (1 - prog) / 0.26 : 1;
 
         ctx.save();
         if (st.kind === 'KADAN_BLIZZARD') {
-          // 1) Sub-Zero Blizzard Whiteout Screen Tint + Diagonal Howling Gale Lines
-          ctx.fillStyle = `rgba(56, 189, 248, ${(0.22 * envAlpha).toFixed(3)})`;
+          // 1) Arctic Sub-Zero Storm Sky Contrast Veil + Snap-Freeze Flash
+          const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+          skyGrad.addColorStop(0, `rgba(4, 19, 38, ${(0.52 * envAlpha).toFixed(3)})`);
+          skyGrad.addColorStop(0.48, `rgba(12, 74, 110, ${(0.32 * envAlpha).toFixed(3)})`);
+          skyGrad.addColorStop(1, `rgba(8, 47, 73, ${(0.28 * envAlpha).toFixed(3)})`);
+          ctx.fillStyle = skyGrad;
           ctx.fillRect(0, 0, width, height);
-          if (st.life <= 10) {
-            ctx.fillStyle = `rgba(224, 242, 254, ${((1 - st.life / 10) * 0.32).toFixed(3)})`;
+
+          if (st.life <= 8) {
+            ctx.fillStyle = `rgba(224, 242, 254, ${((1 - st.life / 8) * 0.42).toFixed(3)})`;
             ctx.fillRect(0, 0, width, height);
           }
 
-          ctx.strokeStyle = `rgba(224, 242, 254, ${(0.52 * envAlpha).toFixed(3)})`;
-          ctx.lineWidth = 2.4;
+          // 2) Frozen Screen Rim Vignette & 4-Corner Creeping Frost Rime Spikes (`화면 사방 성에 결빙`)
+          const rimH = Math.min(110, height * 0.14);
+          const topFrost = ctx.createLinearGradient(0, 0, 0, rimH);
+          topFrost.addColorStop(0, `rgba(186, 230, 253, ${(0.52 * envAlpha).toFixed(3)})`);
+          topFrost.addColorStop(1, 'rgba(186, 230, 253, 0)');
+          ctx.fillStyle = topFrost;
+          ctx.fillRect(0, 0, width, rimH);
+
+          const botFrost = ctx.createLinearGradient(0, height, 0, height - rimH);
+          botFrost.addColorStop(0, `rgba(125, 211, 252, ${(0.44 * envAlpha).toFixed(3)})`);
+          botFrost.addColorStop(1, 'rgba(125, 211, 252, 0)');
+          ctx.fillStyle = botFrost;
+          ctx.fillRect(0, height - rimH, width, rimH);
+
+          const rimeGrow = Math.min(1, st.life / 12) * envAlpha;
+          const cornerAnchors: Array<[number, number, number]> = [
+            [0, 0, 0.78],
+            [width, 0, 2.36],
+            [0, height, -0.78],
+            [width, height, -2.36],
+          ];
+          for (const [cx, cy, baseAng] of cornerAnchors) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.globalAlpha = rimeGrow * 0.86;
+            for (let k = -2; k <= 2; k++) {
+              const ang = baseAng + k * 0.28;
+              const spikeLen = (54 + (2 - Math.abs(k)) * 28) * rimeGrow;
+              ctx.save();
+              ctx.rotate(ang);
+              ctx.fillStyle = k % 2 === 0 ? '#e0f2fe' : '#7dd3fc';
+              ctx.beginPath();
+              ctx.moveTo(0, -10);
+              ctx.lineTo(spikeLen, 0);
+              ctx.lineTo(0, 10);
+              ctx.closePath();
+              ctx.fill();
+              ctx.restore();
+            }
+            ctx.restore();
+          }
+
+          // 3) Volumetric Howling Whiteout Snow-Fog Squall Bands (`-25° 대설원 눈보라 구름 파동`)
+          ctx.save();
+          ctx.translate(width * 0.5, height * 0.5);
+          ctx.rotate(-0.44);
+          const diagSpan = Math.hypot(width, height) * 1.25;
+          for (let b = 0; b < 6; b++) {
+            const bandW = 90 + (b % 3) * 38;
+            const travel = ((st.life * (24 + b * 4) + b * 190) % (diagSpan * 1.3)) - diagSpan * 0.65;
+            const bandX = -travel;
+            const bandY = (b - 2.5) * (height * 0.2);
+            const fogGrad = ctx.createLinearGradient(bandX - bandW, bandY, bandX + bandW, bandY + bandW * 0.85);
+            fogGrad.addColorStop(0, 'rgba(186, 230, 253, 0)');
+            fogGrad.addColorStop(0.45, `rgba(186, 230, 253, ${(0.24 * envAlpha).toFixed(3)})`);
+            fogGrad.addColorStop(0.6, `rgba(255, 255, 255, ${(0.34 * envAlpha).toFixed(3)})`);
+            fogGrad.addColorStop(1, 'rgba(186, 230, 253, 0)');
+            ctx.fillStyle = fogGrad;
+            ctx.fillRect(-diagSpan * 0.6, bandY - bandW * 0.5, diagSpan * 1.2, bandW);
+          }
+          ctx.restore();
+
+          // 4) High-Velocity Razor Ice-Sleet Wind Needles (`칼바람 진눈깨비 궤적`)
+          const sleetDx = -0.89;
+          const sleetDy = 0.45;
           ctx.lineCap = 'round';
-          for (let g = 0; g < 16; g++) {
-            const gx = ((width * 1.3 - ((st.life * 32 + g * 137) % (width * 1.5))) + width * 1.5) % (width * 1.4) - width * 0.15;
-            const gy = ((st.life * 16 + g * 89) % (height * 0.95));
+          for (const sl of st.sleets) {
+            sl.x += sleetDx * sl.speed;
+            sl.y += sleetDy * sl.speed;
+            if (sl.x < -140) sl.x += width * 1.45;
+            if (sl.y > height + 90) sl.y -= height * 1.2;
+
+            const tx = sl.x - sleetDx * sl.len;
+            const ty = sl.y - sleetDy * sl.len;
+            const slGrad = ctx.createLinearGradient(tx, ty, sl.x, sl.y);
+            slGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
+            slGrad.addColorStop(0.65, `rgba(186, 230, 253, ${(sl.alpha * 0.55 * envAlpha).toFixed(3)})`);
+            slGrad.addColorStop(1, `rgba(255, 255, 255, ${(sl.alpha * envAlpha).toFixed(3)})`);
+            ctx.strokeStyle = slGrad;
+            ctx.lineWidth = 2.2;
             ctx.beginPath();
-            ctx.moveTo(gx, gy);
-            ctx.lineTo(gx - 95, gy + 54);
+            ctx.moveTo(tx, ty);
+            ctx.lineTo(sl.x, sl.y);
             ctx.stroke();
           }
 
-          // 2) Crashing Glacial Ice Spears from the Frozen Sky -> Frost Crystal Shatter!
+          // 5) Colossal 3D-Shaded Glacial Meteors & Towering Ground Iceberg Wall Eruption (`천공 빙하 낙하 & 대빙벽 융기`)
           for (const sp of st.spears) {
             const localT = (st.life - sp.delay) / sp.dur;
             if (localT < 0) continue;
@@ -1318,168 +1299,390 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
               ctx.save();
               ctx.translate(cx, cy);
               ctx.rotate(ang);
-              ctx.globalAlpha = Math.min(1, envAlpha * 0.96);
-              // Outer Frost Halo
-              ctx.fillStyle = '#38bdf8';
+              ctx.scale(sp.scale, sp.scale);
+              ctx.globalAlpha = Math.min(1, envAlpha * 0.98);
+
+              // Freezing Comet Vapor Wake
+              const wakeGrad = ctx.createLinearGradient(-155, 0, 20, 0);
+              wakeGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
+              wakeGrad.addColorStop(0.65, 'rgba(125, 211, 252, 0.48)');
+              wakeGrad.addColorStop(1, 'rgba(240, 249, 255, 0.9)');
+              ctx.fillStyle = wakeGrad;
               ctx.beginPath();
-              ctx.moveTo(48, 0);
-              ctx.lineTo(-42, -13);
-              ctx.lineTo(-56, 0);
-              ctx.lineTo(-42, 13);
+              ctx.moveTo(30, 0);
+              ctx.lineTo(-150, -24);
+              ctx.lineTo(-125, 0);
+              ctx.lineTo(-150, 24);
               ctx.closePath();
               ctx.fill();
-              // Crystalline White Core
-              ctx.fillStyle = '#f0f9ff';
+
+              // 3D Glacial Spear — Upper Lit Facet
+              ctx.fillStyle = '#e0f2fe';
               ctx.beginPath();
-              ctx.moveTo(44, 0);
-              ctx.lineTo(-34, -6);
-              ctx.lineTo(-44, 0);
-              ctx.lineTo(-34, 6);
+              ctx.moveTo(64, 0);
+              ctx.lineTo(-22, -19);
+              ctx.lineTo(-54, 0);
               ctx.closePath();
               ctx.fill();
+
+              // 3D Glacial Spear — Lower Sapphire Shadow Facet
+              ctx.fillStyle = '#0284c7';
+              ctx.beginPath();
+              ctx.moveTo(64, 0);
+              ctx.lineTo(-54, 0);
+              ctx.lineTo(-22, 19);
+              ctx.closePath();
+              ctx.fill();
+
+              // Specular Diamond Spine
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 2.6;
+              ctx.beginPath();
+              ctx.moveTo(64, 0);
+              ctx.lineTo(-48, 0);
+              ctx.stroke();
               ctx.restore();
-            } else if (!sp.impacted) {
-              sp.impacted = true;
-              spawnRing(sp.x1, sp.y1, '#7dd3fc', 135);
-              spawnRing(sp.x1, sp.y1, '#ffffff', 90);
-              spawnBurst(
-                sp.x1,
-                sp.y1,
-                10,
-                ['#ffffff', '#e0f2fe', '#7dd3fc', '#38bdf8'],
-                8.5,
-                7,
-                'SHARD',
-                0.04,
-              );
-            } else if (localT < 2.2) {
-              // Ground Ice Spikes blooming where the spear struck
-              const spikeAlpha = Math.max(0, 1 - (localT - 1) / 1.2) * envAlpha;
-              ctx.save();
-              ctx.translate(sp.x1, sp.y1);
-              ctx.globalAlpha = spikeAlpha;
-              ctx.fillStyle = '#bae6fd';
-              ctx.strokeStyle = '#0284c7';
-              ctx.lineWidth = 1.8;
-              for (const [dx, hgt, tilt] of [
-                [-16, 34, -0.32],
-                [0, 48, 0],
-                [16, 36, 0.32],
-              ] as const) {
+            } else {
+              if (!sp.impacted) {
+                sp.impacted = true;
+                // Pure Ice Crystal Splinters (no yellow confetti)
+                spawnBurst(
+                  sp.x1,
+                  sp.y1,
+                  8,
+                  ['#ffffff', '#e0f2fe', '#7dd3fc', '#38bdf8'],
+                  7.5,
+                  7,
+                  'SHARD',
+                  0.06,
+                );
+              }
+              const afterT = (localT - 1) / 3.2;
+              if (afterT < 1) {
+                const popGrow = afterT < 0.14 ? afterT / 0.14 : 1;
+                const fadeOut = afterT > 0.65 ? (1 - afterT) / 0.35 : 1;
+                const spireAlpha = Math.max(0, fadeOut * envAlpha);
+
                 ctx.save();
-                ctx.translate(dx, 6);
-                ctx.rotate(tilt);
+                ctx.translate(sp.x1, sp.y1 + 14);
+                ctx.scale(sp.scale, sp.scale * popGrow);
+                ctx.globalAlpha = spireAlpha;
+
+                // Horizontal Perspective Frost Shockwave Ring at Glacier Foot
+                if (afterT < 0.55) {
+                  const shockProg = afterT / 0.55;
+                  ctx.save();
+                  ctx.globalAlpha = spireAlpha * (1 - shockProg) * 0.9;
+                  ctx.strokeStyle = '#bae6fd';
+                  ctx.lineWidth = 3.2 * (1 - shockProg * 0.5);
+                  ctx.beginPath();
+                  ctx.ellipse(0, 0, 24 + shockProg * 78, 8 + shockProg * 24, 0, 0, Math.PI * 2);
+                  ctx.stroke();
+                  ctx.restore();
+                }
+
+                // Soft Freezing Snow-Mist Bloom Around Glacier Base
+                const mistGrad = ctx.createRadialGradient(0, -10, 4, 0, -10, 74);
+                mistGrad.addColorStop(0, 'rgba(224, 242, 254, 0.52)');
+                mistGrad.addColorStop(0.55, 'rgba(125, 211, 252, 0.22)');
+                mistGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                ctx.fillStyle = mistGrad;
                 ctx.beginPath();
-                ctx.moveTo(0, -hgt);
-                ctx.lineTo(9, 0);
-                ctx.lineTo(-9, 0);
-                ctx.closePath();
+                ctx.arc(0, -10, 74, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.stroke();
+
+                // Sculpted Translucent 3-Crystal Glacial Formation
+                const spires: Array<[number, number, number, number]> = [
+                  [-18, 54, 13, -0.22],
+                  [0, 86, 18, 0.02],
+                  [18, 58, 14, 0.22],
+                ];
+                for (const [dx, hgt, halfW, tilt] of spires) {
+                  ctx.save();
+                  ctx.translate(dx, 0);
+                  ctx.rotate(tilt);
+
+                  const leftGrad = ctx.createLinearGradient(0, -hgt, 0, 0);
+                  leftGrad.addColorStop(0, 'rgba(255, 255, 255, 0.92)');
+                  leftGrad.addColorStop(0.5, 'rgba(186, 230, 253, 0.72)');
+                  leftGrad.addColorStop(1, 'rgba(14, 116, 144, 0.35)');
+                  ctx.fillStyle = leftGrad;
+                  ctx.beginPath();
+                  ctx.moveTo(0, -hgt);
+                  ctx.lineTo(-halfW, -8);
+                  ctx.lineTo(0, 4);
+                  ctx.closePath();
+                  ctx.fill();
+
+                  const rightGrad = ctx.createLinearGradient(0, -hgt, 0, 0);
+                  rightGrad.addColorStop(0, 'rgba(224, 242, 254, 0.85)');
+                  rightGrad.addColorStop(0.55, 'rgba(56, 189, 248, 0.62)');
+                  rightGrad.addColorStop(1, 'rgba(12, 74, 110, 0.32)');
+                  ctx.fillStyle = rightGrad;
+                  ctx.beginPath();
+                  ctx.moveTo(0, -hgt);
+                  ctx.lineTo(0, 4);
+                  ctx.lineTo(halfW, -8);
+                  ctx.closePath();
+                  ctx.fill();
+
+                  ctx.strokeStyle = 'rgba(255,255,255,0.88)';
+                  ctx.lineWidth = 1.4;
+                  ctx.beginPath();
+                  ctx.moveTo(0, -hgt);
+                  ctx.lineTo(0, 4);
+                  ctx.stroke();
+                  ctx.restore();
+                }
                 ctx.restore();
               }
-              ctx.restore();
             }
           }
 
-          // 3) 6-Pointed Crystalline Snowflakes Whipping Across the Entire Stage
+          // 6) 3-Depth Parallax Snowstorm (`진짜 겨울 눈꽃 결정 & 폭설 눈송이 보케` — 거미줄 링 없음!)
           for (const fl of st.flakes) {
-            fl.x += fl.vx;
-            fl.y += fl.vy;
+            const gustX = Math.sin(st.life * 0.16 + fl.swayPhase) * 2.8;
+            const gustY = Math.cos(st.life * 0.14 + fl.swayPhase) * 1.5;
+            fl.x += fl.vx + gustX;
+            fl.y += fl.vy + gustY;
             fl.rot += fl.vRot;
-            if (fl.x < -30) fl.x += width * 1.25;
-            if (fl.y > height + 30) fl.y -= height * 1.15;
+            if (fl.x < -45) fl.x += width * 1.32;
+            if (fl.y > height + 45) fl.y -= height * 1.22;
 
             ctx.save();
             ctx.translate(fl.x, fl.y);
-            ctx.rotate(fl.rot);
-            ctx.globalAlpha = envAlpha * 0.92;
-            if (fl.isCrystal) {
-              ctx.strokeStyle = '#ffffff';
-              ctx.lineWidth = 2.1;
+            if (fl.depth === 2) {
+              // Authentic 6-Arm Fern Ice Snowflake (outward V-chevrons ONLY, zero inner web!)
+              ctx.rotate(fl.rot);
+              ctx.globalAlpha = envAlpha * 0.94;
               const r = fl.size;
-              for (let a = 0; a < 3; a++) {
+
+              const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 1.25);
+              glow.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+              glow.addColorStop(0.5, 'rgba(125, 211, 252, 0.22)');
+              glow.addColorStop(1, 'rgba(56, 189, 248, 0)');
+              ctx.fillStyle = glow;
+              ctx.beginPath();
+              ctx.arc(0, 0, r * 1.25, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 1.8;
+              ctx.lineCap = 'round';
+              for (let arm = 0; arm < 6; arm++) {
                 ctx.beginPath();
-                ctx.moveTo(-r, 0);
+                ctx.moveTo(0, 0);
                 ctx.lineTo(r, 0);
-                ctx.moveTo(r * 0.55, -r * 0.28);
-                ctx.lineTo(r * 0.82, 0);
-                ctx.lineTo(r * 0.55, r * 0.28);
-                ctx.moveTo(-r * 0.55, -r * 0.28);
-                ctx.lineTo(-r * 0.82, 0);
-                ctx.lineTo(-r * 0.55, r * 0.28);
+                // Delicate outward V-fern twigs at 55% and 80%
+                ctx.moveTo(r * 0.48, 0);
+                ctx.lineTo(r * 0.72, -r * 0.22);
+                ctx.moveTo(r * 0.48, 0);
+                ctx.lineTo(r * 0.72, r * 0.22);
+                ctx.moveTo(r * 0.74, 0);
+                ctx.lineTo(r * 0.9, -r * 0.14);
+                ctx.moveTo(r * 0.74, 0);
+                ctx.lineTo(r * 0.9, r * 0.14);
                 ctx.stroke();
                 ctx.rotate(Math.PI / 3);
               }
-            } else {
-              ctx.fillStyle = '#e0f2fe';
+            } else if (fl.depth === 1) {
+              // Fluffy Radial-Bokeh Snow Puff (`폭설 눈송이`)
+              ctx.globalAlpha = envAlpha * 0.9;
+              const r = fl.size;
+              const puff = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+              puff.addColorStop(0, 'rgba(255, 255, 255, 0.98)');
+              puff.addColorStop(0.55, 'rgba(224, 242, 254, 0.65)');
+              puff.addColorStop(1, 'rgba(186, 230, 253, 0)');
+              ctx.fillStyle = puff;
               ctx.beginPath();
-              ctx.arc(0, 0, fl.size * 0.45, 0, Math.PI * 2);
+              ctx.arc(0, 0, r, 0, Math.PI * 2);
+              ctx.fill();
+            } else {
+              ctx.globalAlpha = envAlpha * 0.68;
+              ctx.fillStyle = '#f0f9ff';
+              ctx.beginPath();
+              ctx.ellipse(0, 0, fl.size * 0.9, fl.size * 0.55, -0.45, 0, Math.PI * 2);
               ctx.fill();
             }
             ctx.restore();
           }
         } else {
-          // SILIA_WINDSTORM: Roaring Emerald Gale + 3 Towering Tornadoes + Supersonic Crescent Wind Blades!
-          ctx.fillStyle = `rgba(16, 185, 129, ${(0.18 * envAlpha).toFixed(3)})`;
+          // ==================== SILIA_WINDSTORM (`실리아 바람풍 대폭풍`) ====================
+          // 1) Tempest Storm-Jade Atmospheric Contrast Veil
+          const windSky = ctx.createLinearGradient(0, 0, 0, height);
+          windSky.addColorStop(0, `rgba(2, 34, 27, ${(0.44 * envAlpha).toFixed(3)})`);
+          windSky.addColorStop(0.5, `rgba(6, 78, 59, ${(0.24 * envAlpha).toFixed(3)})`);
+          windSky.addColorStop(1, `rgba(2, 44, 34, ${(0.34 * envAlpha).toFixed(3)})`);
+          ctx.fillStyle = windSky;
           ctx.fillRect(0, 0, width, height);
 
-          // 1) High-Speed Horizontal Wind Streamlines Across the Stage
-          ctx.strokeStyle = `rgba(167, 243, 208, ${(0.48 * envAlpha).toFixed(3)})`;
-          ctx.lineWidth = 2.2;
+          if (st.life <= 7) {
+            ctx.fillStyle = `rgba(209, 250, 229, ${((1 - st.life / 7) * 0.34).toFixed(3)})`;
+            ctx.fillRect(0, 0, width, height);
+          }
+
+          // 2) Full-Width Flowing S-Curve Aerodynamic Jetstream Ribbons (`전장 관통 제트기류`)
           ctx.lineCap = 'round';
-          for (let wIdx = 0; wIdx < 16; wIdx++) {
-            const wx = ((st.life * 36 + wIdx * 149) % (width * 1.35)) - width * 0.2;
-            const wy = height * (0.1 + ((wIdx * 0.055) % 0.78)) + Math.sin(st.life * 0.25 + wIdx) * 12;
+          for (let j = 0; j < 8; j++) {
+            const baseY = height * (0.12 + j * 0.095);
+            const phaseShift = st.life * 0.28 + j * 1.15;
+            const amp = 20 + (j % 3) * 14;
+            const streamOffset = ((st.life * (34 + j * 5) + j * 180) % (width * 1.6)) - width * 0.45;
+            const xStart = streamOffset - width * 0.42;
+            const xEnd = streamOffset + width * 0.42;
+
+            const jetGrad = ctx.createLinearGradient(xStart, baseY, xEnd, baseY);
+            jetGrad.addColorStop(0, 'rgba(16, 185, 129, 0)');
+            jetGrad.addColorStop(0.35, `rgba(52, 211, 153, ${(0.42 * envAlpha).toFixed(3)})`);
+            jetGrad.addColorStop(0.65, `rgba(236, 253, 245, ${(0.82 * envAlpha).toFixed(3)})`);
+            jetGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+            ctx.strokeStyle = `rgba(16, 185, 129, ${(0.18 * envAlpha).toFixed(3)})`;
+            ctx.lineWidth = 12 - (j % 3) * 2.5;
             ctx.beginPath();
-            ctx.moveTo(wx, wy);
-            ctx.quadraticCurveTo(wx + 55, wy - 14, wx + 115, wy);
+            for (let s = 0; s <= 16; s++) {
+              const u = s / 16;
+              const px = xStart + (xEnd - xStart) * u;
+              const py = baseY + Math.sin(u * Math.PI * 2.2 - phaseShift) * amp;
+              if (s === 0) ctx.moveTo(px, py);
+              else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = jetGrad;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let s = 0; s <= 16; s++) {
+              const u = s / 16;
+              const px = xStart + (xEnd - xStart) * u;
+              const py = baseY + Math.sin(u * Math.PI * 2.2 - phaseShift) * amp;
+              if (s === 0) ctx.moveTo(px, py);
+              else ctx.lineTo(px, py);
+            }
             ctx.stroke();
           }
 
-          // 2) 3 Towering Swirling Wind Tornadoes (`회오리 바람풍`)
+          // 3) 3 Organic Swirling Vortex Hurricane Cyclones (`부드러운 소용돌이 기류 링 토네이도` — 직선 원뿔 없음!)
           for (const td of st.tornadoes) {
             const tx = td.x0 + (td.x1 - td.x0) * prog;
-            const coils = 14;
-            for (let c = 0; c < coils; c++) {
-              const frac = c / (coils - 1);
-              const ly = td.baseY - frac * td.height;
-              const sway = Math.sin(st.life * 0.34 + frac * 4.2 + td.phase) * (10 + frac * 16);
-              const rx = td.baseWidth + Math.pow(frac, 1.35) * 66;
+            const ringCount = 26;
+            ctx.save();
+            for (let c = 0; c < ringCount; c++) {
+              const frac = c / (ringCount - 1);
+              const cy = td.baseY - frac * td.height;
+              const sway = Math.sin(st.life * 0.28 + frac * 4.6 + td.phase) * (10 + frac * 24);
+              const cx = tx + sway;
+              const rx = td.footRadius + Math.pow(frac, 1.35) * (td.mouthRadius - td.footRadius);
               const ry = rx * 0.28;
-              ctx.save();
-              ctx.translate(tx + sway, ly);
-              ctx.globalAlpha = envAlpha * (0.85 - frac * 0.22);
-              ctx.strokeStyle = c % 3 === 0 ? '#ecfdf5' : c % 3 === 1 ? '#34d399' : '#10b981';
-              ctx.lineWidth = 3.6 - frac * 1.1;
-              ctx.setLineDash([rx * 1.2, rx * 0.55]);
-              ctx.lineDashOffset = -(st.life * 11 + c * 9);
-              ctx.beginPath();
-              ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-              ctx.stroke();
-              ctx.restore();
+
+              // Soft emerald mist glow inside the funnel core (every 3rd slice)
+              if (c % 3 === 0) {
+                const mist = ctx.createRadialGradient(cx, cy, 0, cx, cy, rx * 1.15);
+                mist.addColorStop(0, `rgba(167, 243, 208, ${(0.22 * envAlpha).toFixed(3)})`);
+                mist.addColorStop(0.6, `rgba(16, 185, 129, ${(0.12 * envAlpha).toFixed(3)})`);
+                mist.addColorStop(1, 'rgba(16, 185, 129, 0)');
+                ctx.fillStyle = mist;
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, rx * 1.15, ry * 1.6, -0.08, 0, Math.PI * 2);
+                ctx.fill();
+              }
+
+              // Fast-orbiting curved vortex wind-ribbon arcs (2 opposing arcs per level)
+              const spinBase = -st.life * (0.42 - frac * 0.1) + c * 0.72 + td.phase;
+              for (let arcIdx = 0; arcIdx < 2; arcIdx++) {
+                const a0 = spinBase + arcIdx * Math.PI;
+                const a1 = a0 + Math.PI * 0.72;
+                ctx.globalAlpha = envAlpha * (arcIdx === 0 ? 0.86 : 0.48) * (1 - frac * 0.18);
+                ctx.strokeStyle =
+                  c % 3 === 0 ? '#ffffff' : arcIdx === 0 ? '#a7f3d0' : '#34d399';
+                ctx.lineWidth = (arcIdx === 0 ? 3.4 : 2.1) * (1 - frac * 0.2);
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, rx, ry, -0.08, a0, a1);
+                ctx.stroke();
+              }
             }
+            ctx.restore();
           }
 
-          // 3) Supersonic Crescent Wind Blades (`초승달 바람칼날`)
+          // 4) Razor-Thin Hollow Crescent Sonic Wind Scythes (`두 원 교차 기반 예리한 초승달 진공 칼날!`)
           for (const bl of st.blades) {
             bl.x += bl.vx;
             bl.y += bl.vy;
-            if (bl.x > width + 60) bl.x -= width * 1.35;
+            if (bl.x > width + 110) bl.x -= width * 1.5;
 
             ctx.save();
             ctx.translate(bl.x, bl.y);
             ctx.rotate(bl.tilt);
-            ctx.globalAlpha = envAlpha * 0.94;
-            ctx.fillStyle = bl.color;
-            ctx.shadowColor = '#34d399';
-            ctx.shadowBlur = 10;
+            ctx.globalAlpha = envAlpha * 0.96;
+
             const r = bl.radius;
+            const span = Math.PI * 0.44;
+            const outerColor =
+              bl.hue === 'WHITE' ? '#a7f3d0' : bl.hue === 'MINT' ? '#34d399' : '#10b981';
+
+            // Twin Aerodynamic Wingtip Slipstream Trails
+            const tipX = Math.cos(span) * r;
+            const tipY = Math.sin(span) * r;
+            const trailGrad = ctx.createLinearGradient(tipX - 95, 0, tipX, 0);
+            trailGrad.addColorStop(0, 'rgba(52, 211, 153, 0)');
+            trailGrad.addColorStop(1, `rgba(167, 243, 208, ${(0.65 * envAlpha).toFixed(3)})`);
+            ctx.strokeStyle = trailGrad;
+            ctx.lineWidth = 2.2;
             ctx.beginPath();
-            ctx.arc(0, 0, r, -Math.PI * 0.44, Math.PI * 0.44, false);
-            ctx.quadraticCurveTo(r * 0.32, 0, Math.cos(-Math.PI * 0.44) * r, Math.sin(-Math.PI * 0.44) * r);
+            ctx.moveTo(tipX, -tipY);
+            ctx.lineTo(tipX - 90, -tipY - 5);
+            ctx.moveTo(tipX, tipY);
+            ctx.lineTo(tipX - 90, tipY + 5);
+            ctx.stroke();
+
+            // True Hollow Razor Crescent (Outer circle minus shifted inner circle => needle-sharp tips!)
+            ctx.fillStyle = outerColor;
+            ctx.beginPath();
+            ctx.arc(0, 0, r, -span, span, false);
+            ctx.arc(-r * 0.24, 0, r * 0.98, span * 0.88, -span * 0.88, true);
             ctx.closePath();
             ctx.fill();
+
+            // Blazing White Razor Vacuum Leading Edge
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(1.5, 0, r * 0.98, -span * 0.86, span * 0.86, false);
+            ctx.arc(-r * 0.13, 0, r * 0.95, span * 0.78, -span * 0.78, true);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          }
+
+          // 5) 3D-Tumbling Botanical Emerald Wind-Leaves (`폭풍 기류를 타고 휘날리는 신록의 나뭇잎`)
+          for (const lf of st.leaves) {
+            lf.x += lf.vx;
+            lf.y += lf.vy + Math.sin(st.life * 0.22 + lf.spin) * 2.2;
+            lf.rot += lf.vRot;
+            lf.spin += lf.vSpin;
+            if (lf.x > width + 40) lf.x -= width * 1.3;
+            if (lf.y < -30) lf.y += height * 0.95;
+            if (lf.y > height + 30) lf.y -= height * 0.95;
+
+            ctx.save();
+            ctx.translate(lf.x, lf.y);
+            ctx.rotate(lf.rot);
+            ctx.scale(1, Math.max(0.24, Math.abs(Math.cos(lf.spin))));
+            ctx.globalAlpha = envAlpha * 0.9;
+            ctx.fillStyle = lf.color;
+            const s = lf.size;
+            ctx.beginPath();
+            ctx.moveTo(-s, 0);
+            ctx.quadraticCurveTo(0, -s * 0.68, s, 0);
+            ctx.quadraticCurveTo(0, s * 0.68, -s, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(6, 78, 59, 0.55)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.8, 0);
+            ctx.lineTo(s * 0.8, 0);
+            ctx.stroke();
             ctx.restore();
           }
         }
@@ -1488,89 +1691,124 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
       }
       ultimateStormsRef.current = nextStorms;
 
-      // 0. Update & Draw Swirling Windstorm (`바람폭풍`) Ribbons, Target Streams & Spotlight Rings
-      const nextGusts: WindGust[] = [];
-      for (const wg of windGustsRef.current) {
-        wg.life += 1;
-        if (wg.life >= wg.maxLife) continue;
-        const prog = wg.life / wg.maxLife;
-        const alpha = prog < 0.2 ? prog / 0.2 : prog > 0.72 ? (1 - prog) / 0.28 : 1;
+      // 0. Per-Target Elemental Ultimate Impacts (`빙결 수정 감옥` / `진공 3중 풍참` / `회오리 방어막` / `치유 상승기류`)
+      const nextImpacts: ElementalImpact[] = [];
+      for (const imp of elementalImpactsRef.current) {
+        imp.life += 1;
+        if (imp.life >= imp.maxLife) continue;
+        const prog = imp.life / imp.maxLife;
+        const alpha = prog < 0.15 ? prog / 0.15 : prog > 0.68 ? (1 - prog) / 0.32 : 1;
 
         ctx.save();
+        ctx.translate(imp.x, imp.y);
+        ctx.scale(imp.scale, imp.scale);
         ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-        if (wg.kind === 'TARGET_RING') {
-          const pulse = 1 + Math.sin(prog * Math.PI * 5) * 0.14;
-          const rOuter = (44 + prog * 28) * pulse;
-          const rInner = Math.max(22, 34 * pulse);
-          // Soft emerald spotlight halo over the affected minion / hero
-          ctx.fillStyle = wg.color;
-          ctx.globalAlpha = Math.max(0, alpha * 0.22);
+
+        if (imp.kind === 'FROST_PRISON') {
+          const grow = prog < 0.18 ? prog / 0.18 : 1;
+          ctx.scale(grow, grow);
+
+          // Sub-zero ground frost ring
+          ctx.strokeStyle = '#bae6fd';
+          ctx.lineWidth = 2.6;
           ctx.beginPath();
-          ctx.arc(wg.x0, wg.y0, rOuter, 0, Math.PI * 2);
+          ctx.ellipse(0, 22, 42 + prog * 18, 13 + prog * 6, 0, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Translucent Hexagonal Ice Glacier Encasing the Target
+          const iceGrad = ctx.createLinearGradient(0, -48, 0, 28);
+          iceGrad.addColorStop(0, 'rgba(255, 255, 255, 0.88)');
+          iceGrad.addColorStop(0.45, 'rgba(125, 211, 252, 0.62)');
+          iceGrad.addColorStop(1, 'rgba(2, 132, 199, 0.45)');
+          ctx.fillStyle = iceGrad;
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(0, -52);
+          ctx.lineTo(28, -18);
+          ctx.lineTo(22, 24);
+          ctx.lineTo(-22, 24);
+          ctx.lineTo(-28, -18);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Internal Facet Fracture Lines
+          ctx.beginPath();
+          ctx.moveTo(0, -52);
+          ctx.lineTo(-4, 24);
+          ctx.moveTo(-28, -18);
+          ctx.lineTo(22, 6);
+          ctx.stroke();
+        } else if (imp.kind === 'AERO_SLASH') {
+          // 3 Intersecting Hollow Crescent Razor Wind Slashes Slicing Through Enemy Target
+          const slashSpecs: Array<[number, number, number]> = [
+            [-0.58, 0, 56],
+            [0.52, 0.12, 52],
+            [-0.12, 0.24, 62],
+          ];
+          for (const [ang, delayFrac, rad] of slashSpecs) {
+            const localP = (prog - delayFrac) / (1 - delayFrac);
+            if (localP <= 0 || localP >= 1) continue;
+            const sAlpha = localP < 0.25 ? localP / 0.25 : 1 - (localP - 0.25) / 0.75;
+            const sp = Math.PI * 0.42;
+            ctx.save();
+            ctx.rotate(ang);
+            ctx.globalAlpha = alpha * sAlpha;
+            ctx.fillStyle = '#34d399';
+            ctx.beginPath();
+            ctx.arc(0, 0, rad, -sp, sp, false);
+            ctx.arc(-rad * 0.22, 0, rad * 0.98, sp * 0.88, -sp * 0.88, true);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.arc(1.5, 0, rad * 0.95, -sp * 0.76, sp * 0.76, false);
+            ctx.stroke();
+            ctx.restore();
+          }
+        } else if (imp.kind === 'WIND_DOME') {
+          // Swirling Spherical Emerald Wind Barrier Vortex Around Protected Ally
+          ctx.fillStyle = 'rgba(52, 211, 153, 0.18)';
+          ctx.beginPath();
+          ctx.arc(0, 0, 44, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.globalAlpha = Math.max(0, alpha * 0.92);
-          ctx.strokeStyle = wg.accentColor;
-          ctx.lineWidth = 3.2;
-          ctx.beginPath();
-          ctx.arc(wg.x0, wg.y0, rInner, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.strokeStyle = wg.color;
-          ctx.lineWidth = 4;
-          ctx.setLineDash([12, 8]);
-          ctx.lineDashOffset = -wg.life * 2.8;
-          ctx.beginPath();
-          ctx.arc(wg.x0, wg.y0, rOuter, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.setLineDash([]);
+          for (let rIdx = 0; rIdx < 3; rIdx++) {
+            const spinA = imp.life * 0.26 + (rIdx * Math.PI * 2) / 3;
+            ctx.save();
+            ctx.rotate(rIdx * 0.55 - 0.55);
+            ctx.strokeStyle = rIdx === 0 ? '#ecfdf5' : '#34d399';
+            ctx.lineWidth = rIdx === 0 ? 3.2 : 2.4;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 48, 20, 0, spinA, spinA + Math.PI * 1.35);
+            ctx.stroke();
+            ctx.restore();
+          }
         } else {
-          // Curved windstream or sinusoidal sweeping windstorm arc
-          const mx = (wg.x0 + wg.x1) * 0.5;
-          const my = (wg.y0 + wg.y1) * 0.5 + wg.curveOffset * Math.sin(prog * Math.PI + 0.5);
-          const headT = Math.min(1, prog * 1.45);
-          const tailT = Math.max(0, prog * 1.25 - 0.35);
-
-          const bezierPt = (t: number) => {
-            const u = 1 - t;
-            const waveY =
-              wg.kind === 'SWEEP'
-                ? Math.sin(t * Math.PI * 3.0 - prog * 6.0) * (18 + Math.abs(wg.curveOffset) * 0.25)
-                : Math.sin(t * Math.PI * 2.0) * 10;
-            return {
-              x: u * u * wg.x0 + 2 * u * t * mx + t * t * wg.x1,
-              y: u * u * wg.y0 + 2 * u * t * my + t * t * wg.y1 + waveY,
-            };
-          };
-
-          const steps = 14;
-          ctx.lineCap = 'round';
-          ctx.strokeStyle = wg.color;
-          ctx.lineWidth = wg.kind === 'SWEEP' ? 7 : 5;
-          ctx.beginPath();
-          for (let s = 0; s <= steps; s++) {
-            const t = tailT + ((headT - tailT) * s) / steps;
-            const pt = bezierPt(t);
-            if (s === 0) ctx.moveTo(pt.x, pt.y);
-            else ctx.lineTo(pt.x, pt.y);
+          // VITAL_UPDRAFT: Ascending Double-Helix Healing Breeze Around Hero
+          for (let h = 0; h < 2; h++) {
+            ctx.strokeStyle = h === 0 ? '#bbf7d0' : '#4ade80';
+            ctx.lineWidth = 3.2;
+            ctx.beginPath();
+            for (let s = 0; s <= 18; s++) {
+              const frac = s / 18;
+              const y = 42 - frac * 92 - prog * 18;
+              const theta = frac * Math.PI * 4 - imp.life * 0.34 + h * Math.PI;
+              const x = Math.sin(theta) * (38 - frac * 10);
+              if (s === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
           }
-          ctx.stroke();
-
-          ctx.strokeStyle = wg.accentColor;
-          ctx.lineWidth = wg.kind === 'SWEEP' ? 2.5 : 2;
-          ctx.beginPath();
-          for (let s = 0; s <= steps; s++) {
-            const t = tailT + ((headT - tailT) * s) / steps;
-            const pt = bezierPt(t);
-            if (s === 0) ctx.moveTo(pt.x, pt.y);
-            else ctx.lineTo(pt.x, pt.y);
-          }
-          ctx.stroke();
         }
+
         ctx.restore();
-        nextGusts.push(wg);
+        nextImpacts.push(imp);
       }
-      windGustsRef.current = nextGusts;
+      elementalImpactsRef.current = nextImpacts;
 
       // 1. Update & Draw Projectiles (zero-allocation layered discs instead of per-frame RadialGradient)
       const nextProj: Projectile[] = [];
@@ -1808,7 +2046,8 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute inset-0 z-[70] h-full w-full"
+      data-testid="board-vfx-canvas"
+      className="pointer-events-none absolute inset-0 z-[83] h-full w-full"
     />
   );
 });

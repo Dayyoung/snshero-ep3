@@ -7738,9 +7738,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             key={kadanUltCutIn.seq}
             data-testid="kadan-ultimate-cutin-overlay"
             data-kadan-ult-tier={kadanUltCutIn.stackTier}
-            className="pointer-events-none fixed inset-0 z-[93] select-none overflow-hidden"
+            className="pointer-events-none fixed inset-0 z-[96] select-none overflow-hidden"
           >
-            <div className="absolute inset-0 animate-pulse border-4 border-sky-200/90 bg-radial from-sky-300/28 via-cyan-400/14 to-transparent" />
             <div
               style={
                 {
@@ -7749,7 +7748,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   '--hs-shake-dur': '380ms',
                 } as React.CSSProperties
               }
-              className="hs-damage-shake-a absolute inset-x-2.5 top-[15%] mx-auto flex max-w-lg items-end gap-2.5 rounded-2xl border-2 border-cyan-200 bg-[#061830]/95 p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_34px_rgba(56,189,248,0.85)] backdrop-blur-md sm:top-[17%] sm:p-4"
+              className="hs-damage-shake-a absolute inset-x-2.5 top-[48px] mx-auto flex max-w-md items-center gap-2.5 rounded-2xl border-2 border-cyan-200 bg-[#041528]/92 p-2 shadow-[0_14px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(56,189,248,0.7)] backdrop-blur-sm sm:top-[54px] sm:p-2.5"
             >
               <img
                 data-testid="kadan-cutin-portrait"
@@ -7757,7 +7756,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 alt={tr('카단', 'Kadan')}
                 decoding="async"
                 draggable={false}
-                className="h-24 w-24 shrink-0 rounded-xl border-2 border-cyan-200 bg-sky-950/75 object-cover object-top sm:h-28 sm:w-28"
+                className="h-16 w-16 shrink-0 rounded-xl border-2 border-cyan-200 bg-sky-950/75 object-cover object-top sm:h-20 sm:w-20"
               />
               <div className="min-w-0 flex-1 text-left">
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -7814,9 +7813,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             key={siliaChainCutIn.seq}
             data-testid="silia-chain-cutin-overlay"
             data-silia-chain-skill={sk}
-            className="pointer-events-none fixed inset-0 z-[94] select-none overflow-hidden"
+            className="pointer-events-none fixed inset-0 z-[96] select-none overflow-hidden"
           >
-            <div className="absolute inset-0 animate-pulse border-4 border-emerald-300/85 bg-radial from-emerald-400/26 via-teal-400/12 to-transparent" />
             <div
               style={
                 {
@@ -7825,7 +7823,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   '--hs-shake-dur': '380ms',
                 } as React.CSSProperties
               }
-              className="hs-damage-shake-b absolute inset-x-2.5 top-[15%] mx-auto flex max-w-lg items-end gap-2.5 rounded-2xl border-2 border-emerald-300 bg-[#041f15]/95 p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_34px_rgba(16,185,129,0.85)] backdrop-blur-md sm:top-[17%] sm:p-4"
+              className="hs-damage-shake-b absolute inset-x-2.5 top-[48px] mx-auto flex max-w-md items-center gap-2.5 rounded-2xl border-2 border-emerald-300 bg-[#031c13]/92 p-2 shadow-[0_14px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(16,185,129,0.7)] backdrop-blur-sm sm:top-[54px] sm:p-2.5"
             >
               <img
                 data-testid="silia-chain-portrait"
@@ -7833,7 +7831,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 alt={tr('실리아', 'Silia')}
                 decoding="async"
                 draggable={false}
-                className="h-24 w-24 shrink-0 rounded-xl border-2 border-emerald-300 bg-emerald-950/75 object-cover object-top sm:h-28 sm:w-28"
+                className="h-16 w-16 shrink-0 rounded-xl border-2 border-emerald-300 bg-emerald-950/75 object-cover object-top sm:h-20 sm:w-20"
               />
               <div className="min-w-0 flex-1 text-left">
                 <div className="flex flex-wrap items-center gap-1.5">

@@ -165,17 +165,14 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
       data-silia-cutscene={skillKind}
       className="pointer-events-none fixed inset-0 z-[92] select-none overflow-hidden"
     >
-      {/* Emerald Impact Flash Border */}
-      <div className="absolute inset-0 animate-pulse border-4 border-emerald-300/70 bg-radial from-emerald-400/18 via-transparent to-transparent" />
-
-      {/* Left/Bottom Instant Cut-In Banner with Upper-Body Silia + Full Speech Line */}
+      {/* Compact Top Cut-In Banner so Storm Battlefield & Bottom Controls stay 100% Unobstructed */}
       <div
         style={{
           '--hs-shake-x': '8px',
           '--hs-shake-y': '5px',
           '--hs-shake-dur': '340ms',
         } as React.CSSProperties}
-        className="hs-damage-shake-a absolute inset-x-2.5 top-[16%] mx-auto flex max-w-lg items-end gap-2.5 rounded-2xl border-2 border-emerald-300/90 bg-[#041b13]/92 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.92),0_0_28px_rgba(16,185,129,0.55)] backdrop-blur-md sm:top-[18%] sm:p-4"
+        className="hs-damage-shake-a absolute inset-x-2.5 top-[48px] mx-auto flex max-w-md items-center gap-2.5 rounded-2xl border-2 border-emerald-300/90 bg-[#031c13]/92 p-2 shadow-[0_14px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(16,185,129,0.65)] backdrop-blur-sm sm:top-[54px] sm:p-2.5"
       >
         <img
           data-testid="silia-cutscene-portrait"
@@ -183,7 +180,7 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
           alt={speakerLabel}
           decoding="async"
           draggable={false}
-          className="h-24 w-24 shrink-0 rounded-xl border border-emerald-300/60 bg-emerald-950/60 object-cover object-top sm:h-28 sm:w-28"
+          className="h-16 w-16 shrink-0 rounded-xl border border-emerald-300/60 bg-emerald-950/60 object-cover object-top sm:h-20 sm:w-20"
         />
         <div className="min-w-0 flex-1 text-left">
           <div className="flex flex-wrap items-center gap-1.5">
