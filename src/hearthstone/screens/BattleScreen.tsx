@@ -22,6 +22,10 @@ import {
 import { CardZoomAction, CardZoomModal } from '../components/CardZoomModal';
 import { LiveBattleHelpSnapshot } from '../components/KadanChatbotWidget';
 import { SiliaSkillKind, SiliaUltimateWidget } from '../components/SiliaUltimateWidget';
+import {
+  trackHeroBattleCompleted,
+  trackHeroBattleStarted,
+} from '../services/analyticsEvents';
 import { downloadVictoryCertificatePng } from '../utils/victoryCardShare';
 import {
   StoryDuelDialogueOverlay,
@@ -1342,6 +1346,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [attackAnim, setAttackAnim] = useState<ActiveAttackAnim | null>(null);
 
   const friendlyRowRef = useRef<HTMLDivElement | null>(null);
+  const trackedBattleStartRef = useRef(false);
   const recordedResultRef = useRef(false);
   const postGameFiredRef = useRef(false);
   const drawRetryFiredRef = useRef(false);
@@ -1910,6 +1915,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   }, [matchState.phase, autoPlay, mode, setAutoPlay]);
 
   useEffect(() => {
+    if (matchState.phase === 'MULLIGAN') {
+      trackedBattleStartRef.current = false;
+    } else if (matchState.phase === 'PLAYING' && !trackedBattleStartRef.current) {
+      trackedBattleStartRef.current = true;
+      trackHeroBattleStarted({
+        mode,
+        episode: matchState.journeyMeta?.episode,
+      });
+    }
+  }, [matchState.phase, mode, matchState.journeyMeta?.episode]);
+
+  useEffect(() => {
     if (matchState.phase === 'GAME_OVER' && !recordedResultRef.current) {
       recordedResultRef.current = true;
       if (mode !== 'TUTORIAL') {
@@ -1957,6 +1974,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }
       setOutcomeSummary(summary);
       setPostGameStep('SUMMARY');
+      trackHeroBattleCompleted({
+        mode,
+        didWin,
+        episode: matchState.journeyMeta?.episode,
+        turnCount: matchState.turnNumber,
+      });
       setLiveProfile(hsStorage.getProfile());
       setPostGameRemainingMs(matchState.winner === 'PLAYER' ? 3000 : 6000);
       postGameFiredRef.current = false;

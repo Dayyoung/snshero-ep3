@@ -1,4 +1,5 @@
 import { isKoreanLanguage, tr } from '../i18n/heroLang';
+import { trackHeroPackOpened } from './services/analyticsEvents';
 import {
   CLASSIC_PRESET_DECKS,
   CRAFTING_COST,
@@ -1592,6 +1593,10 @@ class HearthstoneStorage {
     this.saveCollection(col);
     this.saveGoldenCollection(gcol);
     this.savePackPityState(pity);
+    trackHeroPackOpened({
+      totalPacksOpened: pity.totalPacksOpened,
+      journeyReinforcement: Boolean(opts?.journeyReinforcement),
+    });
     return results;
   }
 

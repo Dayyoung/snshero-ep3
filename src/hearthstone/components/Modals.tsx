@@ -23,6 +23,7 @@ import {
   X,
 } from 'lucide-react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
+import { trackHeroEvent, trackHeroRewardedAdCompleted } from '../services/analyticsEvents';
 import { renderQrCodeSvg } from '../services/qrCodeSvg';
 import { requestRewardedGoldAd } from '../services/h5RewardedAds';
 import { AudioSettings, hsAudio } from '../audio';
@@ -925,6 +926,7 @@ export const TavernShopModal: React.FC<{
         setRewardAdActions(null);
         setAdQuota(quota);
         refresh();
+        trackHeroRewardedAdCompleted(goldAdded);
         hsAudio.playSfx('mario_coin', 0.9);
         showToast(
           tr(
@@ -996,6 +998,12 @@ export const TavernShopModal: React.FC<{
 
   const handleTriggerPopupCheckout = (method: CheckoutPopupMethod) => {
     hsAudio.playSfx('box_press');
+    trackHeroEvent('hero_shop_checkout_started', {
+      package_id: selectedPkg.id,
+      method,
+      value: selectedPkg.priceUsd,
+      currency: 'USD',
+    });
     setPopupBlockedRetry(null);
     const popup = openGameCheckoutPopup(selectedPkg, method);
     if (!popup) {

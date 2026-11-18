@@ -63,6 +63,7 @@ const PackOpeningScreen = loadHsScreenSafely<{
   onReturnToJourney?: () => void;
 }>('PackOpeningScreen', 'PackOpeningScreen');
 import { initGamePwaFullscreen, isStandalonePwa } from './pwaFullscreen';
+import { trackHeroScreenView } from './services/analyticsEvents';
 import { initH5GamesAds, syncH5AdSound } from './services/h5RewardedAds';
 import { hsStorage } from './storage';
 import {
@@ -104,16 +105,7 @@ export const HearthstoneApp: React.FC = () => {
 
   useEffect(() => {
     if (!ready) return;
-    const isLocalHost = /^(localhost|127\.0\.0\.1|.*\.ts\.net)$/i.test(window.location.hostname);
-    const debugEnabled = /[?&]ga_debug=1\b/.test(window.location.search);
-    if (isLocalHost && !debugEnabled) return;
-    const w = window as Window & { gtag?: (...args: unknown[]) => void };
-    if (typeof w.gtag === 'function') {
-      w.gtag('event', 'screen_view', {
-        app_name: 'SNSHero',
-        screen_name: screen,
-      });
-    }
+    trackHeroScreenView(screen);
   }, [ready, screen]);
 
   const [selectedMode, setSelectedMode] = useState<GameMode>('RANKED');

@@ -2,6 +2,23 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 15:19 KST] [Google Ads 퍼널 전환 이벤트 추적 + UTM/GCLID 보존 및 캠페인 플레이북 수립 (푸시 대기)]
+- **요청**: Google Ads(`3072359722`) 및 GA4(`properties/223457203` / `G-MT60DTV1KJ`) 실측 분석을 바탕으로 실효성 있는 Google Ads 캠페인/전환 정리 플레이북 수립 및 광고 퍼널 어트리뷰션·전환 이벤트 코드 구현
+- **수정 및 추가 파일**:
+  - `src/hearthstone/services/analyticsEvents.ts` (신규 — `trackHeroEvent`, `trackHeroScreenView`, `trackHeroPackOpened`, `trackHeroBattleStarted`, `trackHeroBattleCompleted`, `trackHeroRewardedAdCompleted`, `appendAttributionToGameUrl` 구현: UTM/`gclid`/`fbclid`/`ttclid`/`msclkid` 쿼리 보존, `window.__heroTrackedEvents` 버퍼 기록 및 프로덕션/`?ga_debug=1` 환경 `gtag` 전송)
+  - `src/promo/PromoApp.tsx` (프로모 랜딩 `/` → `/game` CTA 링크 `header-play-now-btn`, `promo-hero-primary-cta`, 하단 `Enter Elwin Village` 및 `claim_promo`/`mode=story` 경로에 `appendAttributionToGameUrl` + `hero_promo_cta_click` 이벤트 연결)
+  - `src/hearthstone/HearthstoneApp.tsx` (`trackHeroScreenView` 연동)
+  - `src/hearthstone/storage.ts` (`openOnePack` 완료 시 `trackHeroPackOpened` 호출 — 최초 1회 `hero_first_pack_opened` 및 `hero_pack_opened` 발생)
+  - `src/hearthstone/screens/BattleScreen.tsx` (`PLAYING` 진입 시 `trackHeroBattleStarted` (`hero_battle_started`, 최초 1회 `hero_first_battle_started`) 및 `GAME_OVER` 시 `trackHeroBattleCompleted` (`hero_battle_won` / `hero_battle_lost`) 호출)
+  - `src/hearthstone/components/Modals.tsx` (`TavernShopModal` 보상형 광고 수령 시 `trackHeroRewardedAdCompleted`, 체크아웃 시작 시 `hero_shop_checkout_started` 호출)
+- **산출물(플레이북)**: `google_ads_campaign_playbook.md` (오전/과거 잘못된 `페이지 로드` 구매 전환 `7614809758`/`7614812589`·`7611270384` 보조 전환 정리, `SNSHero_Search_TCG_KR`·`SNSHero_Search_TCG_EN`·YouTube Shorts Demand Gen 세팅, 제외 키워드 및 KO/EN RSA 카피 세트 수록)
+- **검증 결과**:
+  - `npx tsc --noEmit` 및 `npm run build` 통과 (`1777 modules transformed`, `0` 에러)
+  - Playwright E2E 검증(`verify_ads_funnel.mjs`) 통과 (`ok: true`, 콘솔/페이지 에러 `0`건):
+    - 데스크톱(`1280×800`, `ko-KR`) 프로모 CTA href UTM/`gclid` 보존 확인 (`/game?open=pack3&utm_source=google_ads&utm_medium=cpc&utm_campaign=kr_test&gclid=test123&lang=ko`)
+    - 모바일(`390×844`, `en-US`) 팩 개봉 시 `hero_pack_opened`, `hero_first_pack_opened` 및 스토리 전투 진입·항복 시 `hero_battle_started`, `hero_first_battle_started`, `hero_battle_lost` 발화 확인
+- **상태**: 로컬 커밋 완료 (원격 푸시 보류) · 구글 폼 보고 완료
+
 ## [2026-11-18 14:24 KST] [상점 Google H5 Games 보상형 광고(+50G) 골드 충전 기능 구현 (푸시 대기)]
 - **요청**: Google 애드센스 정책 준수 범위 내 1번 방식(Google H5 Games Ads `Ad Placement API`)으로 상점 내 광고 시청 후 골드 충전 기능 구현
 - **수정 및 추가 파일**:

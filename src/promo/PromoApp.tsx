@@ -31,6 +31,7 @@ import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget
 import { HowToPlayCarousel } from '../hearthstone/components/OnboardingGuideModal';
 import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
 import { hsAudio } from '../hearthstone/audio';
+import { appendAttributionToGameUrl, trackHeroEvent } from '../hearthstone/services/analyticsEvents';
 import { hsStorage } from '../hearthstone/storage';
 import { resolveDialogueSpriteUrl } from '../hearthstone/storyEncounterData';
 import {
@@ -435,8 +436,9 @@ export const PromoApp: React.FC = () => {
                 </button>
               </div>
               <a
-                href="/game"
+                href={appendAttributionToGameUrl('/game')}
                 data-testid="header-play-now-btn"
+                onClick={() => trackHeroEvent('hero_promo_cta_click', { cta_id: 'header_play_now', lang })}
                 className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold tracking-wide sm:px-6 sm:text-sm"
               >
                 <span>{tr('바로 플레이', 'Play Now')}</span>
@@ -503,8 +505,9 @@ export const PromoApp: React.FC = () => {
               className="mt-6 flex flex-wrap items-center justify-center gap-3"
             >
               <a
-                href="/game"
+                href={appendAttributionToGameUrl('/game?open=pack3')}
                 data-testid="promo-hero-primary-cta"
+                onClick={() => trackHeroEvent('hero_promo_cta_click', { cta_id: 'hero_primary_play', lang })}
                 className="hs-promo-cta-purple inline-flex min-h-[52px] items-center gap-2 rounded-full px-8 py-3 text-base font-extrabold tracking-wide sm:text-lg"
               >
                 <Gamepad2 className="h-5 w-5" />
@@ -1435,7 +1438,8 @@ export const PromoApp: React.FC = () => {
               {tr('지금 접속하고 무료 3팩을 개봉하세요!', 'Claim Your 3 Free Packs Today!')}
             </h2>
             <a
-              href="/game"
+              href={appendAttributionToGameUrl('/game?open=pack3')}
+              onClick={() => trackHeroEvent('hero_promo_cta_click', { cta_id: 'bottom_enter_village', lang })}
               className="hs-promo-cta-purple mt-6 inline-flex min-h-[52px] items-center gap-2 rounded-full px-9 py-3.5 text-base font-extrabold tracking-wide sm:text-lg"
             >
               <Gamepad2 className="h-5 w-5" />
@@ -1815,7 +1819,8 @@ export const PromoApp: React.FC = () => {
                 ))}
               </div>
               <a
-                href="/game?claim_promo=1"
+                href={appendAttributionToGameUrl('/game?claim_promo=1')}
+                onClick={() => trackHeroEvent('hero_promo_cta_click', { cta_id: 'claim_promo_pack', lang })}
                 className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-8 py-3 text-sm font-extrabold sm:text-base"
               >
                 <span>{tr('5장 수령 & 게임 시작하기 →', 'Claim Cards & Start Playing →')}</span>
@@ -1871,7 +1876,8 @@ export const PromoApp: React.FC = () => {
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                 <a
-                  href="/game?mode=story&ep=1"
+                  href={appendAttributionToGameUrl('/game?mode=story&ep=1')}
+                  onClick={() => trackHeroEvent('hero_promo_cta_click', { cta_id: 'theater_ep1_play', lang })}
                   className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                 >
                   <span>{tr('제1화 전장 입장 →', 'Play Ep.1 Now →')}</span>
