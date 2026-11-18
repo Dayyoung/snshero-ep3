@@ -981,9 +981,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [preBattleModalOpen, setPreBattleModalOpen] = useState<boolean>(() =>
     Boolean(openPresetModalOnStart),
   );
-  const [cleanCardView, setCleanCardView] = useState(
-    () => Boolean(hsAudio.getSettings().compactCleanCardView),
-  );
   // DEV-043 / 044 / 050 / 051 / 052 / 053 / 054: Ocarina BGM Rhythm Auto & Kadan Command Orb State
   const [rhythmEnabled, setRhythmEnabled] = useState<boolean>(
     () => hsAudio.getSettings().rhythmAutoEnabled !== false,
@@ -1031,7 +1028,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     const syncAudioOpts = () => {
       const s = hsAudio.getSettings();
       setRhythmEnabled(s.rhythmAutoEnabled !== false);
-      setCleanCardView(Boolean(s.compactCleanCardView));
     };
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
@@ -1285,7 +1281,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   useEffect(() => {
     const syncPrefs = () => {
       const s = hsAudio.getSettings();
-      setCleanCardView(Boolean(s.compactCleanCardView));
       if (s.emoteBubblesEnabled === false) {
         setOpponentSquelched(true);
         setOpponentEmoteText(null);
@@ -5083,19 +5078,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       {/* ==================== TOP ZONE: OPPONENT HAND + CENTERED OPPONENT HERO ==================== */}
       <header className="relative z-20 flex w-full flex-col items-center pt-1">
         {/* Top Utility Strip: Opponent Mana (Left) + Opponent Hand (Dead-Center on sm+) + Options (Right) */}
-        <div className="flex w-full items-center justify-between gap-1.5 px-2 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:px-3">
-          <div className="flex min-w-0 items-center gap-1.5 rounded-xl border-2 border-[#b8924d]/75 bg-stone-950/90 px-2 py-1 text-[10.5px] text-amber-100 shadow-lg sm:justify-self-start sm:gap-2 sm:px-3 sm:text-xs">
+        <div className="flex w-full min-w-0 items-center justify-between gap-1 px-1.5 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-1.5 sm:px-3">
+          <div className="flex min-w-0 shrink items-center gap-1 rounded-xl border-2 border-[#b8924d]/75 bg-stone-950/90 px-1.5 py-1 text-[10.5px] text-amber-100 shadow-lg sm:justify-self-start sm:gap-2 sm:px-3 sm:text-xs">
             <img
               src={CLASS_CREST_URL[matchState.opponent.heroClass]}
               alt=""
               className="h-4 w-4 shrink-0 rounded-full object-cover"
             />
-            <span className="max-w-[82px] truncate font-extrabold text-red-200 sm:max-w-none">
+            <span className="max-w-[54px] truncate font-extrabold text-red-200 sm:max-w-none">
               {matchState.opponent.name}
             </span>
             <span className="text-stone-500">·</span>
             <span className="shrink-0 font-extrabold text-sky-300">
-              {tr('마나', 'Mana')} {matchState.opponent.mana}/{matchState.opponent.maxMana}
+              <span className="hidden sm:inline">{tr('마나', 'Mana')} </span>
+              <span className="sm:hidden">💎</span>
+              {matchState.opponent.mana}/{matchState.opponent.maxMana}
             </span>
             <span className="hidden text-stone-500 sm:inline">·</span>
             <span className="hidden font-bold text-amber-200/85 sm:inline">
@@ -5106,7 +5103,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           {/* Opponent Face-Down Curved Hand (Visible on BOTH Mobile Portrait & Desktop!) */}
           <div
             title={isKo ? `상대 손패: ${matchState.opponent.hand.length}장` : `Enemy Hand: ${matchState.opponent.hand.length}`}
-            className="flex shrink-0 items-center justify-center -space-x-3 sm:justify-self-center sm:-space-x-3"
+            className="flex min-w-0 shrink items-center justify-center -space-x-3.5 sm:shrink-0 sm:justify-self-center sm:-space-x-3"
           >
             {matchState.opponent.hand.map((hc, idx) => {
               const rot = (idx - (matchState.opponent.hand.length - 1) / 2) * 3;
@@ -5114,7 +5111,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 <div
                   key={hc.uid}
                   style={{ transform: `rotate(${rot}deg)` }}
-                  className="h-7 w-5 overflow-hidden rounded-[4px] shadow sm:h-14 sm:w-10 sm:rounded-md"
+                  className="h-7 w-4 overflow-hidden rounded-[4px] shadow sm:h-14 sm:w-10 sm:rounded-md"
                 >
                   <SnsCardBackArt variant={profile.selectedCardBack} />
                 </div>
@@ -5136,9 +5133,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 hsAudio.playSfx('ui_click', 0.75);
                 setQuickRulesOpen(true);
               }}
-              className="rounded-xl border border-amber-300/65 bg-stone-950/90 px-2 py-1 text-[10px] font-extrabold text-amber-200 shadow hover:bg-stone-900 sm:px-2.5 sm:text-xs"
+              aria-label={tr('게임 규칙', 'Game Rules')}
+              className="min-h-[36px] rounded-xl border border-amber-300/65 bg-stone-950/90 px-2 py-1 text-[10.5px] font-extrabold text-amber-200 shadow hover:bg-stone-900 sm:min-h-[38px] sm:px-2.5 sm:text-xs"
             >
-              {tr('? 규칙', '? Rules')}
+              <span className="sm:hidden">?</span>
+              <span className="hidden sm:inline">{tr('? 규칙', '? Rules')}</span>
             </button>
             {mode === 'TUTORIAL' && matchState.journeyMeta && (
               <button
@@ -5149,50 +5148,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   hsAudio.playSfx('open_menu', 0.75);
                   setEpisodeSelectorOpen(true);
                 }}
-                className="rounded-xl border border-emerald-300/70 bg-emerald-950/90 px-2 py-1 text-[10px] font-extrabold text-emerald-200 shadow sm:px-2.5 sm:text-xs"
+                className="min-h-[36px] rounded-xl border border-emerald-300/70 bg-emerald-950/90 px-2 py-1 text-[10.5px] font-extrabold text-emerald-200 shadow sm:min-h-[38px] sm:px-2.5 sm:text-xs"
               >
-                {isKo
-                  ? `📖 제${matchState.journeyMeta.episode}화 · 회차/대사`
-                  : `📖 EP ${matchState.journeyMeta.episode} · Stages`}
+                <span className="sm:hidden">
+                  {isKo ? `📖 ${matchState.journeyMeta.episode}화` : `📖 EP.${matchState.journeyMeta.episode}`}
+                </span>
+                <span className="hidden sm:inline">
+                  {isKo
+                    ? `📖 제${matchState.journeyMeta.episode}화 · 회차/대사`
+                    : `📖 EP ${matchState.journeyMeta.episode} · Stages`}
+                </span>
               </button>
             )}
-
-            {/* Mobile Corner Toy Interaction Button (< md) */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                const toy = cornerToys[Math.floor(Math.random() * cornerToys.length)];
-                triggerCornerToy(toy);
-              }}
-              className="hs-brass-btn rounded-xl px-2 py-1 text-[10.5px] font-extrabold text-amber-100 md:hidden"
-            >
-              {tr('기물', 'Toys')}
-            </button>
-
-            {/* DEV-039: Clean Art View 1-Tap Toggle */}
-            <button
-              type="button"
-              data-testid="battle-clean-view-toggle"
-              onClick={(e) => {
-                e.stopPropagation();
-                hsAudio.playSfx('ui_click', 0.75);
-                const next = !cleanCardView;
-                setCleanCardView(next);
-                hsAudio.updateSettings({ compactCleanCardView: next });
-              }}
-              title={tr(
-                '전장 클린 아트 뷰 전환 (평상시 일러스트·공체만 표시)',
-                'Toggle Clean Art Card View',
-              )}
-              className={`min-h-[38px] rounded-xl border px-2 py-1 text-[10px] font-extrabold shadow transition sm:px-2.5 sm:text-xs ${
-                cleanCardView
-                  ? 'border-cyan-300 bg-cyan-950/90 text-cyan-100'
-                  : 'hs-brass-btn text-amber-100'
-              }`}
-            >
-              🎨 {cleanCardView ? tr('클린뷰 ON', 'Clean ON') : tr('클린뷰', 'Clean')}
-            </button>
 
             <button
               type="button"
@@ -5202,9 +5169,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 hsAudio.playSfx('open_menu');
                 onOpenOptions(handleConcede);
               }}
-              className="hs-brass-btn min-h-[38px] rounded-xl px-2.5 py-1 text-[10.5px] font-extrabold text-amber-100 sm:px-3 sm:text-xs"
+              className="hs-brass-btn min-h-[36px] rounded-xl px-2 py-1 text-[10.5px] font-extrabold text-amber-100 sm:min-h-[38px] sm:px-3 sm:text-xs"
             >
-              ⚙ {tr('메뉴 · 항복', 'Menu · Concede')}
+              <span className="sm:hidden">⚙ {tr('메뉴', 'Menu')}</span>
+              <span className="hidden sm:inline">⚙ {tr('메뉴 · 항복', 'Menu · Concede')}</span>
             </button>
           </div>
         </div>

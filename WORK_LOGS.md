@@ -1235,4 +1235,16 @@
     - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료.
     - 로컬 커밋 및 `git push origin main` 원격 배포, 연동 구글 폼 작업 완료 보고 제출 완료.
 
+## [2026-11-18 15:14 KST] [모바일 전장 상단 유틸리티 바 넘침 수정 — 불필요한 기물(Toys)·클린뷰(Clean) 버튼 제거 및 반응형 압축]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 상단 바 불필요 버튼 제거 ([`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx))**:
+    - 전장 네 모서리 기물(Toys)과 직접 중복되던 모바일 전용 `기물(Toys)` 버튼과 환경설정(`Modals.tsx`)에 이미 탑재되어 있던 `클린뷰(Clean)` 토글 버튼(및 미사용 `cleanCardView` 상태 동기화)을 상단 유틸리티 바에서 제거.
+  - **2. 모바일(`360px`~`430px`) 상단 메뉴 버튼 잘림 방지 반응형 개편 ([`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx))**:
+    - 상대 정보 배지(`max-w-[54px] truncate`, 모바일 `💎{mana}/{maxMana}` 표기), 상대 손패(`-space-x-3.5`, `w-4`), 우측 버튼 라벨(`?`, `📖 N화`, `⚙ 메뉴` ↔ 데스크톱 `? 규칙`, `📖 제N화 · 회차/대사`, `⚙ 메뉴 · 항복`)을 반응형으로 압축해 소형 모바일에서도 우측 끝 `⚙ 메뉴` 버튼이 화면 밖으로 밀려나지 않도록 보장.
+  - **3. 빌드·Playwright 양방향 검증 및 구글 폼 보고**:
+    - `npx tsc --noEmit` 에러 `0건`, `npm run build` 정상 완료 (`14.54s`).
+    - Playwright 실측: `360×740`(KO), `390×844`(EN), `1280×800`(KO) 스토리 1화 실전 화면 모두 `battle-top-gear-btn`이 뷰포트 내부에 완전 노출되고 클릭 시 설정 모달이 정상 오픈됨을 확인 (`기물`/`클린뷰` 부재 검증 포함).
+    - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
+
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*
