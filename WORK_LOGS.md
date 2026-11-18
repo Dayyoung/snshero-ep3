@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 16:50 KST] [YouTube Shorts / Demand Gen 광고용 20초 숏폼 KR·EN 2종 제작 완료]
+- **요청**: `@snshero` 40화 웹툰 쇼츠 하이라이트(15~25초)에 `"3초 3팩 무료 개봉"` CTA를 결합한 Google Ads Demand Gen / YouTube Shorts 광고 소재 제작
+- **산출물 (`docs/ads/creatives/`)**:
+  - `snshero_demandgen_shorts_kr_20s.mp4` (`1080×1920`, 30fps, H.264 + AAC, 20.0s, 5.6MB)
+  - `snshero_demandgen_shorts_en_20s.mp4` (`1080×1920`, 30fps, H.264 + AAC, 20.0s, 5.8MB)
+- **구성**:
+  - Beat 1 (`0.0~4.2s`): EP01 눈보라 인트로 + `설치 0초 · 웹툰이 카드 배틀이 된다` 상단 훅 + `첫 방문 무료 3팩 + 250G 즉시 지급` 배너
+  - Beat 2 (`4.2~11.4s`): EP01 알렉산다르 서약 클라이맥스 + `382종 카드 · 9대 종족 전략 TCG` / `40화 성우 풀보이스 · 첫 10팩 전설 100% 확정` 배너
+  - Beat 3 (`11.4~15.2s`): 인게임 실제 전투 필살기(`guide_04_combat_ult.webp`) + 미개봉 3팩(`guide_05_packs.webp`) 줌인 쇼케이스
+  - Beat 4 (`15.2~20.0s`): 방패 로고 + 3대 혜택 바 + 맥동하는 대형 골드 CTA(`3초 만에 3팩 무료 개봉` / EN `Open 3 Packs in 3 Sec`)
+- **검증**: HyperFrames `check --json` 오류 0건(명암 대비 22/22 PASS), 스냅샷 및 최종 MP4 디코딩 프레임 검수 완료, `ffprobe` 스트림(1080×1920 H264+AAC 20.0s) 검증 통과
+- **상태**: 로컬 파일 및 로그 기록 완료 (구글 폼 보고 미수행)
+
 ## [2026-11-18 16:32 KST] [전체 `.md` 지침 및 스킬에서 구글 폼 보고 규칙 제거]
 - **요청**: 작업 완료 후 구글 폼 보고 중단 및 모든 `.md` 지침·스킬 문서에서 구글 폼 제출 지침 제거
 - **수정 파일 (14종)**: `GEMINI.md`, `AGENTS.md`, `skills/{checkAll,checkIssue,checkBug,checkMarket,imp-mission,rsi,rsi-snshero,update-stone,ge,gemini-ex,script-anime,report-ex}/SKILL.md`
