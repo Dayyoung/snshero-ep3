@@ -46,4 +46,4 @@ description: 지정한 회차(예: /script-anime 1회)의 영문 소설과 7등�
    - 마크다운 출력: `public/anime-character-sheets/cutscene-prompts/episode_{XX}_cutscene_prompts.md`
    - JSON 출력: `public/anime-character-sheets/cutscene-prompts/episode_{XX}_cutscene_prompts.json`
 3. 아티팩트 문서 또는 응답으로 해당 회차의 **6초 컷신 프롬프트 리스트 전체**와 **첨부용 7등신 캐릭터 `cutouts` 파일 링크**, **배경/소품 시트 링크**, **원클릭 복사용 영문 비디오 프롬프트**를 사용자에게 제시합니다.
-4. 작업 완료 후 연동된 구글 폼(`python3 skills/report-ex/scripts/submit_report.py`)으로 작업 완료 보고서를 제출하고 `WORK_LOGS.md`에 기록합니다.
+4. 작업 완료 후 `WORK_LOGS.md`에 기록합니다.

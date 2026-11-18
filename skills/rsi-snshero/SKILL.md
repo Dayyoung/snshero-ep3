@@ -55,4 +55,4 @@ description: 공개 구글 스프레드시트 CSV(2PACX-1vTJLidMIGaaE_tsui-Cydxa
 ### 6. 엄격한 검증 및 보고
 - 소스 변경 후 `npx tsc --noEmit` (0 Errors) 및 `npm run build` 성공을 필수로 검증합니다.
 - 로컬 Git 커밋(`git commit`)만 수행하며, 원격 저장소 푸시는 오직 사용자가 `/git-push`를 명시적으로 요청할 때만 실행합니다.
-- 작업 완료 후 반드시 연동된 구글 폼(`submit_report.py`)을 통해 작업 완료 보고서를 제출합니다.
+- 작업 완료 후 `WORK_LOGS.md`에 완료 내역을 기록하고 사용자에게 보고합니다.

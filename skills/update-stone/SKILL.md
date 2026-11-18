@@ -83,8 +83,4 @@ description: game.html(src/hearthstone/**)의 최신 기술·엔진·성능·UI/
 6. **기록·로컬 커밋·보고**
    - `WORK_LOGS.md` 상단에 `/update-stone` 동기화 내역을 기록합니다.
    - 변경사항을 로컬에 `git commit`합니다 (`git push`는 사용자가 `/git-push`를 요청할 때만 수행).
-   - 구글 폼 완료 보고서를 제출합니다:
-     ```bash
-     python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/update-stone] game.html 최신 업데이트 -> stone.html 동기화 완료" --status "작업완료" --details "[동기화된 기능 목록, 무료/결제제외 검증, 빌드 검증 결과]"
-     ```
    - 사용자에게 한국어로 동기화 내역 및 검증 결과를 보고합니다.

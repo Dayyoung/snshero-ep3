@@ -99,32 +99,15 @@
 - **데이터 무결성 및 리셋 방지**: 원격 인증 상태 변경, 오프라인 전환, 페이지 새로고침 등에 의해 로컬스토리지에 저장된 카드/재화 데이터가 기본값으로 초기화되거나 유실되는 일이 절대 없어야 합니다.
 - **즉시 동기화**: 상점 뽑기(단일팩, 10연차, 연속뽑기 등), 보상 수령, 덱 편집, 레벨업 등의 이벤트 발생 즉시 로컬스토리지에 동기적으로 기록합니다.
 
-## 모든 작업 완료 시 구글 폼 제출 의무화 절대 원칙 (Mandatory Google Form Report Submission)
-- **전수 작업 보고 의무화**: 기능 개발, 버그 수정, 성능 최적화, UI/UX 개선, 리팩토링, 스킬 실행 등 **에이전트가 수행하는 어떠한 작업이든 작업이 완료되면 예외 없이 반드시 연동된 구글 폼을 통해 작업 완료 보고서를 즉시 제출**해야 합니다.
-- **연동 구글 폼 엔드포인트**: `https://docs.google.com/forms/d/e/1FAIpQLScrvcAqDF7vHHQndycr90ii-ujTi3Plw23eNrSyiJpOLrHbjg/formResponse`
-- **반영 구글 스프레드시트**: `1nX6BFBJR4fTrv3PMqG8UamwSbqY2tJt_VvJoGAPItu8` (`/modoo` 모두의 상태 화면에서 실시간 45초마다 동기화)
-- **제출 방법**:
-  - **Python 스크립트 실행 (권장)**:
-    ```bash
-    python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[작업명]" --status "작업완료" --details "[작업 상세 내용 및 검증 결과]"
-    ```
-  - **curl 실행**:
-    ```bash
-    curl -s -X POST "https://docs.google.com/forms/d/e/1FAIpQLScrvcAqDF7vHHQndycr90ii-ujTi3Plw23eNrSyiJpOLrHbjg/formResponse" \
-      --data-urlencode "emailAddress=developer@snshero.com" \
-      --data-urlencode "entry.1712635414=개발" \
-      --data-urlencode "entry.1651694192=[작업명]" \
-      --data-urlencode "entry.1282964596=작업완료" \
-      --data-urlencode "entry.1982035501=[작업 상세 내용 및 검증 결과]"
-    ```
-- **누적 기록**: 작업 완료 후 `WORK_LOGS.md` 파일에도 실행 일시, 작업 내역, 검증 결과 및 구글 폼 제출 완료 여부를 누적 기록합니다.
+## 작업 완료 후 기록 원칙
+- 작업이 완료되면 `WORK_LOGS.md` 파일에 실행 일시, 작업 내역 및 검증 결과를 누적 기록합니다. (구글 폼 제출 보고는 수행하지 않습니다.)
 
 ## 등록된 커스텀 스킬 및 명령어
 - **`/gemini-ex` (단축어: `/ge`)**: 공개 구글 스프레드시트 CSV(`2PACX-1vRF82ZJBHIhPsTzzjGm8DFutzw6PtAwqT_iyEB3MG5yKvZrEs354rKHy7YIFIO2zgqKSuRbo62uNyX_`)의 미작업 항목을 확인하고 소스코드에 반영 및 완료하는 스킬
 - **`/ge`**: `/gemini-ex`의 축약어/단축 명령어로 동일한 작업 수행
-- **`/report-ex`**: 구글 스프레드시트 (`1nX6BFBJR4fTrv3PMqG8UamwSbqY2tJt_VvJoGAPItu8`)의 작업대기 항목들을 작업하고 완료 시 구글폼으로 제출 보고하는 스킬
-- **`/imp-mission`**: 3D 복셀 미션 게임들을 엄격한 기준으로 심사하여 모바일 적합도/재미/보상이 미달되는 게임을 즉시 폐기하고, 배틀/아케이드/퍼즐/캐주얼 등 다양한 장르의 고품질 신규 게임으로 새로 개발·대체하여 구글 폼으로 보고하는 스킬 (매 10분 주기 수행)
-- **`/rsi`**: snshero.com 모바일 게임의 기획/디자인/개발을 전면 검토하고 12대 핵심 화면을 1회 1화면씩 순차 개선하며, 엑셀 대신 `docs/screen_audits/`에 신규 md 분석 문서를 생성하고 코드 구현/빌드/보고를 자동 수행하는 스킬 (매 1시간 주기 수행)
+- **`/report-ex`**: 구글 스프레드시트 (`1nX6BFBJR4fTrv3PMqG8UamwSbqY2tJt_VvJoGAPItu8`)의 작업대기 항목들을 확인하여 작업하고 `WORK_LOGS.md`에 기록하는 스킬
+- **`/imp-mission`**: 3D 복셀 미션 게임들을 엄격한 기준으로 심사하여 모바일 적합도/재미/보상이 미달되는 게임을 즉시 폐기하고, 배틀/아케이드/퍼즐/캐주얼 등 다양한 장르의 고품질 신규 게임으로 새로 개발·대체하는 스킬 (매 10분 주기 수행)
+- **`/rsi`**: snshero.com 모바일 게임의 기획/디자인/개발을 전면 검토하고 12대 핵심 화면을 1회 1화면씩 순차 개선하며, 엑셀 대신 `docs/screen_audits/`에 신규 md 분석 문서를 생성하고 코드 구현/빌드를 자동 수행하는 스킬 (매 1시간 주기 수행)
 - **`/git-push`**: 모든 작업은 로컬 커밋(`git commit`)만 수행하며, 오직 사용자가 `/git-push`를 호출하거나 명시적으로 푸시를 요청할 때만 원격 저장소(`origin main`)로 푸시하는 스킬
 - **`/start-server`**: 포트 3000에서 최신 프로덕션 정적 번들을 초고속으로 서빙(`vite preview`)하고, 소스 변경 시 백그라운드에서 실시간 자동 빌드 갱신(`watch-build`)을 수행하는 고속 프리뷰 및 라이브 워처 가동 스킬
 - **`/update-stone`**: `game.html`(`src/hearthstone/**`)의 최신 기술·엔진·성능·UI/UX 업데이트를 `stone.html`(`src/stone/**`)에 선택적으로 동기화하는 스킬. 원본 하스스톤 고유 리소스(`public/stone-assets/**`)·기능·단독 업데이트 가능 구조(`stone_hs_*`)를 100% 유지하며, 블리자드 IP 라이선스 보호를 위해 결제 기능은 절대 추가하지 않고 무료로 유지함.
@@ -209,7 +192,6 @@
 - [ ] `DESIGN.md` 디자인 가이드 준수 여부 (Monospace 서체, 웜크림/잉크 테마, 플랫 디자인, 1px 헤어라인, 4px/0px 반경, 44px+ 터치 타깃)
 - [ ] 기존 코드 스타일(인덴트, 따옴표 등) 준수
 - [ ] 새로운 localStorage 키 추가 시 `AGENTS.md`에 문서화
-- [ ] **[필수] 작업 완료 후 연동 구글 폼 보고서 제출 완료 (`python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[작업명]" --details "[내용]"`)**
 
 ## 중요 참고사항
 - **저사양 모드(`lowSpecMode`)**: 애니메이션/효과 추가 시 `lowSpecMode`가 `true`일 때는 복잡한 애니메이션을 비활성화해야 함.
@@ -221,8 +203,8 @@
 - 외부 CDN에서 직접 스크립트 로드 금지. 모든 의존성은 `npm`으로 관리.
 - `console.log` 남발 금지. 디버깅 후 불필요한 로그는 제거. (단, `testMode` 조건 내 로그는 허용)
 
-## 매 30분 주기 미션 게임 테스트/개선 및 작업 종료 보고 정책
-- **매 30분 주기 크론 작업(`*/30 * * * *`)**: 매시 정각(:00) 및 30분(:30)마다 미션게임(카드러시, 카드하이스트, 카드탭, 카드슬롯, 카드소서리, 카드플립, 카드슬라이드, 카드점퍼 등)을 순차적으로 선택하여 집중 테스트, 개선 및 구글 폼 보고를 수행합니다.
+## 매 30분 주기 미션 게임 테스트/개선 및 작업 종료 기록 정책
+- **매 30분 주기 크론 작업(`*/30 * * * *`)**: 매시 정각(:00) 및 30분(:30)마다 미션게임(카드러시, 카드하이스트, 카드탭, 카드슬롯, 카드소서리, 카드플립, 카드슬라이드, 카드점퍼 등)을 순차적으로 선택하여 집중 테스트 및 개선을 수행합니다.
 - **미니게임 점검 및 개선 기준**:
   1. **모바일 원핸드 플레이**: 상하스크롤 없이 한손으로 100% 간단하게 플레이 가능한지 (`100dvh`, overflow 방지, 모바일 가상 D-패드/터치 버튼 제공).
   2. **난이도 및 재미**: 난이도 곡선이 적절하고 직관적인 재미와 성취감이 제공되는지.
@@ -231,24 +213,7 @@
   5. **디자인 가이드 준수**: [DESIGN.md](file:///Users/dayyoung/project/snshero/DESIGN.md) 기준 준수 여부 (Monospace 서체, 웜크림/잉크 팔레트, 그림자/그라데이션 지양, 1px hairline 보더, 인터랙티브 4px/컨테이너 0px 모서리 반경, 대괄호/ASCII 마커 활용).
 - **Git 커밋 및 푸시 정책**: 파일이 변경될 때마다 로컬 Git 커밋(`git commit`)만 즉시 수행합니다. **원격 저장소 푸시(`git push`)는 절대 자동으로 실행하지 않습니다.** 오직 사용자가 `/git-push` 명령을 입력하거나 명시적으로 푸시를 요청할 때만 `git push`를 실행합니다.
 - 커밋 메시지는 변경 사항을 명확하게 설명해야 합니다.
-- 모든 작업이 종료되면 검증 완료된 구글 폼 엔드포인트(`https://docs.google.com/forms/d/e/1FAIpQLScrvcAqDF7vHHQndycr90ii-ujTi3Plw23eNrSyiJpOLrHbjg/formResponse`)로 결과를 즉시 보고합니다.
-  - **단일 보고 (Python / curl)**:
-    ```bash
-    python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[작업명]" --status "작업완료" --details "[작업 상세 내용 및 검증 결과]"
-    ```
-    또는
-    ```bash
-    curl -s -X POST "https://docs.google.com/forms/d/e/1FAIpQLScrvcAqDF7vHHQndycr90ii-ujTi3Plw23eNrSyiJpOLrHbjg/formResponse" \
-      --data-urlencode "entry.1712635414=개발" \
-      --data-urlencode "entry.1651694192=[작업명]" \
-      --data-urlencode "entry.1282964596=작업완료" \
-      --data-urlencode "entry.1982035501=[작업 상세 내용 및 검증 결과]"
-    ```
-  - **일괄 자동 보고 (Python 스크립트)**:
-    ```bash
-    python3 skills/report-ex/scripts/submit_report.py --sync-sheet
-    ```
-- 작업 완료 후 `WORK_LOGS.md` 파일에 실행 일시, 작업 내역, 검증 결과 및 구글 폼 제출 건수를 반드시 누적 기록하고 대화창에 보고합니다.
+- 작업 완료 후 `WORK_LOGS.md` 파일에 실행 일시, 작업 내역 및 검증 결과를 누적 기록하고 대화창에 보고합니다.
 
 ## 디자인 지침 및 화면 미니멀리즘 원칙 (Progressive Disclosure)
 - UI의 일관성과 사용자 경험을 최우선으로 고려합니다.

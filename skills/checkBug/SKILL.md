@@ -64,8 +64,5 @@ description: SNSHero 개발문서(1wiklEr79bqts1CZdI-lyVP9CmQ8L7JSMZXGWqBU5ZbU, 
 ### 5단계: 구글 시트 최신화(`J`열 + `K`열) & 작업 보고 후 종료
 1. `gsheets mutate batch`로 해결된 행의 `J`열(`진행 상태`)을 `"완료"`로, `K`열(`조치 및 검증 내역`)을 `[완료·조치+검증] <수정 파일·핵심 패치·테스트 결과>` 형식으로 업데이트합니다.
 2. `'요약 대시보드'`(`'요약 대시보드'!A1:H15`)를 조회해 집계 수치가 정상 반영되었는지 확인합니다.
-3. `WORK_LOGS.md` 누적 기록 및 구글 폼 보고 스크립트를 실행합니다:
-   ```bash
-   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkBug] 개발개선점 패치 및 로컬 커밋 완료 (푸시 대기)" --status "작업완료" --details "[처리한 DEV ID, 패치 내역, 테스트 통과 결과, 로컬 커밋 해시(푸시 대기), 시트 최신화 완료]"
-   ```
+3. `WORK_LOGS.md`에 처리 내역을 누적 기록합니다.
 4. 수정·검증·배포·문서 최신화 내역을 사용자에게 한국어로 상세히 보고하고 종료합니다.

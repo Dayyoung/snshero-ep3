@@ -1,6 +1,6 @@
 ---
 name: rsi
-description: snshero.com 모바일 게임의 기획/디자인/개발을 전면 검토하고 12대 핵심 화면을 1회 1화면씩 순차 개선하며, 엑셀 대신 화면별 신규 md 분석 문서를 생성하고 소스코드 구현, 빌드 검증, 구글 폼 보고를 자동 수행하는 순환 화면 혁신(Rolling Screen Innovation) 스킬
+description: snshero.com 모바일 게임의 기획/디자인/개발을 전면 검토하고 12대 핵심 화면을 1회 1화면씩 순차 개선하며, 엑셀 대신 화면별 신규 md 분석 문서를 생성하고 소스코드 구현 및 빌드 검증을 자동 수행하는 순환 화면 혁신(Rolling Screen Innovation) 스킬
 ---
 
 # /rsi 스킬 지침서 (Rolling Screen Innovation: 순환 화면 전면 혁신)
@@ -95,15 +95,7 @@ description: snshero.com 모바일 게임의 기획/디자인/개발을 전면 �
   git commit -m "feat(rsi): [SCR-XX 화면명] 5대 핵심 지표 개선 및 분석 보고서 작성"
   ```
 
-### 6단계: 구글 폼 제출 및 영구 로그 갱신
-- 구글 폼 엔드포인트로 완료 보고를 전송합니다:
-  ```bash
-  python3 skills/report-ex/scripts/submit_report.py \
-    --dept "개발" \
-    --task "[/rsi] [SCR-XX 화면명] 기획/디자인/개발 전면 개선 완료" \
-    --status "작업완료" \
-    --details "[분석 내용, 구현된 개선사항 요약, npm run build 통과, md 문서 생성]"
-  ```
+### 6단계: 영구 로그 갱신
 - `WORK_LOGS.md` 및 `AGENTS.md`에 실행 기록을 최신화합니다.
 
 ### 7단계: 대화창 상세 보고

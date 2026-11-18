@@ -1,6 +1,6 @@
 ---
 name: checkAll
-description: SNSHero 3대 관리 문서(이슈문서 checkIssue · 개발문서 checkBug · 마케팅문서 checkMarket)를 gsheets CLI로 한 번에 조회해 미해결 항목을 우선순위(P0→P3)별로 일괄 소스코드 구현·수정하고, 통합 빌드 및 E2E 테스트 통과 후 로컬 커밋(git commit · 푸시 대기) 및 3개 시트 상태 최신화·구글 폼 보고까지 일괄 수행하는 통합 스킬 (자동 git push 금지, 사용자 확인 후 수동 푸시). Use whenever the user types /checkAll or asks to check/process all three SNSHero spreadsheets together.
+description: SNSHero 3대 관리 문서(이슈문서 checkIssue · 개발문서 checkBug · 마케팅문서 checkMarket)를 gsheets CLI로 한 번에 조회해 미해결 항목을 우선순위(P0→P3)별로 일괄 소스코드 구현·수정하고, 통합 빌드 및 E2E 테스트 통과 후 로컬 커밋(git commit · 푸시 대기) 및 3개 시트 상태 최신화·WORK_LOGS 기록까지 일괄 수행하는 통합 스킬 (자동 git push 금지, 사용자 확인 후 수동 푸시). Use whenever the user types /checkAll or asks to check/process all three SNSHero spreadsheets together.
 ---
 
 # /checkAll 통합 스킬 지침서 (3대 문서 일괄 점검 및 처리)
@@ -57,8 +57,5 @@ description: SNSHero 3대 관리 문서(이슈문서 checkIssue · 개발문서 
 1. 각 시트의 처리 결과를 `gsheets mutate batch`로 정확한 셀(`J<row>`, 개발문서는 `J<row>` + `K<row>`)만 업데이트해 타 행의 수식·서식을 보존합니다.
    - 대시보드 집계 문자열 정확히 일치: `"완료"`, `"진행중"`, `"보류"`, `"점검완료·실행대기"`
 2. 3개 시트의 `'요약 대시보드'`를 각각 다시 조회해 집계 수치가 정상 반영되었는지 검증합니다.
-3. `WORK_LOGS.md`에 3대 문서 통합 처리 내역을 기록하고, 구글 폼 완료 보고 스크립트를 실행합니다:
-   ```bash
-   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkAll] 3대 문서 통합 점검·수정 및 로컬 커밋 완료 (푸시 대기)" --status "작업완료" --details "[이슈/개발/마케팅 처리 ID 목록, 수정 요약, 빌드/E2E 검증 결과, 로컬 커밋 해시(푸시 대기), 3개 시트 최신화 완료]"
-   ```
+3. `WORK_LOGS.md`에 3대 문서 통합 처리 내역을 기록합니다.
 4. 문서별 처리 내역(`완료`/`진행중`/`외부 대기`), 검증 결과, 로컬 커밋 해시(수동 푸시 대기 안내)를 사용자에게 한국어로 보고하고 종료합니다.

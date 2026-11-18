@@ -64,8 +64,5 @@ description: SNSHero 마케팅문서(1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKE
 ### 5단계: 구글 시트 최신화 & 작업 보고 후 종료
 1. `gsheets mutate batch`로 해당 행의 `J`열(`진행 상태`)만 정확히 갱신합니다 (`"완료"` 또는 `"진행중"`).
 2. `'요약 대시보드'`(`'요약 대시보드'!B9:H15`)를 조회해 상태 집계 반영을 확인합니다.
-3. `WORK_LOGS.md` 누적 기록 및 구글 폼 보고 스크립트를 실행합니다:
-   ```bash
-   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkMarket] 마케팅 개선사항 적용 및 로컬 커밋 완료 (푸시 대기)" --status "작업완료" --details "[처리한 MKT ID, 구현/테스트 결과, 로컬 커밋 해시(푸시 대기), 시트 최신화 결과]"
-   ```
+3. `WORK_LOGS.md`에 처리 내역을 누적 기록합니다.
 4. 완료/진행중/외부대기 내역과 테스트·배포 결과를 한국어로 보고하고 종료합니다.

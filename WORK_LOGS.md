@@ -1,6 +1,12 @@
 # SNSHero 개발 및 개선 작업 로그 (WORK_LOGS.md)
 
-이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
+이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
+
+## [2026-11-18 16:32 KST] [전체 `.md` 지침 및 스킬에서 구글 폼 보고 규칙 제거]
+- **요청**: 작업 완료 후 구글 폼 보고 중단 및 모든 `.md` 지침·스킬 문서에서 구글 폼 제출 지침 제거
+- **수정 파일 (14종)**: `GEMINI.md`, `AGENTS.md`, `skills/{checkAll,checkIssue,checkBug,checkMarket,imp-mission,rsi,rsi-snshero,update-stone,ge,gemini-ex,script-anime,report-ex}/SKILL.md`
+- **결과**: 모든 `.md` 문서 내 구글 폼 제출 명령(`submit_report.py`, `formResponse`) 및 보고 의무화 섹션 제거 완료 (`rg` 검증 확인)
+- **상태**: 로컬 커밋 완료 (원격 푸시 보류 · 구글 폼 보고 미수행)
 
 ## [2026-11-18 16:27 KST] [Google Ads 웹 업로드 `04_web_negative_keywords.xlsx` 열/매치타입 수정]
 - **원인**: `Keyword` + `Negative phrase` 조합 시 Google Ads 웹 일괄 업로드가 일반 키워드로 오인해 `Match type` 오류 발생

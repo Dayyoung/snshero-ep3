@@ -63,8 +63,5 @@ description: SNSHero 이슈문서(1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4, 
 ### 5단계: 구글 시트 최신화 & 작업 보고 후 종료
 1. 해결된 이슈 행의 `J`열(`진행 상태`)을 `"완료"`로 업데이트합니다(부분 해결이나 외부 작업 잔여 시 `"진행중"`). 타 행의 서식·수식을 훼손하지 않도록 `gsheets mutate batch`로 해당 셀(`J<row>`)만 정확히 기록합니다.
 2. `'요약 대시보드'`(`'요약 대시보드'!A1:H15`)를 조회해 `"완료"` 건수가 정상 반영되었는지 검증합니다.
-3. `WORK_LOGS.md`에 처리 내역을 기록하고, 구글 폼 보고 스크립트를 실행합니다:
-   ```bash
-   python3 skills/report-ex/scripts/submit_report.py --dept "개발" --task "[/checkIssue] 이슈 처리 및 로컬 커밋 완료 (푸시 대기)" --status "작업완료" --details "[처리한 이슈 ID, 수정 요약, 테스트 결과, 로컬 커밋 해시(푸시 대기), 시트 최신화 완료]"
-   ```
+3. `WORK_LOGS.md`에 처리 내역을 기록합니다.
 4. 처리한 이슈 목록, 테스트 결과, 배포 커밋, 문서 갱신 현황을 사용자에게 한국어로 보고하고 종료합니다.
