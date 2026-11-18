@@ -92,6 +92,20 @@ export const HearthstoneApp: React.FC = () => {
   const [screen, setScreen] = useState<ScreenName>('BOX_HUB');
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
 
+  useEffect(() => {
+    if (!ready) return;
+    const isLocalHost = /^(localhost|127\.0\.0\.1|.*\.ts\.net)$/i.test(window.location.hostname);
+    const debugEnabled = /[?&]ga_debug=1\b/.test(window.location.search);
+    if (isLocalHost && !debugEnabled) return;
+    const w = window as Window & { gtag?: (...args: unknown[]) => void };
+    if (typeof w.gtag === 'function') {
+      w.gtag('event', 'screen_view', {
+        app_name: 'SNSHero',
+        screen_name: screen,
+      });
+    }
+  }, [ready, screen]);
+
   const [selectedMode, setSelectedMode] = useState<GameMode>('RANKED');
   const [battleSessionKey, setBattleSessionKey] = useState(1);
   const [returnToJourneyActive, setReturnToJourneyActive] = useState(false);

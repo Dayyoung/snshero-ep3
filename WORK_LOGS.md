@@ -2,6 +2,20 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 11:43 KST] [Google Analytics MCP(`analytics-mcp`) 설치·연동 및 전 페이지 GA4(`G-MT60DTV1KJ`) 방문자 집계 복구]
+- **요청 및 개선 내역**:
+  1. **공식 Google Analytics MCP(`analytics-mcp` v1.1.0) 설치 및 전용 서비스 계정 연동 (`~/.gemini/config/mcp_config.json`, `ga4-mcp-reader@gen-lang-client-0764739742.iam.gserviceaccount.com`)**:
+     - Python 3.11 가상환경(`~/.gemini/config/tools/analytics-mcp`)에 `analytics-mcp`를 설치하고 Google Analytics Admin/Data API 활성화 및 전용 서비스 계정 인증으로 `snshero.com` 속성(`properties/223457203`) 방문자 데이터를 조회·분석.
+     - 누적 실서비스(`snshero.com`) 활성 사용자 665명(1,816 세션, 18,223 PV) 및 11월 16일 이후 `gtag.js` 누락에 따른 집계 중단 원인을 규명.
+  2. **전체 진입 HTML 엔트리 GA4(`G-MT60DTV1KJ`) 측정 스크립트 복원 (`index.html`, `game.html`, `book.html`, `novel.html`, `webtoon.html`, `sns.html`, `public/wiki/tip/index.html`, `scripts/post-build.js`)**:
+     - 루트 소개(`/`), 인게임(`/game`), 웹소설(`/book`, `/novel`), 웹툰(`/webtoon`), 벤치마크(`/sns`), 공략집(`/wiki/tip`), `/mcp` 정적 페이지 `<head>`에 `G-MT60DTV1KJ` `gtag.js` 스니펫을 복원.
+     - 로컬 개발/테스트 환경(`localhost`, `127.0.0.1`, `*.ts.net`)에서 발생하는 자동화 테스트 트래픽이 실서비스 지표를 오염시키지 않도록 호스트 가드를 적용하되 `?ga_debug=1` 쿼리로 로컬 디버깅이 가능하도록 지원.
+  3. **인게임 화면 전환 이벤트(`screen_view`) 및 서비스 워커 외부 도메인 패스스루 보강 (`src/hearthstone/HearthstoneApp.tsx`, `public/sw.js`)**:
+     - `/game` 내부 화면(`BOX_HUB`, `DECK_SELECT`, `BATTLE`, `COLLECTION`, `PACK_OPENING`) 전환 시 `gtag('event', 'screen_view')`를 전송해 인게임 퍼널 집계를 복원.
+     - `public/sw.js`(`snshero-media-v22-20261118`)에서 외부 오리진(`url.origin !== self.location.origin`) 요청을 즉시 통과시켜 Google Analytics/GTM/AdSense 수집 픽셀이 캐시 정규식에 가로채이지 않도록 원천 보호.
+- **빌드 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, `dist/` 내 13개 생성 HTML 엔트리 전수 `G-MT60DTV1KJ` 포함 확인 (`/stone.html` 격리 원칙 준수).
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(`git push` 미실행 · 수동 푸시 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-18 11:22 KST] [게임 방법(`How to Play`) · 전투 규칙 · 카단 도우미 내 자동플레이 『카단의 기세』 활용법 및 한·영 최신 스크린샷 반영]
 - **요청 및 개선 내역**:
   1. **게임 방법 6단계 가이드 STEP 4 『카단의 기세』 전용 가이드 및 3단계 시각 카드 추가 (`src/hearthstone/components/OnboardingGuideModal.tsx`, `src/promo/PromoApp.tsx`)**:

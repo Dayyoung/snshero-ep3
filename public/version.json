@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0-1794968503130",
-  "buildTime": "2026-11-18T02:21:43.130Z",
-  "buildTimestamp": 1794968503130,
+  "version": "2.1.0-1794969753660",
+  "buildTime": "2026-11-18T02:42:33.660Z",
+  "buildTimestamp": 1794969753660,
   "service": "snshero-revolution",
   "minRequiredVersion": "2.0.0",
-  "entryScript": "/assets/game-Q3197zSm-v2.js"
+  "entryScript": "/assets/game-BR4sVMQ4-v2.js"
 }

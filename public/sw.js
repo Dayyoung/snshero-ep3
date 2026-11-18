@@ -4,7 +4,7 @@
  * HTML, JS 번들, CSS, JSON, API 등 모든 코드/데이터는 실시간 네트워크에서 즉시 받아옵니다.
  */
 
-const MEDIA_CACHE_NAME = 'snshero-media-v21-20261117';
+const MEDIA_CACHE_NAME = 'snshero-media-v22-20261118';
 
 // 정적 이미지 에셋만 캐싱 (iOS Safari AVPlayer의 HTTP 206 Range 오디오 스트림 충돌 원천 차단!)
 const MEDIA_EXT_REGEX = /\.(png|jpg|jpeg|webp|gif|svg|ico|avif)(\?.*)?$/i;
@@ -53,6 +53,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   const url = new URL(request.url);
+
+  // 외부 도메인(Google Analytics, GTM, AdSense 등) 요청은 서비스 워커가 절대 가로채지 않고 브라우저 직접 통과
+  if (url.origin !== self.location.origin) {
+    return;
+  }
 
   // 1. 캐릭터 상반신(busts/upper-hd), 컷아웃 및 홍보 스크린샷 에셋: Network-First 전략 (업데이트된 이미지 즉시 반영)
   if (

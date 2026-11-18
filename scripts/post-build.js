@@ -94,6 +94,15 @@ fs.writeFileSync(
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SNSHero /mcp Protocol Discovery</title>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-MT60DTV1KJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    if (!/^(localhost|127\\.0\\.0\\.1|.*\\.ts\\.net)$/i.test(location.hostname) || /[?&]ga_debug=1\\b/.test(location.search)) {
+      gtag('config', 'G-MT60DTV1KJ');
+    }
+  </script>
 </head>
 <body style="background:#090d16;color:#fdfcfc;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;padding:24px;line-height:1.6;">
   <h1 style="font-size:18px;margin:0 0 12px;color:#fcd34d;">SNSHero /mcp Arena Server Discovery</h1>
