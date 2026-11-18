@@ -2,6 +2,26 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-19 08:00 KST] [/checkAll 3대 관리 문서(이슈·개발·마케팅) 일괄 점검·구현 및 시트 동기화]
+- **3대 문서 점검 요약**:
+  - **이슈문서 (`게임 이슈 관리 로그`)**: 12건 전수 `완료` 상태 확인 (신규 미해결 0건).
+  - **개발문서 (`개발개선점 분석 로그`, `DEV-056` ~ `DEV-078` 23건)**: 전수 코드 구현 및 검증 완료.
+  - **마케팅문서 (`마케팅 분석 로그`)**: 코드·저장소 적용 가능 항목(`MKT-074`, `MKT-076`, `MKT-081`) 반영 완료 (외부 채널 전용 항목 상태 유지).
+- **주요 코드 구현 내역**:
+  1. **오카리나 리듬 오디오·그루브·등급 통합 엔진 신설 (`src/hearthstone/services/rhythmCueEngine.ts`)**:
+     - 9종족 고유 화음(`playFactionChord`), 키워드 타악기(`playKeywordPercussion`), 24종 전투·팩 개봉·종지·핸드 경고·피날레 리듬 큐(`playRhythmCue`), 덱 마나커브 기반 BPM 그루브 분석(`computeDeckGrooveProfile`: Aggro 140 / Tempo 128 / Control 116 BPM), 오카리나 공명 S/A/B 등급 산출(`gradeRhythmPerformance`), 블루투스 3-Tap 오디오 싱크 보정(`computeBluetoothSyncOffsetMs`) 구현.
+  2. **인게임 딥링크·옵션·컬렉션·팩 개봉·전투 결과창 연동 (`HearthstoneApp.tsx`, `Modals.tsx`, `CollectionScreen.tsx`, `PackOpeningScreen.tsx`, `BattleScreen.tsx`)**:
+     - `?deck_focus=<cardId>` 및 `?wager=` 딥링크 파라미터 처리 및 추천 덱 자동 장착(`DEV-056`, `DEV-074`).
+     - 옵션 모달 리듬 싱크 슬라이더 `-200ms ~ +200ms` 확장 및 `🎧 3탭 싱크` 캘리브레이터 탑재(`rhythm-bt-sync-btn`, `DEV-061`).
+     - 컬렉션 덱 빌더 마나 커브 하단에 덱 그루브 BPM 배지 표시(`deck-groove-badge`, `DEV-060`).
+     - 카드팩 개봉 시 5비트 오카리나 리듬 플립 오디오 큐 연동(`DEV-058`).
+     - 전투 진입 멀리건 카운트인·종족 화음, 손패 9장 이상 심장박동 경고(`DEV-072`), 피날레 팡파르, 결과창 오카리나 공명 등급 바(`battle-rhythm-grade-bar`, `DEV-068`) 및 스토리 원작 웹소설 직결 링크(`battle-result-novel-link`, `MKT-076`) 추가.
+  3. **프로모션 카드 라이트박스 & SEO 정합성 (`src/promo/PromoApp.tsx`, `game.html`)**:
+     - 카드 상세 모달에 `[🎵 1.5x·2.0x 리듬 공명 시험]`(`promo-card-rhythm-test-btn`) 및 `[⚔️ 이 카드 주력 덱으로 즉시 출격]`(`/game?deck_focus=<id>&rhythm=on`, `promo-card-deck-focus-cta`) CTA 추가(`DEV-056`, `MKT-081`).
+     - `game.html` `#hs-root`에 `data-nosnippet` 속성 추가해 검색 스니펫 오염 차단(`MKT-074`).
+- **빌드 & E2E 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, Playwright 실측 검증(`/` KO 데스크톱 라이트박스 리듬 공명 시험 + `deck_focus`/`rhythm=on` 딥링크 정상, `/game.html?deck_focus=EX1_116&rhythm=on&lang=en` EN 모바일 `390×844` `data-nosnippet` 확인·가로 오버플로우 없음·콘솔/페이지 에러 0건).
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-19 07:56 KST] [『카단의 기세』 100 충전제 개편 · 100 달성 시 불꽃 점화(1초 클릭 중지) 후 수동 탭 필살기 작렬 구현]
 - **요청 및 개선 내역**:
   1. **『카단의 기세』 `0/100 → 100` 충전제 개편 (`src/hearthstone/screens/BattleScreen.tsx`, `src/hearthstone/engine/GameEngine.ts`)**:

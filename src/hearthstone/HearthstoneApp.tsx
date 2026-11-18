@@ -268,7 +268,8 @@ export const HearthstoneApp: React.FC = () => {
           const presetParamRaw = (params.get('preset') || params.get('style'))?.toLowerCase();
           const tacticParamRaw = (params.get('tactic') || params.get('style'))?.toLowerCase();
           const rhythmParam = params.get('rhythm')?.toLowerCase();
-          const stakeParamRaw = params.get('stake') || params.get('bet');
+          const deckFocusCardId = params.get('deck_focus')?.trim() || undefined;
+          const stakeParamRaw = params.get('stake') || params.get('bet') || params.get('wager');
           if (stakeParamRaw !== null && !Number.isNaN(Number(stakeParamRaw))) {
             const parsedStake = Math.max(1, Math.min(1000, Math.floor(Number(stakeParamRaw))));
             try {
@@ -331,10 +332,24 @@ export const HearthstoneApp: React.FC = () => {
             rhythmParam === 'true';
           setGlobalAutoPlay(wantAutoPlay);
           const decks = hsStorage.getDecks();
+          const focusCardDef = deckFocusCardId ? cardDb.getCard(deckFocusCardId) : undefined;
+          const focusClass =
+            focusCardDef && focusCardDef.cardClass !== 'NEUTRAL'
+              ? (focusCardDef.cardClass as HeroClass)
+              : undefined;
           const chosenDeck =
+            (focusClass && decks.find((d) => d.heroClass === focusClass)) ||
             (effectiveFaction && decks.find((d) => d.heroClass === effectiveFaction)) ||
             decks.find((d) => d.heroClass === 'PRIEST') ||
             decks[0];
+          if (focusCardDef) {
+            setLaunchNotice(
+              tr(
+                `🎵 [${focusCardDef.name}] 주력 추천 덱(${chosenDeck.name})으로 출격 준비 완료!`,
+                `🎵 Equipped recommended deck (${chosenDeck.name}) featuring [${focusCardDef.name}]!`,
+              ),
+            );
+          }
 
           if (restoreParam) {
             try {

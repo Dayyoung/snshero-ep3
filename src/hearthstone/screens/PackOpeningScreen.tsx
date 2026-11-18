@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
+import { playRhythmCue } from '../services/rhythmCueEngine';
 import { HearthstoneCard, HsGoldCoinIcon } from '../components/CardVisual';
 import { CardZoomModal } from '../components/CardZoomModal';
 import { useModalDismiss } from '../useModalDismiss';
@@ -241,6 +242,10 @@ export const PackOpeningScreen: React.FC<{
       }, 680);
 
       hsAudio.playSfx('card_flip', 0.92);
+      playRhythmCue('pack_flip_beat', {
+        comboStep: idx,
+        muted: hsAudio.getSettings().muted,
+      });
       const showCallout = (text: string, borderCls: string) => {
         setInnkeeperCallout({ text, borderCls });
         scheduleTimer(() => {

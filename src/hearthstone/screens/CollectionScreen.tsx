@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
+import { computeDeckGrooveProfile } from '../services/rhythmCueEngine';
 import {
   CARD_RACE_LABELS_EN,
   CARD_RARITY_LABELS_EN,
@@ -602,16 +603,25 @@ export const CollectionScreen: React.FC<{
 
   const deckGrouped = useMemo(() => {
     if (!editingDeck) {
-      return { entries: [], curve: [0, 0, 0, 0, 0, 0, 0, 0], minions: 0, spells: 0, weapons: 0 };
+      return {
+        entries: [],
+        curve: [0, 0, 0, 0, 0, 0, 0, 0],
+        minions: 0,
+        spells: 0,
+        weapons: 0,
+        groove: computeDeckGrooveProfile([]),
+      };
     }
     const counts = new Map<string, number>();
     const curve = [0, 0, 0, 0, 0, 0, 0, 0];
+    const costs: number[] = [];
     let minions = 0;
     let spells = 0;
     let weapons = 0;
     for (const cid of editingDeck.cards) {
       counts.set(cid, (counts.get(cid) || 0) + 1);
       const d = cardDb.mustGetCard(cid);
+      costs.push(d.cost);
       curve[Math.min(7, d.cost)] += 1;
       if (d.type === 'MINION') minions += 1;
       else if (d.type === 'WEAPON') weapons += 1;
@@ -620,7 +630,7 @@ export const CollectionScreen: React.FC<{
     const entries = Array.from(counts.entries())
       .map(([cid, count]) => ({ card: cardDb.mustGetCard(cid), count }))
       .sort((a, b) => compareCardsStoneOrder(a.card, b.card));
-    return { entries, curve, minions, spells, weapons };
+    return { entries, curve, minions, spells, weapons, groove: computeDeckGrooveProfile(costs) };
   }, [editingDeck]);
 
   const ownedUniqueCount = useMemo(
@@ -1469,6 +1479,16 @@ export const CollectionScreen: React.FC<{
                   <span>{tr('주문', 'Spells')} {deckGrouped.spells}</span>
                   <span>·</span>
                   <span>{tr('무기', 'Weapons')} {deckGrouped.weapons}</span>
+                </div>
+                {/* Deck Groove BPM Profile (DEV-060) */}
+                <div
+                  data-testid="deck-groove-badge"
+                  className="relative z-10 mt-1.5 flex items-center justify-between rounded border border-emerald-400/30 bg-emerald-950/50 px-2 py-1 text-[10px] font-extrabold text-emerald-200"
+                >
+                  <span>🎵 {tr(deckGrouped.groove.labelKo, deckGrouped.groove.labelEn)}</span>
+                  <span className="text-amber-200/90">
+                    {tr('평균', 'Avg')} {deckGrouped.groove.avgMana}
+                  </span>
                 </div>
               </div>
 
