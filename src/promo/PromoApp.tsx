@@ -5,9 +5,7 @@ import {
   Crown,
   Flame,
   Gamepad2,
-  Globe,
   Layers,
-  Menu,
   Search,
   Shield,
   Sparkles,
@@ -28,7 +26,6 @@ import {
   SNS_LOCATIONS,
   getSnsLogoUrl,
   SnsBoosterPackArt,
-  SnsSnowCompassSeal,
 } from '../hearthstone/components/SnsHeroArtKit';
 import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget';
 import { HowToPlayCarousel } from '../hearthstone/components/OnboardingGuideModal';
@@ -73,13 +70,12 @@ export const PromoApp: React.FC = () => {
   });
   const [selectedHeroClass, setSelectedHeroClass] = useState<HeroClass>('PRIEST');
   const [activeFeatureTab, setActiveFeatureTab] = useState<FeatureTabId>('story');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Trailer controls (Click-to-Play Facade — MKT-068(1), DEV-046(2))
+  // Trailer controls (Click-to-Play Facade)
   const [activeClipIdx, setActiveClipIdx] = useState(0);
   const [trailerFacadePlaying, setTrailerFacadePlaying] = useState(false);
 
-  // Card Library Filters (DEV-050(1): Default 'ALL' so All (382) matches all 382 cards!)
+  // Card Library Filters (All 382 Cards visible & searchable directly)
   const [filterClass, setFilterClass] = useState<string>('ALL');
   const [filterRarity, setFilterRarity] = useState<string>('ALL');
   const [filterMana, setFilterMana] = useState<number | 'ALL'>('ALL');
@@ -87,78 +83,14 @@ export const PromoApp: React.FC = () => {
   const [showGolden, setShowGolden] = useState(false);
   const [showAwakened3x, setShowAwakened3x] = useState(false);
   const [visibleLimit, setVisibleLimit] = useState(12);
-  const [cardsSearchExpanded, setCardsSearchExpanded] = useState(false);
   const [zoomedCard, setZoomedCard] = useState<ClassicCardDef | null>(null);
 
-  // DEV-036 / DEV-039(2) / DEV-045(1) / DEV-051(2) / DEV-053(1) / DEV-052(3): Progressive Disclosure Drawers
-  const [tier2Expanded, setTier2Expanded] = useState<boolean>(() =>
-    typeof window !== 'undefined' && Boolean(window.location.hash && window.location.hash !== '#hero'),
-  );
-  const [howToDrawerOpen, setHowToDrawerOpen] = useState<boolean>(() =>
-    typeof window !== 'undefined' && window.location.hash === '#how-to-play',
-  );
-  const [heroesDetailOpen, setHeroesDetailOpen] = useState<boolean>(false);
-  const [externalChannelsOpen, setExternalChannelsOpen] = useState<boolean>(false);
-  const [heroQuickTab, setHeroQuickTab] = useState<'none' | 'bogart' | 'preset' | 'story'>('none');
-  const [hasPlayedBefore] = useState<boolean>(() => {
-    try {
-      return (
-        localStorage.getItem('snshero_has_played') === '1' ||
-        promoProfile.totalWins > 0 ||
-        (promoProfile.journeyMaxStageCleared || 0) > 0
-      );
-    } catch {
-      return false;
-    }
-  });
-  const [tier1AwakenedPreview, setTier1AwakenedPreview] = useState<boolean>(true);
-  const [tier1ChallengerIdx, setTier1ChallengerIdx] = useState<number>(0);
-  const [selectedBossIdx, setSelectedBossIdx] = useState<number>(0);
-  const [exitSaverOpen, setExitSaverOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const onHash = () => {
-      if (window.location.hash && window.location.hash !== '#hero') {
-        setTier2Expanded(true);
-        if (window.location.hash === '#how-to-play') setHowToDrawerOpen(true);
-      }
-    };
-    const onMouseLeave = (ev: MouseEvent) => {
-      if (ev.clientY <= 4 && window.innerWidth >= 1024) {
-        try {
-          if (sessionStorage.getItem('snshero_exit_saver_shown') !== '1') {
-            sessionStorage.setItem('snshero_exit_saver_shown', '1');
-            setExitSaverOpen(true);
-          }
-        } catch {
-          // ignore
-        }
-      }
-    };
-    window.addEventListener('hashchange', onHash);
-    document.addEventListener('mouseleave', onMouseLeave);
-    return () => {
-      window.removeEventListener('hashchange', onHash);
-      document.removeEventListener('mouseleave', onMouseLeave);
-    };
-  }, []);
-
-  // MKT-033 & DEV-049(1): Pre-Game Free Pack Tear Widget (persisted to snshero_showcase_drawn_cards & hero_hs_promo_pack)
+  // Pre-Game Free Pack Modal & Ep.1 Mini Theater Modal
   const [promoPackModalOpen, setPromoPackModalOpen] = useState(false);
-  const [promoPackCards, setPromoPackCards] = useState<{ card: ClassicCardDef; isGolden: boolean }[] | null>(null);
-
-  // MKT-021 & DEV-048(2): 10-second Keyword & BGM Rhythm Auto Interactive Mini Preview
-  const [activeKeywordDemo, setActiveKeywordDemo] = useState<'rhythm' | 'awake' | 'shield' | 'taunt'>('rhythm');
-  const [rhythmPreviewGrade, setRhythmPreviewGrade] = useState<'1.5x GOOD' | '2.0x PERFECT'>('2.0x PERFECT');
-  const [shieldBroken, setShieldBroken] = useState(false);
-
-  // MKT-027: In-page Episode 1 Voiced Webtoon Theater Modal
+  const [promoPackCards, setPromoPackCards] = useState<
+    { card: ClassicCardDef; isGolden: boolean }[] | null
+  >(null);
   const [mediaTheaterOpen, setMediaTheaterOpen] = useState(false);
-  // DEV-048(3) & MKT-069(3): Default stake matches 250G welcome seed!
-  const [promoPreviewStake, setPromoPreviewStake] = useState<number>(250);
-  // DEV-055(2): 1-Tap Gold Prestige Live Preview & Category Deep Link ('badge' | 'frame' | 'cardback' | 'title')
-  const [selectedPrestigeCat, setSelectedPrestigeCat] = useState<'badge' | 'frame' | 'cardback' | 'title'>('badge');
 
   const handleOpenPromoPrePack = () => {
     if (cards.length === 0) return;
@@ -198,13 +130,20 @@ export const PromoApp: React.FC = () => {
       const pool = byRarity[rar]?.length ? byRarity[rar] : collectible;
       return pool[Math.floor(Math.random() * pool.length)];
     };
-    // 5 cards: slot 0 guaranteed Rare+, chance for Epic/Legendary in showcase pack
-    const rarities = ['RARE', Math.random() < 0.35 ? 'EPIC' : 'COMMON', Math.random() < 0.18 ? 'LEGENDARY' : 'RARE', 'COMMON', 'COMMON'];
+    const rarities = [
+      'RARE',
+      Math.random() < 0.35 ? 'EPIC' : 'COMMON',
+      Math.random() < 0.18 ? 'LEGENDARY' : 'RARE',
+      'COMMON',
+      'COMMON',
+    ];
     const drawn = rarities.map((rar, idx) => ({
       card: pickFrom(rar),
       isGolden: idx === 2 ? Math.random() < 0.25 : Math.random() < 0.08,
     }));
-    const serialized = JSON.stringify(drawn.map((d) => ({ id: d.card.id, isGolden: d.isGolden })));
+    const serialized = JSON.stringify(
+      drawn.map((d) => ({ id: d.card.id, isGolden: d.isGolden })),
+    );
     try {
       localStorage.setItem('snshero_showcase_drawn_cards', serialized);
       localStorage.setItem('hero_hs_promo_pack', serialized);
@@ -218,8 +157,8 @@ export const PromoApp: React.FC = () => {
   useEffect(() => {
     document.documentElement.lang = isKo ? 'ko' : 'en';
     document.title = isKo
-      ? '눈히어로 : 카단의 여정 (SNSHero) — 무설치 382종 판타지 전략 웹 TCG | Official Showcase'
-      : 'SNSHero : Heroes of Elwin Village (눈히어로) — 382-Card Tactical Web TCG | Official Showcase';
+      ? '눈히어로 : 카단의 여정 (SNSHero) — 무설치 382종 판타지 전략 웹 TCG'
+      : 'SNSHero : Heroes of Elwin Village — 382-Card Tactical Web TCG';
   }, [isKo]);
 
   useEffect(() => {
@@ -242,7 +181,6 @@ export const PromoApp: React.FC = () => {
     eyebrow: string;
     headline: string;
     desc: string;
-    bullets: string[];
     imageUrl: string;
     ctaText: string;
     ctaHref: string;
@@ -250,120 +188,51 @@ export const PromoApp: React.FC = () => {
     () => [
       {
         id: 'story',
-        title: tr('40화 웹툰 극장 & 보스 레이드', '40-EP Webtoon Theater & Boss Raids'),
-        eyebrow: tr('카단의 여정 · 풀보이스 스토리모드', "Kadan's Journey · Full-Voice Story Mode"),
+        title: tr('40화 풀보이스 스토리', '40-EP Voiced Story'),
+        eyebrow: tr('카단의 여정', "Kadan's Journey"),
         headline: tr(
-          '원작 40부작 서사를 전장에서 직접 돌파하세요!',
-          'Fight through all 40 episodes of the original saga!',
+          '5컷 웹툰 극장 & 40화 보스 레이드',
+          '5-Panel Webtoon Theater & 40 Boss Raids',
         ),
         desc: tr(
-          '매 에피소드마다 5컷 기승전결 웹툰과 스튜디오 남성 성우 내레이션 200트랙이 상영됩니다. 야심가 루시안, 데스나이트 아르투스, 대심판관 말라카이 등 40화 적장들과 직접 결투하고 보스 팩을 획득하세요.',
-          'Every episode opens with a 5-panel voiced webtoon theater featuring 200 narration tracks. Challenge iconic villains including Grand Chancellor Lucian, Arch-Inquisitor Malakai, and Death Knight Artus to earn boss packs.',
+          '매 화 성우 내레이션과 웹툰 연출을 감상하고 원작 적장들과 대결하세요. 5화마다 보스 카드팩이 지급되며 40화 완주 시 무한 환생 모드가 열립니다.',
+          'Enjoy studio-voiced webtoon cutscenes before every boss duel. Earn bonus Card Packs every 5 episodes and unlock Infinite Reincarnation at Episode 40.',
         ),
-        bullets: [
-          tr(
-            '매 5화 돌파 시 눈히어로 카드 팩 +1개 보너스',
-            'Earn +1 bonus SNSHero Card Pack every 5 episodes cleared',
-          ),
-          tr(
-            '40화 완주 시 +300G & 3팩 지급 + 무한 환생 모드 개방',
-            'Clear Episode 40 for +300 Gold, 3 Packs, and Infinite Reincarnation Mode',
-          ),
-          tr(
-            '스마트 자동플레이 기본 탑재로 누구나 부담 없이 감상·전투',
-            'Built-in Smart Auto-Play lets anyone enjoy both theater and battles effortlessly',
-          ),
-        ],
         imageUrl: '/hs-assets/screenshots/ingame_story_theater.png?v=20261116',
-        ctaText: tr('스토리모드 바로 출정', 'Enter Story Mode'),
+        ctaText: tr('스토리모드 시작', 'Play Story Mode'),
         ctaHref: '/game?mode=story',
       },
       {
         id: 'awake',
-        title: tr("여정 전용 '3장 = 3배' 각성 법칙", "Journey-Exclusive '3 Copies = 3x Power' Awakening"),
-        eyebrow: tr('중복 카드가 곧 압도적 전력으로', 'Duplicate Cards Multiply Your Combat Power'),
+        title: tr('3장 = 3배 각성', '3 Copies = 3x Power'),
+        eyebrow: tr('여정 전용 성장 법칙', 'Story-Only Scaling'),
         headline: tr(
-          '카드를 3장 모으면 공격력과 생명력이 3배로 폭발합니다!',
-          'Collect 3+ copies of a card to unleash 3x Attack & Health!',
+          '동일 카드 3장 보유 시 공·체 3배 폭증',
+          'Hold 3+ Copies for 3x Attack & Health',
         ),
         desc: tr(
-          '스토리모드(카단의 여정)에서는 동일 하수인·무기를 3장 이상(전설은 2장 이상) 보유할 경우 보유 장수 배율(×3, ×4, ×N배)로 능력치가 증폭됩니다. 패배해도 골드 보급팩 개봉으로 즉시 덱이 강해집니다.',
-          "In Kadan's Journey Story Mode, holding 3+ copies of a minion or weapon (2+ for Legendaries) multiplies its Attack and Health by your copy count (x3, x4, xN). Open Gold packs anytime to break through tough bosses.",
+          '스토리모드에서는 중복 카드를 3장 이상 모으면 공격력과 생명력이 보유 장수 배율(×3, ×4)로 강화됩니다. 랭킹전·도박장은 공정한 1배 룰로 진행됩니다.',
+          'In Story Mode, owning 3+ copies multiplies minion & weapon stats (3x, 4x) to break through tough bosses, while Ranked & Bogart keep fair 1x rules.',
         ),
-        bullets: [
-          tr(
-            '랭킹대전·AI대전은 정통 1배 룰로 공정한 실력 대결 보장',
-            'Ranked & AI Battles preserve classic 1x competitive balance',
-          ),
-          tr(
-            '스토리모드 전용 중복 각성으로 40화·환생 고난이도 돌파',
-            'Story-only Awakening scaling powers your climb through all 40 episodes & Reincarnations',
-          ),
-          tr(
-            '여분 분해 시 여정 3배 배수 영향을 사전에 명확히 안내',
-            'Clear Crafting safeguards warn you before disenchanting Journey multiplier copies',
-          ),
-        ],
         imageUrl: '/hs-assets/screenshots/ingame_collection_awake.png?v=20261116',
-        ctaText: tr('내 덱 강화하러 가기', 'Upgrade Your Deck'),
-        ctaHref: '/game',
+        ctaText: tr('내 카드첩 보기', 'Open Collection'),
+        ctaHref: '/game?mode=collection',
       },
       {
         id: 'pack',
-        title: tr('382종 고유 아트 & 황금 천장 엔진', '382 Original Artworks & Pity Engine'),
-        eyebrow: tr('9대 종족 × 25장 + 중립 157장', '9 Factions × 25 Cards + 157 Neutral'),
+        title: tr('382종 & 전설 천장', '382 Cards & Pity'),
+        eyebrow: tr('9종족 225장 + 중립 157장', '9 Factions + Neutral'),
         headline: tr(
-          '첫 10팩 내 첫 전설 확정, 전 등급 중복 방지 보급!',
-          'Guaranteed Legendary within your first 10 packs + duplicate protection!',
+          '첫 10팩 내 전설 확정 & 24K 황금 포일',
+          'Legendary in First 10 Packs & 24K Foil',
         ),
         desc: tr(
-          '9개 종족의 대표 영웅과 충원 영웅 225장, 그리고 판타지 중립 카드 157장까지 총 382종 전수 고유 일러스트가 수록되어 있습니다. 팩 개봉 시 여관주인의 호명 대사와 24K 황금 포일 카드를 만나보세요.',
-          'Collect 382 hand-crafted cards across 9 elemental & fantasy factions plus 157 Neutrals. Crack open glowing packs with Innkeeper callouts and pull shimmering 24K Golden foils.',
+          '신규 접속 즉시 무료 3팩이 지급되며 첫 10팩 이내 첫 전설 카드가 100% 확정됩니다. 여분 카드는 가루로 추출해 원하는 전설을 직접 제작하세요.',
+          'Start with 3 Free Packs and a guaranteed Legendary within your first 10 packs. Disenchant extras into Dust to craft any card you want.',
         ),
-        bullets: [
-          tr('신규 방문 즉시 무료 카드 팩 3팩 즉시 지급', '3 Free Card Packs granted immediately on first visit'),
-          tr(
-            '첫 10팩 이내 전설 100% 확정 · 40팩 전설 천장 · 중복 방지',
-            'First Legendary guaranteed in 10 packs · 40-pack Legendary pity · duplicate protection',
-          ),
-          tr(
-            '불필요한 카드는 신비한 가루로 추출해 원하는 전설 직접 제작',
-            'Disenchant extras into Arcane Dust to craft any Legendary you desire',
-          ),
-        ],
         imageUrl: '/hs-assets/screenshots/ingame_pack_altar.png?v=20261116',
         ctaText: tr('무료 3팩 개봉하기', 'Open 3 Free Packs'),
         ctaHref: '/game',
-      },
-    ],
-    [lang],
-  );
-
-  const storyBossHighlights = useMemo(
-    () => [
-      {
-        ep: 38,
-        name: tr('심연화신 루시안', 'Abyssal Avatar Lucian'),
-        role: tr('붉은 유리 궁정 재상 · 최종 흑막', 'Chancellor of Crimson Glass · Mastermind'),
-        img: '/hs-assets/bosses/boss_abyss_lucian.webp?v=hd20',
-      },
-      {
-        ep: 25,
-        name: tr('대심판관 말라카이', 'Arch-Inquisitor Malakai'),
-        role: tr('광휘 신전 이단심문관', 'Grand Inquisitor of the Radiant Temple'),
-        img: '/hs-assets/bosses/boss_malakai.webp?v=hd20',
-      },
-      {
-        ep: 32,
-        name: tr('환각마녀 모르가나', 'Mirage Witch Morgana'),
-        role: tr('안개 늪의 환술 지배자', 'Sovereign of Illusion in Misty Fen'),
-        img: '/hs-assets/bosses/boss_morgana.webp?v=hd20',
-      },
-      {
-        ep: 26,
-        name: tr('수문장 발타자르', 'Gatekeeper Balthazar'),
-        role: tr('심연 관문의 강철 수호자', 'Iron Warden of the Abyssal Gate'),
-        img: '/hs-assets/bosses/boss_balthazar.webp?v=hd20',
       },
     ],
     [lang],
@@ -377,57 +246,38 @@ export const PromoApp: React.FC = () => {
         ? [
             {
               id: 'ep1',
-              label: '제1화 · 눈보라 아래 두 서약',
+              label: '제1화',
               youtubeId: 'KOf8IAic2QY',
-              embedUrl: 'https://www.youtube.com/embed/KOf8IAic2QY?list=PLVch67W9z4TA&rel=0&modestbranding=1',
             },
             {
               id: 'ep8',
-              label: '제8화 · 붉은 갈기의 기수',
+              label: '제8화',
               youtubeId: 'BIHe4MrtCIw',
-              embedUrl: 'https://www.youtube.com/embed/BIHe4MrtCIw?list=PLVch67W9z4TA&rel=0&modestbranding=1',
             },
             {
               id: 'ep15',
-              label: '제15화 · 독사와 사자의 밤',
+              label: '제15화',
               youtubeId: 'LHHngbtkJwg',
-              embedUrl: 'https://www.youtube.com/embed/LHHngbtkJwg?list=PLVch67W9z4TA&rel=0&modestbranding=1',
             },
           ]
         : [
             {
               id: 'ep1',
-              label: 'EP.1 · Two Vows Beneath the Blizzard',
+              label: 'EP.1',
               youtubeId: 'q6-w_dz8Hbs',
-              embedUrl: 'https://www.youtube.com/embed/q6-w_dz8Hbs?list=PLFvV2raCoFww&rel=0&modestbranding=1',
             },
             {
               id: 'ep8',
-              label: 'EP.8 · Rider of the Crimson Mane',
+              label: 'EP.8',
               youtubeId: 'GQ3_HDM-bW8',
-              embedUrl: 'https://www.youtube.com/embed/GQ3_HDM-bW8?list=PLFvV2raCoFww&rel=0&modestbranding=1',
             },
             {
               id: 'ep15',
-              label: 'EP.15 · Night of Serpent and Lion',
+              label: 'EP.15',
               youtubeId: 'qFsQnrjnv4E',
-              embedUrl: 'https://www.youtube.com/embed/qFsQnrjnv4E?list=PLFvV2raCoFww&rel=0&modestbranding=1',
             },
           ],
     [isKo],
-  );
-
-  const embers = useMemo(
-    () =>
-      Array.from({ length: 18 }).map((_, i) => ({
-        id: i,
-        left: `${6 + ((i * 39) % 88)}%`,
-        size: 3 + (i % 3) * 1.5,
-        delay: `${(i * 0.42).toFixed(2)}s`,
-        duration: `${(5.5 + (i % 4) * 1.2).toFixed(2)}s`,
-        dx: `${(i % 2 === 0 ? 1 : -1) * (12 + (i % 4) * 8)}px`,
-      })),
-    [],
   );
 
   const selectedHero = CLASSIC_HEROES[selectedHeroClass];
@@ -478,10 +328,19 @@ export const PromoApp: React.FC = () => {
         return true;
       })
       .sort((a, b) => {
-        // MKT-069(2) & DEV-050(1): Keep all 382 cards in All (382), curating high-impact 9-Faction Legendaries first!
         if (isDefaultUnfiltered) {
-          const aChamp = a.rarity === 'LEGENDARY' && a.cardClass !== 'NEUTRAL' && (a.attack || 0) >= 3 ? 0 : a.rarity === 'LEGENDARY' && (a.attack || 0) >= 4 ? 1 : 2;
-          const bChamp = b.rarity === 'LEGENDARY' && b.cardClass !== 'NEUTRAL' && (b.attack || 0) >= 3 ? 0 : b.rarity === 'LEGENDARY' && (b.attack || 0) >= 4 ? 1 : 2;
+          const aChamp =
+            a.rarity === 'LEGENDARY' && a.cardClass !== 'NEUTRAL' && (a.attack || 0) >= 3
+              ? 0
+              : a.rarity === 'LEGENDARY' && (a.attack || 0) >= 4
+                ? 1
+                : 2;
+          const bChamp =
+            b.rarity === 'LEGENDARY' && b.cardClass !== 'NEUTRAL' && (b.attack || 0) >= 3
+              ? 0
+              : b.rarity === 'LEGENDARY' && (b.attack || 0) >= 4
+                ? 1
+                : 2;
           if (aChamp !== bChamp) return aChamp - bChamp;
         }
         return compareCardsStoneOrder(a, b);
@@ -493,7 +352,8 @@ export const PromoApp: React.FC = () => {
     [filteredCards, visibleLimit],
   );
 
-  const activeFeature = featureTabs.find((item) => item.id === activeFeatureTab) || featureTabs[0];
+  const activeFeature =
+    featureTabs.find((item) => item.id === activeFeatureTab) || featureTabs[0];
   const activeClip = trailerClips[activeClipIdx] || trailerClips[0];
 
   const getZoomedCardClassLabel = (card: ClassicCardDef) => {
@@ -507,2621 +367,1569 @@ export const PromoApp: React.FC = () => {
   return (
     <SharedAdSenseShell pageKey="promo" theme="tavern">
       <div className="min-h-screen w-full bg-[#120b06] text-[#f8ebd2]">
-      {/* MKT-051: 20px+14px=34px safe buffer below #adsense-mobile-top to prevent mobile Ad misclicks */}
-      <div aria-hidden="true" className="h-5 w-full bg-[#120b06] sm:hidden" />
-      {/* DEV-047(2): Returning Player 1-Tap Direct /game Entry Bar */}
-      {hasPlayedBefore && (
-        <div
-          data-testid="promo-returning-player-bar"
-          className="border-b border-emerald-400/40 bg-emerald-950/90 px-4 py-2 text-center text-xs font-extrabold text-emerald-100"
-        >
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-            <span>
-              ⚡ {tr('내 로컬 카드첩·골드 데이터가 준비되어 있습니다 — 스크롤 없이 로비로 바로 복귀하세요!', 'Your saved Collection & Gold are ready — jump straight back into the Lobby!')}
-            </span>
-            <a
-              href="/game"
-              data-testid="promo-returning-play-btn"
-              className="inline-flex min-h-[34px] items-center gap-1 rounded-full border border-emerald-200 bg-emerald-500 px-3.5 py-1 text-[11px] font-black text-stone-950 shadow hover:bg-emerald-400"
-            >
-              <span>{tr('이어서 플레이 (/game 직행) →', 'Continue Playing (/game) →')}</span>
+        {/* Mobile AdSense Safe Buffer (>= 32px separation above interactive header) */}
+        <div aria-hidden="true" className="h-5 w-full bg-[#120b06] sm:hidden" />
+
+        {/* =====================================================================
+            1. Clean Sticky Header
+        ===================================================================== */}
+        <header className="hs-promo-nav sticky top-0 z-50 w-full">
+          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-[68px] sm:px-6">
+            <a href="#hero" className="flex items-center gap-2.5 group">
+              <img
+                src={getSnsLogoUrl(lang)}
+                alt={tr('눈히어로', 'SNSHero')}
+                className="h-10 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] transition-transform group-hover:scale-105 sm:h-12"
+              />
             </a>
-          </div>
-        </div>
-      )}
 
-      {/* =====================================================================
-          1. Minimal Sticky Tavern Header (DEV-042(1): Logo + KO/EN + Play ONLY)
-      ===================================================================== */}
-      <header className="hs-promo-nav sticky top-0 z-50 w-full">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-[68px] sm:px-6">
-          {/* Brand Logo */}
-          <a href="#hero" className="flex items-center gap-2.5 group">
-            <img
-              src={getSnsLogoUrl(lang)}
-              alt={tr('눈히어로', 'SNSHero')}
-              className="h-11 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:h-[50px] transition-transform group-hover:scale-105"
-            />
-          </a>
+            <nav className="hidden items-center gap-5 text-xs font-extrabold text-amber-100/85 lg:flex">
+              <a href="#intro" className="hover:text-amber-300">
+                {tr('세계관', 'World')}
+              </a>
+              <a href="#latest" className="hover:text-amber-300">
+                {tr('핵심 시스템', 'Systems')}
+              </a>
+              <a href="#how-to-play" className="hover:text-amber-300">
+                {tr('게임 방법', 'How to Play')}
+              </a>
+              <a href="#heroes" className="hover:text-amber-300">
+                {tr('9대 종족', '9 Heroes')}
+              </a>
+              <a href="#cards" className="hover:text-amber-300">
+                {tr('382 카드 도감', '382 Cards')}
+              </a>
+              <a href="#modes" className="hover:text-amber-300">
+                {tr('게임 모드', 'Modes')}
+              </a>
+              <a href="#universe" className="hover:text-amber-300">
+                {tr('웹소설·웹툰', 'Universe')}
+              </a>
+            </nav>
 
-          {/* Right Minimal Controls: KO/EN + Play Now ONLY */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/35 bg-black/45 p-0.5">
-              <button
-                type="button"
-                data-testid="header-lang-ko"
-                onClick={() => setLang('ko')}
-                className={`min-h-[34px] px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
-                  lang === 'ko'
-                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
-                }`}
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/35 bg-black/45 p-0.5">
+                <button
+                  type="button"
+                  data-testid="header-lang-ko"
+                  onClick={() => setLang('ko')}
+                  className={`min-h-[36px] min-w-[40px] cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
+                    lang === 'ko'
+                      ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                      : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
+                  }`}
+                >
+                  KO
+                </button>
+                <button
+                  type="button"
+                  data-testid="header-lang-en"
+                  onClick={() => setLang('en')}
+                  className={`min-h-[36px] min-w-[40px] cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
+                    lang === 'en'
+                      ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                      : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
+                  }`}
+                >
+                  EN
+                </button>
+              </div>
+              <a
+                href="/game"
+                data-testid="header-play-now-btn"
+                className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold tracking-wide sm:px-6 sm:text-sm"
               >
-                KO
-              </button>
-              <button
-                type="button"
-                data-testid="header-lang-en"
-                onClick={() => setLang('en')}
-                className={`min-h-[34px] px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
-                  lang === 'en'
-                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
-                }`}
-              >
-                EN
-              </button>
+                <span>{tr('바로 플레이', 'Play Now')}</span>
+                <ChevronRight className="h-4 w-4" />
+              </a>
             </div>
-            <a
-              href="/game"
-              data-testid="header-play-now-btn"
-              className="hs-promo-cta-purple inline-flex min-h-[42px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold tracking-wide sm:px-6 sm:py-2.5 sm:text-sm"
-            >
-              <span>{tr('바로 플레이', 'Play Now')}</span>
-              <ChevronRight className="h-4 w-4" />
-            </a>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* =====================================================================
-          2. Full-Bleed Hero Banner (DEV-046(1), DEV-049(1), MKT-063, MKT-068(2))
-      ===================================================================== */}
-      <section
-        id="hero"
-        style={{ backgroundImage: `url(${SNS_LOCATIONS.TAVERN_EXTERIOR})` }}
-        className="relative flex min-h-[540px] w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 pb-14 pt-16 sm:min-h-[620px] sm:py-20"
-      >
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at 50% 44%, rgba(251, 191, 36, 0.2) 0%, rgba(20, 11, 5, 0.72) 55%, rgba(10, 6, 3, 0.96) 100%)',
-          }}
-        />
+        {/* =====================================================================
+            2. Hero Banner
+        ===================================================================== */}
+        <section
+          id="hero"
+          style={{ backgroundImage: `url(${SNS_LOCATIONS.TAVERN_EXTERIOR})` }}
+          className="relative flex min-h-[460px] w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 py-14 sm:min-h-[540px] sm:py-20"
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(ellipse at 50% 44%, rgba(251, 191, 36, 0.18) 0%, rgba(20, 11, 5, 0.74) 55%, rgba(10, 6, 3, 0.96) 100%)',
+            }}
+          />
 
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {embers.map((em) => (
-            <span
-              key={em.id}
-              style={
-                {
-                  left: em.left,
-                  bottom: '-14px',
-                  width: `${em.size}px`,
-                  height: `${em.size}px`,
-                  animation: `promoEmberRise ${em.duration} ease-in ${em.delay} infinite`,
-                  '--dx': em.dx,
-                } as React.CSSProperties
-              }
-              className="absolute rounded-full bg-amber-300 shadow-[0_0_10px_3px_rgba(251,146,60,0.85)]"
-            />
-          ))}
-        </div>
+          <img
+            src={resolveDialogueSpriteUrl(CLASSIC_HEROES.PRIEST.heroCutoutUrl)}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            className="pointer-events-none absolute -left-12 bottom-0 h-[210px] w-auto object-contain opacity-25 sm:-left-10 sm:h-[290px] sm:opacity-55 lg:-left-6 lg:h-[380px] lg:opacity-90"
+          />
+          <img
+            src={resolveDialogueSpriteUrl('/hs-assets/characters/cutouts/011_Ignis.webp')}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            className="pointer-events-none absolute -right-12 bottom-0 h-[210px] w-auto object-contain opacity-25 sm:-right-10 sm:h-[290px] sm:opacity-55 lg:-right-6 lg:h-[380px] lg:opacity-90"
+          />
 
-        <img
-          src={resolveDialogueSpriteUrl(CLASSIC_HEROES.PRIEST.heroCutoutUrl)}
-          alt=""
-          aria-hidden="true"
-          decoding="async"
-          className="pointer-events-none absolute -left-12 bottom-0 h-[220px] w-auto object-contain opacity-30 sm:-left-10 sm:h-[300px] sm:opacity-55 lg:-left-8 lg:h-[400px] lg:opacity-95 xl:left-[1%] xl:h-[450px]"
-        />
-        <img
-          src={resolveDialogueSpriteUrl('/hs-assets/characters/cutouts/011_Ignis.webp')}
-          alt=""
-          aria-hidden="true"
-          decoding="async"
-          className="pointer-events-none absolute -right-12 bottom-0 h-[220px] w-auto object-contain opacity-30 sm:-right-10 sm:h-[300px] sm:opacity-55 lg:-right-8 lg:h-[400px] lg:opacity-95 xl:right-[1%] xl:h-[450px]"
-        />
-
-        <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-300/50 bg-[#140b05]/85 px-4 py-1.5 text-xs font-extrabold tracking-[0.12em] text-amber-200 shadow-lg">
-            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-            <span>ELWIN VILLAGE • 382 CARDS • RHYTHM AUTO</span>
-          </div>
-
-          <div className="relative mb-3 flex items-center justify-center">
-            <div className="pointer-events-none absolute -inset-8 rounded-full bg-amber-400/20 blur-2xl" />
+          <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
             <img
               src={getSnsLogoUrl(lang)}
               alt=""
               aria-hidden="true"
-              className="relative w-[260px] max-w-[80vw] drop-shadow-[0_16px_32px_rgba(0,0,0,0.95)] sm:w-[400px]"
+              className="mb-3 w-[240px] max-w-[76vw] drop-shadow-[0_14px_28px_rgba(0,0,0,0.95)] sm:w-[360px]"
             />
-          </div>
 
-          {/* MKT-068(2): Bilingual Crawler-Indexable H1 + Clean Subtitle */}
-          <h1 className="promo-outline break-keep text-2xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
-            {isKo
-              ? '눈히어로 : 카단의 여정 (SNSHero : Heroes of Elwin Village)'
-              : 'SNSHero : Heroes of Elwin Village (눈히어로 : 카단의 여정)'}
-          </h1>
+            <h1 className="promo-outline break-keep text-2xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
+              {isKo
+                ? '눈히어로 : 카단의 여정'
+                : 'SNSHero : Heroes of Elwin Village'}
+            </h1>
 
-          <p className="promo-outline mt-3 max-w-2xl text-sm font-bold leading-relaxed text-amber-100/95 sm:text-base">
-            {tr(
-              '무설치 382종 판타지 전략 웹 TCG · 첫 방문 무료 3팩 + 250G + 160가루 즉시 지급 · 첫 10팩 전설 100% 확정',
-              'Zero-Install 382-Card Fantasy Web TCG · Instant 3 Free Packs + 250G + 160 Dust · Guaranteed Legendary in 10 Packs',
-            )}
-          </p>
+            <p className="promo-outline mt-2.5 max-w-xl text-sm font-bold leading-relaxed text-amber-100/95 sm:text-base">
+              {tr(
+                '설치 없는 382종 판타지 전략 웹 TCG · 첫 접속 무료 3팩 + 250골드 즉시 지급',
+                'Zero-Install 382-Card Fantasy Web TCG · Claim 3 Free Packs + 250 Gold Instantly',
+              )}
+            </p>
 
-          {/* DEV-046(1) & DEV-049(1): Compressed 2-Button Hero CTA (1 Primary + 1 Secondary) */}
-          <div
-            data-testid="promo-hero-cta-pair"
-            className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
-          >
-            <a
-              href="/game?ftue=veteran&open=pack3&utm_source=promotion_hero"
-              data-testid="promo-hero-primary-cta"
-              className="hs-promo-cta-purple inline-flex min-h-[52px] items-center gap-2.5 rounded-full px-8 py-3.5 text-base font-extrabold tracking-wide sm:text-lg"
+            <div
+              data-testid="promo-hero-cta-pair"
+              className="mt-6 flex flex-wrap items-center justify-center gap-3"
             >
-              <Gamepad2 className="h-5 w-5" />
-              <span>{tr('엘윈마을 바로 입장 (무료 3팩+250G)', 'Enter Elwin Village (3 Free Packs)')}</span>
-            </a>
-            <button
-              type="button"
-              data-testid="promo-hero-pack-btn"
-              onClick={handleOpenPromoPrePack}
-              disabled={cards.length === 0}
-              className="inline-flex min-h-[52px] cursor-pointer items-center gap-2 rounded-full border-2 border-amber-300/80 bg-amber-950/85 px-6 py-3.5 text-sm font-extrabold text-amber-100 shadow-[0_0_24px_rgba(251,191,36,0.35)] transition hover:scale-105 hover:bg-amber-900 disabled:opacity-50"
-            >
-              <Sparkles className="h-4 w-4 text-yellow-300" />
-              <span>{tr('무료 3팩 선개봉 체험', 'Preview Free Pack Here')}</span>
-            </button>
-          </div>
-
-          {/* MKT-063(1): No-Scroll 3-Tab Progressive Disclosure Strip */}
-          <div
-            data-testid="promo-hero-3tab-strip"
-            className="mt-5 w-full max-w-2xl"
-          >
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {(
-                [
-                  { id: 'bogart', label: tr('보가트의 도박장', "Bogart's Hall") },
-                  { id: 'preset', label: tr('1초 프리셋 & 리듬 오토', '1s Preset & Rhythm Auto') },
-                  { id: 'story', label: tr('40화 풀보이스 & 24K 도감', '40 Voiced EPs & 24K Foil') },
-                ] as const
-              ).map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setHeroQuickTab((prev) => (prev === tab.id ? 'none' : tab.id))}
-                  className={`min-h-[38px] cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-extrabold transition ${
-                    heroQuickTab === tab.id
-                      ? 'border-yellow-200 bg-amber-400 text-stone-950 shadow'
-                      : 'border-amber-400/35 bg-black/55 text-amber-200 hover:border-amber-300'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+              <a
+                href="/game"
+                data-testid="promo-hero-primary-cta"
+                className="hs-promo-cta-purple inline-flex min-h-[52px] items-center gap-2 rounded-full px-8 py-3 text-base font-extrabold tracking-wide sm:text-lg"
+              >
+                <Gamepad2 className="h-5 w-5" />
+                <span>{tr('지금 무료로 플레이', 'Play Free Now')}</span>
+              </a>
+              <button
+                type="button"
+                data-testid="promo-hero-pack-btn"
+                onClick={handleOpenPromoPrePack}
+                disabled={cards.length === 0}
+                className="inline-flex min-h-[52px] cursor-pointer items-center gap-2 rounded-full border-2 border-amber-300/80 bg-amber-950/85 px-6 py-3 text-sm font-extrabold text-amber-100 shadow-lg transition hover:bg-amber-900 disabled:opacity-50"
+              >
+                <Sparkles className="h-4 w-4 text-yellow-300" />
+                <span>{tr('무료 1팩 미리 뽑기', 'Preview Free Pack')}</span>
+              </button>
             </div>
-            {heroQuickTab !== 'none' && (
-              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-300/50 bg-[#140b05]/92 px-4 py-3 text-left text-xs font-bold text-amber-100 shadow-xl">
-                <span className="flex-1">
-                  {heroQuickTab === 'bogart'
-                    ? tr(
-                        '과금 격차 0%! 매 판 100% 랜덤 30장 덱으로 1~1,000G 골드를 걸고 승부해 한정 칭호·스킨을 해금하세요.',
-                        'Zero collection gap! Bet 1–1,000G with 100% Random 30-Card Decks to unlock Prestige Titles & Skins.',
-                      )
-                    : heroQuickTab === 'preset'
-                      ? tr(
-                          '덱 빌딩 고민 없이 철벽·속공·3배각성 프리셋을 1초 선택하고 BGM 정박 리듬 오토(1.5x·2.0x) 손맛을 즐기세요!',
-                          'Pick Defense, Aggro, or 3x Awakening Preset in 1 second with BGM Rhythm Auto (1.5x·2.0x)!',
-                        )
-                      : tr(
-                          '200트랙 성우 풀보이스 40화 스토리(3장=3배 각성)와 382종 24K 황금 카드를 무설치로 수집하세요.',
-                          'Enjoy 40 voiced episodes (3-Copy = 3x Awakening) and collect all 382 24K Golden Foil cards.',
+          </div>
+        </section>
+
+        <div className="hs-promo-divider" />
+
+        {/* =====================================================================
+            3. World Intro & Official Trailer (#intro)
+        ===================================================================== */}
+        <section
+          id="intro"
+          style={{ backgroundImage: `url(${SNS_LOCATIONS.BOX_TABLE})` }}
+          className="relative bg-cover bg-center py-12 sm:py-16"
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(18, 10, 5, 0.92) 0%, rgba(28, 16, 8, 0.86) 50%, rgba(16, 9, 4, 0.94) 100%)',
+            }}
+          />
+          <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 px-4 sm:px-6 lg:grid-cols-12">
+            <div className="lg:col-span-5">
+              <div className="text-xs font-extrabold uppercase tracking-[0.2em] text-amber-400">
+                ELWIN SANCTUARY
+              </div>
+              <h2 className="promo-outline mt-1 text-2xl font-black text-amber-50 sm:text-3xl">
+                {tr('엘윈마을 성소와 9대 종족의 전장', '9 Factions Clash in Elwin Sanctuary')}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
+                {tr(
+                  '물·불·바람·땅·인간·언데드·엘프·드워프·동물 9대 종족의 수호자와 382종 고유 카드로 나만의 덱을 완성하고, 풀보이스 원작 서사를 직접 돌파하세요.',
+                  'Command champions from 9 elemental & fantasy factions with 382 original cards, and battle through a studio-voiced 40-episode fantasy saga.',
+                )}
+              </p>
+              <div className="mt-5 grid grid-cols-2 gap-2.5 text-xs font-extrabold">
+                <div className="rounded-xl border border-amber-400/30 bg-black/45 p-3">
+                  <div className="text-base text-amber-300 sm:text-lg">
+                    {tr('382장 고유 카드', '382 Cards')}
+                  </div>
+                  <div className="mt-0.5 text-amber-100/75">
+                    {tr('9종족 225 + 중립 157', '9 Factions + 157 Neutral')}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-amber-400/30 bg-black/45 p-3">
+                  <div className="text-base text-sky-300 sm:text-lg">
+                    {tr('40부작 풀보이스', '40 Voiced EPs')}
+                  </div>
+                  <div className="mt-0.5 text-amber-100/75">
+                    {tr('5컷 웹툰 스토리 극장', '5-Panel Webtoon Theater')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-7">
+              <div
+                data-nosnippet
+                className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black"
+              >
+                <div className="relative aspect-video w-full overflow-hidden bg-black">
+                  {trailerFacadePlaying ? (
+                    <iframe
+                      key={`${lang}-${activeClip.youtubeId}`}
+                      src={`https://www.youtube-nocookie.com/embed/${activeClip.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+                      title={`${tr('눈히어로 공식 웹툰', 'SNSHero Official Webtoon')} - ${activeClip.label}`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="h-full w-full border-0"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      data-testid="promo-youtube-facade"
+                      onClick={() => setTrailerFacadePlaying(true)}
+                      className="group relative flex h-full w-full cursor-pointer flex-col items-center justify-center overflow-hidden bg-stone-950 text-center"
+                    >
+                      <img
+                        src={
+                          activeClip.id === 'ep1'
+                            ? '/webtoon-assets/episode_01/scene_01.webp'
+                            : activeClip.id === 'ep8'
+                              ? '/hs-assets/screenshots/ingame_story_theater.png?v=20261116'
+                              : '/webtoon-assets/episode_01/scene_14.webp'
+                        }
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-300 group-hover:scale-105 group-hover:opacity-90"
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+                      <span className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-amber-300 bg-amber-500/95 text-xl font-black text-stone-950 shadow-xl transition group-hover:scale-110">
+                        ▶
+                      </span>
+                      <span className="relative z-10 mt-2.5 rounded-full border border-amber-300/60 bg-black/75 px-3.5 py-1 text-xs font-extrabold text-amber-100">
+                        {tr(
+                          `공식 웹툰 트레일러 재생 (${activeClip.label})`,
+                          `Play Official Trailer (${activeClip.label})`,
                         )}
-                </span>
-                <a
-                  href={
-                    heroQuickTab === 'bogart'
-                      ? `/game?mode=bogart&stake=${promoPreviewStake}`
-                      : heroQuickTab === 'preset'
-                        ? '/game?preset=defense&rhythm=on'
-                        : '/game?mode=story&ep=1&rhythm=on'
-                  }
-                  className="hs-promo-cta-purple shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-extrabold"
-                >
-                  {tr('바로 시작 →', 'Start →')}
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          DEV-036 & DEV-039(2): Tier 1 — 3 Interactive Core Fun Cards + Progressive Expand
-      ===================================================================== */}
-      <section
-        data-testid="promo-tier1-core-cards"
-        className="bg-gradient-to-b from-[#170d06] via-[#1d1108] to-[#120b06] px-4 py-10 sm:px-6 sm:py-14"
-      >
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-6 text-center">
-            <span className="rounded-full border border-amber-400/40 bg-amber-950/70 px-3.5 py-1 text-[11px] font-extrabold tracking-widest text-amber-300">
-              {tr('3초 만에 파악하는 눈히어로 핵심 재미', '3 CORE PILLARS OF SNSHERO')}
-            </span>
-            <h2 className="promo-outline mt-2 text-2xl font-black text-white sm:text-3xl">
-              {tr('직접 눌러보고 바로 전장으로 입장하세요', 'Tap to Preview · Play Instantly')}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Card 1: Kadan Tactical & 3x Awakening */}
-            <div className="hs-promo-gold-frame flex flex-col justify-between rounded-2xl bg-[#1f1209] p-5 text-amber-50">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-emerald-300">
-                    ① {tr('카단 전술 & 3배 각성', 'Kadan Tactic & 3x Awaken')}
-                  </span>
-                  <button
-                    type="button"
-                    data-testid="tier1-awake-toggle"
-                    onClick={() => setTier1AwakenedPreview((v) => !v)}
-                    className="min-h-[34px] rounded-full border border-emerald-300/70 bg-emerald-900/80 px-2.5 py-0.5 text-[11px] font-black text-emerald-100"
-                  >
-                    {tier1AwakenedPreview ? tr('×3 각성 ON ⚡', '3x ON ⚡') : tr('1배 기본 보기', '1x Base')}
-                  </button>
-                </div>
-                <h3 className="mt-2 text-lg font-black text-white">
-                  {tr('40화 풀보이스 & 중복 3장=3배 폭증', '40 Voiced Bosses & 3x Power Spike')}
-                </h3>
-                <p className="mt-1.5 text-xs font-bold leading-relaxed text-amber-100/80">
-                  {tr(
-                    '동일 카드 3장 수집 시 스토리 공/체가 3배로 폭발! 실시간 카단 전술 스위치로 보스를 제압하세요.',
-                    'Collect 3 copies to multiply Attack & Health by 3x in Story Mode with live Kadan stance switching.',
+                      </span>
+                    </button>
                   )}
-                </p>
-              </div>
-              <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-400/35 bg-black/50 px-3 py-2.5 text-xs font-extrabold">
-                <span>{tr('카단 정예 성기사 (4코)', 'Elite Paladin (4 Mana)')}</span>
-                <span className={tier1AwakenedPreview ? 'text-emerald-300' : 'text-amber-200'}>
-                  {tier1AwakenedPreview ? '⚔ 12 / ❤️ 15 (×3!)' : '⚔ 4 / ❤️ 5 (1x)'}
-                </span>
-              </div>
-            </div>
-
-            {/* Card 2: Online Challenger Ranked Arena */}
-            <div className="hs-promo-gold-frame flex flex-col justify-between rounded-2xl bg-[#101c2e] p-5 text-sky-50">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-sky-300">
-                    ② {tr('온라인 도전자 랭킹전', 'Challenger Ranked Arena')}
-                  </span>
-                  <button
-                    type="button"
-                    data-testid="tier1-challenger-cycle"
-                    onClick={() => setTier1ChallengerIdx((i) => (i + 1) % 3)}
-                    className="min-h-[34px] rounded-full border border-sky-300/70 bg-sky-900/80 px-2.5 py-0.5 text-[11px] font-black text-sky-100"
-                  >
-                    {tr('상대 탐색 ↻', 'Next Rival ↻')}
-                  </button>
                 </div>
-                <h3 className="mt-2 text-lg font-black text-white">
-                  {tr('공정 1배수 30장 진검승부', 'Fair 1x 30-Card Ranked Ladder')}
-                </h3>
-                <p className="mt-1.5 text-xs font-bold leading-relaxed text-sky-100/80">
-                  {tr(
-                    '실시간 도전자 매칭과 감정표현 심리전! 오직 랭킹대전 결과만 공식 승률·순위에 기록됩니다.',
-                    'Match against ranked challengers with live emotes & Gold prestige titles on a fair 1x ladder.',
-                  )}
-                </p>
-              </div>
-              <div className="mt-4 flex items-center justify-between rounded-xl border border-sky-400/35 bg-black/50 px-3 py-2.5 text-xs font-extrabold">
-                <span className="truncate text-yellow-300">
-                  {
-                    [
-                      '👑 FrostMage_KR 〈엘윈 대평원의 전설〉',
-                      '🎲 붉은성채타짜#777 〈보가트 승부사〉',
-                      '🎵 ElwinSage 〈3배 각성의 지배자〉',
-                    ][tier1ChallengerIdx]
-                  }
-                </span>
-              </div>
-            </div>
-
-            {/* Card 3: Bogart's Gambling Hall */}
-            <div className="hs-promo-gold-frame flex flex-col justify-between rounded-2xl bg-[#241608] p-5 text-amber-50">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-yellow-300">
-                    ③ {tr('보가트의 도박장', "Bogart's Gambling Hall")}
-                  </span>
-                  <div className="flex gap-1">
-                    {[100, 250, 500, 1000].map((st) => (
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/40 bg-[#1a0f07] px-3 py-2">
+                  <a
+                    href={youtubePlaylistUrl}
+                    data-testid="promo-youtube-playlist-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-extrabold text-amber-300 underline decoration-amber-400/50 underline-offset-4 hover:text-amber-200"
+                  >
+                    {isKo ? 'YouTube 재생목록 ↗' : 'YouTube Playlist ↗'}
+                  </a>
+                  <div className="flex gap-1.5">
+                    {trailerClips.map((clip, idx) => (
                       <button
-                        key={st}
+                        key={clip.id}
                         type="button"
-                        onClick={() => setPromoPreviewStake(st)}
-                        className={`min-h-[30px] rounded-lg px-2 text-[10.5px] font-black ${
-                          promoPreviewStake === st
-                            ? 'bg-amber-400 text-stone-950'
-                            : 'bg-black/50 text-amber-200'
+                        onClick={() => {
+                          setActiveClipIdx(idx);
+                          setTrailerFacadePlaying(false);
+                        }}
+                        className={`min-h-[34px] rounded-lg px-3 py-1 text-xs font-extrabold transition ${
+                          idx === activeClipIdx
+                            ? 'bg-amber-500 text-[#1b0f05]'
+                            : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
                         }`}
                       >
-                        {st}G
+                        {clip.label}
                       </button>
                     ))}
                   </div>
                 </div>
-                <h3 className="mt-2 text-lg font-black text-white">
-                  {tr('100% 랜덤 30장 · 골드 2배 판돈 승부', '100% Random Deck · 2x Gold Payout')}
-                </h3>
-                <p className="mt-1.5 text-xs font-bold leading-relaxed text-amber-100/80">
-                  {tr(
-                    '카드 보유량 무관! 매 판 100% 랜덤 30장 덱으로 실력을 겨루고 승리 시 판돈 2배 골드로 한정 스킨을 해금하세요.',
-                    'Zero collection gap! Clash with 100% Random 30-Card Decks and win 2x Gold to unlock 24K Prestige skins.',
-                  )}
-                </p>
-              </div>
-              <div className="mt-4 flex items-center justify-between rounded-xl border border-yellow-400/40 bg-black/50 px-3 py-2.5 text-xs font-extrabold">
-                <span>
-                  {tr(`판돈 ${promoPreviewStake.toLocaleString()}G`, `Stake ${promoPreviewStake.toLocaleString()}G`)}
-                </span>
-                <span className="text-yellow-300">
-                  {tr(
-                    `승리 시 +${(promoPreviewStake * 2).toLocaleString()}G!`,
-                    `Win +${(promoPreviewStake * 2).toLocaleString()}G!`,
-                  )}
-                </span>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Progressive Disclosure Accordion Trigger for Tier 2 Encyclopedic Sections */}
-          <div className="mt-8 flex flex-col items-center gap-3">
-            <button
-              type="button"
-              data-testid="promo-tier2-expand-btn"
-              onClick={() => setTier2Expanded((v) => !v)}
-              className="inline-flex min-h-[52px] cursor-pointer items-center gap-2 rounded-full border-2 border-amber-300/80 bg-[#2a1709] px-7 py-3 text-sm font-extrabold text-amber-100 shadow-xl transition hover:scale-[1.02] hover:border-yellow-200 hover:bg-[#3a200d] sm:text-base"
-            >
-              <span>
-                {tier2Expanded
-                  ? tr(
-                      '▲ 상세 세계관 · 382장 카드 도감 접기',
-                      '▲ Collapse Full World & 382-Card Library',
-                    )
-                  : tr(
-                      '+ 게임 세계관 · 9대 종족 · 전체 382장 카드 도감 천천히 둘러보기 ▼',
-                      '+ Explore Full World, 9 Heroes & All 382 Cards ▼',
-                    )}
-              </span>
-            </button>
-          </div>
-        </div>
-      </section>
+        <div className="hs-promo-divider" />
 
-      <div className={tier2Expanded ? 'block' : 'hidden'}>
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          3. Intro Section
-      ===================================================================== */}
-      <section
-        id="intro"
-        style={{ backgroundImage: `url(${SNS_LOCATIONS.BOX_TABLE})` }}
-        className="relative bg-cover bg-center py-16 sm:py-24"
-      >
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(18, 10, 5, 0.92) 0%, rgba(28, 16, 8, 0.84) 50%, rgba(16, 9, 4, 0.94) 100%)',
-          }}
-        />
-        <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-4 sm:px-6 lg:grid-cols-12">
-          <div className="lg:col-span-5">
-            <div className="mb-2 text-xs font-extrabold uppercase tracking-[0.2em] text-amber-400">
-              WELCOME TO ELWIN SANCTUARY
-            </div>
-            <h2 className="promo-outline text-3xl font-black text-amber-50 sm:text-4xl">
-              {tr('엘윈마을 성소에 어서 오세요!', 'Welcome to Elwin Sanctuary!')}
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-amber-100/85">
-              {tr(
-                '검은 집어넣고 덱을 뽑으세요. ',
-                'Sheathe your sword and draw your deck — it is time for ',
-              )}
-              <strong className="text-amber-300">{tr('눈히어로', 'SNSHero')}</strong>
-              {tr(
-                '의 시간입니다! 전설적인 전략이 부딪히는 전투에서 비전 주문을 시전하고, 382종의 고유 하수인을 소환하며, 물·불·바람·땅·인간·언데드·엘프·드워프·동물 9대 종족의 수호자들을 지휘하세요.',
-                '! Cast arcane spells, summon 382 original minions, and command the champions of Water, Fire, Wind, Earth, Human, Undead, Elf, Dwarf, and Beast.',
-              )}
-            </p>
-            <div className="mt-6 grid grid-cols-2 gap-3 text-xs font-extrabold">
-              <div className="rounded-xl border border-amber-400/30 bg-black/45 p-3">
-                <div className="text-lg text-amber-300">{tr('382장', '382 Cards')}</div>
-                <div className="mt-0.5 text-amber-100/80">
-                  {tr('9종족 225 + 중립 157', '9 Factions (225) + 157 Neutral')}
-                </div>
+        {/* =====================================================================
+            4. Core Systems: Kadan's Journey (#latest)
+        ===================================================================== */}
+        <section id="latest" className="hs-promo-parchment py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center">
+              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-[#8b5a1b]">
+                CORE SYSTEMS
               </div>
-              <div className="rounded-xl border border-amber-400/30 bg-black/45 p-3">
-                <div className="text-lg text-sky-300">{tr('40부작', '40 Episodes')}</div>
-                <div className="mt-0.5 text-amber-100/80">
-                  {tr('풀보이스 5컷 웹툰 극장', '5-Panel Story Theater')}
-                </div>
-              </div>
+              <h2 className="promo-outline-dark mt-1 text-2xl font-black text-[#2b1707] sm:text-4xl">
+                {tr('카단의 여정 핵심 시스템', "Core Systems of Kadan's Journey")}
+              </h2>
             </div>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <a
-                href="/game"
-                className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-extrabold"
-              >
-                <span>{tr('성소 입장하기', 'Enter Sanctuary')}</span>
-                <ChevronRight className="h-4 w-4" />
-              </a>
-              <a
-                href="#heroes"
-                className="hs-promo-cta-teal-dark inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-extrabold"
-              >
-                <span>{tr('9대 종족 영웅 보기', 'Explore 9 Heroes')}</span>
-              </a>
-            </div>
-          </div>
 
-          <div className="lg:col-span-7">
-            {/* MKT-068(1) & DEV-046(2): data-nosnippet Click-to-Play Facade — Zero Googlebot YouTube Error Snippets! */}
-            <div data-nosnippet className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
-              <div className="relative aspect-video w-full overflow-hidden bg-black">
-                {trailerFacadePlaying ? (
-                  <iframe
-                    key={`${lang}-${activeClip.youtubeId}`}
-                    src={`https://www.youtube-nocookie.com/embed/${activeClip.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
-                    title={`${tr('눈히어로 공식 웹툰', 'SNSHero Official Webtoon')} - ${activeClip.label}`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    className="h-full w-full border-0"
-                  />
-                ) : (
+            <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+              {featureTabs.map((tab) => {
+                const active = tab.id === activeFeatureTab;
+                return (
                   <button
+                    key={tab.id}
                     type="button"
-                    data-testid="promo-youtube-facade"
-                    onClick={() => setTrailerFacadePlaying(true)}
-                    className="group relative flex h-full w-full cursor-pointer flex-col items-center justify-center overflow-hidden bg-stone-950 text-center"
-                  >
-                    <img
-                      src={
-                        activeClip.id === 'ep1'
-                          ? '/webtoon-assets/episode_01/scene_01.webp'
-                          : activeClip.id === 'ep8'
-                            ? '/hs-assets/screenshots/ingame_story_theater.png?v=20261116'
-                            : '/webtoon-assets/episode_01/scene_14.webp'
-                      }
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      decoding="async"
-                      className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-300 group-hover:scale-105 group-hover:opacity-90"
-                    />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/45" />
-                    <span className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-amber-300 bg-amber-500/95 text-2xl font-black text-stone-950 shadow-[0_0_28px_rgba(251,191,36,0.8)] transition group-hover:scale-110">
-                      ▶
-                    </span>
-                    <span className="relative z-10 mt-3 rounded-full border border-amber-300/60 bg-black/75 px-4 py-1 text-xs font-extrabold text-amber-100">
-                      {tr(`성우 풀보이스 웹툰 트레일러 재생 (${activeClip.label})`, `Play Full-Voice Webtoon Trailer (${activeClip.label})`)}
-                    </span>
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/40 bg-[#1a0f07] px-3 py-2.5">
-                <a
-                  href={youtubePlaylistUrl}
-                  data-testid="promo-youtube-playlist-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-extrabold text-amber-300 underline decoration-amber-400/50 underline-offset-4 hover:text-amber-200"
-                >
-                  {isKo ? '공식 국문 웹툰 재생목록 ↗' : 'Official EN YouTube Playlist ↗'}
-                </a>
-                <div className="flex flex-wrap gap-1.5">
-                  {trailerClips.map((clip, idx) => (
-                    <button
-                      key={clip.id}
-                      type="button"
-                      onClick={() => {
-                        setActiveClipIdx(idx);
-                        setTrailerFacadePlaying(false);
-                      }}
-                      className={`rounded-lg px-2.5 py-1 text-[11px] font-extrabold transition ${
-                        idx === activeClipIdx
-                          ? 'bg-amber-500 text-[#1b0f05]'
-                          : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
-                      }`}
-                    >
-                      {clip.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          4. Latest Content / Story Showcase
-      ===================================================================== */}
-      <section id="latest" className="hs-promo-parchment py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-[#8b5a1b]">
-              {tr('최신 연대기 · 핵심 시스템', 'CHRONICLES & CORE SYSTEMS')}
-            </div>
-            <h2 className="promo-outline-dark mt-1.5 text-3xl font-black text-[#2b1707] sm:text-5xl">
-              {tr('신규 콘텐츠: 카단의 여정', "Featured Saga: Kadan's Journey")}
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-[#5c3a1a] sm:text-base">
-              {tr(
-                '오직 눈히어로(/game)에서만 만날 수 있는 40부작 서사 보스전, 3장=3배 각성, 382종 고유 카드 시스템을 확인하세요.',
-                'Discover 40 boss encounters, the 3-Copies = 3x Awakening rule, and 382 original cards exclusive to SNSHero.',
-              )}
-            </p>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {featureTabs.map((tab) => {
-              const active = tab.id === activeFeatureTab;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveFeatureTab(tab.id)}
-                  className={`rounded-xl border-2 px-4 py-3.5 text-left transition ${
-                    active
-                      ? 'border-[#8b5a1b] bg-[#2a1709] text-amber-100 shadow-lg'
-                      : 'border-[#c39b56] bg-[#fbf1da]/80 text-[#3c230d] hover:bg-[#fff8e8]'
-                  }`}
-                >
-                  <div className={`text-[11px] font-extrabold ${active ? 'text-amber-300' : 'text-[#8b5a1b]'}`}>
-                    {tab.eyebrow}
-                  </div>
-                  <div className="mt-1 text-sm font-extrabold sm:text-base">{tab.title}</div>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="hs-promo-gold-frame mt-5 overflow-hidden rounded-2xl bg-[#241409] text-amber-50">
-            <div className="grid grid-cols-1 items-center lg:grid-cols-12">
-              <div className="relative h-64 overflow-hidden bg-black sm:h-80 lg:col-span-6 lg:h-full lg:min-h-[360px]">
-                <img
-                  key={activeFeature.imageUrl}
-                  src={activeFeature.imageUrl}
-                  alt={activeFeature.title}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover object-center transition-transform duration-500 hover:scale-105"
-                />
-                <div
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    background:
-                      'linear-gradient(90deg, rgba(0,0,0,0.08) 0%, rgba(36,20,9,0.85) 100%)',
-                  }}
-                />
-              </div>
-              <div className="p-6 sm:p-9 lg:col-span-6">
-                <div className="text-xs font-extrabold tracking-wider text-amber-400">
-                  {activeFeature.eyebrow}
-                </div>
-                <h3 className="mt-2 text-2xl font-black text-white sm:text-3xl">
-                  {activeFeature.headline}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
-                  {activeFeature.desc}
-                </p>
-                <ul className="mt-4 space-y-2 text-xs font-bold text-amber-200/90 sm:text-sm">
-                  {activeFeature.bullets.map((b) => (
-                    <li key={b} className="flex items-start gap-2">
-                      <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-7 flex flex-wrap gap-3">
-                  <a
-                    href={activeFeature.ctaHref}
-                    className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-extrabold"
-                  >
-                    <span>{activeFeature.ctaText}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                  <a
-                    href="#cards"
-                    className="hs-promo-cta-teal-dark inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-extrabold"
-                  >
-                    <span>{tr('382종 카드 보기', 'Browse 382 Cards')}</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* DEV-041: Consolidated Single Spotlight Boss Card + Pill Selector (Zero Multi-Card Duplication) */}
-          <div
-            data-testid="promo-boss-single-spotlight"
-            className="mt-8"
-          >
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-lg font-black text-[#2b1707] sm:text-xl">
-                {tr('대표 레이드 보스 미리보기', 'Featured Raid Boss Spotlight')}
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {storyBossHighlights.map((boss, idx) => (
-                  <button
-                    key={boss.img}
-                    type="button"
-                    onClick={() => setSelectedBossIdx(idx)}
-                    className={`min-h-[36px] rounded-full border px-3 py-1 text-xs font-extrabold transition ${
-                      selectedBossIdx === idx
-                        ? 'border-[#8b5a1b] bg-[#2a1709] text-amber-200 shadow'
-                        : 'border-[#c39b56] bg-[#fbf1da]/90 text-[#3c230d] hover:bg-[#fff8e8]'
+                    onClick={() => setActiveFeatureTab(tab.id)}
+                    className={`min-h-[52px] rounded-xl border-2 px-4 py-3 text-left transition ${
+                      active
+                        ? 'border-[#8b5a1b] bg-[#2a1709] text-amber-100 shadow-lg'
+                        : 'border-[#c39b56] bg-[#fbf1da]/85 text-[#3c230d] hover:bg-[#fff8e8]'
                     }`}
                   >
-                    {boss.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {(() => {
-              const activeBoss = storyBossHighlights[selectedBossIdx] || storyBossHighlights[0];
-              return (
-                <div className="hs-promo-gold-frame flex flex-col items-center justify-between gap-4 overflow-hidden rounded-2xl bg-[#1d1008] p-4 sm:flex-row sm:p-5">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={activeBoss.img}
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      decoding="async"
-                      className="h-20 w-24 shrink-0 rounded-xl border border-amber-400/50 bg-black object-cover object-top sm:h-24 sm:w-32"
-                    />
-                    <div>
-                      <div className="text-base font-black text-amber-200 sm:text-lg">
-                        {activeBoss.name}
-                      </div>
-                      <div className="mt-1 text-xs font-bold text-amber-100/80">
-                        {activeBoss.role}
-                      </div>
+                    <div
+                      className={`text-[11px] font-extrabold ${
+                        active ? 'text-amber-300' : 'text-[#8b5a1b]'
+                      }`}
+                    >
+                      {tab.eyebrow}
                     </div>
+                    <div className="mt-0.5 text-sm font-extrabold sm:text-base">{tab.title}</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="hs-promo-gold-frame mt-4 overflow-hidden rounded-2xl bg-[#241409] text-amber-50">
+              <div className="grid grid-cols-1 items-center lg:grid-cols-12">
+                <div className="relative h-56 overflow-hidden bg-black sm:h-72 lg:col-span-6 lg:h-full lg:min-h-[280px]">
+                  <img
+                    key={activeFeature.imageUrl}
+                    src={activeFeature.imageUrl}
+                    alt={activeFeature.title}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover object-center"
+                  />
+                </div>
+                <div className="p-5 sm:p-8 lg:col-span-6">
+                  <div className="text-xs font-extrabold tracking-wider text-amber-400">
+                    {activeFeature.eyebrow}
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="mt-1.5 text-xl font-black text-white sm:text-2xl">
+                    {activeFeature.headline}
+                  </h3>
+                  <p className="mt-2.5 text-sm leading-relaxed text-amber-100/85">
+                    {activeFeature.desc}
+                  </p>
+                  <div className="mt-5">
                     <a
-                      href={`/webtoon.html?ep=${activeBoss.ep}`}
-                      className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-amber-300/60 bg-black/50 px-4 py-2 text-xs font-extrabold text-amber-200 hover:border-yellow-200 hover:text-white"
+                      href={activeFeature.ctaHref}
+                      className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
                     >
-                      <span>{tr(`원작 웹툰 제${activeBoss.ep}화`, `Read EP.${activeBoss.ep} Webtoon`)}</span>
-                    </a>
-                    <a
-                      href={`/game?mode=story&ep=${activeBoss.ep}&rhythm=on`}
-                      data-testid="promo-boss-challenge-cta"
-                      className="hs-promo-cta-purple inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold"
-                    >
-                      <span>{tr(`제${activeBoss.ep}화 보스 리듬 도전`, `Challenge EP.${activeBoss.ep}`)}</span>
+                      <span>{activeFeature.ctaText}</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
                   </div>
                 </div>
-              );
-            })()}
-          </div>
-        </div>
-      </section>
-
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          5. Gameplay Pillars
-      ===================================================================== */}
-      <section id="features" className="hs-promo-cosmic py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-indigo-300">
-              CORE PILLARS
-            </div>
-            <h2 className="promo-outline mt-1.5 text-3xl font-black text-white sm:text-5xl">
-              {tr('게임 특징', 'Why Play SNSHero')}
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-indigo-100/80 sm:text-base">
-              {tr(
-                '눈히어로는 랭킹대전 전설을 노리는 전략가든, 가볍게 카단의 여정을 즐기는 팬이든 누구나 원하는 방식으로 플레이할 수 있습니다.',
-                "Whether you're climbing the Ranked ladder or exploring Kadan's 40-episode saga, play your way right in the browser.",
-              )}
-            </p>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: <Flame className="h-7 w-7 text-amber-300" />,
-                title: tr('부담없는 무설치 재미', 'Zero-Install Browser Play'),
-                desc: tr(
-                  '회원가입이나 다운로드 없이 브라우저에서 즉시 실행! 모든 카드와 전적이 안전하게 자동 보존됩니다.',
-                  'Launch instantly with no downloads or sign-ups. Your entire collection and progress save automatically.',
-                ),
-              },
-              {
-                icon: <Trophy className="h-7 w-7 text-sky-300" />,
-                title: tr('무료로 플레이하고 승리하세요', 'Free-to-Play Mastery'),
-                desc: tr(
-                  '일일 의뢰·공식 랭킹전·보가트의 도박장·스토리모드로 골드와 카드 팩을 획득하고 382종 고유 카드를 무료로 수집하세요.',
-                  "Earn Gold and Card Packs through Daily Quests, Ranked Arena, Bogart's Hall, and Story Mode to collect all 382 cards free.",
-                ),
-              },
-              {
-                icon: <Swords className="h-7 w-7 text-emerald-300" />,
-                title: tr('카단 전술 & BGM 리듬 오토', 'Kadan Tactics & BGM Rhythm Auto'),
-                desc: tr(
-                  '자동플레이 중 BGM 정박에 탭하면 오카리나 화음이 울리며 1.5x·2.0x 시너지(경쟁모드는 골드 피버) 손맛을 선사합니다!',
-                  'Tap on the BGM beat during Auto-Play to trigger harmonic Ocarina chords with 1.5x·2.0x resonance or Gold Fever!',
-                ),
-              },
-              {
-                icon: <Shield className="h-7 w-7 text-purple-300" />,
-                title: tr('플랫폼 간 완벽한 최적화', 'Crafted for Every Screen'),
-                desc: tr(
-                  '데스크톱, 태블릿, 스마트폰 세로/가로 전체화면 PWA 지원과 데미지 비례 타격 진동·성우 풀보이스를 제공합니다.',
-                  'Responsive desktop & mobile PWA fullscreen layouts with tactile impact haptics and sound.',
-                ),
-              },
-            ].map((pillar) => (
-              <div
-                key={pillar.title}
-                className="hs-promo-gold-frame flex flex-col rounded-2xl bg-[#181230]/90 p-6 transition hover:-translate-y-1.5 hover:bg-[#221942]"
-              >
-                <div className="mb-4 inline-flex h-13 w-13 items-center justify-center rounded-xl border border-amber-300/40 bg-black/40 shadow-inner">
-                  {pillar.icon}
-                </div>
-                <h3 className="text-lg font-extrabold text-amber-200">{pillar.title}</h3>
-                <p className="mt-2.5 text-sm leading-relaxed text-indigo-100/80">{pillar.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* MKT-021: 10-Second Tactical Keyword Mini Preview Widget */}
-          <div className="hs-promo-gold-frame mt-10 rounded-2xl bg-[#120d26]/95 p-5 sm:p-7">
-            <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-              <div>
-                <div className="text-xs font-extrabold uppercase tracking-wider text-sky-300">
-                  {tr('🎯 10초 핵심 전술 키워드 체험', '🎯 10-SECOND KEYWORD MINI PREVIEW')}
-                </div>
-                <h3 className="mt-1 text-xl font-black text-white sm:text-2xl">
-                  {tr('클릭 한 번으로 3대 핵심 손맛을 미리 만져보세요!', 'Tap a keyword below to preview SNSHero combat feel!')}
-                </h3>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  data-testid="promo-rhythm-preview-tab"
-                  onClick={() => {
-                    setActiveKeywordDemo('rhythm');
-                    const res = hsAudio.evaluateRhythmTap(128, false, 1);
-                    setRhythmPreviewGrade(res.grade === 'PERFECT' ? '2.0x PERFECT' : '1.5x GOOD');
-                  }}
-                  className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-extrabold transition ${
-                    activeKeywordDemo === 'rhythm'
-                      ? 'border-yellow-300 bg-amber-500 text-stone-950'
-                      : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
-                  }`}
-                >
-                  {tr('오카리나 리듬 오토 (1.5x·2.0x)', 'BGM Rhythm Auto (1.5x·2.0x)')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveKeywordDemo('awake');
-                  }}
-                  className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-extrabold transition ${
-                    activeKeywordDemo === 'awake'
-                      ? 'border-emerald-300 bg-emerald-600 text-white'
-                      : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
-                  }`}
-                >
-                  {tr('3장=3배 각성', '3-Copy 3x Awakening')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveKeywordDemo('shield');
-                    setShieldBroken((b) => !b);
-                  }}
-                  className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-extrabold transition ${
-                    activeKeywordDemo === 'shield'
-                      ? 'border-yellow-300 bg-amber-600 text-white'
-                      : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
-                  }`}
-                >
-                  {tr('천상의 보호막', 'Divine Shield')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveKeywordDemo('taunt')}
-                  className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-extrabold transition ${
-                    activeKeywordDemo === 'taunt'
-                      ? 'border-sky-300 bg-sky-600 text-white'
-                      : 'border-amber-500/40 bg-black/40 text-amber-200 hover:bg-amber-950'
-                  }`}
-                >
-                  {tr('도발 수호', 'Taunt Frontline')}
-                </button>
               </div>
             </div>
-
-            <div className="mt-4 flex flex-col items-center justify-between gap-4 rounded-xl border border-amber-400/25 bg-black/45 p-4 sm:flex-row">
-              <div className="text-sm font-bold text-amber-100">
-                {activeKeywordDemo === 'rhythm' &&
-                  tr(
-                    `오카리나 정박 공명 [${rhythmPreviewGrade}] 발동! 스토리 보스전은 턴당 1회 성소 결계·공명을 증폭하고, 공식 랭킹·도박장은 스탯 변화 0% 공정 밸런스 위에서 골드 피버만 채웁니다!`,
-                    `Ocarina Beat Resonance [${rhythmPreviewGrade}]! Grants 1/turn Sanctuary Shield in Story Mode, while keeping 0% stat change in Ranked/Bogart (awards Bonus Gold Fever)!`,
-                  )}
-                {activeKeywordDemo === 'awake' &&
-                  tr(
-                    '스토리모드 전용! 동일 카드 3장 보유 시 알렉산다르(6/6) → 공격력 18 / 생명력 18로 3배 폭증!',
-                    'Story-only! Owning 3+ copies multiplies stats by 3x (6/6 → 18/18) to crush bosses!',
-                  )}
-                {activeKeywordDemo === 'shield' &&
-                  (shieldBroken
-                    ? tr(
-                        '천상의 보호막이 첫 타격을 0 데미지로 막아내고 깨졌습니다! (다시 누르면 보호막 재장착)',
-                        'Divine Shield absorbed the first hit for 0 damage! (Tap again to restore)',
-                      )
-                    : tr(
-                        '황금빛 천상의 보호막이 활성화되어 있습니다 — 어떤 강력한 공격도 첫 1회는 완벽 무효화!',
-                        'Golden Divine Shield active — blocks the very first instance of damage completely!',
-                      ))}
-                {activeKeywordDemo === 'taunt' &&
-                  tr(
-                    '도발 하수인이 전열 방패를 세우면 적 하수인은 본체 영웅을 절대 직접 공격할 수 없습니다!',
-                    'Taunt minions form a frontline shield — enemies must break through them before hitting your Hero!',
-                  )}
-              </div>
-              <a
-                href="/game?mode=story&ep=0&rhythm=on&utm_source=promo_keyword_demo"
-                className="hs-promo-cta-purple shrink-0 rounded-full px-5 py-2.5 text-xs font-extrabold"
-              >
-                {tr('30초 제0화 리듬 훈련 체험 →', 'Try Ep.0 Rhythm Tutorial →')}
-              </a>
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <div className="hs-promo-divider" />
+        <div className="hs-promo-divider" />
 
-      {/* =====================================================================
-          5.5. How to Play — Collapsible 6-Step Visual Guide Drawer (DEV-051(2))
-      ===================================================================== */}
-      <section id="how-to-play" className="hs-promo-tavern py-10 sm:py-14">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <div className="flex flex-col items-center text-center">
-            <button
-              type="button"
-              data-testid="promo-howto-drawer-btn"
-              onClick={() => setHowToDrawerOpen((v) => !v)}
-              className="inline-flex min-h-[48px] cursor-pointer items-center gap-2 rounded-full border-2 border-emerald-300/75 bg-emerald-950/85 px-6 py-2.5 text-sm font-extrabold text-emerald-100 shadow-lg transition hover:border-emerald-200 hover:bg-emerald-900"
-            >
-              <span>
-                {howToDrawerOpen
-                  ? tr('▲ 30초 플레이 가이드 접기', '▲ Hide 6-Step Visual Guide')
-                  : tr('? 30초 플레이 가이드 보기 (실제 화면 6단계) ▼', '? Open 30s How-to-Play Visual Guide (6 Steps) ▼')}
-              </span>
-            </button>
-          </div>
-          {howToDrawerOpen && (
-            <div className="hs-promo-gold-frame mt-6 rounded-3xl bg-[#140c06]/95 p-4 sm:p-6">
-              <HowToPlayCarousel variant="promo" playSound={false} />
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-                <a
-                  href="/game.html?mode=story&ep=0&rhythm=on&utm_source=promo_howto_ep0"
-                  className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-                >
-                  <Gamepad2 className="h-4 w-4" />
-                  <span>{tr('바로 30초 튜토리얼(제0화) 출격', 'Launch 30s Tutorial (EP.0)')}</span>
-                </a>
-                <a
-                  href="/game.html?open=pack3&utm_source=promo_howto_pack"
-                  className="hs-promo-cta-teal-dark inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  <span>{tr('무료 3팩 먼저 받기', 'Open 3 Free Packs')}</span>
-                </a>
+        {/* =====================================================================
+            5. Key Features (#features)
+        ===================================================================== */}
+        <section id="features" className="hs-promo-cosmic py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center">
+              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-indigo-300">
+                KEY FEATURES
               </div>
+              <h2 className="promo-outline mt-1 text-2xl font-black text-white sm:text-4xl">
+                {tr('게임 특징', 'Why Play SNSHero')}
+              </h2>
             </div>
-          )}
-        </div>
-      </section>
 
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          6. 9 Factions & Heroes Interactive Showcase
-      ===================================================================== */}
-      <section id="heroes" className="hs-promo-tavern py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-amber-400">
-              9 FACTIONS & HEROES
-            </div>
-            <h2 className="promo-outline mt-1.5 text-3xl font-black text-white sm:text-5xl">
-              {tr('9대 종족 & 전설 영웅', '9 Factions & Legendary Heroes')}
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-amber-100/80 sm:text-base">
-              {tr(
-                '각 종족을 이끄는 대표 영웅을 선택해 고유 영웅 능력과 대표 카드를 확인해 보세요.',
-                'Select a faction champion to inspect their unique Hero Power and signature class cards.',
-              )}
-            </p>
-          </div>
-
-          {/* MKT-051: 3-Second Tactical Style Match Widget */}
-          <div
-            data-testid="promo-3s-match-widget"
-            className="mx-auto mt-8 max-w-5xl rounded-3xl border border-amber-400/40 bg-black/55 p-4 shadow-2xl backdrop-blur-sm sm:p-6"
-          >
-            <div className="mb-4 text-center">
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-amber-950/80 px-3 py-1 text-[11px] font-extrabold text-amber-200">
-                <span>⚡</span>
-                <span>{tr('3초 전술 성향 매칭', '3-Second Tactical Style Match')}</span>
-              </div>
-              <h3 className="mt-2 text-lg font-black text-white sm:text-2xl">
-                {tr(
-                  '원하는 전투 스타일을 고르면 나만의 수호자 & 30장 프리셋 덱으로 즉시 출격!',
-                  'Pick your combat style to launch immediately with a matching Guardian & 30-card Preset Deck!',
-                )}
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 {
-                  id: 'match-a',
-                  heroClass: 'PRIEST' as HeroClass,
-                  badge: tr('선택 A · 철벽 방어 & 성화 역전', 'Option A · Iron Defense'),
-                  title: tr('철벽 방어 & 성화 역전극', 'Iron Wall & Holy Turnaround'),
+                  icon: <Flame className="h-6 w-6 text-amber-300" />,
+                  title: tr('무설치 즉시 실행', 'Zero-Install Play'),
                   desc: tr(
-                    '인간 카단 · 수호/치유 기반 후반 역전 덱',
-                    'Human Kadan · Taunt, Heal & Control Comeback',
+                    '가입이나 설치 없이 웹에서 바로 실행되며 모든 카드와 전적이 자동 저장됩니다.',
+                    'Play instantly in your browser with automatic local save—no sign-up needed.',
                   ),
-                  href: '/game.html?preset=defense&rhythm=on&utm_source=promo_match_a',
-                  accent: 'border-sky-400/60 hover:border-sky-300 bg-sky-950/45',
                 },
                 {
-                  id: 'match-b',
-                  heroClass: 'WARRIOR' as HeroClass,
-                  badge: tr('선택 B · 초고속 돌진 & 화력', 'Option B · Blitz Aggro'),
-                  title: tr('초고속 돌진 & 명치 폭격', 'Hyper Rush & Burn Blitz'),
+                  icon: <Trophy className="h-6 w-6 text-sky-300" />,
+                  title: tr('무료 382종 수집', '100% Free-to-Play'),
                   desc: tr(
-                    '불종족 이그니스 · 1~3코스트 속공 명치 압박',
-                    'Fire Ignis · Low-Cost Rush & Hero Burn Pressure',
+                    '일일 의뢰·스토리·랭킹전·도박장 보상으로 382종 전 카드를 무료로 모을 수 있습니다.',
+                    'Collect all 382 cards free via Daily Quests, Story Bosses, and Ranked Arena.',
                   ),
-                  href: '/game.html?preset=aggro&rhythm=on&utm_source=promo_match_b',
-                  accent: 'border-rose-400/60 hover:border-rose-300 bg-rose-950/45',
                 },
                 {
-                  id: 'match-c',
-                  heroClass: 'ROGUE' as HeroClass,
-                  badge: tr('선택 C · 3배 각성 & 주문 연타', 'Option C · 3x Awakening'),
-                  title: tr('무한 부활 & 아케인 주문 연타', 'Infinite Value & Spell Chain'),
+                  icon: <Swords className="h-6 w-6 text-emerald-300" />,
+                  title: tr('카단 전술 & 리듬 오토', 'Tactics & Rhythm Auto'),
                   desc: tr(
-                    '언데드 아르투스 · 3장=3배 각성 시너지 & 연계',
-                    'Undead Artus · 3x Awakened Cards & Tempo Combo',
+                    '자동플레이 중 배경음악 맥박(초록 링)에 맞춰 탭하면 1.5x·2.0x 시너지가 발동합니다.',
+                    'Tap the green beat ring in sync with the BGM pulse during Auto-Play for 1.5x·2.0x boosts.',
                   ),
-                  href: '/game.html?preset=awakening&rhythm=on&utm_source=promo_match_c',
-                  accent: 'border-amber-400/65 hover:border-amber-300 bg-amber-950/45',
                 },
-              ].map((opt) => (
+                {
+                  icon: <Shield className="h-6 w-6 text-purple-300" />,
+                  title: tr('모바일·PC 최적화', 'Mobile & Desktop Ready'),
+                  desc: tr(
+                    '스마트폰 한 손 조작, 전체화면 PWA, 데미지 비례 진동과 성우 음성을 지원합니다.',
+                    'Optimized for one-handed mobile play, fullscreen PWA, haptics, and voice acting.',
+                  ),
+                },
+              ].map((pillar) => (
                 <div
-                  key={opt.id}
-                  onMouseEnter={() => setSelectedHeroClass(opt.heroClass)}
-                  className={`flex flex-col justify-between rounded-2xl border p-4 transition ${opt.accent}`}
+                  key={pillar.title}
+                  className="hs-promo-gold-frame flex flex-col rounded-2xl bg-[#181230]/90 p-5"
                 >
-                  <div>
-                    <div className="text-[11px] font-extrabold text-amber-300">{opt.badge}</div>
-                    <div className="mt-1 text-base font-black text-white">{opt.title}</div>
-                    <p className="mt-1 text-xs font-semibold text-amber-100/80">{opt.desc}</p>
+                  <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-amber-300/40 bg-black/40">
+                    {pillar.icon}
                   </div>
-                  <a
-                    href={opt.href}
-                    data-testid={`promo-${opt.id}-cta`}
-                    onClick={() => setSelectedHeroClass(opt.heroClass)}
-                    className="hs-promo-cta-purple mt-3 inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold"
-                  >
-                    <Swords className="h-3.5 w-3.5" />
-                    <span>{tr('이 스타일로 즉시 출격 →', 'Launch This Style Now →')}</span>
-                  </a>
+                  <h3 className="text-base font-extrabold text-amber-200">{pillar.title}</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-indigo-100/85 sm:text-sm">
+                    {pillar.desc}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
+        </section>
 
-          {/* DEV-053(1) & DEV-047(1): Collapsible 9-Faction Heroes Drawer with Zero Duplicate Alt Text */}
-          <div className="mt-6 flex justify-center">
-            <button
-              type="button"
-              data-testid="promo-9heroes-drawer-btn"
-              onClick={() => setHeroesDetailOpen((v) => !v)}
-              className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border-2 border-amber-400/65 bg-black/55 px-6 py-2 text-xs font-extrabold text-amber-200 transition hover:border-yellow-300 hover:text-white sm:text-sm"
-            >
-              <span>
-                {heroesDetailOpen
-                  ? tr('▲ 9대 종족 수호자 상세 접기', '▲ Hide 9 Faction Champions')
-                  : tr('+ 9대 종족 수호자 상세 도감 펼치기 ▼', '+ Explore All 9 Faction Champions ▼')}
-              </span>
-            </button>
-          </div>
+        <div className="hs-promo-divider" />
 
-          <div className={heroesDetailOpen ? 'block' : 'hidden'}>
-          <div className="mt-8 flex flex-wrap justify-center gap-2 sm:gap-3">
-            {HERO_CLASS_ORDER.map((cls) => {
-              const ui = getLocalizedHeroInfo(cls, lang);
-              const isSelected = cls === selectedHeroClass;
-              return (
-                <button
-                  key={cls}
-                  type="button"
-                  onClick={() => setSelectedHeroClass(cls)}
-                  className={`flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-xs font-extrabold transition sm:text-sm ${
-                    isSelected
-                      ? 'scale-105 border-amber-300 bg-amber-500/25 text-white shadow-[0_0_20px_rgba(251,191,36,0.45)]'
-                      : 'border-amber-600/40 bg-black/40 text-amber-200/80 hover:border-amber-400 hover:text-white'
-                  }`}
-                >
-                  <img
-                    src={CLASS_CREST_URL[cls]}
-                    alt=""
-                    aria-hidden="true"
-                    className="h-6 w-6 rounded-full object-cover"
-                  />
-                  <span>{ui.className}</span>
-                  <span className="hidden text-[11px] opacity-80 sm:inline">({ui.name})</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div
-            style={{ background: selectedHero.frameGradient }}
-            className="hs-promo-gold-frame mt-8 overflow-hidden rounded-3xl p-[2px]"
-          >
-            <div className="grid grid-cols-1 items-center gap-6 rounded-[21px] bg-[#140c07]/92 p-5 sm:p-8 lg:grid-cols-12">
-              <div className="relative flex flex-col items-center justify-center lg:col-span-4">
-                <div
-                  style={{ backgroundColor: selectedHero.accentColor }}
-                  className="pointer-events-none absolute inset-6 rounded-full opacity-20 blur-3xl"
-                />
-                <img
-                  src={resolveDialogueSpriteUrl(selectedHero.heroCutoutUrl)}
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  decoding="async"
-                  className="relative max-h-[340px] w-auto object-contain"
-                />
+        {/* =====================================================================
+            6. How to Play — Visible 6-Step Visual Guide (#how-to-play)
+        ===================================================================== */}
+        <section id="how-to-play" className="hs-promo-tavern py-12 sm:py-16">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <div className="mb-6 text-center">
+              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-emerald-300">
+                HOW TO PLAY
               </div>
+              <h2 className="promo-outline mt-1 text-2xl font-black text-white sm:text-4xl">
+                {tr('게임 방법 (6단계 화면 가이드)', 'How to Play (6-Step Visual Guide)')}
+              </h2>
+            </div>
 
-              <div className="lg:col-span-8">
-                <div className="flex flex-wrap items-center gap-2.5">
+            <div className="hs-promo-gold-frame rounded-3xl bg-[#140c06]/95 p-4 sm:p-6">
+              <HowToPlayCarousel variant="promo" playSound={false} />
+            </div>
+          </div>
+        </section>
+
+        <div className="hs-promo-divider" />
+
+        {/* =====================================================================
+            7. 9 Factions & Legendary Heroes (#heroes — Directly Visible)
+        ===================================================================== */}
+        <section id="heroes" className="hs-promo-tavern py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center">
+              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-amber-400">
+                9 FACTIONS &amp; HEROES
+              </div>
+              <h2 className="promo-outline mt-1 text-2xl font-black text-white sm:text-4xl">
+                {tr('9대 종족 & 전설 영웅', '9 Factions & Legendary Heroes')}
+              </h2>
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {HERO_CLASS_ORDER.map((cls) => {
+                const ui = getLocalizedHeroInfo(cls, lang);
+                const isSelected = cls === selectedHeroClass;
+                return (
+                  <button
+                    key={cls}
+                    type="button"
+                    onClick={() => setSelectedHeroClass(cls)}
+                    className={`flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border-2 px-3.5 py-1.5 text-xs font-extrabold transition sm:text-sm ${
+                      isSelected
+                        ? 'border-amber-300 bg-amber-500/25 text-white shadow-[0_0_16px_rgba(251,191,36,0.4)]'
+                        : 'border-amber-600/40 bg-black/40 text-amber-200/80 hover:border-amber-400 hover:text-white'
+                    }`}
+                  >
+                    <img
+                      src={CLASS_CREST_URL[cls]}
+                      alt=""
+                      aria-hidden="true"
+                      className="h-5 w-5 rounded-full object-cover"
+                    />
+                    <span>{ui.className}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div
+              style={{ background: selectedHero.frameGradient }}
+              className="hs-promo-gold-frame mt-6 overflow-hidden rounded-3xl p-[2px]"
+            >
+              <div className="grid grid-cols-1 items-center gap-6 rounded-[21px] bg-[#140c07]/94 p-5 sm:p-7 lg:grid-cols-12">
+                <div className="relative flex flex-col items-center justify-center lg:col-span-4">
+                  <div
+                    style={{ backgroundColor: selectedHero.accentColor }}
+                    className="pointer-events-none absolute inset-6 rounded-full opacity-20 blur-3xl"
+                  />
                   <img
-                    src={CLASS_CREST_URL[selectedHero.heroClass]}
+                    src={resolveDialogueSpriteUrl(selectedHero.heroCutoutUrl)}
                     alt=""
                     aria-hidden="true"
-                    className="h-8 w-8 rounded-full border border-amber-300/70"
+                    loading="lazy"
+                    decoding="async"
+                    className="relative max-h-[280px] w-auto object-contain sm:max-h-[320px]"
                   />
-                  <span className="rounded-full border border-amber-400/50 bg-black/45 px-3 py-0.5 text-xs font-extrabold text-amber-300">
-                    {selectedHeroUi.className} · {tr('거점', 'Realm')}: {selectedHeroUi.factionRealm}
-                  </span>
                 </div>
 
-                <h3 className="mt-3 text-2xl font-black text-white sm:text-4xl">
-                  {selectedHeroUi.name}
-                  <span className="ml-2.5 block text-base font-bold text-amber-300 sm:inline sm:text-lg">
-                    — {selectedHeroUi.title}
-                  </span>
-                </h3>
+                <div className="lg:col-span-8">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <img
+                      src={CLASS_CREST_URL[selectedHero.heroClass]}
+                      alt=""
+                      aria-hidden="true"
+                      className="h-7 w-7 rounded-full border border-amber-300/70"
+                    />
+                    <span className="rounded-full border border-amber-400/50 bg-black/45 px-3 py-0.5 text-xs font-extrabold text-amber-300">
+                      {selectedHeroUi.className} · {selectedHeroUi.factionRealm}
+                    </span>
+                  </div>
 
-                <blockquote className="mt-3 border-l-4 border-amber-400/70 pl-3.5 text-sm font-bold italic text-amber-100/90">
-                  “{selectedHeroUi.emotes.start}”
-                </blockquote>
+                  <h3 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+                    {selectedHeroUi.name}
+                    <span className="ml-2 text-sm font-bold text-amber-300 sm:text-base">
+                      — {selectedHeroUi.title}
+                    </span>
+                  </h3>
 
-                <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-amber-400/35 bg-black/45 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="text-[11px] font-extrabold uppercase tracking-wider text-sky-300">
-                      {tr('고유 영웅 능력 (2 마나)', 'Hero Power (2 Mana)')}
-                    </div>
-                    <div className="mt-0.5 text-base font-extrabold text-white">
-                      {selectedHeroUi.heroPowerName}
-                      <span className="ml-2 text-sm font-bold text-amber-200">
+                  <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-400/35 bg-black/45 p-3.5 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-sm font-bold text-white">
+                      <span className="mr-2 text-xs font-extrabold text-sky-300">
+                        {tr('영웅 능력 (2마나)', 'Hero Power (2 Mana)')}
+                      </span>
+                      <span className="font-extrabold">{selectedHeroUi.heroPowerName}</span>
+                      <span className="ml-1.5 text-xs text-amber-200">
                         — {selectedHeroUi.heroPowerText}
                       </span>
                     </div>
+                    <a
+                      href={`/game.html?mode=ranked_battle&faction=${selectedHero.heroClass}`}
+                      className="hs-promo-cta-purple inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full px-5 py-2 text-xs font-extrabold"
+                    >
+                      <span>
+                        {tr(`${selectedHeroUi.name} 플레이`, `Play ${selectedHeroUi.name}`)}
+                      </span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </a>
                   </div>
-                  <a
-                    href={`/game.html?mode=ranked_battle&faction=${selectedHero.heroClass}&rhythm=on&preset=${
-                      selectedHero.heroClass === 'WARRIOR' ||
-                      selectedHero.heroClass === 'HUNTER' ||
-                      selectedHero.heroClass === 'DRUID'
-                        ? 'aggro&tactic=aggressive'
-                        : selectedHero.heroClass === 'PRIEST' ||
-                            selectedHero.heroClass === 'PALADIN' ||
-                            selectedHero.heroClass === 'WARLOCK'
-                          ? 'control&tactic=defensive'
-                          : 'awakening&tactic=awakening'
-                    }`}
-                    className="hs-promo-cta-purple inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold"
-                  >
-                    <span>{tr(`${selectedHeroUi.name} 덱 플레이`, `Play ${selectedHeroUi.name}`)}</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </a>
-                </div>
 
-                <div className="mt-6">
-                  <div className="mb-4 text-xs font-extrabold uppercase tracking-wider text-amber-300/90">
-                    {tr(
-                      `${selectedHeroUi.className} 대표 카드 (클릭하여 상세 보기)`,
-                      `Signature ${selectedHeroUi.className} Cards (Click to inspect)`,
+                  <div className="mt-5">
+                    <div className="mb-3 text-xs font-extrabold text-amber-300/90">
+                      {tr(
+                        `${selectedHeroUi.className} 대표 카드 (클릭 시 상세 보기)`,
+                        `Signature ${selectedHeroUi.className} Cards (Click to inspect)`,
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-4 pt-2 sm:justify-start sm:gap-5">
+                      {heroSignatureCards.map((c) => (
+                        <PromoCard key={c.id} card={c} onClick={setZoomedCard} size="md" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="hs-promo-divider" />
+
+        {/* =====================================================================
+            8. 382-Card Official Library (#cards — Search & Filters Directly Visible)
+        ===================================================================== */}
+        <section id="cards" className="hs-promo-parchment py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="flex flex-col items-center justify-between gap-3 text-center md:flex-row md:text-left">
+              <div>
+                <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-[#8b5a1b]">
+                  CARD LIBRARY
+                </div>
+                <h2 className="promo-outline-dark mt-0.5 text-2xl font-black text-[#2b1707] sm:text-4xl">
+                  {tr('382종 카드 도감', '382-Card Library')}
+                </h2>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAwakened3x((a) => !a)}
+                  className={`inline-flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border-2 px-4 py-2 text-xs font-extrabold shadow transition ${
+                    showAwakened3x
+                      ? 'border-emerald-300 bg-gradient-to-b from-emerald-500 to-emerald-800 text-white'
+                      : 'border-[#8b5a1b] bg-[#2a1709] text-emerald-200 hover:bg-[#3e220e]'
+                  }`}
+                >
+                  <span>🔥</span>
+                  <span>{tr('3배 각성 보기', '3x Awakening')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowGolden((g) => !g)}
+                  className={`inline-flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border-2 px-4 py-2 text-xs font-extrabold shadow transition ${
+                    showGolden
+                      ? 'border-yellow-300 bg-gradient-to-b from-amber-400 to-amber-700 text-white'
+                      : 'border-[#8b5a1b] bg-[#2a1709] text-amber-200 hover:bg-[#3e220e]'
+                  }`}
+                >
+                  <Crown className="h-4 w-4" />
+                  <span>{tr('24K 황금 카드', '24K Golden Foil')}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl border-2 border-[#b88a44] bg-[#241409] p-3.5 text-amber-100 shadow-xl sm:p-4">
+              <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="relative max-w-md flex-1">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-300/70" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setVisibleLimit(12);
+                    }}
+                    placeholder={tr(
+                      '카드명 · 키워드 검색 (예: 카단, 도발)',
+                      'Search card or keyword (e.g. Kadan, Taunt)',
                     )}
-                  </div>
-                  <div className="flex flex-wrap items-center justify-center gap-5 pt-4 sm:justify-start sm:gap-6">
-                    {heroSignatureCards.map((c) => (
-                      <PromoCard key={c.id} card={c} onClick={setZoomedCard} size="md" />
-                    ))}
-                  </div>
+                    className="min-h-[42px] w-full rounded-xl border border-amber-500/40 bg-black/50 py-2 pl-9 pr-9 text-sm font-bold text-amber-50 placeholder-amber-200/45 focus:border-amber-300 focus:outline-none"
+                  />
+                  {searchQuery.length > 0 && (
+                    <button
+                      type="button"
+                      data-testid="promo-card-search-clear"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setVisibleLimit(12);
+                      }}
+                      aria-label={tr('검색어 지우기', 'Clear search')}
+                      className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-amber-500/25 text-xs font-black text-amber-200 hover:bg-amber-500/50"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {(
+                    [
+                      { id: 'ALL', ko: '전체', en: 'All' },
+                      { id: 'LEGENDARY', ko: '전설', en: 'Legendary' },
+                      { id: 'EPIC', ko: '특급', en: 'Epic' },
+                      { id: 'RARE', ko: '희귀', en: 'Rare' },
+                      { id: 'COMMON', ko: '일반', en: 'Common' },
+                      { id: 'FREE', ko: '기본', en: 'Basic' },
+                    ] as const
+                  ).map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => {
+                        setFilterRarity(r.id);
+                        setVisibleLimit(12);
+                      }}
+                      className={`min-h-[34px] rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
+                        filterRarity === r.id
+                          ? 'bg-amber-500 text-[#1b0f05]'
+                          : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
+                      }`}
+                    >
+                      {isKo ? r.ko : r.en}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </div>
-          </div>
-          </div>
-        </div>
-      </section>
 
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          7. 382-Card Official Library Showcase
-      ===================================================================== */}
-      <section id="cards" className="hs-promo-parchment py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
-            <div>
-              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-[#8b5a1b]">
-                OFFICIAL CARD LIBRARY
-              </div>
-              <h2 className="promo-outline-dark mt-1 text-3xl font-black text-[#2b1707] sm:text-4xl">
-                {tr('눈히어로 382종 카드 도감', '382-Card Official Library')}
-              </h2>
-              <p className="mt-1.5 text-sm font-bold text-[#5c3a1a]">
-                {tr(
-                  '9종족 225장 + 중립 157장(총 382종)의 영롱한 24K 황금 아트워크와 스토리모드 전용 3장=3배 각성 위력을 미리 확인하세요!',
-                  'Preview all 382 playable cards (9 factions × 25 + 157 Neutral) with 24K Golden foils and Story 3x Awakening stats.',
-                )}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={handleOpenPromoPrePack}
-                disabled={cards.length === 0}
-                className="hs-promo-cta-purple inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-extrabold shadow transition disabled:opacity-50"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span>{tr('🎁 무료 1호 팩(5장) 선개봉', '🎁 Open Free Pack #1')}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowAwakened3x((a) => !a)}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-full border-2 px-4 py-2.5 text-xs font-extrabold shadow transition ${
-                  showAwakened3x
-                    ? 'border-emerald-300 bg-gradient-to-b from-emerald-500 to-emerald-800 text-white'
-                    : 'border-[#8b5a1b] bg-[#2a1709] text-emerald-200 hover:bg-[#3e220e]'
-                }`}
-              >
-                <span>🔥</span>
-                <span>
-                  {showAwakened3x
-                    ? tr('3장=3배 각성 ON (×3)', '3x Awakening ON')
-                    : tr('3장=3배 각성 시뮬레이터', 'Simulate 3x Awakening')}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowGolden((g) => !g)}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-full border-2 px-5 py-2.5 text-xs font-extrabold shadow transition ${
-                  showGolden
-                    ? 'border-yellow-300 bg-gradient-to-b from-amber-400 to-amber-700 text-white'
-                    : 'border-[#8b5a1b] bg-[#2a1709] text-amber-200 hover:bg-[#3e220e]'
-                }`}
-              >
-                <Crown className="h-4 w-4" />
-                <span>
-                  {showGolden
-                    ? tr('24K 황금 카드 미리보기 ON', '24K Golden Foil Preview ON')
-                    : tr('24K 황금 카드 미리보기', 'Preview 24K Golden Foil')}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                data-testid="promo-cards-expand-all-btn"
-                onClick={() => {
-                  const next = !cardsSearchExpanded;
-                  setCardsSearchExpanded(next);
-                  setVisibleLimit(next ? 18 : 12);
-                }}
-                className="inline-flex min-h-[42px] cursor-pointer items-center gap-2 rounded-full border-2 border-[#8b5a1b] bg-[#2a1709] px-4 py-2 text-xs font-extrabold text-sky-200 shadow transition hover:bg-[#3e220e]"
-              >
-                <span>
-                  {cardsSearchExpanded
-                    ? tr('▲ 대표 전설 12장 요약 보기', '▲ Show 12 Signature Aces')
-                    : tr('+ 전체 382장 검색 · 필터 펼치기 ▼', '+ Search All 382 Cards ▼')}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* DEV-053(2): Clear Mode Fairness Scope Badge when 3x Awakening Simulator is Active */}
-          {showAwakened3x && (
-            <div
-              data-testid="promo-3x-fairness-badge"
-              className="mt-4 rounded-2xl border-2 border-emerald-500/75 bg-[#1a2e1f] px-4 py-2.5 text-center text-xs font-extrabold text-emerald-100 shadow"
-            >
-              {tr(
-                '⚔ [스토리 보스전 전용 3x 각성] 동일 카드 3장 보유 시 스토리모드에서 3배 폭증 | 🏆 [랭킹·도박장은 1x 공정 룰] 스탯 변화 0% · 리듬 터치는 골드 피버 전용',
-                '⚔ [Story Mode Exclusive 3x Awakening] 3+ copies multiply stats 3x in Story | 🏆 [Ranked & Bogart Fair 1x Rule] 0% stat change · Rhythm taps award Gold Fever only',
-              )}
-            </div>
-          )}
-
-          <div className={`${cardsSearchExpanded ? 'block' : 'hidden'} mt-7 rounded-2xl border-2 border-[#b88a44] bg-[#241409] p-4 text-amber-100 shadow-xl`}>
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="relative flex-1 max-w-md">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-300/70" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
+              <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-amber-500/20 pt-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterClass('ALL');
                     setVisibleLimit(12);
                   }}
-                  placeholder={tr(
-                    '카드명, 캐릭터명, 능력 키워드 검색 (예: 카단, 도발, 용족)',
-                    'Search card name, character, or keyword (e.g. Kadan, Taunt, Dragon)',
-                  )}
-                  className="w-full rounded-xl border border-amber-500/40 bg-black/50 py-2.5 pl-9 pr-9 text-sm font-bold text-amber-50 placeholder-amber-200/45 focus:border-amber-300 focus:outline-none"
-                />
-                {searchQuery.length > 0 && (
+                  className={`min-h-[34px] rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
+                    filterClass === 'ALL'
+                      ? 'bg-sky-500 text-white'
+                      : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
+                  }`}
+                >
+                  {tr('전체 (382)', 'All (382)')}
+                </button>
+                {HERO_CLASS_ORDER.map((cls) => (
                   <button
-                    type="button"
-                    data-testid="promo-card-search-clear"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setVisibleLimit(12);
-                    }}
-                    aria-label={tr('검색어 지우기', 'Clear search')}
-                    className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-amber-500/25 text-xs font-black text-amber-200 hover:bg-amber-500/50"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-1.5">
-                {(
-                  [
-                    { id: 'ALL', ko: '전체 등급', en: 'All Rarities' },
-                    { id: 'LEGENDARY', ko: '전설', en: 'Legendary' },
-                    { id: 'EPIC', ko: '특급', en: 'Epic' },
-                    { id: 'RARE', ko: '희귀', en: 'Rare' },
-                    { id: 'COMMON', ko: '일반', en: 'Common' },
-                    { id: 'FREE', ko: '기본', en: 'Basic' },
-                  ] as const
-                ).map((r) => (
-                  <button
-                    key={r.id}
+                    key={cls}
                     type="button"
                     onClick={() => {
-                      setFilterRarity(r.id);
+                      setFilterClass(cls);
                       setVisibleLimit(12);
                     }}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
-                      filterRarity === r.id
-                        ? 'bg-amber-500 text-[#1b0f05]'
+                    className={`inline-flex min-h-[34px] items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
+                      filterClass === cls
+                        ? 'bg-sky-500 text-white'
                         : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
                     }`}
                   >
-                    {isKo ? r.ko : r.en}
+                    <img src={CLASS_CREST_URL[cls]} alt="" className="h-4 w-4 rounded-full" />
+                    <span>{getLocalizedHeroInfo(cls, lang).className}</span>
                   </button>
                 ))}
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-1.5 border-t border-amber-500/20 pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setFilterClass('ALL');
-                  setVisibleLimit(12);
-                }}
-                className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
-                  filterClass === 'ALL'
-                    ? 'bg-sky-500 text-white'
-                    : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
-                }`}
-              >
-                {tr('전체 (382)', 'All (382)')}
-              </button>
-              {HERO_CLASS_ORDER.map((cls) => (
                 <button
-                  key={cls}
                   type="button"
                   onClick={() => {
-                    setFilterClass(cls);
+                    setFilterClass('NEUTRAL');
                     setVisibleLimit(12);
                   }}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-extrabold transition ${
-                    filterClass === cls
+                  className={`inline-flex min-h-[34px] items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
+                    filterClass === 'NEUTRAL'
                       ? 'bg-sky-500 text-white'
                       : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
                   }`}
                 >
-                  <img src={CLASS_CREST_URL[cls]} alt="" className="h-4 w-4 rounded-full" />
-                  <span>{getLocalizedHeroInfo(cls, lang).className}</span>
+                  <img src={CLASS_CREST_URL.NEUTRAL} alt="" className="h-4 w-4 rounded-full" />
+                  <span>{tr('중립 (157)', 'Neutral (157)')}</span>
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => {
-                  setFilterClass('NEUTRAL');
-                  setVisibleLimit(12);
-                }}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-extrabold transition ${
-                  filterClass === 'NEUTRAL'
-                    ? 'bg-sky-500 text-white'
-                    : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
-                }`}
-              >
-                <img src={CLASS_CREST_URL.NEUTRAL} alt="" className="h-4 w-4 rounded-full" />
-                <span>{tr('중립 (157)', 'Neutral (157)')}</span>
-              </button>
-            </div>
+              </div>
 
-            {/* Mana Cost Filter Bar (BLD-2707) */}
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-amber-500/20 pt-2.5">
-              <span className="mr-1 text-[11px] font-extrabold text-sky-300">
-                {tr('마나 코스트:', 'Mana Cost:')}
-              </span>
-              <button
-                type="button"
-                data-testid="promo-mana-filter-ALL"
-                onClick={() => {
-                  setFilterMana('ALL');
-                  setVisibleLimit(12);
-                }}
-                className={`rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
-                  filterMana === 'ALL'
-                    ? 'bg-sky-500 text-white'
-                    : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
-                }`}
-              >
-                {tr('전체', 'All')}
-              </button>
-              {[0, 1, 2, 3, 4, 5, 6, 7].map((m) => (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-amber-500/20 pt-2">
+                <span className="mr-1 text-[11px] font-extrabold text-sky-300">
+                  {tr('마나:', 'Mana:')}
+                </span>
                 <button
-                  key={m}
                   type="button"
-                  data-testid={`promo-mana-filter-${m}`}
+                  data-testid="promo-mana-filter-ALL"
                   onClick={() => {
-                    setFilterMana(m);
+                    setFilterMana('ALL');
                     setVisibleLimit(12);
                   }}
-                  className={`min-w-[30px] rounded-lg px-2 py-1 text-xs font-extrabold transition ${
-                    filterMana === m
+                  className={`min-h-[30px] rounded-lg px-2.5 py-0.5 text-xs font-extrabold transition ${
+                    filterMana === 'ALL'
                       ? 'bg-sky-500 text-white'
                       : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
                   }`}
                 >
-                  {m === 7 ? '7+' : m}
+                  {tr('전체', 'All')}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {cardsLoading ? (
-            <div className="py-16 text-center text-sm font-extrabold text-[#5c3a1a]">
-              {tr('382종 눈히어로 카드 데이터를 불러오는 중입니다...', 'Loading 382 SNSHero cards...')}
-            </div>
-          ) : displayedCards.length === 0 ? (
-            <div className="mt-8 rounded-2xl border-2 border-dashed border-[#a67c3b] bg-[#fbf1da]/70 py-14 text-center">
-              <p className="text-base font-extrabold text-[#3c230d]">
-                {tr('조건에 맞는 카드가 없습니다.', 'No cards match your current filters.')}
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setFilterClass('ALL');
-                  setFilterRarity('ALL');
-                  setFilterMana('ALL');
-                  setSearchQuery('');
-                }}
-                className="hs-promo-cta-teal mt-4 rounded-full px-5 py-2 text-xs font-extrabold"
-              >
-                {tr('필터 초기화', 'Reset Filters')}
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-12 pt-4 sm:gap-x-8 sm:gap-y-14">
-                {displayedCards.map((c) => (
-                  <PromoCard
-                    key={c.id}
-                    card={c}
-                    isGolden={showGolden}
-                    journeyMultiplier={
-                      showAwakened3x && (c.type === 'MINION' || c.type === 'WEAPON') ? 3 : 1
-                    }
-                    onClick={setZoomedCard}
-                    size="md"
-                  />
-                ))}
-              </div>
-
-              <div className="mt-10 flex flex-col items-center gap-3">
-                <div className="text-xs font-extrabold text-[#5c3a1a]">
-                  {tr(
-                    `현재 ${displayedCards.length}장 / 검색 결과 총 ${filteredCards.length}장 표시 중`,
-                    `Showing ${displayedCards.length} of ${filteredCards.length} matching cards`,
-                  )}
-                </div>
-                {visibleLimit < filteredCards.length && (
+                {[0, 1, 2, 3, 4, 5, 6, 7].map((m) => (
                   <button
+                    key={m}
                     type="button"
-                    onClick={() => setVisibleLimit((n) => n + 12)}
-                    className="hs-promo-cta-teal rounded-full px-7 py-2.5 text-sm font-extrabold"
-                  >
-                    {tr('카드 더 보기 (+12장)', 'Load More Cards (+12)')}
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          8. Game Modes Section
-      ===================================================================== */}
-      <section id="modes" className="hs-promo-tavern py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-amber-400">
-              {tr('플레이 방식', 'WAYS TO PLAY')}
-            </div>
-            <h2 className="promo-outline mt-1.5 text-3xl font-black text-white sm:text-5xl">
-              {tr('3대 핵심 게임 모드', '3 Signature Game Modes')}
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-amber-100/80 sm:text-base">
-              {tr(
-                '40부작 성우 풀보이스 스토리모드, 실시간 도전자가 매칭되어 공식 전적에 단독 기록되는 온라인형 랭킹대전, 그리고 1~1,000G 슬라이드 베팅과 양측 100% 랜덤덱으로 진검승부를 펼치는 보가트 도박장까지 완벽한 재미를 경험하세요!',
-                "Experience the 40-Episode voiced Story Mode, live-challenger Ranked Arena (sole Official Record), and Bogart's 1–1,000G Slider & 100% Random-Deck Gambling Hall!",
-              )}
-            </p>
-          </div>
-
-          <div className="mt-12 space-y-12">
-            {/* Mode 1: 40-Episode Story Mode */}
-            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-              <div className="lg:col-span-6">
-                <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
-                  <img
-                    src="/hs-assets/screenshots/ingame_story_theater.png?v=20261116"
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-video w-full object-cover"
-                  />
-                </div>
-              </div>
-              <div className="lg:col-span-6">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-300">
-                  {tr('40화 풀보이스 극장 · 3장=3배 각성 · 무한 환생', '40-EP Story Theater · 3x Awakening · Reincarnation')}
-                </div>
-                <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  {tr('스토리모드 (카단의 여정 40부작)', "Story Mode (40-EP Kadan's Journey)")}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
-                  {tr(
-                    '1화 엘윈마을의 습격부터 40화 최종 결전까지! 5컷 웹툰과 성우 내레이션 극장·고화질 상반신 대사 연출을 감상하고 원작 보스와 결투하세요. 보유한 동일 카드 3장이 3배로 각성하는 여정 전용 법칙과 매 5화 보스 팩 보상, 무한 환생 모드가 기다립니다.',
-                    'Battle from Episode 1 through the Episode 40 finale with voiced theater cutscenes, 3-Copy = 3x Awakening stats, Boss Packs every 5 episodes, and Infinite Reincarnation.',
-                  )}
-                </p>
-                <div className="mt-3 inline-flex items-center rounded-full border border-emerald-300/65 bg-emerald-950/85 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
-                  {tr('리듬 오토: 스토리 턴당 1회 1.5x·2.0x 성소 버스트 & 보스 패링', 'Rhythm Auto: 1/Turn 1.5x·2.0x Sanctuary Burst & Boss Parry')}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-emerald-400/50 bg-emerald-950/70 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
-                    {tr('3장=3배 각성', '3-Copy 3x Awakening')}
-                  </span>
-                  <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
-                    {tr('매 5화 보스팩 +1', '+1 Boss Pack / 5 EP')}
-                  </span>
-                  <span className="rounded-full border border-amber-400/50 bg-amber-950/70 px-3 py-1 text-[11px] font-extrabold text-amber-200">
-                    {tr('40화 완주 +300G & 3팩 + 무한 환생', 'EP.40 +300G & 3 Packs')}
-                  </span>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <a
-                    href="/game?mode=story&ep=1&rhythm=on&utm_source=promo_mode_story"
-                    className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-                  >
-                    <span>{tr('스토리 1화 바로 출격', 'Start Story Mode')}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Mode 2: Online-Style Ranked Arena (Sole Official Record) */}
-            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-              <div className="order-2 lg:order-1 lg:col-span-6">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-sky-300">
-                  {tr('실시간 도전자 매칭 · 도발 심리전 · 공식 전적 단독 집계', 'Live Challenger Matchmaking · Emote Mindgames · Sole Official Stats')}
-                </div>
-                <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  {tr('온라인형 랭킹대전 (공식 전적)', 'Ranked Arena (Official Record)')}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
-                  {tr(
-                    '매칭 탐색과 함께 고유 호칭·뱃지·티어 액자를 장착한 실시간 도전자가 매칭됩니다! 전설 등판·킬각 등 전황에 반응하는 생생한 도발 말풍선과 6종 감정표현 응수(차단 지원)로 짜릿한 심리전을 즐기세요. 내 프로필의 공식 승/패·승률·연승은 오직 랭킹대전 결과만 순수하게 반영됩니다.',
-                    'Match against live-style challengers sporting custom Titles, Badges, and Tier frames! Exchange tactical emotes (with 1-tap Mute) under fair 1x rules—the sole mode counted toward your Official Ranked Record.',
-                  )}
-                </p>
-                <div className="mt-3 inline-flex items-center rounded-full border border-sky-300/65 bg-sky-950/85 px-3 py-1 text-[11px] font-extrabold text-sky-200">
-                  {tr('리듬 오토: 공정 1x 스탯 불변 · 장착 치장 공명 & 골드 피버', 'Rhythm Auto: Fair 1x (0% Stat Change) · Prestige Glow & Gold Fever')}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-sky-400/50 bg-sky-950/70 px-3 py-1 text-[11px] font-extrabold text-sky-200">
-                    {tr('공식 승률·연승 단독 집계', 'Exclusive Official Record')}
-                  </span>
-                  <span className="rounded-full border border-amber-400/50 bg-amber-950/70 px-3 py-1 text-[11px] font-extrabold text-amber-200">
-                    {tr('실시간 도발 & 6종 감정표현', 'Live Taunts & 6 Emotes')}
-                  </span>
-                  <span className="rounded-full border border-yellow-400/50 bg-yellow-950/70 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
-                    {tr('1승 +25G · 3승마다 +30G', '+25G/Win · +30G/3 Wins')}
-                  </span>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <a
-                    href="/game?mode=ranked&utm_source=promo_mode_ranked"
-                    className="hs-promo-cta-teal-dark inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-                  >
-                    <span>{tr('실시간 도전자 랭킹 매칭', 'Enter Ranked Arena')}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-              <div className="order-1 lg:order-2 lg:col-span-6">
-                <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
-                  <img
-                    src={
-                      isKo
-                        ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
-                        : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116'
-                    }
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-video w-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mode 3: Bogart's Gambling Hall (Narration Warning + 1~1,000G Slider + 100% Random Deck) */}
-            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-              <div className="lg:col-span-6">
-                <div className="hs-promo-gold-frame overflow-hidden rounded-2xl bg-black">
-                  <img
-                    data-testid="promo-mode-bogart-img"
-                    src={
-                      isKo
-                        ? '/hs-assets/screenshots/ingame_bogart_slider_ko.webp'
-                        : '/hs-assets/screenshots/ingame_bogart_slider_en.webp'
-                    }
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-video w-full object-cover"
-                  />
-                </div>
-              </div>
-              <div className="lg:col-span-6">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-yellow-300">
-                  {tr('보가트 위험 경고 나레이션 · 1~1,000G 슬라이드 베팅 · 100% 랜덤덱', 'Bogart Loss-Risk Narration · 1–1,000G Slider Bet · 100% Random Deck')}
-                </div>
-                <h3 className="mt-1.5 text-2xl font-black text-white sm:text-3xl">
-                  {tr('보가트 도박장 (랜덤덱 판돈전)', "Bogart's Gambling Hall (Random-Deck Stakes)")}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
-                  {tr(
-                    '입장 즉시 고블린 도박왕 보가트가 상반신 나레이션으로 도박장 골드 손실 위험을 경고합니다! 1G부터 1,000G까지 슬라이드로 원하는 만큼 자유롭게 베팅액을 조정하고 옆의 [베팅 시작] 버튼을 누르면, 매 판 예측불허 30장 랜덤덱으로 승부가 펼쳐집니다. 승리 시 판돈 2배 상금을 획득해 인게임 스크린샷이 제공되는 4대 황금 명예 보상품을 장착하세요!',
-                    "Upon entry, Goblin Gambling King Bogart greets you in an upper-body narration scene warning of Gold loss risk! Slide freely from 1G to 1,000G, hit the adjacent [Start Bet] button, and clash with unpredictable freshly dealt 30-card Random Decks. Double your pot on victory and unlock 4 Gold Prestige cosmetics with live in-game previews!",
-                  )}
-                </p>
-                <div className="mt-3 inline-flex items-center rounded-full border border-yellow-300/65 bg-amber-950/85 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
-                  {tr('리듬 오토: 공정 1x 스탯 불변 · 골드 피버 → 치장품 해금 가속', 'Rhythm Auto: Fair 1x (0% Stat Change) · Gold Fever Unlocks Cosmetics Faster')}
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-rose-400/60 bg-rose-950/80 px-3 py-1 text-[11px] font-extrabold text-rose-200">
-                    ⚠️ {tr('입장 시 보가트 손실 위험 경고', 'Bogart Loss-Risk Warning')}
-                  </span>
-                  <span className="rounded-full border border-yellow-400/60 bg-amber-950/80 px-3 py-1 text-[11px] font-extrabold text-yellow-200">
-                    🎚 {tr('1~1,000G 슬라이드 & 즉시 베팅', '1–1,000G Slider & Instant Bet')}
-                  </span>
-                  <span className="rounded-full border border-emerald-400/50 bg-emerald-950/70 px-3 py-1 text-[11px] font-extrabold text-emerald-200">
-                    🎲 {tr('양측 100% 랜덤 30장 덱 · 2배 상금', '100% Random 30-Card Decks · 2x Pot')}
-                  </span>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <a
-                    href={`/game?mode=bogart&stake=${promoPreviewStake}&utm_source=promo_mode_gamble`}
-                    className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-                  >
-                    <span>{tr('보가트 도박장 바로 입장', "Enter Bogart's Hall")}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          8-B. DEV-029 / ISS-004: Bogart's Gambling Hall & Gold Prestige Collection Showcase (#gold-economy)
-      ===================================================================== */}
-      <section
-        id="gold-economy"
-        data-testid="promo-gold-economy-section"
-        className="relative overflow-hidden bg-gradient-to-b from-[#0b1636] via-[#091229] to-[#120b05] py-16 sm:py-24"
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-yellow-300/60 bg-amber-950/75 px-4 py-1 text-xs font-extrabold tracking-widest text-yellow-200">
-              <span>🎲</span>
-              <span>BOGART&apos;S HALL &amp; GOLD PRESTIGE COLLECTION</span>
-            </div>
-            <h2 className="promo-outline mt-2 text-3xl font-black text-white sm:text-5xl">
-              {tr('보가트 도박장 가이드 & 황금 주화 컬렉션', "Bogart's Hall Guide & Gold Prestige Economy")}
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-sky-100/90 sm:text-base">
-              {tr(
-                '보가트의 손실 위험 경고 나레이션부터 1~1,000G 자유 슬라이드 베팅, 예측불허 30장 랜덤덱 진검승부, 그리고 실제 인게임 적용 스크린샷으로 확인하는 4대 황금 명예 보상품까지 한눈에 살펴보세요!',
-                "Explore Bogart's loss-risk narration scene, 1–1,000G free slider betting, unpredictable 30-card Random-Deck duels, and 4 Gold Prestige cosmetics with real in-game applied screenshots!",
-              )}
-            </p>
-          </div>
-
-          {/* 3-Step Visual Guide with Real In-Game Screenshots (KO / EN Branched) */}
-          <div
-            data-testid="promo-bogart-screenshots-grid"
-            className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3"
-          >
-            {[
-              {
-                step: 'STEP 01',
-                badge: tr('⚠️ 손실 위험 경고 나레이션', '⚠️ Loss-Risk Narration'),
-                title: tr('보가트 상반신 입장 경고씬', 'Bogart Upper-Body Warning Scene'),
-                desc: tr(
-                  '도박장 입장 시 고블린 도박왕 보가트가 상반신 일러스트와 함께 등장해 패배 시 베팅 골드가 손실될 수 있음을 사전 경고합니다.',
-                  'Goblin Gambling King Bogart appears waist-up on entry to warn that losing forfeits your staked Gold.',
-                ),
-                img: isKo
-                  ? '/hs-assets/screenshots/ingame_bogart_narration_ko.webp'
-                  : '/hs-assets/screenshots/ingame_bogart_narration_en.webp',
-              },
-              {
-                step: 'STEP 02',
-                badge: tr('🎚 1~1,000G 슬라이드 & 원클릭', '🎚 1–1,000G Slider & 1-Tap Bet'),
-                title: tr('자유 슬라이드 & [베팅 시작]', '1–1,000G Slider & [Start Bet]'),
-                desc: tr(
-                  '1G부터 최대 1,000G까지 슬라이드로 세밀하게 판돈을 조절하고 바로 옆 [베팅 시작] 버튼을 누르면 즉시 승부가 시작됩니다.',
-                  'Slide smoothly from 1G to 1,000G and tap the adjacent [Start Bet] button to launch right into battle.',
-                ),
-                img: isKo
-                  ? '/hs-assets/screenshots/ingame_bogart_slider_ko.webp'
-                  : '/hs-assets/screenshots/ingame_bogart_slider_en.webp',
-              },
-              {
-                step: 'STEP 03',
-                badge: tr('🎲 미러덱 폐지 · 100% 랜덤덱', '🎲 100% Random 30-Card Decks'),
-                title: tr('예측불허 30장 랜덤덱 진검승부', 'Unpredictable Random-Deck Duel'),
-                desc: tr(
-                  '뻔한 미러덱 대신 매 판 양측 모두 완전히 새로운 30장 랜덤덱을 배분받아 임기응변 실력으로 판돈 2배 상금을 노립니다.',
-                  'Both players receive freshly drafted, independent 30-card Random Decks every match—win to claim 2x Gold!',
-                ),
-                img: isKo
-                  ? '/hs-assets/screenshots/ingame_bogart_battle_ko.webp'
-                  : '/hs-assets/screenshots/ingame_bogart_battle_en.webp',
-              },
-            ].map((guide) => (
-              <div
-                key={guide.step}
-                className="flex flex-col overflow-hidden rounded-2xl border-2 border-amber-300/55 bg-stone-950/90 shadow-2xl"
-              >
-                <div className="relative aspect-video w-full overflow-hidden bg-black">
-                  <img
-                    src={guide.img}
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                  <span className="absolute left-2.5 top-2.5 rounded-full border border-yellow-300/80 bg-black/80 px-2.5 py-0.5 text-[10px] font-black tracking-wider text-yellow-300">
-                    {guide.step}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col justify-between p-4">
-                  <div>
-                    <div className="text-[11px] font-extrabold text-amber-300">{guide.badge}</div>
-                    <h3 className="mt-1 text-base font-black text-white sm:text-lg">{guide.title}</h3>
-                    <p className="mt-1.5 text-xs font-semibold leading-relaxed text-amber-100/85">
-                      {guide.desc}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Interactive 1~1,000G Stake Simulator Bar */}
-          <div className="mt-8 rounded-3xl border-2 border-yellow-300/65 bg-[#0f224c]/90 p-5 shadow-2xl sm:p-7">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div className="text-xs font-extrabold uppercase tracking-wider text-yellow-300">
-                  🎲 {tr('1~1,000G 슬라이드 시뮬레이터 · 양측 100% 랜덤 30장 덱', '1–1,000G Slider Simulator · 100% Random 30-Card Decks')}
-                </div>
-                <div className="mt-1 text-xl font-black text-white sm:text-2xl">
-                  {tr(
-                    `판돈 ${promoPreviewStake.toLocaleString()}G 베팅 시 → 승리 즉시 +${(promoPreviewStake * 2).toLocaleString()}G 수령!`,
-                    `Wager ${promoPreviewStake.toLocaleString()}G → Win +${(promoPreviewStake * 2).toLocaleString()}G Instant Pot!`,
-                  )}
-                </div>
-                <div className="mt-0.5 text-xs font-bold text-rose-200/90">
-                  ⚠️ {tr(`주의: 패배 시 베팅한 ${promoPreviewStake.toLocaleString()}G가 차감됩니다 (100G 미만 시 요정 샘 +150G 구호 지원)`, `Note: Losing forfeits your ${promoPreviewStake.toLocaleString()}G stake (+150G Fairy Relief available under 100G)`)}
-                </div>
-              </div>
-
-              <div className="flex w-full max-w-md items-center gap-3">
-                <div className="flex-1 rounded-2xl border border-amber-300/45 bg-stone-950/85 px-3.5 py-2.5">
-                  <input
-                    type="range"
-                    min={1}
-                    max={1000}
-                    step={1}
-                    value={Math.min(1000, Math.max(1, promoPreviewStake))}
-                    onChange={(e) => setPromoPreviewStake(Number(e.target.value) || 1)}
-                    aria-label={tr('프로모션 베팅 시뮬레이터 슬라이더', 'Promo Stake Simulator Slider')}
-                    className="h-2.5 w-full cursor-pointer accent-yellow-400"
-                  />
-                  <div className="mt-1 flex justify-between text-[10px] font-extrabold text-amber-200/80">
-                    <span>1G</span>
-                    <span>250G</span>
-                    <span>500G</span>
-                    <span>750G</span>
-                    <span>1,000G</span>
-                  </div>
-                </div>
-                <a
-                  href={`/game?mode=bogart&stake=${promoPreviewStake}&utm_source=promo_slider_bet`}
-                  data-testid="promo-slider-start-bet-btn"
-                  className="hs-promo-cta-purple inline-flex min-h-[52px] shrink-0 items-center justify-center rounded-2xl px-4 py-2 text-xs font-black sm:text-sm"
-                >
-                  {tr(`베팅 시작 (${promoPreviewStake}G)`, `Start Bet (${promoPreviewStake}G)`)}
-                </a>
-              </div>
-            </div>
-
-            {/* DEV-055(2): 4 Gold Prestige Collectibles Grid — 1-Tap Live Kadan Equip Preview & Category Shop Deep Link */}
-            <div className="mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-              {(
-                [
-                  {
-                    id: 'badge' as const,
-                    title: tr('프로필 뱃지', 'Profile Badges'),
-                    where: tr('광장 상단 & 영웅 초상화 문장', 'Hub Top & Hero Portrait Crest'),
-                    img: isKo
-                      ? '/hs-assets/prestige/preview_badge_ko.webp'
-                      : '/hs-assets/prestige/preview_badge_en.webp',
-                    price: '300G ~ 2,500G',
-                  },
-                  {
-                    id: 'frame' as const,
-                    title: tr('카드 프레임 디자인', 'Card Frame Designs'),
-                    where: tr('손패·전장·카드첩 외곽 테두리', 'Hand, Board & Collection Card Rim'),
-                    img: isKo
-                      ? '/hs-assets/prestige/preview_frame_ko.webp'
-                      : '/hs-assets/prestige/preview_frame_en.webp',
-                    price: '500G ~ 3,000G',
-                  },
-                  {
-                    id: 'cardback' as const,
-                    title: tr('카드 뒷면 스킨', 'Card Back Skins'),
-                    where: tr('팩 개봉 · 멀리건 · 덱 더미 스킨', 'Pack, Mulligan & Deck Stack Back'),
-                    img: isKo
-                      ? '/hs-assets/prestige/preview_cardback_ko.webp'
-                      : '/hs-assets/prestige/preview_cardback_en.webp',
-                    price: '800G ~ 1,800G',
-                  },
-                  {
-                    id: 'title' as const,
-                    title: tr('캐릭터 호칭', 'Character Titles'),
-                    where: tr('전장 영웅 상단 황금 〈호칭〉 리본', 'Battle Hero Overhead <Title> Ribbon'),
-                    img: isKo
-                      ? '/hs-assets/prestige/preview_title_ko.webp'
-                      : '/hs-assets/prestige/preview_title_en.webp',
-                    price: '400G ~ 3,500G',
-                  },
-                ]
-              ).map((item) => {
-                const isSelected = selectedPrestigeCat === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    data-testid={`promo-prestige-card-${item.id}`}
-                    onClick={() => setSelectedPrestigeCat(item.id)}
-                    className={`flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border-2 text-left transition ${
-                      isSelected
-                        ? 'scale-[1.02] border-yellow-300 bg-amber-950/65 shadow-[0_0_20px_rgba(250,204,21,0.45)]'
-                        : 'border-amber-300/40 bg-stone-950/90 hover:border-amber-300'
+                    data-testid={`promo-mana-filter-${m}`}
+                    onClick={() => {
+                      setFilterMana(m);
+                      setVisibleLimit(12);
+                    }}
+                    className={`min-h-[30px] min-w-[30px] rounded-lg px-2 py-0.5 text-xs font-extrabold transition ${
+                      filterMana === m
+                        ? 'bg-sky-500 text-white'
+                        : 'bg-black/40 text-amber-200/80 hover:bg-amber-950'
                     }`}
                   >
-                    <div className="relative h-32 w-full overflow-hidden bg-black">
+                    {m === 7 ? '7+' : m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {cardsLoading ? (
+              <div className="py-12 text-center text-sm font-extrabold text-[#5c3a1a]">
+                {tr('카드 데이터를 불러오는 중...', 'Loading cards...')}
+              </div>
+            ) : displayedCards.length === 0 ? (
+              <div className="mt-6 rounded-2xl border-2 border-dashed border-[#a67c3b] bg-[#fbf1da]/70 py-10 text-center">
+                <p className="text-sm font-extrabold text-[#3c230d]">
+                  {tr('조건에 맞는 카드가 없습니다.', 'No matching cards found.')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterClass('ALL');
+                    setFilterRarity('ALL');
+                    setFilterMana('ALL');
+                    setSearchQuery('');
+                  }}
+                  className="hs-promo-cta-teal mt-3 min-h-[40px] rounded-full px-5 py-2 text-xs font-extrabold"
+                >
+                  {tr('필터 초기화', 'Reset Filters')}
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-10 pt-3 sm:gap-x-8 sm:gap-y-12">
+                  {displayedCards.map((c) => (
+                    <PromoCard
+                      key={c.id}
+                      card={c}
+                      isGolden={showGolden}
+                      journeyMultiplier={
+                        showAwakened3x && (c.type === 'MINION' || c.type === 'WEAPON') ? 3 : 1
+                      }
+                      onClick={setZoomedCard}
+                      size="md"
+                    />
+                  ))}
+                </div>
+
+                <div className="mt-8 flex flex-col items-center gap-2.5">
+                  <div className="text-xs font-extrabold text-[#5c3a1a]">
+                    {tr(
+                      `${displayedCards.length} / ${filteredCards.length}장 표시`,
+                      `${displayedCards.length} / ${filteredCards.length} cards`,
+                    )}
+                  </div>
+                  {visibleLimit < filteredCards.length && (
+                    <button
+                      type="button"
+                      onClick={() => setVisibleLimit((n) => n + 12)}
+                      className="hs-promo-cta-teal min-h-[44px] rounded-full px-7 py-2.5 text-sm font-extrabold"
+                    >
+                      {tr('카드 더 보기 (+12장)', 'Load More (+12)')}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
+        <div className="hs-promo-divider" />
+
+        {/* =====================================================================
+            9. 3 Signature Game Modes (#modes — Concise 3-Column Grid)
+        ===================================================================== */}
+        <section id="modes" className="hs-promo-tavern py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center">
+              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-amber-400">
+                GAME MODES
+              </div>
+              <h2 className="promo-outline mt-1 text-2xl font-black text-white sm:text-4xl">
+                {tr('3대 핵심 게임 모드', '3 Core Game Modes')}
+              </h2>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+              {[
+                {
+                  id: 'story',
+                  badge: tr('풀보이스 · 3장=3배 각성', 'Voiced · 3x Awakening'),
+                  title: tr('스토리모드 (40부작)', 'Story Mode (40 EPs)'),
+                  desc: tr(
+                    '5컷 웹툰 극장과 함께 40명의 원작 보스를 격파하세요. 5화마다 보스 팩이 지급됩니다.',
+                    'Clear 40 voiced story bosses with 3x Awakened cards and earn Boss Packs every 5 episodes.',
+                  ),
+                  img: '/hs-assets/screenshots/ingame_story_theater.png?v=20261116',
+                  href: '/game?mode=story',
+                  cta: tr('스토리 출격', 'Play Story'),
+                },
+                {
+                  id: 'ranked',
+                  badge: tr('공정 1배 룰 · 공식 전적', 'Fair 1x · Official Ladder'),
+                  title: tr('온라인형 랭킹대전', 'Ranked Arena'),
+                  desc: tr(
+                    '실시간 도전자와 정통 1배 룰로 겨루며, 오직 랭킹전 결과만 공식 승률·순위에 기록됩니다.',
+                    'Compete under fair 1x rules against live-style challengers to climb the Official Ladder.',
+                  ),
+                  img: isKo
+                    ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
+                    : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116',
+                  href: '/game?mode=ranked',
+                  cta: tr('랭킹전 입장', 'Enter Ranked'),
+                },
+                {
+                  id: 'bogart',
+                  badge: tr('1~1,000G 베팅 · 100% 랜덤덱', '1–1,000G Bet · Random Deck'),
+                  title: tr('보가트의 도박장', "Bogart's Hall"),
+                  desc: tr(
+                    '카드 보유량과 무관하게 매 판 30장 랜덤덱으로 승부하고 승리 시 판돈 2배 골드를 획득합니다.',
+                    'Wager 1–1,000G with 100% Random 30-Card Decks and win 2x Gold on victory.',
+                  ),
+                  img: isKo
+                    ? '/hs-assets/screenshots/ingame_bogart_slider_ko.webp'
+                    : '/hs-assets/screenshots/ingame_bogart_slider_en.webp',
+                  href: '/game?mode=bogart',
+                  cta: tr('도박장 입장', "Enter Bogart's Hall"),
+                },
+              ].map((m) => (
+                <div
+                  key={m.id}
+                  className="hs-promo-gold-frame flex flex-col justify-between overflow-hidden rounded-2xl bg-[#180f08]"
+                >
+                  <div>
+                    <div className="aspect-video w-full overflow-hidden bg-black">
                       <img
-                        src={item.img}
+                        src={m.img}
                         alt=""
                         aria-hidden="true"
                         loading="lazy"
                         decoding="async"
                         className="h-full w-full object-cover"
                       />
-                      <span className="absolute right-2 top-2 rounded-full border border-yellow-300/60 bg-black/80 px-2 py-0.5 text-[10px] font-extrabold text-yellow-300">
-                        {item.price}
-                      </span>
                     </div>
-                    <div className="p-3.5">
-                      <h3 className="text-sm font-black text-white sm:text-base">{item.title}</h3>
-                      <p className="mt-1 text-xs font-semibold text-amber-100/85">{item.where}</p>
+                    <div className="p-5">
+                      <div className="text-[11px] font-extrabold text-amber-300">{m.badge}</div>
+                      <h3 className="mt-1 text-lg font-black text-white sm:text-xl">{m.title}</h3>
+                      <p className="mt-2 text-xs leading-relaxed text-amber-100/85 sm:text-sm">
+                        {m.desc}
+                      </p>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Live Selected Prestige Kadan Equip Preview Strip */}
-            <div
-              data-testid="promo-prestige-live-preview"
-              className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-yellow-300/55 bg-stone-950/90 px-4 py-3 text-xs"
-            >
-              <div className="flex items-center gap-3">
-                <img
-                  src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
-                  alt=""
-                  aria-hidden="true"
-                  className={`h-12 w-12 rounded-xl object-cover object-top ${
-                    selectedPrestigeCat === 'frame'
-                      ? 'border-[3px] border-yellow-300 shadow-[0_0_16px_rgba(250,204,21,0.85)]'
-                      : selectedPrestigeCat === 'cardback'
-                        ? 'border-2 border-cyan-300 shadow-[0_0_14px_rgba(56,189,248,0.8)]'
-                        : 'border-2 border-amber-400'
-                  }`}
-                />
-                <div>
-                  <div className="font-black text-yellow-300">
-                    {selectedPrestigeCat === 'badge'
-                      ? tr('장착 프리뷰: [엘윈 성소 문장 뱃지] 카단 초상화 활성!', 'Live Preview: [Sanctuary Crest Badge] Equipped on Kadan!')
-                      : selectedPrestigeCat === 'frame'
-                        ? tr('장착 프리뷰: [24K 로얄 골드 카드 프레임] 리듬 공명 활성!', 'Live Preview: [24K Royal Gold Frame] Rhythm Glow Active!')
-                        : selectedPrestigeCat === 'cardback'
-                          ? tr('장착 프리뷰: [보가트 VIP 황금주화 뒷면] 덱 스킨 활성!', 'Live Preview: [Bogart VIP Gold Card Back] Equipped!')
-                          : tr('장착 프리뷰: 카단 〈보가트 도박장 승부사〉 황금 호칭 활성!', 'Live Preview: Kadan <Bogart Hall High-Roller> Title Active!')}
                   </div>
-                  <div className="mt-0.5 text-[11px] font-semibold text-amber-100/80">
-                    {tr('인게임 리듬 오토(1.5x·2.0x) 정박 성공 시 장착 치장품이 황금빛으로 공명합니다!', 'Equipped Prestige items resonate with golden light on 1.5x·2.0x Rhythm Auto hits!')}
+                  <div className="px-5 pb-5">
+                    <a
+                      href={m.href}
+                      className="hs-promo-cta-purple inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-full px-5 py-2 text-xs font-extrabold sm:text-sm"
+                    >
+                      <span>{m.cta}</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="hs-promo-divider" />
+
+        {/* =====================================================================
+            10. Gold Prestige Cosmetics (#gold-economy — Clean 4-Card Showcase)
+        ===================================================================== */}
+        <section
+          id="gold-economy"
+          data-testid="promo-gold-economy-section"
+          className="bg-gradient-to-b from-[#0b1636] to-[#120b05] py-12 sm:py-16"
+        >
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center">
+              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-yellow-300">
+                GOLD PRESTIGE SHOP
               </div>
+              <h2 className="promo-outline mt-1 text-2xl font-black text-white sm:text-4xl">
+                {tr('황금 주화 명예 컬렉션', 'Gold Prestige Cosmetics')}
+              </h2>
+              <p className="mx-auto mt-2 max-w-xl text-xs font-bold text-sky-100/85 sm:text-sm">
+                {tr(
+                  '게임 플레이로 모은 골드로 전용 프로필 뱃지·24K 프레임·카드 뒷면·칭호를 해금하세요.',
+                  'Spend earned Gold on exclusive Profile Badges, 24K Frames, Card Backs, and Titles.',
+                )}
+              </p>
+            </div>
+
+            <div className="mt-7 grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+              {[
+                {
+                  id: 'badge',
+                  title: tr('명예 프로필 뱃지', 'Prestige Badges'),
+                  price: '300G~',
+                  where: tr('영웅 초상화 장착', 'Hero Portrait Pin'),
+                  img: isKo
+                    ? '/hs-assets/screenshots/ingame_prestige_shop_ko.webp'
+                    : '/hs-assets/screenshots/ingame_prestige_shop_en.webp',
+                },
+                {
+                  id: 'frame',
+                  title: tr('24K 카드 프레임', '24K Card Frames'),
+                  price: '500G~',
+                  where: tr('전장·로비 테두리', 'Board & Hub Frame'),
+                  img: isKo
+                    ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
+                    : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116',
+                },
+                {
+                  id: 'cardback',
+                  title: tr('황금 카드 뒷면', 'Gold Card Backs'),
+                  price: '800G~',
+                  where: tr('덱·패 뒷면 스킨', 'Deck & Hand Skin'),
+                  img: '/hs-assets/screenshots/ingame_pack_altar.png?v=20261116',
+                },
+                {
+                  id: 'title',
+                  title: tr('전용 황금 칭호', 'Exclusive Titles'),
+                  price: '400G~',
+                  where: tr('닉네임 상단 표시', 'Displayed on Profile'),
+                  img: isKo
+                    ? '/hs-assets/screenshots/ingame_bogart_battle_ko.webp'
+                    : '/hs-assets/screenshots/ingame_bogart_battle_en.webp',
+                },
+              ].map((item) => (
+                <a
+                  key={item.id}
+                  href={`/game?tab=shop&category=${item.id}`}
+                  className="overflow-hidden rounded-2xl border border-amber-300/45 bg-stone-950/90 transition hover:-translate-y-1 hover:border-yellow-300"
+                >
+                  <div className="relative h-28 w-full overflow-hidden bg-black sm:h-32">
+                    <img
+                      src={item.img}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                    <span className="absolute right-2 top-2 rounded-full border border-yellow-300/60 bg-black/80 px-2 py-0.5 text-[10px] font-extrabold text-yellow-300">
+                      {item.price}
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="text-sm font-black text-white">{item.title}</h3>
+                    <p className="mt-0.5 text-[11px] font-semibold text-amber-100/80">
+                      {item.where}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="hs-promo-divider" />
+
+        {/* =====================================================================
+            11. Free 3-Pack Start Banner (#packs)
+        ===================================================================== */}
+        <section
+          id="packs"
+          style={{ backgroundImage: `url(${SNS_LOCATIONS.PACK_ALTAR})` }}
+          className="relative overflow-hidden bg-cover bg-center py-14 sm:py-20"
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, rgba(251, 191, 36, 0.2) 0%, rgba(16, 9, 4, 0.86) 68%, rgba(8, 5, 2, 0.96) 100%)',
+            }}
+          />
+          <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-4 text-center sm:px-6">
+            <div className="mb-5 flex items-center justify-center gap-4 sm:gap-6">
+              <img
+                src={SNS_CARD_BACK_THEMES.silver.imageUrl}
+                alt={tr(SNS_CARD_BACK_THEMES.silver.name, 'Silver Guardian Card Back')}
+                className="hidden h-32 w-auto -rotate-12 rounded-xl shadow-2xl sm:block"
+              />
+              <div className="h-40 w-28 sm:h-44 sm:w-32">
+                <SnsBoosterPackArt glowing />
+              </div>
+              <img
+                src={SNS_CARD_BACK_THEMES.bronze.imageUrl}
+                alt={tr(SNS_CARD_BACK_THEMES.bronze.name, 'Elwin Bronze Card Back')}
+                className="hidden h-32 w-auto rotate-12 rounded-xl shadow-2xl sm:block"
+              />
+            </div>
+
+            <h2 className="promo-outline text-2xl font-black text-white sm:text-4xl">
+              {tr('지금 접속하고 무료 3팩을 개봉하세요!', 'Claim Your 3 Free Packs Today!')}
+            </h2>
+            <a
+              href="/game"
+              className="hs-promo-cta-purple mt-6 inline-flex min-h-[52px] items-center gap-2 rounded-full px-9 py-3.5 text-base font-extrabold tracking-wide sm:text-lg"
+            >
+              <Gamepad2 className="h-5 w-5" />
+              <span>{tr('엘윈마을 입장하기', 'Enter Elwin Village')}</span>
+            </a>
+          </div>
+        </section>
+
+        <div className="hs-promo-divider" />
+
+        {/* =====================================================================
+            12. Official Novel, Webtoon & Channels (#universe — All Visible)
+        ===================================================================== */}
+        <section id="universe" className="bg-[#0b101d] py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center">
+              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-sky-400">
+                SNSHERO UNIVERSE
+              </div>
+              <h2 className="mt-1 text-2xl font-black text-white sm:text-4xl">
+                {tr('공식 웹소설 · 웹툰 · 채널', 'Official Novel, Webtoon & Channels')}
+              </h2>
+            </div>
+
+            <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <a
-                href={`/game?tab=shop&category=${selectedPrestigeCat}&utm_source=promo_prestige_preview`}
-                data-testid="promo-prestige-category-cta"
-                className="hs-promo-cta-teal-dark shrink-0 rounded-full px-4 py-2 text-xs font-extrabold"
+                href="/book.html"
+                className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1 hover:border-amber-400/70"
               >
-                {tr('이 치장품 상점 탭 바로가기 →', 'Open This Shop Category →')}
+                <div className="aspect-[16/9] overflow-hidden bg-black">
+                  <img
+                    src="/webtoon-assets/episode_01/scene_04.webp"
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-sm font-extrabold text-white">
+                    <BookOpen className="h-4 w-4 text-amber-300" />
+                    <span>{tr('공식 웹소설 (1~40화)', 'Official 40-EP Web Novel')}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-300/80">
+                    {tr('전 회차 무료 열람', 'Read all 40 chapters free')}
+                  </p>
+                </div>
+              </a>
+
+              <a
+                href="/webtoon.html"
+                className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1 hover:border-amber-400/70"
+              >
+                <div className="aspect-[16/9] overflow-hidden bg-black">
+                  <img
+                    src="/webtoon-assets/episode_01/scene_14.webp"
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-sm font-extrabold text-white">
+                    <Layers className="h-4 w-4 text-sky-300" />
+                    <span>{tr('공식 풀컬러 웹툰', 'Official Full-Color Webtoon')}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-300/80">
+                    {tr('카단과 이그니스의 연대기', 'Illustrated fantasy series')}
+                  </p>
+                </div>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setMediaTheaterOpen(true)}
+                className="group cursor-pointer overflow-hidden rounded-2xl border border-amber-400/50 bg-[#12192c] text-left transition hover:-translate-y-1 hover:border-yellow-300"
+              >
+                <div className="aspect-[16/9] overflow-hidden bg-black">
+                  <img
+                    src="/webtoon-assets/episode_01/scene_01.webp"
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-sm font-extrabold text-amber-200">
+                    <Sparkles className="h-4 w-4 text-yellow-300" />
+                    <span>{tr('제1화 풀보이스 미리보기', 'EP.1 Voiced Preview')}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-300/80">
+                    {tr('5컷 웹툰 + 성우 내레이션 감상', '5 panels + studio voice sample')}
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs font-extrabold">
+              <a
+                href="https://novel.naver.com/challenge/list?novelId=1250635"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[38px] inline-flex items-center rounded-full border border-slate-700 bg-[#12192c] px-4 py-1.5 text-amber-100 transition hover:border-amber-300"
+              >
+                {tr('네이버 웹소설 ↗', 'Naver Novel ↗')}
+              </a>
+              <a
+                href="https://comic.naver.com/challenge/list?titleId=857363"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[38px] inline-flex items-center rounded-full border border-slate-700 bg-[#12192c] px-4 py-1.5 text-amber-100 transition hover:border-amber-300"
+              >
+                {tr('네이버 도전만화 ↗', 'Naver Webtoon ↗')}
+              </a>
+              <a
+                href="https://nlink.munpia.com/link/munpia/novel/616551"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[38px] inline-flex items-center rounded-full border border-slate-700 bg-[#12192c] px-4 py-1.5 text-amber-100 transition hover:border-amber-300"
+              >
+                {tr('문피아 ↗', 'Munpia ↗')}
+              </a>
+              <a
+                href={youtubePlaylistUrl}
+                data-testid="promo-youtube-channel-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[38px] inline-flex items-center rounded-full border border-slate-700 bg-[#12192c] px-4 py-1.5 text-amber-100 transition hover:border-amber-300"
+              >
+                {isKo ? 'YouTube (@snshero) ↗' : 'YouTube EN (@snshero) ↗'}
+              </a>
+              <a
+                href="https://github.com/Dayyoung/snshero"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[38px] inline-flex items-center rounded-full border border-slate-700 bg-[#12192c] px-4 py-1.5 text-amber-100 transition hover:border-amber-300"
+              >
+                {tr('GitHub 오픈소스 ↗', 'GitHub ↗')}
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* =====================================================================
+            Global Footer
+        ===================================================================== */}
+        <footer className="border-t border-amber-900/50 bg-[#151210] px-4 py-10 text-center text-xs text-stone-400">
+          <div className="mx-auto max-w-4xl">
+            <img
+              src={getSnsLogoUrl(lang)}
+              alt=""
+              aria-hidden="true"
+              className="mx-auto h-9 w-auto opacity-90"
+            />
+            <div className="mt-4 flex flex-wrap justify-center gap-4 font-bold text-stone-300">
+              <a href="/game" className="hover:text-amber-300">
+                {tr('게임 시작', 'Play Game')}
+              </a>
+              <a href="/game?mode=story" className="hover:text-amber-300">
+                {tr('스토리모드', 'Story Mode')}
+              </a>
+              <a href="/game?mode=ranked" className="hover:text-amber-300">
+                {tr('랭킹대전', 'Ranked Arena')}
+              </a>
+              <a href="/game?mode=bogart" className="hover:text-amber-300">
+                {tr('보가트 도박장', "Bogart's Hall")}
+              </a>
+              <a href="/wiki/tip" className="hover:text-amber-300">
+                {tr('공략집', 'Guide')}
+              </a>
+              <a href="/book.html" className="hover:text-amber-300">
+                {tr('웹소설', 'Novel')}
+              </a>
+              <a href="/webtoon.html" className="hover:text-amber-300">
+                {tr('웹툰', 'Webtoon')}
               </a>
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <div
+              data-testid="footer-language-switcher"
+              className="mt-4 flex items-center justify-center"
+            >
+              <div className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
+                <button
+                  type="button"
+                  data-testid="footer-lang-ko"
+                  onClick={() => setLang('ko')}
+                  className={`cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
+                    lang === 'ko'
+                      ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                      : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
+                  }`}
+                >
+                  KO
+                </button>
+                <button
+                  type="button"
+                  data-testid="footer-lang-en"
+                  onClick={() => setLang('en')}
+                  className={`cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
+                    lang === 'en'
+                      ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                      : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
+                  }`}
+                >
+                  EN
+                </button>
+              </div>
+            </div>
+
+            <p className="mt-4 text-[11px] text-stone-500">
+              © 2026 SNSHero (SNSHero.com) · Heroes of Elwin Village &amp; Kadan&apos;s Journey.
+            </p>
+          </div>
+        </footer>
+
+        {/* =====================================================================
+            Card Detail Lightbox Modal
+        ===================================================================== */}
+        {zoomedCard && (
+          <div
+            onClick={() => setZoomedCard(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="hs-promo-gold-frame relative grid w-full max-w-2xl grid-cols-1 gap-6 rounded-3xl bg-[#1b1109] p-6 text-amber-50 sm:grid-cols-12 sm:p-8"
+            >
+              <button
+                type="button"
+                onClick={() => setZoomedCard(null)}
+                aria-label={tr('닫기', 'Close')}
+                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="flex items-center justify-center pt-5 sm:col-span-5">
+                <PromoCard
+                  card={zoomedCard}
+                  isGolden={showGolden}
+                  journeyMultiplier={
+                    showAwakened3x && (zoomedCard.type === 'MINION' || zoomedCard.type === 'WEAPON')
+                      ? 3
+                      : 1
+                  }
+                  size="lg"
+                />
+              </div>
+
+              <div className="flex flex-col justify-between sm:col-span-7">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={CLASS_CREST_URL[zoomedCard.cardClass] || CLASS_CREST_URL.NEUTRAL}
+                      alt=""
+                      className="h-6 w-6 rounded-full"
+                    />
+                    <span className="text-xs font-extrabold text-amber-300">
+                      {getZoomedCardClassLabel(zoomedCard)}
+                      {' · '}
+                      {getPromoRarityLabel(zoomedCard.rarity, isKo)}
+                      {zoomedCard.race ? ` · ${getPromoRaceLabel(zoomedCard.race, isKo)}` : ''}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-2 text-2xl font-black text-white">
+                    {getCardName(zoomedCard, lang)}
+                  </h3>
+
+                  {(getCardCharName(zoomedCard, lang) || getCardFactionLabel(zoomedCard, lang)) && (
+                    <div className="mt-1 text-xs font-bold text-amber-300/80">
+                      {[getCardCharName(zoomedCard, lang), getCardFactionLabel(zoomedCard, lang)]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
+                  )}
+
+                  <div className="mt-3 rounded-xl border border-amber-500/30 bg-black/40 p-3 text-sm leading-relaxed text-amber-100">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          formatCardHtmlText(getCardText(zoomedCard, lang)) ||
+                          (zoomedCard.type === 'WEAPON'
+                            ? tr(
+                                `영웅 장착 무기 (공격력 ${zoomedCard.attack ?? 0} / 내구도 ${getCardBaseDurability(zoomedCard)})`,
+                                `Hero Weapon (Attack ${zoomedCard.attack ?? 0} / Durability ${getCardBaseDurability(zoomedCard)})`,
+                              )
+                            : tr(
+                                '강력한 기본 전투력을 갖춘 영웅 하수인입니다.',
+                                'A steadfast hero minion ready to command the battlefield.',
+                              )),
+                      }}
+                    />
+                  </div>
+
+                  {getCardFlavor(zoomedCard, lang) && (
+                    <p className="mt-3 text-xs italic leading-relaxed text-amber-200/75">
+                      “{getCardFlavor(zoomedCard, lang)}”
+                    </p>
+                  )}
+
+                  {CRAFTING_COST[zoomedCard.rarity] && (
+                    <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-bold">
+                      <div className="rounded-lg border border-sky-400/30 bg-sky-950/40 px-3 py-2">
+                        {tr('제작', 'Craft')}:{' '}
+                        <strong className="text-sky-300">
+                          {CRAFTING_COST[zoomedCard.rarity]} {tr('가루', 'Dust')}
+                        </strong>
+                      </div>
+                      <div className="rounded-lg border border-amber-400/30 bg-amber-950/40 px-3 py-2">
+                        {tr('추출', 'Disenchant')}:{' '}
+                        <strong className="text-amber-300">
+                          {DISENCHANT_VALUE[zoomedCard.rarity]} {tr('가루', 'Dust')}
+                        </strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-5">
+                  <a
+                    href={`/game?faction=${zoomedCard.cardClass === 'NEUTRAL' || zoomedCard.cardClass === 'DREAM' ? 'PRIEST' : zoomedCard.cardClass}`}
+                    className="hs-promo-cta-purple inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-extrabold"
+                  >
+                    <span>{tr('이 종족으로 플레이 →', 'Play With This Faction →')}</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =====================================================================
+            Pre-Game Free Pack #1 Modal
+        ===================================================================== */}
+        {promoPackModalOpen && promoPackCards && (
+          <div
+            onClick={() => setPromoPackModalOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-sm"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="hs-promo-gold-frame relative w-full max-w-4xl rounded-3xl bg-[#1a0f08] p-5 text-center text-amber-50 sm:p-8"
+            >
+              <button
+                type="button"
+                onClick={() => setPromoPackModalOpen(false)}
+                aria-label={tr('닫기', 'Close')}
+                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <h3 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+                {tr('🎉 무료 1호 카드팩 5장 미리보기', '🎉 Free Pack #1 Preview')}
+              </h3>
+              <p className="mx-auto mt-1.5 max-w-xl text-xs font-bold text-amber-200/90 sm:text-sm">
+                {tr(
+                  '게임에 입장하면 이 5장을 그대로 수령하고 남은 무료 2팩 + 250골드를 바로 받을 수 있습니다.',
+                  'Enter the game to keep these 5 cards plus 2 more Free Packs and 250 Gold.',
+                )}
+              </p>
+              <div className="my-6 flex flex-wrap items-center justify-center gap-4 pt-2">
+                {promoPackCards.map((item, idx) => (
+                  <PromoCard
+                    key={`${item.card.id}_${idx}`}
+                    card={item.card}
+                    isGolden={item.isGolden}
+                    size="sm"
+                    onClick={setZoomedCard}
+                  />
+                ))}
+              </div>
               <a
-                href={`/game?mode=bogart&stake=${promoPreviewStake}&utm_source=promo_gold_economy`}
-                data-testid="promo-gamble-cta"
+                href="/game?claim_promo=1"
                 className="hs-promo-cta-purple inline-flex min-h-[48px] items-center gap-2 rounded-full px-8 py-3 text-sm font-extrabold sm:text-base"
               >
-                <span>{tr(`보가트 도박장 ${promoPreviewStake}G 승부 시작하기`, `Play Bogart's ${promoPreviewStake}G Duel Now`)}</span>
-                <ChevronRight className="h-4 w-4" />
-              </a>
-              <a
-                href={`/game?tab=shop&category=${selectedPrestigeCat}&utm_source=promo_gold_shop`}
-                data-testid="promo-browse-prestige-shop-btn"
-                className="inline-flex min-h-[48px] items-center gap-2 rounded-full border-2 border-yellow-300/75 bg-amber-950/85 px-6 py-3 text-sm font-extrabold text-yellow-200 transition hover:bg-amber-900"
-              >
-                <span>{tr('황금 주화 교환소 구경하기', 'Browse Gold Prestige Shop')}</span>
+                <span>{tr('5장 수령 & 게임 시작하기 →', 'Claim Cards & Start Playing →')}</span>
               </a>
             </div>
           </div>
-        </div>
-      </section>
+        )}
 
-      <div className="hs-promo-divider" />
+        {/* =====================================================================
+            Ep.1 Voiced Webtoon Mini Theater Modal
+        ===================================================================== */}
+        {mediaTheaterOpen && (
+          <div
+            onClick={() => setMediaTheaterOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-sm"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="hs-promo-gold-frame relative w-full max-w-3xl rounded-3xl bg-[#150d07] p-5 text-amber-50 sm:p-7"
+            >
+              <button
+                type="button"
+                onClick={() => setMediaTheaterOpen(false)}
+                aria-label={tr('닫기', 'Close')}
+                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <h3 className="text-xl font-black text-white sm:text-2xl">
+                {tr('제1화 · 성우 풀보이스 & 웹툰 미리보기', 'EP.1 · Voiced Webtoon Preview')}
+              </h3>
+              <div className="mt-3 rounded-xl border border-amber-500/35 bg-black/50 p-3">
+                <audio
+                  controls
+                  preload="none"
+                  src="/hs-assets/snshero-audio/story/ep01_cut1.mp3"
+                  className="w-full"
+                />
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-5">
+                {[0, 1, 2, 3, 4].map((idx) => (
+                  <div
+                    key={idx}
+                    className="overflow-hidden rounded-xl border border-amber-500/30 bg-black"
+                  >
+                    <img
+                      src={`/webtoon-assets/episode_01/scene_0${idx}.webp`}
+                      alt={`EP1 Panel ${idx + 1}`}
+                      className="aspect-[3/4] w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+                <a
+                  href="/game?mode=story&ep=1"
+                  className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
+                >
+                  <span>{tr('제1화 전장 입장 →', 'Play Ep.1 Now →')}</span>
+                </a>
+                <div className="flex gap-3 text-xs font-bold text-amber-200/80">
+                  <a href="/book.html?ep=1" className="underline hover:text-amber-100">
+                    {tr('웹소설 보기', 'Read Novel')}
+                  </a>
+                  <a href="/webtoon.html?ep=1" className="underline hover:text-amber-100">
+                    {tr('웹툰 보기', 'Read Webtoon')}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* =====================================================================
-          9. Bottom Conversion CTA
-      ===================================================================== */}
-      <section
-        id="packs"
-        style={{ backgroundImage: `url(${SNS_LOCATIONS.PACK_ALTAR})` }}
-        className="relative overflow-hidden bg-cover bg-center py-20 sm:py-28"
-      >
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, rgba(251, 191, 36, 0.22) 0%, rgba(16, 9, 4, 0.85) 68%, rgba(8, 5, 2, 0.96) 100%)',
+        {/* Bottom-Right Kadan Chatbot */}
+        <KadanChatbotWidget
+          screen="BOX_HUB"
+          profile={promoProfile}
+          selectedMode="RANKED"
+          autoPlay={promoAutoRunning}
+          battleSnapshot={null}
+          onEnableAutoPlay={() => {
+            setPromoAutoRunning(true);
+            window.setTimeout(() => {
+              window.location.href = '/game?mode=story_battle&autoplay=1';
+            }, 550);
+          }}
+          onDisableAutoPlay={() => setPromoAutoRunning(false)}
+          onNavigateScreen={(target, modeOverride) => {
+            if (target === 'PACK_OPENING') {
+              window.location.href = '/game?mode=pack';
+            } else if (target === 'COLLECTION') {
+              window.location.href = '/game?mode=collection';
+            } else if (target === 'HERO_SELECT') {
+              window.location.href =
+                modeOverride === 'PRACTICE_NORMAL' ? '/game?mode=ai' : '/game?mode=ranked';
+            } else {
+              window.location.href = '/game';
+            }
+          }}
+          onStartJourney={() => {
+            window.location.href = '/game?mode=story';
+          }}
+          onOpenShop={() => {
+            window.location.href = '/game?mode=pack';
+          }}
+          onOpenQuestLog={() => {
+            window.location.href = '/game';
           }}
         />
-        <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 text-center sm:px-6">
-          <div className="mb-8 flex items-center justify-center gap-4 sm:gap-6">
-            <img
-              src={SNS_CARD_BACK_THEMES.silver.imageUrl}
-              alt={tr(SNS_CARD_BACK_THEMES.silver.name, 'Silver Guardian Card Back')}
-              className="hidden h-36 w-auto -rotate-12 rounded-xl shadow-2xl sm:block"
-            />
-            <div className="h-44 w-32 sm:h-52 sm:w-36">
-              <SnsBoosterPackArt glowing />
-            </div>
-            <img
-              src={SNS_CARD_BACK_THEMES.bronze.imageUrl}
-              alt={tr(SNS_CARD_BACK_THEMES.bronze.name, 'Elwin Bronze Card Back')}
-              className="hidden h-36 w-auto rotate-12 rounded-xl shadow-2xl sm:block"
-            />
-          </div>
-
-          <h2 className="promo-outline text-3xl font-black text-white sm:text-5xl">
-            {tr('다들 엘윈마을로 모이세요!', 'Pull Up a Chair in Elwin Village!')}
-          </h2>
-          <p className="promo-outline mt-4 max-w-2xl text-sm font-bold leading-relaxed text-amber-100/90 sm:text-lg">
-            {tr(
-              '게임에 뛰어들어 주문을 시전하고, 382종의 강력한 하수인을 소환하며, 적을 제압하세요! 지금 접속하면 무료 눈히어로 카드 팩 ',
-              'Dive straight into strategic battles, unleash powerful spells, and summon 382 original minions! Claim ',
-            )}
-            <strong className="text-amber-300">{tr('3개', '3 Free Packs')}</strong>
-            {tr('를 즉시 개봉할 수 있습니다.', ' immediately on arrival.')}
-          </p>
-          <a
-            href="/game"
-            className="hs-promo-cta-purple mt-8 inline-flex min-h-[56px] items-center gap-2.5 rounded-full px-10 py-4 text-base font-extrabold tracking-wide sm:text-lg"
-          >
-            <Gamepad2 className="h-5 w-5" />
-            <span>{tr('지금 무료로 플레이', 'Play Free Now')}</span>
-          </a>
-        </div>
-      </section>
-
-      <div className="hs-promo-divider" />
-
-      {/* =====================================================================
-          10. Recommended Universe & Footer
-      ===================================================================== */}
-      <section id="universe" className="bg-[#0b101d] py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-sky-400">
-              {tr('눈히어로와 함께 즐기는 세계관', 'EXPANDED SNSHERO UNIVERSE')}
-            </div>
-            <h2 className="mt-1.5 text-3xl font-black text-white sm:text-4xl">
-              {tr('추천 콘텐츠 & 공식 미디어 믹스', 'Official Novel, Webtoon & Channels')}
-            </h2>
-          </div>
-
-          {/* DEV-052(3) & MKT-070(2): Leak-Proof 3 Internal Universe Buttons + Collapsible External Support Drawer */}
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <a
-              href="/book.html"
-              className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1 hover:border-amber-400/70"
-            >
-              <div className="aspect-[16/9] overflow-hidden bg-black">
-                <img
-                  src="/webtoon-assets/episode_01/scene_04.webp"
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-4">
-                <div className="flex items-center gap-2 text-sm font-extrabold text-white">
-                  <BookOpen className="h-5 w-5 text-amber-300" />
-                  <span>{tr('공식 웹소설 1~40화 무료 열람', 'Official 40-EP Web Novel')}</span>
-                </div>
-                <p className="mt-1 text-xs font-bold text-slate-300/80">
-                  {tr('무로그인 전 회차 열람 & 회차별 보스전 연동 (/book.html)', 'Read all 40 chapters free with Boss Duel links')}
-                </p>
-              </div>
-            </a>
-
-            <a
-              href="/webtoon.html"
-              className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1 hover:border-amber-400/70"
-            >
-              <div className="aspect-[16/9] overflow-hidden bg-black">
-                <img
-                  src="/webtoon-assets/episode_01/scene_14.webp"
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-4">
-                <div className="flex items-center gap-2 text-sm font-extrabold text-white">
-                  <Layers className="h-5 w-5 text-sky-300" />
-                  <span>{tr('공식 풀컬러 웹툰 (/webtoon.html)', 'Official Full-Color Webtoon')}</span>
-                </div>
-                <p className="mt-1 text-xs font-bold text-slate-300/80">
-                  {tr('카단과 이그니스의 서사를 풀컬러 웹툰으로 감상', 'Read the full illustrated webtoon series free')}
-                </p>
-              </div>
-            </a>
-
-            <button
-              type="button"
-              onClick={() => setMediaTheaterOpen(true)}
-              className="group cursor-pointer overflow-hidden rounded-2xl border border-amber-400/50 bg-[#12192c] text-left transition hover:-translate-y-1 hover:border-yellow-300"
-            >
-              <div className="aspect-[16/9] overflow-hidden bg-black">
-                <img
-                  src="/webtoon-assets/episode_01/scene_01.webp"
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-4">
-                <div className="flex items-center gap-2 text-sm font-extrabold text-amber-200">
-                  <Sparkles className="h-5 w-5 text-yellow-300" />
-                  <span>{tr('제1화 풀보이스 미니 극장', 'EP.1 Voiced Mini Theater')}</span>
-                </div>
-                <p className="mt-1 text-xs font-bold text-slate-300/80">
-                  {tr('외부 이탈 없이 5컷 웹툰 + 성우 내레이션 즉시 감상', 'Preview 5-panel webtoon + studio voice right here')}
-                </p>
-              </div>
-            </button>
-          </div>
-        </div>
-      </section>
-      </div>
-
-      {/* Leak-Proof Collapsible External Channels Support Bar (DEV-052(3) & MKT-070(2)) */}
-      <section className="bg-[#120b06] px-4 py-6 sm:px-6">
-        <div className="mx-auto max-w-4xl text-center">
-          <button
-            type="button"
-            data-testid="promo-external-channels-toggle"
-            onClick={() => setExternalChannelsOpen((v) => !v)}
-            className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border border-amber-400/45 bg-[#1d1108] px-5 py-2 text-xs font-extrabold text-amber-200 transition hover:border-yellow-300 hover:text-white"
-          >
-            <span>
-              {externalChannelsOpen
-                ? tr('▲ 외부 연재처 · 채널 접기', '▲ Hide External Serialization Channels')
-                : tr('+ 외부 연재처(네이버·문피아·유튜브) 응원 댓글 남기고 한정 칭호 받기 ↗', '+ Support on External Channels (Naver · Munpia · YouTube) ↗')}
-            </span>
-          </button>
-
-          {externalChannelsOpen && (
-            <div className="hs-promo-gold-frame mt-4 rounded-2xl bg-[#1f1209] p-5 text-center">
-              <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs font-extrabold">
-                <a
-                  href="https://novel.naver.com/challenge/list?novelId=1250635"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-                >
-                  {tr('네이버 웹소설 응원 ↗', 'Naver Web Novel ↗')}
-                </a>
-                <a
-                  href="https://comic.naver.com/challenge/list?titleId=857363"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-                >
-                  {tr('네이버 도전만화 응원 ↗', 'Naver Webtoon ↗')}
-                </a>
-                <a
-                  href="https://nlink.munpia.com/link/munpia/novel/616551"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-                >
-                  {tr('문피아 웹소설 응원 ↗', 'Munpia Novel ↗')}
-                </a>
-                <a
-                  href={youtubePlaylistUrl}
-                  data-testid="promo-youtube-channel-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-                >
-                  {isKo ? 'YouTube 국문 웹툰 (@snshero) ↗' : 'YouTube EN Webtoon (@snshero) ↗'}
-                </a>
-                <a
-                  href="https://github.com/Dayyoung/snshero"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full border border-amber-300/50 bg-black/40 px-4 py-2 text-amber-100 transition hover:bg-amber-500 hover:text-[#1b0f05]"
-                >
-                  {tr('GitHub 오픈소스 ↗', 'GitHub Open Source ↗')}
-                </a>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* =====================================================================
-          Global Footer + Language Switcher (DEV-045(3): Clean Modern Mode Links)
-      ===================================================================== */}
-      <footer className="border-t border-amber-900/50 bg-[#151210] px-4 py-12 text-center text-xs text-stone-400">
-        <div className="mx-auto max-w-4xl">
-          <img
-            src={getSnsLogoUrl(lang)}
-            alt=""
-            aria-hidden="true"
-            className="mx-auto h-10 w-auto opacity-90"
-          />
-          <div className="mt-5 flex flex-wrap justify-center gap-5 font-bold text-stone-300">
-            <a href="/game" className="hover:text-amber-300">{tr('게임 바로 시작 (/game)', 'Play (/game)')}</a>
-            <a href="/game?mode=story&rhythm=on" className="hover:text-amber-300">{tr('스토리모드 (40화)', 'Story Mode')}</a>
-            <a href="/game?mode=ranked" className="hover:text-amber-300">{tr('공식 랭킹대전', 'Ranked Arena')}</a>
-            <a href={`/game?mode=bogart&stake=${promoPreviewStake}`} className="hover:text-amber-300">{tr('보가트의 도박장', "Bogart's Hall")}</a>
-            <a href="/wiki/tip" className="hover:text-amber-300">{tr('382종 공식 공략집', 'Official Guide')}</a>
-            <a href="/book.html" className="hover:text-amber-300">{tr('공식 웹소설', 'Official Novel')}</a>
-            <a href="/webtoon.html" className="hover:text-amber-300">{tr('공식 웹툰', 'Official Webtoon')}</a>
-          </div>
-
-          <div
-            data-testid="footer-language-switcher"
-            className="mt-5 flex items-center justify-center"
-          >
-            <div className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
-              <button
-                type="button"
-                data-testid="footer-lang-ko"
-                onClick={() => setLang('ko')}
-                className={`px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
-                  lang === 'ko'
-                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
-                }`}
-              >
-                KO
-              </button>
-              <button
-                type="button"
-                data-testid="footer-lang-en"
-                onClick={() => setLang('en')}
-                className={`px-2.5 py-1 text-[11px] font-extrabold rounded-full cursor-pointer transition ${
-                  lang === 'en'
-                    ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                    : 'text-amber-200/80 hover:text-amber-100 hover:bg-white/10'
-                }`}
-              >
-                EN
-              </button>
-            </div>
-          </div>
-
-          <p className="mt-6 leading-relaxed text-stone-500">
-            {tr('본 페이지는 웹 카드 배틀 게임 ', 'Official showcase for web card battle game ')}
-            <strong className="text-stone-300">
-              {tr('눈히어로 — 엘윈마을의 영웅들 (/game)', 'SNSHero — Heroes of Elwin Village (/game)')}
-            </strong>
-            {tr(' 공식 소개 페이지입니다.', '.')}
-          </p>
-          <p className="mt-3 text-[11px] text-stone-600">
-            © 2026 SNSHero (SNSHero.com) · Heroes of Elwin Village & Kadan&apos;s Journey. All rights reserved.
-          </p>
-        </div>
-      </footer>
-
-      {/* =====================================================================
-          Card Detail Lightbox Modal
-      ===================================================================== */}
-      {zoomedCard && (
-        <div
-          onClick={() => setZoomedCard(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="hs-promo-gold-frame relative grid w-full max-w-2xl grid-cols-1 gap-6 rounded-3xl bg-[#1b1109] p-6 text-amber-50 sm:grid-cols-12 sm:p-8"
-          >
-            <button
-              type="button"
-              onClick={() => setZoomedCard(null)}
-              aria-label={tr('닫기', 'Close')}
-              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            <div className="flex items-center justify-center pt-5 sm:col-span-5">
-              <PromoCard
-                card={zoomedCard}
-                isGolden={showGolden}
-                journeyMultiplier={
-                  showAwakened3x && (zoomedCard.type === 'MINION' || zoomedCard.type === 'WEAPON')
-                    ? 3
-                    : 1
-                }
-                size="lg"
-              />
-            </div>
-
-            <div className="flex flex-col justify-between sm:col-span-7">
-              <div>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={CLASS_CREST_URL[zoomedCard.cardClass] || CLASS_CREST_URL.NEUTRAL}
-                    alt=""
-                    className="h-6 w-6 rounded-full"
-                  />
-                  <span className="text-xs font-extrabold text-amber-300">
-                    {getZoomedCardClassLabel(zoomedCard)}
-                    {' · '}
-                    {getPromoRarityLabel(zoomedCard.rarity, isKo)}
-                    {zoomedCard.race ? ` · ${getPromoRaceLabel(zoomedCard.race, isKo)}` : ''}
-                  </span>
-                </div>
-
-                <h3 className="mt-2 text-2xl font-black text-white">
-                  {getCardName(zoomedCard, lang)}
-                </h3>
-
-                {(getCardCharName(zoomedCard, lang) || getCardFactionLabel(zoomedCard, lang)) && (
-                  <div className="mt-1 text-xs font-bold text-amber-300/80">
-                    {[getCardCharName(zoomedCard, lang), getCardFactionLabel(zoomedCard, lang)]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </div>
-                )}
-
-                <div className="mt-3 rounded-xl border border-amber-500/30 bg-black/40 p-3 text-sm leading-relaxed text-amber-100">
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html:
-                        formatCardHtmlText(getCardText(zoomedCard, lang)) ||
-                        (zoomedCard.type === 'WEAPON'
-                          ? tr(
-                              `영웅 장착 무기 (공격력 ${zoomedCard.attack ?? 0} / 내구도 ${getCardBaseDurability(zoomedCard)})`,
-                              `Hero Weapon (Attack ${zoomedCard.attack ?? 0} / Durability ${getCardBaseDurability(zoomedCard)})`,
-                            )
-                          : tr(
-                              '강력한 기본 전투력을 갖춘 영웅 하수인입니다.',
-                              'A steadfast hero minion ready to command the battlefield.',
-                            )),
-                    }}
-                  />
-                </div>
-
-                {getCardFlavor(zoomedCard, lang) && (
-                  <p className="mt-3 text-xs italic leading-relaxed text-amber-200/75">
-                    “{getCardFlavor(zoomedCard, lang)}”
-                  </p>
-                )}
-
-                {CRAFTING_COST[zoomedCard.rarity] && (
-                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-bold">
-                    <div className="rounded-lg border border-sky-400/30 bg-sky-950/40 px-3 py-2">
-                      {tr('제작 비용', 'Craft')}:{' '}
-                      <strong className="text-sky-300">
-                        {CRAFTING_COST[zoomedCard.rarity]} {tr('가루', 'Dust')}
-                      </strong>
-                    </div>
-                    <div className="rounded-lg border border-amber-400/30 bg-amber-950/40 px-3 py-2">
-                      {tr('추출 획득', 'Disenchant')}:{' '}
-                      <strong className="text-amber-300">
-                        {DISENCHANT_VALUE[zoomedCard.rarity]} {tr('가루', 'Dust')}
-                      </strong>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-2.5">
-                <a
-                  href={`/game?faction=${zoomedCard.cardClass === 'NEUTRAL' || zoomedCard.cardClass === 'DREAM' ? 'PRIEST' : zoomedCard.cardClass}&preset=awakening&rhythm=on&utm_source=promo_card_zoom`}
-                  className="hs-promo-cta-purple inline-flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-extrabold"
-                >
-                  <span>{tr('이 전설 프리셋으로 즉시 출격 →', 'Launch With This Faction Preset →')}</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =====================================================================
-          MKT-033: Pre-Game Free Pack #1 Tear Modal (5 Cards + Claim CTA)
-      ===================================================================== */}
-      {promoPackModalOpen && promoPackCards && (
-        <div
-          onClick={() => setPromoPackModalOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-sm"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="hs-promo-gold-frame relative w-full max-w-4xl rounded-3xl bg-[#1a0f08] p-5 text-center text-amber-50 sm:p-8"
-          >
-            <button
-              type="button"
-              onClick={() => setPromoPackModalOpen(false)}
-              aria-label={tr('닫기', 'Close')}
-              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-300/60 bg-amber-950/90 px-3 py-1 text-xs font-extrabold text-yellow-200">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>{tr('무료 1호 카드팩 개봉 완료! (첫 10팩 내 전설 확정 1/10 적립)', 'FREE PACK #1 OPENED! (1/10 First Legendary Pity)')}</span>
-            </div>
-            <h3 className="mt-2.5 text-2xl font-black text-white sm:text-3xl">
-              {tr('🎉 축하합니다! 5장의 영웅 카드가 소환되었습니다!', '🎉 5 Hero Cards Summoned!')}
-            </h3>
-            <p className="mx-auto mt-2 max-w-2xl text-xs font-bold text-amber-200/90 sm:text-sm">
-              {tr(
-                '아래 버튼을 눌러 인게임 카드첩에 방금 뽑은 5장을 영구 보관하고, 남은 무료 카드팩 2개 + 250골드 + 160가루를 마저 개봉하세요!',
-                'Claim these 5 cards permanently into your in-game Collection and open your remaining 2 Free Packs + 250 Gold + 160 Dust!',
-              )}
-            </p>
-            <div className="my-6 flex flex-wrap items-center justify-center gap-4 pt-3">
-              {promoPackCards.map((item, idx) => (
-                <PromoCard
-                  key={`${item.card.id}_${idx}`}
-                  card={item.card}
-                  isGolden={item.isGolden}
-                  size="sm"
-                  onClick={setZoomedCard}
-                />
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              <a
-                href="/game?claim_promo=1&utm_source=promo_prepack"
-                className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-extrabold sm:text-base"
-              >
-                <span>{tr('내 카드 5장 영구 수령 & 남은 무료 2팩 마저 열기 (전설 확정까지 7팩!) →', 'Claim 5 Cards & Open Remaining Packs (7 Left to Legendary!) →')}</span>
-              </a>
-              <a
-                href="/game?preset=defense&rhythm=on&utm_source=promo_prepack_preset"
-                className="hs-promo-cta-teal-dark inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-extrabold sm:text-sm"
-              >
-                <span>{tr('카단 프리셋으로 1화 즉시 출격', 'Start EP.1 With Kadan Preset')}</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =====================================================================
-          MKT-027: In-Page Ep.1 Voiced Webtoon Mini Theater Modal
-      ===================================================================== */}
-      {mediaTheaterOpen && (
-        <div
-          onClick={() => setMediaTheaterOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-sm"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="hs-promo-gold-frame relative w-full max-w-3xl rounded-3xl bg-[#150d07] p-5 text-amber-50 sm:p-7"
-          >
-            <button
-              type="button"
-              onClick={() => setMediaTheaterOpen(false)}
-              aria-label={tr('닫기', 'Close')}
-              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <div className="text-xs font-extrabold text-amber-300">
-              {tr('제1화 · 눈보라 아래 두 서약 (5컷 하이라이트)', 'EP.1 · Two Oaths Beneath the Blizzard')}
-            </div>
-            <h3 className="mt-1 text-xl font-black text-white sm:text-2xl">
-              {tr('성우 풀보이스 & 웹툰 극장 미리보기', 'Full-Voice Narration & Webtoon Theater')}
-            </h3>
-            <div className="mt-3 rounded-xl border border-amber-500/35 bg-black/50 p-3">
-              <div className="mb-1.5 text-xs font-extrabold text-sky-300">
-                🔊 {tr('제1화 도입부 한국어 성우 내레이션 듣기', 'Listen to Ep.1 Voice Narration')}
-              </div>
-              <audio
-                controls
-                preload="none"
-                src="/hs-assets/snshero-audio/story/ep01_cut1.mp3"
-                className="w-full"
-              />
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-              {[0, 1, 2, 3, 4].map((idx) => (
-                <div key={idx} className="overflow-hidden rounded-xl border border-amber-500/30 bg-black">
-                  <img
-                    src={`/webtoon-assets/episode_01/scene_0${idx}.webp`}
-                    alt={`EP1 Panel ${idx + 1}`}
-                    className="aspect-[3/4] w-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-xs font-bold leading-relaxed text-amber-100/90 sm:text-sm">
-              {tr(
-                '방금 미리 들으신 한국어 성우 풀보이스와 웹툰 연출이 인게임 40화 전 구간에 수록되어 있습니다! 지금 무료 카드팩 3개 + 250골드를 받고 제1화 전장으로 입장하세요.',
-                'All 40 episodes feature full-voice narration & webtoon panels in-game! Claim 3 Free Packs + 250 Gold and jump straight into Ep.1!',
-              )}
-            </p>
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-              <a
-                href="/game?mode=story&ep=1&utm_source=promo_media_modal"
-                className="hs-promo-cta-purple inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-extrabold"
-              >
-                <span>{tr('무료 3팩 받고 제1화 전장 입장 →', 'Claim 3 Packs & Play Ep.1 →')}</span>
-              </a>
-              <div className="flex flex-wrap gap-3 text-[11px] font-bold text-amber-200/80">
-                <a href="/book.html?ep=1" className="underline hover:text-amber-100">{tr('웹소설 전문 보기', 'Read Novel')}</a>
-                <a href="/webtoon.html?ep=1" className="underline hover:text-amber-100">{tr('웹툰 전체 보기', 'Read Webtoon')}</a>
-                <a href="https://comic.naver.com/challenge/list?titleId=857363" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-100">{tr('네이버 도전만화', 'Naver Webtoon')}</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MKT-039: Session Exit-Intent Free 3-Pack Saver Modal */}
-      {exitSaverOpen && (
-        <div
-          data-testid="promo-exit-saver-modal"
-          onClick={() => setExitSaverOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="hs-promo-gold-frame relative w-full max-w-md rounded-3xl bg-[#1a0f08] p-6 text-center text-amber-50"
-          >
-            <button
-              type="button"
-              onClick={() => setExitSaverOpen(false)}
-              aria-label={tr('닫기', 'Close')}
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <div className="text-xs font-extrabold text-yellow-300">
-              🎁 {tr('잠깐! 무료 3팩 + 250골드가 대기 중입니다', 'WAIT! 3 FREE PACKS + 250 GOLD READY')}
-            </div>
-            <h3 className="mt-2 text-xl font-black text-white">
-              {tr('첫 전설 카드, 확인만 하고 가시겠습니까?', 'Check Your Free Cards in 3 Seconds?')}
-            </h3>
-            <p className="mt-2 text-xs font-bold text-amber-100/85">
-              {tr(
-                '설치·가입 없이 지금 바로 1호 팩 5장을 열어보거나 인게임 무료 3팩을 즉시 수령하세요!',
-                'No install or sign-up needed — tear Free Pack #1 right here or claim 3 Free Packs in-game!',
-              )}
-            </p>
-            <div className="mt-5 flex flex-col gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setExitSaverOpen(false);
-                  handleOpenPromoPrePack();
-                }}
-                className="hs-promo-cta-purple min-h-[48px] w-full rounded-full px-5 py-3 text-sm font-extrabold"
-              >
-                ✨ {tr('여기서 무료 1호 팩(5장) 바로 뜯기', 'Tear Free Pack #1 Right Here')}
-              </button>
-              <a
-                href="/game?ftue=veteran&open=pack3&utm_source=promo_exit_saver"
-                className="hs-promo-cta-teal-dark inline-flex min-h-[46px] w-full items-center justify-center rounded-full px-5 py-2.5 text-xs font-extrabold"
-              >
-                🎮 {tr('인게임 무료 3팩 + 250G 받으러 가기 →', 'Claim 3 Free Packs + 250G In-Game →')}
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fullscreen Bottom-Right 2-Head-Tall Chibi Kadan Chatbot */}
-      <KadanChatbotWidget
-        screen="BOX_HUB"
-        profile={promoProfile}
-        selectedMode="RANKED"
-        autoPlay={promoAutoRunning}
-        battleSnapshot={null}
-        onEnableAutoPlay={() => {
-          setPromoAutoRunning(true);
-          window.setTimeout(() => {
-            window.location.href = '/game?mode=story_battle&autoplay=1';
-          }, 550);
-        }}
-        onDisableAutoPlay={() => setPromoAutoRunning(false)}
-        onNavigateScreen={(target, modeOverride) => {
-          if (target === 'PACK_OPENING') {
-            window.location.href = '/game?mode=pack';
-          } else if (target === 'COLLECTION') {
-            window.location.href = '/game?mode=collection';
-          } else if (target === 'HERO_SELECT') {
-            window.location.href =
-              modeOverride === 'PRACTICE_NORMAL' ? '/game?mode=ai' : '/game?mode=ranked';
-          } else {
-            window.location.href = '/game';
-          }
-        }}
-        onStartJourney={() => {
-          window.location.href = '/game?mode=story';
-        }}
-        onOpenShop={() => {
-          window.location.href = '/game?mode=pack';
-        }}
-        onOpenQuestLog={() => {
-          window.location.href = '/game';
-        }}
-      />
       </div>
     </SharedAdSenseShell>
   );

@@ -799,17 +799,12 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
                 const claimableQ = quests.filter(
                   (q) => (q.completed || q.progress >= q.goal) && !q.bonusClaimed,
                 ).length;
-                const badgeNum = claimableQ > 0 ? claimableQ : incompleteQuestsCount;
-                return badgeNum > 0 ? (
+                return claimableQ > 0 ? (
                   <span
                     data-testid="hub-quest-red-dot"
-                    className={`hs-num absolute -right-1.5 -top-1.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full border-2 px-1 text-[11px] text-white shadow-[0_3px_10px_rgba(220,38,38,0.85)] sm:-right-2 sm:-top-2 sm:h-6 sm:min-w-6 sm:px-1.5 sm:text-xs ${
-                      claimableQ > 0
-                        ? 'border-yellow-200 bg-gradient-to-b from-emerald-500 to-emerald-800 animate-bounce'
-                        : 'border-red-200 bg-gradient-to-b from-red-500 to-red-800'
-                    }`}
+                    className="hs-num absolute -right-1.5 -top-1.5 z-20 flex h-5 min-w-5 animate-bounce items-center justify-center rounded-full border-2 border-yellow-200 bg-gradient-to-b from-emerald-500 to-emerald-800 px-1 text-[11px] text-white shadow-[0_3px_10px_rgba(16,185,129,0.85)] sm:-right-2 sm:-top-2 sm:h-6 sm:min-w-6 sm:px-1.5 sm:text-xs"
                   >
-                    {badgeNum}
+                    {claimableQ}
                   </span>
                 ) : null;
               })()}
@@ -835,14 +830,6 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               }}
               className={`hs-brass-btn relative flex min-h-[48px] items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-amber-100 sm:gap-2.5 sm:px-3 sm:py-2 ${lockedBtnStyle}`}
             >
-              {profile.gold >= 100 && (
-                <span
-                  data-testid="hub-shop-red-dot"
-                  className="hs-num absolute -right-1.5 -top-1.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-red-200 bg-gradient-to-b from-red-500 to-red-800 px-1 text-[11px] text-white shadow-[0_3px_10px_rgba(220,38,38,0.85)] sm:-right-2 sm:-top-2 sm:h-6 sm:min-w-6 sm:px-1.5 sm:text-xs"
-                >
-                  {Math.min(99, Math.floor(profile.gold / 100))}
-                </span>
-              )}
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-300/50 bg-stone-950/60 sm:h-9 sm:w-9">
                 <HsGoldCoinIcon size={22} />
               </div>

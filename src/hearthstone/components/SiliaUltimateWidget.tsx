@@ -568,7 +568,7 @@ export const SiliaUltimateWidget: React.FC<SiliaUltimateWidgetProps> = ({
       <div
         ref={siliaRootRef}
         data-silia-widget="true"
-        className="pointer-events-none fixed bottom-2.5 left-2.5 z-[72] flex max-w-[calc(100vw-20px)] flex-col items-start select-none sm:bottom-3.5 sm:left-3.5"
+        className={`pointer-events-none fixed bottom-2.5 left-2.5 ${menuOpen ? 'z-[122]' : 'z-[72]'} flex max-w-[calc(100vw-20px)] flex-col items-start select-none sm:bottom-3.5 sm:left-3.5`}
       >
         {/* Silia Skill Selection Menu (opens cleanly above 3-head-tall Silia, matching Kadan) */}
         {menuOpen && (

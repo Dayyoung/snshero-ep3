@@ -234,6 +234,228 @@ function computeBattleMvpCard(
   return { card, mult: multMap[card.id] || 1, plays: bestPlays };
 }
 
+interface CenterRhythmRingHudProps {
+  rhythmEnabled: boolean;
+  battleBpm: number;
+  autoSpeed2x: boolean;
+  onToggleSpeed2x: () => void;
+  isBossParryReady: boolean;
+  mode: GameMode;
+  rhythmFeverPct: number;
+  rhythmPerfectCombo: number;
+  rhythmFlash: {
+    mult: 1 | 1.5 | 2;
+    grade: 'NORMAL' | 'GOOD' | 'PERFECT';
+    parried?: boolean;
+  } | null;
+  clutchBreakEnabled: boolean;
+  onToggleClutchBreak: () => void;
+  onTap: () => void;
+}
+
+const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
+  rhythmEnabled,
+  battleBpm,
+  autoSpeed2x,
+  onToggleSpeed2x,
+  isBossParryReady,
+  mode,
+  rhythmFeverPct,
+  rhythmPerfectCombo,
+  rhythmFlash,
+  clutchBreakEnabled,
+  onToggleClutchBreak,
+  onTap,
+}) => {
+  const { lang } = useHeroLanguage();
+  const isKo = lang === 'ko';
+  const ringRef = useRef<HTMLSpanElement | null>(null);
+  const pulseCoreRef = useRef<HTMLSpanElement | null>(null);
+  const pulseWaveRef = useRef<HTMLSpanElement | null>(null);
+  const cueTextRef = useRef<HTMLSpanElement | null>(null);
+
+  useEffect(() => {
+    if (!rhythmEnabled) return;
+    let rafId = 0;
+    let lastTapState: boolean | null = null;
+
+    const applyFrame = () => {
+      if (document.visibilityState === 'visible') {
+        const info = hsAudio.getBeatPhaseInfo(battleBpm, autoSpeed2x);
+        const ringEl = ringRef.current;
+        const coreEl = pulseCoreRef.current;
+        const waveEl = pulseWaveRef.current;
+        const cueEl = cueTextRef.current;
+
+        if (ringEl) {
+          ringEl.style.transform = `scale(${info.ringScale.toFixed(3)})`;
+          if (info.isTapWindow) {
+            ringEl.style.borderColor = '#22c55e';
+            ringEl.style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+            ringEl.style.boxShadow =
+              '0 0 22px rgba(34, 197, 94, 0.95), inset 0 0 12px rgba(74, 222, 128, 0.55)';
+            ringEl.dataset.ringState = 'green';
+          } else {
+            ringEl.style.borderColor = '#ef4444';
+            ringEl.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+            ringEl.style.boxShadow = '0 0 14px rgba(239, 68, 68, 0.8)';
+            ringEl.dataset.ringState = 'red';
+          }
+        }
+
+        if (coreEl) {
+          coreEl.style.transform = `scale(${(1 + info.pulse01 * 0.15).toFixed(3)})`;
+          coreEl.style.borderColor = info.isTapWindow
+            ? 'rgba(74, 222, 128, 0.95)'
+            : 'rgba(248, 113, 113, 0.85)';
+        }
+
+        if (waveEl) {
+          const waveScale = 1 + (1 - info.pulse01) * 0.5;
+          waveEl.style.transform = `scale(${waveScale.toFixed(3)})`;
+          waveEl.style.opacity = (info.pulse01 * 0.55).toFixed(2);
+          waveEl.style.borderColor = info.isTapWindow ? '#4ade80' : '#f87171';
+        }
+
+        if (cueEl && lastTapState !== info.isTapWindow) {
+          lastTapState = info.isTapWindow;
+          cueEl.textContent = info.isTapWindow ? 'TAP!' : isKo ? '대기' : 'WAIT';
+          cueEl.style.color = info.isTapWindow ? '#86efac' : '#fca5a5';
+        }
+      }
+      rafId = window.requestAnimationFrame(applyFrame);
+    };
+
+    rafId = window.requestAnimationFrame(applyFrame);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [rhythmEnabled, battleBpm, autoSpeed2x, isKo]);
+
+  return (
+    <div
+      data-testid="kadan-command-orb"
+      className="pointer-events-none fixed bottom-2.5 left-1/2 z-[71] flex -translate-x-1/2 select-none flex-col items-center sm:bottom-3.5"
+    >
+      {rhythmEnabled && (
+        <div className="relative flex h-[74px] w-[74px] items-center justify-center sm:h-[86px] sm:w-[86px]">
+          <button
+            type="button"
+            data-testid="ocarina-rhythm-ring-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTap();
+            }}
+            title={tr(
+              '배경음악 맥박에 맞춰 초록색일 때 탭! (빨간색은 대기)',
+              'Tap on GREEN with the BGM pulse! (Wait on RED)',
+            )}
+            className="pointer-events-auto relative flex h-14 w-14 touch-manipulation items-center justify-center rounded-full focus:outline-none active:scale-92 sm:h-16 sm:w-16"
+          >
+            {/* BGM Heartbeat Expanding Pulse Ripple */}
+            <span
+              ref={pulseWaveRef}
+              className="pointer-events-none absolute inset-0 rounded-full border-2 border-emerald-400 opacity-0"
+            />
+
+            {/* Shrinking Green (Tap!) / Red (Do Not Tap!) Outer Ring */}
+            <span
+              ref={ringRef}
+              data-testid="ocarina-shrinking-ring"
+              data-ring-state="red"
+              className="pointer-events-none absolute inset-0 rounded-full border-[3px] border-rose-500"
+            />
+
+            {/* Inner Heartbeat Core Circle (Pulses 1:1 with BGM Drum Beat) */}
+            <span
+              ref={pulseCoreRef}
+              className="pointer-events-none relative flex h-full w-full flex-col items-center justify-center rounded-full border-2 border-rose-400/85 bg-[#090d16]/95 shadow-[0_6px_18px_rgba(0,0,0,0.9)]"
+            >
+              <span className="text-sm leading-none sm:text-base">
+                {isBossParryReady ? '🛡' : '🎵'}
+              </span>
+              <span
+                ref={cueTextRef}
+                className="mt-0.5 text-[9px] font-black leading-none tracking-tight text-rose-300 sm:text-[10px]"
+              >
+                {isKo ? '대기' : 'WAIT'}
+              </span>
+            </span>
+
+            {/* Hit Feedback Badge (2.0x / 1.5x / 엇박 MISS) */}
+            {rhythmFlash && (
+              <span
+                data-testid="rhythm-multiplier-badge"
+                className={`pointer-events-none absolute -top-2.5 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-black shadow-lg ${
+                  rhythmFlash.parried
+                    ? 'border-cyan-200 bg-cyan-500 text-stone-950'
+                    : rhythmFlash.mult === 2
+                      ? 'border-yellow-100 bg-emerald-400 text-stone-950'
+                      : rhythmFlash.mult === 1.5
+                        ? 'border-emerald-200 bg-emerald-600 text-white'
+                        : 'border-rose-300 bg-rose-600 text-white'
+                }`}
+              >
+                {rhythmFlash.parried
+                  ? '🛡-50%'
+                  : rhythmFlash.grade === 'NORMAL'
+                    ? tr('엇박!', 'MISS')
+                    : `${rhythmFlash.mult.toFixed(1)}x`}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Slim Boot Pill Matching Silia (Left) & Kadan (Right) */}
+      <div className="pointer-events-auto -mt-1 flex items-center gap-1 rounded-full border border-amber-300/60 bg-stone-950/95 px-2 py-0.5 text-[9.5px] font-extrabold text-amber-100 shadow-[0_4px_10px_rgba(0,0,0,0.9)] sm:px-2.5 sm:text-[10.5px]">
+        <button
+          type="button"
+          data-testid="rhythm-speed-2x-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            hsAudio.playSfx('ui_click', 0.65);
+            onToggleSpeed2x();
+          }}
+          className={`rounded-full px-1.5 py-0.2 font-black ${
+            autoSpeed2x ? 'bg-cyan-400 text-stone-950' : 'bg-white/10 text-emerald-300'
+          }`}
+          title={tr('1박 정박 / 4박 강박 전환', 'Toggle 1-Beat / 4-Beat Bar Mode')}
+        >
+          {autoSpeed2x ? '2x' : '1x'}
+        </button>
+
+        {mode !== 'TUTORIAL' && rhythmEnabled ? (
+          <span
+            data-testid="rhythm-fever-gauge"
+            className="text-yellow-300"
+            title={tr('경쟁모드 피버 골드 게이지', 'Bonus Gold Fever Gauge')}
+          >
+            🪙{rhythmFeverPct}%
+          </span>
+        ) : rhythmPerfectCombo >= 2 ? (
+          <span className="font-black text-emerald-300">★{rhythmPerfectCombo}</span>
+        ) : (
+          <span className="text-emerald-200">{tr('정박 탭', 'Beat Tap')}</span>
+        )}
+
+        <button
+          type="button"
+          data-testid="clutch-break-toggle"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleClutchBreak();
+          }}
+          className={`rounded-full px-1 py-0.2 text-[9px] font-black ${
+            clutchBreakEnabled ? 'text-amber-300' : 'text-stone-500'
+          }`}
+          title={tr('승부처 브레이크 ON/OFF', 'Toggle Clutch Choice Break')}
+        >
+          ⚡
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export interface BattleScreenProps {
   mode: GameMode;
   playerDeck: CustomDeck;
@@ -781,10 +1003,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     () => hsAudio.getSettings().rhythmAutoEnabled !== false,
   );
   const [autoSpeed2x, setAutoSpeed2x] = useState<boolean>(false);
-  const [rhythmPhase01, setRhythmPhase01] = useState<number>(0);
-  const [rhythmSilentVisual, setRhythmSilentVisual] = useState<boolean>(
-    () => Boolean(hsAudio.getSettings().muted || hsAudio.getSettings().bgmVolume <= 0),
-  );
   const [rhythmFlash, setRhythmFlash] = useState<{
     mult: 1 | 1.5 | 2;
     grade: 'NORMAL' | 'GOOD' | 'PERFECT';
@@ -798,13 +1016,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const rhythmResonanceUsedTurnRef = useRef<number>(-1);
   const rhythmComboRef = useRef<number>(0);
 
-  const battleBpm = useMemo(() => {
-    if (mode === 'TUTORIAL') {
-      const ep = matchState.journeyMeta?.episode ?? 1;
-      return ep > 0 && ep % 5 === 0 ? 140 : 120;
-    }
-    return 128;
-  }, [mode, matchState.journeyMeta?.episode]);
+  const battleBpm = 128;
 
   const isBossParryReady =
     mode === 'TUTORIAL' &&
@@ -815,7 +1027,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     const syncAudioOpts = () => {
       const s = hsAudio.getSettings();
       setRhythmEnabled(s.rhythmAutoEnabled !== false);
-      setRhythmSilentVisual(Boolean(s.muted || s.bgmVolume <= 0));
       setCleanCardView(Boolean(s.compactCleanCardView));
       setClutchBreakEnabled(s.kadanClutchBreakEnabled !== false);
     };
@@ -892,25 +1103,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const [vsIntroActive, setVsIntroActive] = useState(() => !restoredMatchState);
 
-  // DEV-044 / 052: Live 30fps Ocarina Beat Ring Phase Tracker (paused in background tab)
+  // Ensure looping battle duel BGM (`duel_1` 128 BPM / `duel_2` 132 BPM) is active once PLAYING starts
   useEffect(() => {
-    if (!autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING' || storyPhase !== 'CLOSED' || vsIntroActive) {
-      return;
+    if (matchState.phase === 'PLAYING' && storyPhase === 'CLOSED' && !vsIntroActive) {
+      hsAudio.ensureBattleDuelBgm();
     }
-    let rafId = 0;
-    let lastUiMs = 0;
-    const tick = (nowMs: number) => {
-      if (document.visibilityState === 'visible' && nowMs - lastUiMs >= 33) {
-        lastUiMs = nowMs;
-        const info = hsAudio.getBeatPhaseInfo(battleBpm);
-        setRhythmPhase01(autoSpeed2x ? info.barPhase01 : info.phase01);
-        setRhythmSilentVisual(info.silentVisualMode);
-      }
-      rafId = window.requestAnimationFrame(tick);
-    };
-    rafId = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(rafId);
-  }, [autoPlay, rhythmEnabled, matchState.phase, storyPhase, vsIntroActive, battleBpm, autoSpeed2x]);
+  }, [matchState.phase, storyPhase, vsIntroActive]);
 
   // DEV-043 / 044 / 050 / 053 / 054: Handle Ocarina Rhythm Tap (Orb Click or Spacebar)
   const handleRhythmOrbTap = useCallback(() => {
@@ -7451,141 +7649,22 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         />
       )}
 
-      {/* DEV-043 / 044 / 050 / 051 / 052 / 053 / 054: Unified Kadan Rhythm Command Orb HUD */}
+      {/* Bottom-Center Shrinking BGM Pulse Ring Tap (Centered Between Silia & Kadan!) */}
       {autoPlay && matchState.phase === 'PLAYING' && storyPhase === 'CLOSED' && !vsIntroActive && (
-        <div
-          data-testid="kadan-command-orb"
-          className="pointer-events-auto fixed right-2.5 top-14 z-[72] flex items-center gap-2 rounded-2xl border border-amber-300/75 bg-[#090d16]/94 px-2.5 py-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.88)] backdrop-blur-md sm:right-4 sm:top-16"
-        >
-          {/* Shrinking Golden Ocarina Beat Ring + Silent Visual Metronome Orb */}
-          {rhythmEnabled && (
-            <button
-              type="button"
-              data-testid="ocarina-rhythm-ring-btn"
-              onClick={handleRhythmOrbTap}
-              title={tr('수축하는 정박 링 탭 / Space (1.5x · 2.0x 화음)', 'Tap / Space on Beat Ring (1.5x · 2.0x)')}
-              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-amber-300/85 bg-stone-950 text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.45)] active:scale-92"
-            >
-              {/* Shrinking Outer Ocarina Timing Ring */}
-              <span
-                style={{
-                  transform: `scale(${(1.52 - rhythmPhase01 * 0.52).toFixed(3)})`,
-                  opacity: Number((0.35 + rhythmPhase01 * 0.65).toFixed(2)),
-                }}
-                className={`pointer-events-none absolute inset-0 rounded-full border-2 ${
-                  isBossParryReady
-                    ? 'border-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.9)]'
-                    : rhythmSilentVisual
-                      ? 'border-sky-300 shadow-[0_0_16px_rgba(56,189,248,0.95)]'
-                      : 'border-yellow-300'
-                }`}
-              />
-              {/* Silent Visual Metronome Downbeat Flash */}
-              {rhythmSilentVisual && (rhythmPhase01 > 0.86 || rhythmPhase01 < 0.12) && (
-                <span className="pointer-events-none absolute inset-0 rounded-full bg-cyan-300/35" />
-              )}
-              <span className="relative z-10 text-sm font-black text-yellow-300">
-                {isBossParryReady ? '🛡' : '🎵'}
-              </span>
-              {/* Wordless 1.5x / 2.0x Multiplier Pop Badge */}
-              {rhythmFlash && (
-                <span
-                  data-testid="rhythm-multiplier-badge"
-                  className={`pointer-events-none absolute -bottom-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border px-1.5 py-0.2 text-[9.5px] font-black shadow ${
-                    rhythmFlash.parried
-                      ? 'border-cyan-200 bg-cyan-500 text-stone-950'
-                      : rhythmFlash.mult === 2
-                        ? 'border-yellow-100 bg-amber-400 text-stone-950'
-                        : rhythmFlash.mult === 1.5
-                          ? 'border-emerald-200 bg-emerald-500 text-stone-950'
-                          : 'border-stone-500 bg-stone-800 text-amber-100'
-                  }`}
-                >
-                  {rhythmFlash.parried ? '🛡-50%' : `${rhythmFlash.mult.toFixed(1)}x`}
-                </span>
-              )}
-            </button>
-          )}
-
-          {/* Compact Stance + Speed + Clutch Controls */}
-          <div className="flex flex-col gap-1">
-            <div
-              data-testid="kadan-stance-hud-pill"
-              className="flex items-center gap-1"
-            >
-              {(
-                [
-                  { id: 'AGGRO', icon: '⚔', ko: '공격', en: 'ATK', cls: 'border-rose-400 bg-rose-900/90 text-rose-100' },
-                  { id: 'CONTROL', icon: '🛡', ko: '방어', en: 'DEF', cls: 'border-sky-400 bg-sky-900/90 text-sky-100' },
-                  { id: 'AWAKENING', icon: '✨', ko: '각성', en: '3X', cls: 'border-amber-300 bg-amber-900/90 text-amber-100' },
-                ] as const
-              ).map((st) => {
-                const isSel = activeStance === st.id;
-                return (
-                  <button
-                    key={st.id}
-                    type="button"
-                    data-testid={`orb-stance-${st.id.toLowerCase()}`}
-                    onClick={() => {
-                      hsAudio.playSfx('gem_c_select', 0.7);
-                      setActiveStance(st.id);
-                    }}
-                    className={`rounded-lg border px-1.5 py-0.5 text-[9.5px] font-extrabold transition ${
-                      isSel ? st.cls : 'border-white/15 bg-black/45 text-amber-100/70 hover:text-white'
-                    }`}
-                  >
-                    {st.icon} {isKo ? st.ko : st.en}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center justify-between gap-1">
-              <button
-                type="button"
-                data-testid="rhythm-speed-2x-btn"
-                onClick={() => {
-                  hsAudio.playSfx('ui_click', 0.65);
-                  setAutoSpeed2x((v) => !v);
-                }}
-                className={`rounded-md border px-1.5 py-0.5 text-[9px] font-black ${
-                  autoSpeed2x
-                    ? 'border-cyan-300 bg-cyan-500 text-stone-950'
-                    : 'border-white/15 bg-white/10 text-amber-200'
-                }`}
-                title={tr('2배속 시 마디 첫 강박(4박당 1회) 리듬 보정', '2x speed uses 4-beat bar downbeat')}
-              >
-                {autoSpeed2x ? '2x BAR' : '1x BEAT'}
-              </button>
-
-              {mode !== 'TUTORIAL' && rhythmEnabled && (
-                <span
-                  data-testid="rhythm-fever-gauge"
-                  className="rounded-md border border-yellow-300/45 bg-amber-950/75 px-1.5 py-0.5 text-[9px] font-extrabold text-yellow-200"
-                  title={tr('경쟁모드 공정 밸런스: 스탯 불변 · 피버 보너스 골드', 'Fair Play: 0% stat change · Bonus Gold Fever')}
-                >
-                  🪙 {rhythmFeverPct}%
-                </span>
-              )}
-
-              {rhythmPerfectCombo >= 2 && (
-                <span className="text-[9px] font-black text-yellow-300">★{rhythmPerfectCombo}</span>
-              )}
-
-              <button
-                type="button"
-                data-testid="clutch-break-toggle"
-                onClick={() => setClutchBreakEnabled((v) => !v)}
-                className={`rounded-md px-1.5 py-0.5 text-[9px] font-black ${
-                  clutchBreakEnabled ? 'bg-amber-400 text-stone-950' : 'bg-white/10 text-slate-300'
-                }`}
-                title={tr('승부처 카단 브레이크 ON/OFF', 'Toggle Clutch Choice Break')}
-              >
-                {clutchBreakEnabled ? tr('승부처', 'Clutch') : 'OFF'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <CenterRhythmRingHud
+          rhythmEnabled={rhythmEnabled}
+          battleBpm={battleBpm}
+          autoSpeed2x={autoSpeed2x}
+          onToggleSpeed2x={() => setAutoSpeed2x((v) => !v)}
+          isBossParryReady={isBossParryReady}
+          mode={mode}
+          rhythmFeverPct={rhythmFeverPct}
+          rhythmPerfectCombo={rhythmPerfectCombo}
+          rhythmFlash={rhythmFlash}
+          clutchBreakEnabled={clutchBreakEnabled}
+          onToggleClutchBreak={() => setClutchBreakEnabled((v) => !v)}
+          onTap={handleRhythmOrbTap}
+        />
       )}
 
       {/* DEV-023: 5-Second Semi-Auto Clutch Choice Break Modal */}

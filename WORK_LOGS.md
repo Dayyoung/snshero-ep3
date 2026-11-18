@@ -2,6 +2,22 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 09:18 KST] [전장 하단 중앙 BGM 맥박 동기화 초록/빨강 정박 링탭 · 로비 의뢰/보급소 뱃지 정리 · 프로모션 전 섹션 상시 노출 간결화]
+- **요청 및 개선 내역**:
+  1. **전장 수축 정박 링탭 하단 중앙 배치 & BGM 실시간 맥박·초록/빨강 타이밍 표시 (`src/hearthstone/audio.ts`, `src/hearthstone/screens/BattleScreen.tsx`, `src/hearthstone/components/SiliaUltimateWidget.tsx`)**:
+     - 기존 우상단에 있던 정박 링탭(`CenterRhythmRingHud`)을 좌하단 실리아와 우하단 카단 사이 정중앙(`fixed bottom-2.5 left-1/2 -translate-x-1/2`, `56×56px` 모바일 원핸드 터치 타깃)으로 이동 배치하고 60fps ref 렌더링으로 분리.
+     - 실제 전투 BGM(`duel_1.mp3` 128 BPM / `duel_2.mp3` 132 BPM)의 실시간 재생 시각(`HTMLAudioElement.currentTime` 서브프레임 보간 + 실측 드럼 어택 오프셋 `290ms`/`150ms`)에 1:1 동기화하여 매 정박마다 중앙 코어와 파동 링이 심장 맥박(`pulse01`)처럼 박동하도록 구현.
+     - 눌러야 하는 정박 타이밍(`isTapWindow === true`)에는 **초록색(`#22c55e`, `TAP!`)**, 누르면 안 되는 엇박 구간(`isTapWindow === false`)에는 **빨간색(`#ef4444`, `대기/WAIT`)** 으로 수축 링을 직관적으로 표시하고 판정 윈도우와 100% 일치시킴.
+  2. **의뢰 일지 숫자 뱃지 수령 가능 시에만 표시 (`src/hearthstone/screens/BoxHubScreen.tsx`, `src/hearthstone/components/Modals.tsx`)**:
+     - 미완료 의뢰 개수를 상시 표시하던 동작을 제거하고, 완료 후 보상을 수령해야 하는 항목(`claimableQ > 0`)이 있을 때만 숫자 뱃지가 표시되도록 수정.
+  3. **골드·현금 팩 구매(`눈히어로 보급소`) 무의미한 `99` 숫자 뱃지 제거 (`src/hearthstone/screens/BoxHubScreen.tsx`)**:
+     - 보유 골드 기반 `Math.min(99, Math.floor(profile.gold / 100))` 빨간 숫자 뱃지 완전 제거.
+  4. **프로모션 페이지 전 항목 상시 노출 & 군더더기 없는 간결화 (`src/promo/PromoApp.tsx`)**:
+     - 접이식 아코디언(`tier2Expanded`, `howToDrawerOpen`, `heroesDetailOpen`, `cardsSearchExpanded`, `externalChannelsOpen`)을 전면 해제하여 전체 소개 섹션(히어로 · 세계관/트레일러 · 핵심 시스템 · 게임 특징 · 6단계 게임 방법 · 9대 종족 영웅 · 382종 카드 도감 · 3대 게임 모드 · 황금 명예 컬렉션 · 무료 3팩 · 공식 웹소설/웹툰/채널)이 접힘 없이 한눈에 모두 보이도록 복원.
+     - 중복 위젯·장문 설명·불필요한 태그/이탈 팝업을 덜어내고 핵심 내용만 간결하게 압축 정리(번들 크기 `90kB → 55.25kB`).
+- **빌드 & E2E 검증**: `npm run build` 0 에러 통과, Playwright 한·영(`ko`/`en`) 데스크톱(`1280×800`) 및 모바일(`390×844`, `360×800`) 실측 검증 전원 통과.
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(`git push` 미실행 · 수동 푸시 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-18 08:37 KST] [`/checkAll` 3대 관리 문서 야간·오전 신규 항목(`DEV-042`~`055` · `MKT-062`~`073`) 전수 통합 구현 · E2E 통과 · 로컬 커밋 완료 (푸시 대기)]
 - **대상 문서**:
   1. **이슈문서 (`1fdGot6Com2_2k0_rSphIjFCKbCHgiV9ehuzoCjUsDL4`)**: 미해결 이슈 `0`건 (`12/12건` 전원 완료 유지 확인)

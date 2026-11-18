@@ -15,14 +15,28 @@ export interface RhythmBeatPhaseInfo {
   beatSec: number;
   barIndex: number;
   beatInBar: number;
-  /** 0.0 at downbeat -> approaches 1.0 right before next beat */
+  /** 0.0 at exact BGM beat -> approaches 1.0 right before next beat */
   phase01: number;
   /** Progress along a 4-beat bar (0.0 -> 1.0) for 2x speed mode */
   barPhase01: number;
-  /** Milliseconds distance to the nearest beat (-beatMs/2 .. +beatMs/2) */
+  /** Milliseconds distance to the nearest beat (-beatMs/2 .. +beatMs/2; 0ms = exact BGM drum hit) */
   deltaMs: number;
+  /** True when user SHOULD tap (Green ring window); False on off-beat when user should NOT tap (Red ring window) */
+  isTapWindow: boolean;
+  /** Shrinking outer ring scale (1.72 -> 1.00, hugging 1.00 across the green beat window) */
+  ringScale: number;
+  /** 1.0 -> 0.0 BGM heartbeat pulse synced to every audible drum beat */
+  pulse01: number;
   silentVisualMode: boolean;
 }
+
+const BGM_TRACK_BEAT_SPEC: Record<string, { bpm: number; firstBeatOffsetSec: number }> = {
+  duel_1: { bpm: 128, firstBeatOffsetSec: 0.29 },
+  duel_2: { bpm: 132, firstBeatOffsetSec: 0.15 },
+  mulligan: { bpm: 122, firstBeatOffsetSec: 0.255 },
+  tavern_hub: { bpm: 116, firstBeatOffsetSec: 0.04 },
+  collection: { bpm: 120, firstBeatOffsetSec: 0.1 },
+};
 
 export interface AudioSettings {
   bgmVolume: number;
@@ -553,8 +567,18 @@ class SnsHeroCardAudioEngine {
     }
   }
 
+  ensureBattleDuelBgm() {
+    const cur = this.currentBgmKey || this.pendingBgmTrack;
+    if (cur === 'duel_1' || cur === 'duel_2') {
+      this.playBgm(cur);
+      return;
+    }
+    this.playBgm(Math.random() < 0.5 ? 'duel_1' : 'duel_2');
+  }
+
   stopBgm() {
     this.pendingBgmTrack = null;
+    this.lastBgmAudioTimeSec = -1;
     if (this.currentBgm) {
       this.currentBgm.pause();
       this.currentBgm.src = '';
@@ -1829,9 +1853,11 @@ class SnsHeroCardAudioEngine {
   }
 
   private beatClockAnchorSec = 0;
+  private lastBgmAudioTimeSec = -1;
+  private lastBgmPerfMs = 0;
 
   /**
-   * DEV-044 & DEV-052: Re-align BeatSyncScheduler to a fresh bar downbeat on tab visibility return
+   * Re-align fallback clock on tab visibility return (active BGM uses live HTMLAudioElement.currentTime directly)
    */
   resyncBeatClockToDownbeat(): void {
     const rawSec =
@@ -1841,31 +1867,87 @@ class SnsHeroCardAudioEngine {
           ? performance.now() / 1000
           : Date.now() / 1000;
     this.beatClockAnchorSec = rawSec;
+    this.lastBgmAudioTimeSec = -1;
   }
 
   /**
-   * DEV-044 & DEV-052: Web Audio / High-Precision BeatSyncScheduler (120 / 128 / 140 BPM)
-   * Keeps silent visual metronome active even when `muted === true`.
+   * High-Precision BGM-Locked Beat & Pulse Tracker:
+   * - Locks 1:1 onto `this.currentBgm.currentTime` + exact acoustic kick/downbeat offset of `duel_1` (128 BPM) / `duel_2` (132 BPM)
+   * - Falls back cleanly to silent visual clock when muted or paused
+   * - Exposes `pulse01` (heartbeat on every BGM beat), `isTapWindow` (Green = tap now, Red = wait), and smooth `ringScale`
    */
-  getBeatPhaseInfo(bpm = 128): RhythmBeatPhaseInfo {
-    const safeBpm = Math.max(60, Math.min(200, bpm));
-    const beatSec = 60 / safeBpm;
+  getBeatPhaseInfo(fallbackBpm = 128, speed2x = false): RhythmBeatPhaseInfo {
+    const nowPerfMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
     const rawSec =
-      this.ctx && this.ctx.state === 'running'
-        ? this.ctx.currentTime
-        : typeof performance !== 'undefined'
-          ? performance.now() / 1000
-          : Date.now() / 1000;
+      this.ctx && this.ctx.state === 'running' ? this.ctx.currentTime : nowPerfMs / 1000;
     const offsetSec = (this.settings.rhythmOffsetMs || 0) / 1000;
-    const elapsed = Math.max(0, rawSec - this.beatClockAnchorSec - offsetSec);
+
+    const bgmPlaying = Boolean(
+      this.currentBgm &&
+        !this.currentBgm.paused &&
+        !this.currentBgm.ended &&
+        this.currentBgm.readyState >= 2 &&
+        !this.settings.muted &&
+        this.settings.bgmVolume > 0,
+    );
+
+    const activeTrackKey = this.currentBgmKey || this.pendingBgmTrack || 'duel_1';
+    const trackSpec = BGM_TRACK_BEAT_SPEC[activeTrackKey] || {
+      bpm: Math.max(60, Math.min(200, fallbackBpm)),
+      firstBeatOffsetSec: 0,
+    };
+    const safeBpm = trackSpec.bpm;
+    const beatSec = 60 / safeBpm;
+
+    let elapsed: number;
+    if (bgmPlaying && this.currentBgm) {
+      const curAudio = this.currentBgm.currentTime;
+      if (
+        this.lastBgmAudioTimeSec < 0 ||
+        curAudio < this.lastBgmAudioTimeSec - 0.05 ||
+        Math.abs(curAudio - this.lastBgmAudioTimeSec) > 0.0005
+      ) {
+        this.lastBgmAudioTimeSec = curAudio;
+        this.lastBgmPerfMs = nowPerfMs;
+      }
+      const interpDelta =
+        Math.min(0.04, Math.max(0, (nowPerfMs - this.lastBgmPerfMs) / 1000)) *
+        (this.currentBgm.playbackRate || 1);
+      const smoothAudioSec = this.lastBgmAudioTimeSec + interpDelta;
+      elapsed = smoothAudioSec - trackSpec.firstBeatOffsetSec - offsetSec;
+    } else {
+      elapsed = rawSec - this.beatClockAnchorSec - offsetSec;
+    }
+
     const totalBeats = elapsed / beatSec;
     const beatIndex = Math.floor(totalBeats);
-    const phase01 = totalBeats - beatIndex;
+    const phase01 = (((totalBeats - beatIndex) % 1) + 1) % 1;
     const barIndex = Math.floor(beatIndex / 4);
     const beatInBar = ((beatIndex % 4) + 4) % 4;
     const barPhase01 = (beatInBar + phase01) / 4;
     const nearestBeat = Math.round(totalBeats);
     const deltaMs = (totalBeats - nearestBeat) * beatSec * 1000;
+
+    // Audible BGM heartbeat pulse: peaks at 1.0 right on the drum beat (phase01 = 0) and decays smoothly
+    const pulse01 = Math.exp(-phase01 * 9.0);
+
+    const cycleDurMs = speed2x ? beatSec * 4000 : beatSec * 1000;
+    const cyclePhase01 = speed2x ? barPhase01 : phase01;
+    const activeDeltaMs = speed2x
+      ? cyclePhase01 <= 0.5
+        ? cyclePhase01 * cycleDurMs
+        : (cyclePhase01 - 1) * cycleDurMs
+      : deltaMs;
+
+    const earlyGreenMs = speed2x ? 165 : 130;
+    const lateGreenMs = speed2x ? 150 : 115;
+    const isTapWindow = activeDeltaMs >= -earlyGreenMs && activeDeltaMs <= lateGreenMs;
+
+    const holdFrac = Math.min(0.35, lateGreenMs / cycleDurMs);
+    const ringScale =
+      cyclePhase01 <= holdFrac
+        ? 1.0
+        : 1.72 - ((cyclePhase01 - holdFrac) / Math.max(0.01, 1 - holdFrac)) * 0.72;
 
     return {
       bpm: safeBpm,
@@ -1874,41 +1956,39 @@ class SnsHeroCardAudioEngine {
       beatInBar,
       phase01,
       barPhase01,
-      deltaMs,
-      silentVisualMode: Boolean(this.settings.muted || this.settings.bgmVolume <= 0),
+      deltaMs: activeDeltaMs,
+      isTapWindow,
+      ringScale,
+      pulse01,
+      silentVisualMode: !bgmPlaying,
     };
   }
 
   /**
-   * DEV-043 / 044 / 050 / 053: Evaluate player Rhythm Tap (PERFECT ±45ms = 2.0x / GOOD ±110ms = 1.5x / NORMAL = 1.0x),
-   * synthesize Harmonic Chord-Locked Ocarina Arpeggio (C -> G -> Am -> F), and fire mobile haptics!
+   * Evaluate player Rhythm Tap using the EXACT same Green/Red window shown on the ring:
+   * - Green ring + center beat (<= 68ms): PERFECT (2.0x)
+   * - Green ring (`isTapWindow === true`): GOOD (1.5x)
+   * - Red ring (`isTapWindow === false`): NORMAL (1.0x / off-beat miss)
    */
   evaluateRhythmTap(
     bpm = 128,
     speed2x = false,
     comboAfterPerfect = 1,
   ): { grade: RhythmGrade; multiplier: 1 | 1.5 | 2; deltaMs: number } {
-    const info = this.getBeatPhaseInfo(bpm);
-    let effectiveDeltaMs = Math.abs(info.deltaMs);
-    if (speed2x) {
-      const barDurMs = info.beatSec * 4000;
-      const distStart = info.barPhase01 * barDurMs;
-      const distEnd = (1 - info.barPhase01) * barDurMs;
-      effectiveDeltaMs = Math.min(distStart, distEnd);
-    }
+    const info = this.getBeatPhaseInfo(bpm, speed2x);
+    const absDeltaMs = Math.abs(info.deltaMs);
+    const perfectThresholdMs = speed2x ? 85 : 68;
 
     let grade: RhythmGrade = 'NORMAL';
     let multiplier: 1 | 1.5 | 2 = 1;
-    // Generous mobile-touch-friendly window centered on ±45ms / ±110ms (scaled gently for human tap latency)
-    if (effectiveDeltaMs <= 75) {
+    if (info.isTapWindow && absDeltaMs <= perfectThresholdMs) {
       grade = 'PERFECT';
       multiplier = 2;
-    } else if (effectiveDeltaMs <= 165) {
+    } else if (info.isTapWindow) {
       grade = 'GOOD';
       multiplier = 1.5;
     }
 
-    // DEV-050: Haptic feedback (1.5x = 12ms, 2.0x = [18, 30, 25]ms)
     if (this.settings.vibrateEnabled && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       try {
         if (grade === 'PERFECT') navigator.vibrate([18, 30, 25]);
@@ -1918,7 +1998,6 @@ class SnsHeroCardAudioEngine {
       }
     }
 
-    // DEV-044 & DEV-053: Harmonic Chord-Locked Ocarina Synthesis (C -> G -> Am -> F)
     this.playHarmonicRhythmChord(info.barIndex % 4, grade, comboAfterPerfect >= 3 && grade === 'PERFECT');
 
     return { grade, multiplier, deltaMs: Math.round(info.deltaMs) };

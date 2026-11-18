@@ -202,7 +202,6 @@ export const QuestLogModal: React.FC<{
   const standing = computeOverallStanding(profile);
   const rankTitle = getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang) || tr('엘윈 마을 수습생', 'Elwin Apprentice');
   const starsNeeded = getStarsNeededForRank(profile.rank);
-  const completedQuestsCount = quests.filter((q) => q.completed || q.progress >= q.goal).length;
   const claimableBonusCount = quests.filter(
     (q) => (q.completed || q.progress >= q.goal) && !q.bonusClaimed,
   ).length;
@@ -430,9 +429,11 @@ export const QuestLogModal: React.FC<{
             <span className="flex items-center gap-2">
               <span>📜</span>
               <span>{tr('의뢰', 'Quests')}</span>
-              <span className="rounded-full border border-amber-300/50 bg-black/45 px-2 py-0.5 text-[11px] font-black text-yellow-200">
-                {completedQuestsCount}/{quests.length}
-              </span>
+              {claimableBonusCount > 0 && (
+                <span className="rounded-full border border-yellow-200 bg-emerald-600 px-2 py-0.5 text-[11px] font-black text-white shadow">
+                  {claimableBonusCount}
+                </span>
+              )}
             </span>
             <span className="text-xs font-bold opacity-90">
               {openSection === 'QUESTS' ? tr('닫기 ▲', 'Hide ▲') : tr('보기 ▼', 'View ▼')}
