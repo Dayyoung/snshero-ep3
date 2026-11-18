@@ -10,6 +10,7 @@ import {
   Globe,
   Home,
   Maximize2,
+  PlayCircle,
   QrCode,
   Settings,
   ShieldCheck,
@@ -23,8 +24,9 @@ import {
 } from 'lucide-react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { renderQrCodeSvg } from '../services/qrCodeSvg';
+import { requestRewardedGoldAd } from '../services/h5RewardedAds';
 import { AudioSettings, hsAudio } from '../audio';
-import { getModeRewardGuide, getGoldPackBundleLabel } from '../storage';
+import { getModeRewardGuide, getGoldPackBundleLabel, RewardedAdQuotaStatus } from '../storage';
 import { getCardName, getRankTitle } from '../i18nData';
 import { useModalDismiss } from '../useModalDismiss';
 import {
@@ -802,10 +804,26 @@ export const TavernShopModal: React.FC<{
   const [copiedAddr, setCopiedAddr] = useState<boolean>(false);
   const [depositCheckMsg, setDepositCheckMsg] = useState<string | null>(null);
 
+  const [adQuota, setAdQuota] = useState<RewardedAdQuotaStatus>(() => hsStorage.getRewardedAdQuotaStatus());
+  const [rewardAdPhase, setRewardAdPhase] = useState<'IDLE' | 'CHECKING' | 'PROMPT' | 'SHOWING'>('IDLE');
+  const [rewardAdActions, setRewardAdActions] = useState<{
+    showAdFn: () => void;
+    cancelPrompt: () => void;
+  } | null>(null);
+
+  useEffect(() => {
+    if (adQuota.cooldownSecondsLeft <= 0) return;
+    const iv = window.setInterval(() => {
+      setAdQuota(hsStorage.getRewardedAdQuotaStatus());
+    }, 1000);
+    return () => window.clearInterval(iv);
+  }, [adQuota.cooldownSecondsLeft]);
+
   useEffect(() => {
     const sync = () => {
       setProfile(hsStorage.getProfile());
       setVipAdRemoved(isHsGameAdRemoved());
+      setAdQuota(hsStorage.getRewardedAdQuotaStatus());
     };
     const onMsg = (ev: MessageEvent) => {
       if (ev.data?.type === 'SNSHERO_GAME_PAYMENT_COMPLETE') {
@@ -865,6 +883,96 @@ export const TavernShopModal: React.FC<{
         `🎉 ${label} purchased! (-${costGold}G → +${packs} Pack${packs > 1 ? 's' : ''})`,
       ),
     );
+  };
+
+  const handleStartRewardedGoldAd = () => {
+    const currentQuota = hsStorage.getRewardedAdQuotaStatus();
+    setAdQuota(currentQuota);
+    if (currentQuota.remainingToday <= 0) {
+      hsAudio.playSfx('ui_click', 0.6);
+      showToast(
+        tr(
+          `오늘 보상형 광고 충전 한도(${currentQuota.maxDaily}회)를 모두 사용했습니다. 내일 다시 이용해 주세요!`,
+          `Daily rewarded ad limit reached (${currentQuota.maxDaily}/${currentQuota.maxDaily}). Try again tomorrow!`,
+        ),
+      );
+      return;
+    }
+    if (currentQuota.cooldownSecondsLeft > 0) {
+      hsAudio.playSfx('ui_click', 0.6);
+      showToast(
+        tr(
+          `${currentQuota.cooldownSecondsLeft}초 후 다음 보상형 광고를 시청할 수 있습니다.`,
+          `Next rewarded ad available in ${currentQuota.cooldownSecondsLeft}s.`,
+        ),
+      );
+      return;
+    }
+    hsAudio.playSfx('ui_click');
+    setRewardAdPhase('CHECKING');
+    setRewardAdActions(null);
+    requestRewardedGoldAd({
+      onBeforeRewardPrompt: (showAdFn, cancelPrompt) => {
+        setRewardAdActions({ showAdFn, cancelPrompt });
+        setRewardAdPhase('PROMPT');
+      },
+      onAdShowing: () => {
+        setRewardAdPhase('SHOWING');
+        setRewardAdActions(null);
+      },
+      onRewardGranted: (goldAdded, newGold, quota) => {
+        setRewardAdPhase('IDLE');
+        setRewardAdActions(null);
+        setAdQuota(quota);
+        refresh();
+        hsAudio.playSfx('mario_coin', 0.9);
+        showToast(
+          tr(
+            `🎬 보상형 광고 시청 완료! +${goldAdded}G 충전되었습니다 (보유 ${newGold.toLocaleString()}G)`,
+            `🎬 Ad completed! +${goldAdded}G credited (Total: ${newGold.toLocaleString()}G)`,
+          ),
+        );
+      },
+      onDismissed: () => {
+        setRewardAdPhase('IDLE');
+        setRewardAdActions(null);
+        hsAudio.playSfx('ui_click', 0.5);
+        showToast(
+          tr(
+            '광고를 끝까지 시청하지 않아 골드가 지급되지 않았습니다.',
+            'Ad was closed early — no Gold was granted.',
+          ),
+        );
+      },
+      onUnavailable: (status) => {
+        setRewardAdPhase('IDLE');
+        setRewardAdActions(null);
+        setAdQuota(hsStorage.getRewardedAdQuotaStatus());
+        hsAudio.playSfx('ui_click', 0.5);
+        if (status === 'frequencyCapped') {
+          showToast(
+            tr(
+              '광고 재충전 대기 시간입니다. 잠시 후 다시 시도해 주세요.',
+              'Ad frequency cooldown active. Please try again shortly.',
+            ),
+          );
+        } else if (status === 'adblocker_timeout') {
+          showToast(
+            tr(
+              '브라우저 광고 차단 또는 네트워크 제한으로 보상형 광고를 불러오지 못했습니다.',
+              'Rewarded ad blocked by browser settings or unavailable offline.',
+            ),
+          );
+        } else {
+          showToast(
+            tr(
+              '현재 재생 가능한 H5 보상형 광고 재고가 없습니다. 잠시 후 다시 확인해 주세요.',
+              'No H5 Games rewarded ad inventory available right now. Try again shortly.',
+            ),
+          );
+        }
+      },
+    });
   };
 
   const handleSelectPackageToStep2 = (pkg: GameShopPackage) => {
@@ -1726,6 +1834,103 @@ export const TavernShopModal: React.FC<{
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Official Google H5 Games Ads (`type: 'reward'`) Gold Recharge Card */}
+              <div
+                data-testid="shop-rewarded-ad-card"
+                className="hs-ocarina-dialog mt-3.5 rounded-2xl p-3.5 sm:p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-300/60 bg-emerald-950/85 text-emerald-300">
+                      <PlayCircle className="h-5 w-5" strokeWidth={1.9} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="hs-title text-xs font-extrabold text-emerald-200 sm:text-sm">
+                          {tr(
+                            `보상형 광고 보고 +${adQuota.goldPerAd}G 무료 충전`,
+                            `Watch H5 Rewarded Ad for +${adQuota.goldPerAd}G`,
+                          )}
+                        </span>
+                        <span
+                          data-testid="shop-rewarded-ad-quota"
+                          className="rounded-full border border-emerald-300/50 bg-emerald-950/90 px-2 py-0.5 text-[10px] font-black text-emerald-200"
+                        >
+                          {tr(
+                            `오늘 남은 횟수 ${adQuota.remainingToday}/${adQuota.maxDaily}`,
+                            `Left Today ${adQuota.remainingToday}/${adQuota.maxDaily}`,
+                          )}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[10.5px] font-semibold text-sky-100/80">
+                        {tr(
+                          'Google H5 Games 공식 Opt-In 보상형 광고 · 게임 내 전용 재화(현금 환전·양도 불가)',
+                          'Official Google H5 Games Opt-In Ad · In-game Gold only (non-transferable)',
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {rewardAdPhase === 'PROMPT' && rewardAdActions ? (
+                    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                      <button
+                        type="button"
+                        data-testid="shop-rewarded-ad-confirm-btn"
+                        onClick={() => {
+                          hsAudio.playSfx('box_press');
+                          rewardAdActions.showAdFn();
+                        }}
+                        className="hs-zelda-b-btn hs-mario-spring flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-extrabold text-white sm:flex-initial"
+                      >
+                        <PlayCircle className="h-4 w-4" strokeWidth={2} />
+                        <span>
+                          {tr(`▶ 지금 광고 재생 (+${adQuota.goldPerAd}G)`, `▶ Watch Video (+${adQuota.goldPerAd}G)`)}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="shop-rewarded-ad-cancel-btn"
+                        onClick={() => rewardAdActions.cancelPrompt()}
+                        className="hs-brass-btn min-h-[44px] rounded-xl px-3 py-2 text-xs font-extrabold text-amber-100"
+                      >
+                        {tr('취소', 'Cancel')}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      data-testid="shop-rewarded-ad-btn"
+                      disabled={
+                        rewardAdPhase !== 'IDLE' ||
+                        adQuota.remainingToday <= 0 ||
+                        adQuota.cooldownSecondsLeft > 0
+                      }
+                      onClick={handleStartRewardedGoldAd}
+                      className={`hs-mario-spring flex min-h-[46px] w-full shrink-0 items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-xs font-extrabold transition sm:w-auto sm:text-sm ${
+                        rewardAdPhase === 'IDLE' &&
+                        adQuota.remainingToday > 0 &&
+                        adQuota.cooldownSecondsLeft === 0
+                          ? 'hs-zelda-b-btn text-white'
+                          : 'cursor-not-allowed border border-stone-700 bg-stone-900/90 text-stone-400'
+                      }`}
+                    >
+                      <HsGoldCoinIcon size={16} />
+                      <span>
+                        {rewardAdPhase === 'CHECKING'
+                          ? tr('광고 확인 중...', 'Checking Ad...')
+                          : rewardAdPhase === 'SHOWING'
+                            ? tr('광고 재생 중...', 'Playing Ad...')
+                            : adQuota.remainingToday <= 0
+                              ? tr('오늘 충전 한도 완료', 'Daily Limit Reached')
+                              : adQuota.cooldownSecondsLeft > 0
+                                ? tr(`대기 ${adQuota.cooldownSecondsLeft}초`, `Cooldown ${adQuota.cooldownSecondsLeft}s`)
+                                : tr(`광고 보고 +${adQuota.goldPerAd}G 받기`, `Watch Ad (+${adQuota.goldPerAd}G)`)}
+                      </span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

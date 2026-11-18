@@ -31,7 +31,21 @@ const KEYS = {
   QUESTS: 'hero_hs_quests',
   PITY: 'hero_hs_pack_pity',
   LORE_VER: 'hero_hs_lore_version',
+  REWARDED_AD: 'hero_hs_rewarded_ad_log',
 };
+
+export const REWARDED_AD_GOLD_AMOUNT = 50;
+export const REWARDED_AD_MAX_DAILY = 5;
+export const REWARDED_AD_COOLDOWN_MS = 45_000;
+
+export interface RewardedAdQuotaStatus {
+  dateKey: string;
+  usedToday: number;
+  maxDaily: number;
+  remainingToday: number;
+  cooldownSecondsLeft: number;
+  goldPerAd: number;
+}
 
 export interface PackPityState {
   totalPacksOpened: number;
@@ -2818,6 +2832,90 @@ class HearthstoneStorage {
     } catch {
       return { granted: false, goldAdded: 0 };
     }
+  }
+
+  private getLocalDateKey(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  getRewardedAdQuotaStatus(nowMs = Date.now()): RewardedAdQuotaStatus {
+    const today = this.getLocalDateKey();
+    try {
+      const raw = localStorage.getItem(KEYS.REWARDED_AD);
+      if (!raw) {
+        return {
+          dateKey: today,
+          usedToday: 0,
+          maxDaily: REWARDED_AD_MAX_DAILY,
+          remainingToday: REWARDED_AD_MAX_DAILY,
+          cooldownSecondsLeft: 0,
+          goldPerAd: REWARDED_AD_GOLD_AMOUNT,
+        };
+      }
+      const parsed = JSON.parse(raw) as { dateKey?: string; usedToday?: number; lastRewardAt?: number };
+      const usedToday = parsed.dateKey === today ? Math.max(0, Math.floor(Number(parsed.usedToday) || 0)) : 0;
+      const lastRewardAt = Number(parsed.lastRewardAt) || 0;
+      const elapsedMs = Math.max(0, nowMs - lastRewardAt);
+      const cooldownSecondsLeft =
+        lastRewardAt > 0 && elapsedMs < REWARDED_AD_COOLDOWN_MS
+          ? Math.ceil((REWARDED_AD_COOLDOWN_MS - elapsedMs) / 1000)
+          : 0;
+      return {
+        dateKey: today,
+        usedToday,
+        maxDaily: REWARDED_AD_MAX_DAILY,
+        remainingToday: Math.max(0, REWARDED_AD_MAX_DAILY - usedToday),
+        cooldownSecondsLeft,
+        goldPerAd: REWARDED_AD_GOLD_AMOUNT,
+      };
+    } catch {
+      return {
+        dateKey: today,
+        usedToday: 0,
+        maxDaily: REWARDED_AD_MAX_DAILY,
+        remainingToday: REWARDED_AD_MAX_DAILY,
+        cooldownSecondsLeft: 0,
+        goldPerAd: REWARDED_AD_GOLD_AMOUNT,
+      };
+    }
+  }
+
+  claimRewardedAdGold(nowMs = Date.now()): {
+    ok: boolean;
+    goldAdded: number;
+    newGold: number;
+    quota: RewardedAdQuotaStatus;
+  } {
+    const current = this.getRewardedAdQuotaStatus(nowMs);
+    const p = this.getProfile();
+    if (current.remainingToday <= 0 || current.cooldownSecondsLeft > 0) {
+      return { ok: false, goldAdded: 0, newGold: p.gold, quota: current };
+    }
+    const nextUsed = current.usedToday + 1;
+    try {
+      localStorage.setItem(
+        KEYS.REWARDED_AD,
+        JSON.stringify({
+          dateKey: current.dateKey,
+          usedToday: nextUsed,
+          lastRewardAt: nowMs,
+        }),
+      );
+    } catch {
+      // ignore quota error
+    }
+    p.gold += REWARDED_AD_GOLD_AMOUNT;
+    this.saveProfile(p);
+    return {
+      ok: true,
+      goldAdded: REWARDED_AD_GOLD_AMOUNT,
+      newGold: p.gold,
+      quota: this.getRewardedAdQuotaStatus(nowMs),
+    };
   }
 }
 

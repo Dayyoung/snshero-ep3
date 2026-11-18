@@ -2,6 +2,21 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 14:24 KST] [상점 Google H5 Games 보상형 광고(+50G) 골드 충전 기능 구현 (푸시 대기)]
+- **요청**: Google 애드센스 정책 준수 범위 내 1번 방식(Google H5 Games Ads `Ad Placement API`)으로 상점 내 광고 시청 후 골드 충전 기능 구현
+- **수정 및 추가 파일**:
+  - `game.html` (`ca-pub-6937094123258335` 스크립트에 `data-ad-frequency-hint="30s"` 및 공식 `window.adBreak` / `window.adConfig` 큐 초기화 추가)
+  - `src/hearthstone/services/h5RewardedAds.ts` (신규 — `adConfig({ preloadAdBreaks: 'on' })`, `adBreak({ type: 'reward', name: 'shop_gold_recharge' })` 래퍼: `beforeReward` 자발적 Opt-In 프롬프트, `adViewed` 완료 시에만 보상 지급, `adDismissed`·오류 시 0G, `beforeAd`/`afterAd` 오디오 일시정지/복귀)
+  - `src/hearthstone/audio.ts` (`suspendForAd()` / `resumeAfterAd()` 비영구 오디오 일시정지·복원 추가)
+  - `src/hearthstone/storage.ts` (`hero_hs_rewarded_ad_log` 로컬스토리지 기반 1회 `+50G`, 일일 최대 5회·250G/일 및 45초 쿨타임 제한 `getRewardedAdQuotaStatus`·`claimRewardedAdGold` 구현)
+  - `src/hearthstone/HearthstoneApp.tsx` (앱 시작 시 `initH5GamesAds` 및 음소거 설정 변경 시 `syncH5AdSound` 연동)
+  - `src/hearthstone/components/Modals.tsx` (`TavernShopModal` 1단계 골드 카드팩 영역 하단에 `shop-rewarded-ad-card` 추가 — Opt-In 확인 2단계 버튼, 남은 횟수 `5/5`, 45초 쿨타임 카운트다운, 비현금성 게임 내 재화 안내 표기)
+- **검증 결과**:
+  - `npx tsc --noEmit` 및 `npm run build` 통과 (`0` 에러)
+  - Playwright 데스크톱(`1280×800` 한국어) 및 모바일(`390×844` 영문) E2E 검증 완료: H5 API 전역 훅·`data-ad-frequency-hint="30s"` 확인, `adDismissed` 중도 이탈 시 `0G` 유지(`250G`), `adViewed` 시청 완료 시 `+50G` 반영(`300G`) 및 일일 한도(`4/5`)·쿨타임 비활성화 확인, 모바일 스크린샷 및 콘솔/페이지 에러 `0`건 확인
+- **안내 사항**: 실제 라이브 도메인(`snshero.com`)에서 실 광고가 노출되려면 AdSense 콘솔 내 **H5 Games Ads 프로그램 신청·승인**이 추가로 필요합니다.
+- **상태**: 로컬 커밋 완료 (원격 푸시 보류) · 구글 폼 보고 완료
+
 ## [2026-11-18 12:53 KST] [『카단의 기세』 마구 연타(`+1`) · 초록 정박(`+10`) 누적 방식 개편 및 스토리 모드(`TUTORIAL`) 전용 제한 적용]
 - **요청 및 개선 내역**:
   1. **『카단의 기세』 연타(`+1`) 및 초록 링 타이밍(`+10`) 이중 누적 체계 구현 (`src/hearthstone/screens/BattleScreen.tsx`, `src/hearthstone/audio.ts`)**:

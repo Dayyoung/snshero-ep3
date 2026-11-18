@@ -63,6 +63,7 @@ const PackOpeningScreen = loadHsScreenSafely<{
   onReturnToJourney?: () => void;
 }>('PackOpeningScreen', 'PackOpeningScreen');
 import { initGamePwaFullscreen, isStandalonePwa } from './pwaFullscreen';
+import { initH5GamesAds, syncH5AdSound } from './services/h5RewardedAds';
 import { hsStorage } from './storage';
 import {
   BattleMatchState,
@@ -88,6 +89,15 @@ export const HearthstoneApp: React.FC = () => {
       ? '눈히어로 — 엘윈마을 카드 배틀'
       : 'SNSHero — Elwin Village Card Battle';
   }, [isKo]);
+
+  useEffect(() => {
+    initH5GamesAds(!hsAudio.getSettings().muted);
+    const onSettingsChanged = () => {
+      syncH5AdSound(!hsAudio.getSettings().muted);
+    };
+    window.addEventListener('snshero:settings-changed', onSettingsChanged);
+    return () => window.removeEventListener('snshero:settings-changed', onSettingsChanged);
+  }, []);
 
   const [screen, setScreen] = useState<ScreenName>('BOX_HUB');
   const [profile, setProfile] = useState<PlayerProfile | null>(null);

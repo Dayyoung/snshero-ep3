@@ -367,6 +367,14 @@ class SnsHeroCardAudioEngine {
     }
   }
 
+  suspendForAd(): void {
+    this.suspendForFocusLoss();
+  }
+
+  resumeAfterAd(): void {
+    this.resumeForFocusGain();
+  }
+
   getSettings(): AudioSettings {
     return { ...this.settings };
   }
