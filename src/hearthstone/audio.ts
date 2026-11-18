@@ -34,9 +34,9 @@ const BGM_TRACK_BEAT_SPEC: Record<
   string,
   { bpm: number; firstBeatOffsetSec: number; playbackRate: number }
 > = {
-  duel_1: { bpm: 128, firstBeatOffsetSec: 0.29, playbackRate: 0.78 },
-  duel_2: { bpm: 132, firstBeatOffsetSec: 0.15, playbackRate: 0.75 },
-  mulligan: { bpm: 122, firstBeatOffsetSec: 0.255, playbackRate: 0.88 },
+  duel_1: { bpm: 128, firstBeatOffsetSec: 0.29, playbackRate: 1.0 },
+  duel_2: { bpm: 132, firstBeatOffsetSec: 0.15, playbackRate: 1.0 },
+  mulligan: { bpm: 122, firstBeatOffsetSec: 0.255, playbackRate: 1.0 },
   tavern_hub: { bpm: 116, firstBeatOffsetSec: 0.04, playbackRate: 1.0 },
   collection: { bpm: 120, firstBeatOffsetSec: 0.1, playbackRate: 1.0 },
 };
@@ -1913,14 +1913,14 @@ class SnsHeroCardAudioEngine {
     const trackSpec = BGM_TRACK_BEAT_SPEC[activeTrackKey] || {
       bpm: Math.max(60, Math.min(200, fallbackBpm)),
       firstBeatOffsetSec: 0,
-      playbackRate: 0.78,
+      playbackRate: 1.0,
     };
     const fileBpm = trackSpec.bpm;
     const fileBeatSec = 60 / fileBpm;
     const activeRate =
       bgmPlaying && this.currentBgm
         ? this.currentBgm.playbackRate || trackSpec.playbackRate || 1
-        : trackSpec.playbackRate || 0.78;
+        : trackSpec.playbackRate || 1;
     const realBeatSec = fileBeatSec / activeRate;
     const effectiveBpm = Math.round(fileBpm * activeRate);
 
@@ -1950,7 +1950,7 @@ class SnsHeroCardAudioEngine {
     const beatInBar = ((beatIndex % 4) + 4) % 4;
     const barPhase01 = (beatInBar + phase01) / 4;
 
-    // Comfortable 2-Beat Strong Pulse (~1.20s cycle in 1x mode, ~2.40s in 2x bar mode)
+    // Fast, urgent BGM (128/132 BPM) + 1 stack per 2 beats (`2박에 1번`, ~0.92s per ring)
     const beatsPerRing = speed2x ? 4 : 2;
     const cycleTotal = totalBeats / beatsPerRing;
     const cycleIdx = Math.floor(cycleTotal);
@@ -1959,17 +1959,14 @@ class SnsHeroCardAudioEngine {
     const activeDeltaMs =
       cyclePhase01 <= 0.5 ? cyclePhase01 * cycleDurMs : (cyclePhase01 - 1) * cycleDurMs;
 
-    // Strong BGM heartbeat pulse synced to the 2-beat downbeat + gentle sub-beat pulse
-    const pulse01 = Math.min(
-      1,
-      Math.max(Math.exp(-cyclePhase01 * 5.8), 0.32 * Math.exp(-phase01 * 8.0)),
-    );
+    // Energetic heartbeat pulse on every beat of the urgent BGM
+    const pulse01 = Math.exp(-phase01 * 8.2);
 
-    const earlyGreenMs = speed2x ? 340 : 270;
-    const lateGreenMs = speed2x ? 300 : 250;
+    const earlyGreenMs = speed2x ? 300 : 215;
+    const lateGreenMs = speed2x ? 260 : 205;
     const isTapWindow = activeDeltaMs >= -earlyGreenMs && activeDeltaMs <= lateGreenMs;
 
-    const holdFrac = Math.min(0.32, lateGreenMs / cycleDurMs);
+    const holdFrac = Math.min(0.3, lateGreenMs / cycleDurMs);
     const ringScale =
       cyclePhase01 <= holdFrac
         ? 1.0
@@ -1992,7 +1989,7 @@ class SnsHeroCardAudioEngine {
 
   /**
    * Evaluate player Rhythm Tap using the EXACT same Green/Red window shown on the ring:
-   * - Green ring + center beat (<= 135ms): PERFECT (2.0x)
+   * - Green ring + center beat (<= 115ms): PERFECT (2.0x)
    * - Green ring (`isTapWindow === true`): GOOD (1.5x)
    * - Red ring (`isTapWindow === false`): NORMAL (1.0x / off-beat miss)
    */
@@ -2003,7 +2000,7 @@ class SnsHeroCardAudioEngine {
   ): { grade: RhythmGrade; multiplier: 1 | 1.5 | 2; deltaMs: number } {
     const info = this.getBeatPhaseInfo(bpm, speed2x);
     const absDeltaMs = Math.abs(info.deltaMs);
-    const perfectThresholdMs = speed2x ? 165 : 135;
+    const perfectThresholdMs = speed2x ? 145 : 115;
 
     let grade: RhythmGrade = 'NORMAL';
     let multiplier: 1 | 1.5 | 2 = 1;

@@ -60,6 +60,57 @@ interface WindGust {
   maxLife: number;
 }
 
+interface BlizzardFlake {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  rot: number;
+  vRot: number;
+  isCrystal: boolean;
+}
+
+interface IceSpear {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  delay: number;
+  dur: number;
+  impacted: boolean;
+}
+
+interface WindBlade {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  tilt: number;
+  color: string;
+}
+
+interface WindTornado {
+  x0: number;
+  x1: number;
+  baseY: number;
+  height: number;
+  baseWidth: number;
+  phase: number;
+}
+
+interface UltimateStorm {
+  kind: 'KADAN_BLIZZARD' | 'SILIA_WINDSTORM';
+  life: number;
+  maxLife: number;
+  tier: number;
+  flakes: BlizzardFlake[];
+  spears: IceSpear[];
+  blades: WindBlade[];
+  tornadoes: WindTornado[];
+}
+
 const lastKnownEntityCenters = new Map<string, { x: number; y: number }>();
 
 export function recordEntityStagePosition(entityId: string, pos: { x: number; y: number }): void {
@@ -121,11 +172,108 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
   const projectilesRef = useRef<Projectile[]>([]);
   const badgesRef = useRef<FloatingBadge[]>([]);
   const windGustsRef = useRef<WindGust[]>([]);
+  const ultimateStormsRef = useRef<UltimateStorm[]>([]);
   const impactCbRef = useRef(onDamageImpact);
   impactCbRef.current = onDamageImpact;
 
   const rafIdRef = useRef<number>(0);
   const ensureLoopRef = useRef<() => void>(() => {});
+
+  const spawnSiliaWindstormUltimate = (stageW: number, stageH: number, tier = 1) => {
+    const blades: WindBlade[] = [];
+    const bladeCount = Math.min(44, 28 + tier * 4);
+    for (let i = 0; i < bladeCount; i++) {
+      blades.push({
+        x: -stageW * 0.15 - Math.random() * stageW * 0.55,
+        y: stageH * (0.08 + Math.random() * 0.72),
+        vx: 19 + Math.random() * 13,
+        vy: -2.4 + (Math.random() - 0.5) * 3.8,
+        radius: 18 + Math.random() * 22,
+        tilt: -0.25 + (Math.random() - 0.5) * 0.35,
+        color: i % 3 === 0 ? '#ecfdf5' : i % 3 === 1 ? '#34d399' : '#10b981',
+      });
+    }
+    const tornadoes: WindTornado[] = [
+      {
+        x0: stageW * 0.08,
+        x1: stageW * 0.88,
+        baseY: stageH * 0.52,
+        height: stageH * 0.44,
+        baseWidth: 26,
+        phase: 0,
+      },
+      {
+        x0: stageW * 0.22,
+        x1: stageW * 0.94,
+        baseY: stageH * 0.4,
+        height: stageH * 0.42,
+        baseWidth: 22,
+        phase: 2.1,
+      },
+      {
+        x0: stageW * 0.02,
+        x1: stageW * 0.74,
+        baseY: stageH * 0.44,
+        height: stageH * 0.38,
+        baseWidth: 20,
+        phase: 4.2,
+      },
+    ];
+    ultimateStormsRef.current.push({
+      kind: 'SILIA_WINDSTORM',
+      life: 0,
+      maxLife: 78,
+      tier,
+      flakes: [],
+      spears: [],
+      blades,
+      tornadoes,
+    });
+    ensureLoopRef.current();
+  };
+
+  const spawnKadanBlizzardUltimate = (stageW: number, stageH: number, tier = 1) => {
+    const flakes: BlizzardFlake[] = [];
+    const flakeCount = Math.min(72, 48 + tier * 6);
+    for (let i = 0; i < flakeCount; i++) {
+      flakes.push({
+        x: Math.random() * stageW * 1.45,
+        y: -Math.random() * stageH * 0.65 + (i % 3 === 0 ? Math.random() * stageH * 0.35 : 0),
+        vx: -(14 + Math.random() * 11),
+        vy: 9 + Math.random() * 7.5,
+        size: 6 + Math.random() * 10,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.18,
+        isCrystal: i % 2 === 0,
+      });
+    }
+    const spears: IceSpear[] = [];
+    const spearCount = Math.min(14, 7 + tier * 2);
+    for (let i = 0; i < spearCount; i++) {
+      const tx = stageW * (0.14 + ((i * 0.72) / Math.max(1, spearCount - 1)));
+      const ty = stageH * (0.18 + (i % 3) * 0.09);
+      spears.push({
+        x0: tx + 220,
+        y0: -110 - (i % 4) * 35,
+        x1: tx,
+        y1: ty,
+        delay: i * 3,
+        dur: 18,
+        impacted: false,
+      });
+    }
+    ultimateStormsRef.current.push({
+      kind: 'KADAN_BLIZZARD',
+      life: 0,
+      maxLife: 82,
+      tier,
+      flakes,
+      spears,
+      blades: [],
+      tornadoes: [],
+    });
+    ensureLoopRef.current();
+  };
 
   const spawnBurst = (
     x: number,
@@ -370,10 +518,11 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           const isStageSummary = ev.targetId === 'PLAYER_HERO';
           if (isStageSummary) {
             hsAudio.playSfx('whoosh', 0.98);
-            hsAudio.playSfx('big_attack', 0.82);
+            hsAudio.playSfx('big_attack', 0.85);
             hsAudio.playProceduralVfxSound('HOLY');
             hsAudio.vibrateByDamage(10);
             impactCbRef.current?.(12);
+            spawnSiliaWindstormUltimate(stageW, stageH, Math.max(1, ev.value || 1));
             const yBand = stageH * 0.58;
             for (let i = 0; i < 6; i++) {
               windGustsRef.current.push({
@@ -451,9 +600,10 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           const isStageSummary = ev.targetId === 'OPPONENT_HERO';
           if (isStageSummary) {
             hsAudio.playSfx('whoosh', 1.0);
-            hsAudio.playSfx('big_attack', 0.92);
+            hsAudio.playSfx('big_attack', 0.95);
             hsAudio.vibrateByDamage(12);
             impactCbRef.current?.(14);
+            spawnSiliaWindstormUltimate(stageW, stageH, Math.max(2, ev.value || 2));
             const yBand = stageH * 0.34;
             for (let i = 0; i < 6; i++) {
               windGustsRef.current.push({
@@ -521,10 +671,11 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
 
         case 'SILIA_WIND_HEAL': {
           hsAudio.playSfx('whoosh', 0.95);
-          hsAudio.playSfx('big_attack', 0.78);
+          hsAudio.playSfx('big_attack', 0.82);
           hsAudio.playProceduralVfxSound('HOLY');
           hsAudio.vibrateByDamage(10);
           impactCbRef.current?.(11);
+          spawnSiliaWindstormUltimate(stageW, stageH, 1);
           const heroPt = getEntityCenter('PLAYER_HERO');
           for (let i = 0; i < 4; i++) {
             windGustsRef.current.push({
@@ -572,11 +723,12 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
           const isStageSummary = ev.targetId === 'OPPONENT_HERO';
           const tier = Math.max(1, ev.value || 1);
           if (isStageSummary) {
+            hsAudio.playSfx('whoosh', 1.0);
             hsAudio.playSfx('big_attack', 1.0);
-            hsAudio.playSfx('hero_power', 0.95);
-            hsAudio.playProceduralVfxSound('HOLY');
+            hsAudio.playProceduralVfxSound('FROST');
             hsAudio.vibrateByDamage(14 + tier * 3, { isFinisher: true });
             impactCbRef.current?.(14 + Math.min(12, tier * 3));
+            spawnKadanBlizzardUltimate(stageW, stageH, tier);
 
             const enemyHeroPt = getEntityCenter('OPPONENT_HERO');
             const yBand = stageH * 0.3;
@@ -1115,7 +1267,8 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
         projectilesRef.current.length === 0 &&
         particlesRef.current.length === 0 &&
         badgesRef.current.length === 0 &&
-        windGustsRef.current.length === 0
+        windGustsRef.current.length === 0 &&
+        ultimateStormsRef.current.length === 0
       ) {
         ctx.clearRect(0, 0, width, height);
         rafIdRef.current = 0;
@@ -1123,6 +1276,217 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
       }
 
       ctx.clearRect(0, 0, width, height);
+
+      // -1. Full-Screen Elemental Ultimate Storms (`카단 눈보라 공격` & `실리아 바람풍 공격`)
+      const nextStorms: UltimateStorm[] = [];
+      for (const st of ultimateStormsRef.current) {
+        st.life += 1;
+        if (st.life >= st.maxLife) continue;
+        const prog = st.life / st.maxLife;
+        const envAlpha = prog < 0.14 ? prog / 0.14 : prog > 0.72 ? (1 - prog) / 0.28 : 1;
+
+        ctx.save();
+        if (st.kind === 'KADAN_BLIZZARD') {
+          // 1) Sub-Zero Blizzard Whiteout Screen Tint + Diagonal Howling Gale Lines
+          ctx.fillStyle = `rgba(56, 189, 248, ${(0.22 * envAlpha).toFixed(3)})`;
+          ctx.fillRect(0, 0, width, height);
+          if (st.life <= 10) {
+            ctx.fillStyle = `rgba(224, 242, 254, ${((1 - st.life / 10) * 0.32).toFixed(3)})`;
+            ctx.fillRect(0, 0, width, height);
+          }
+
+          ctx.strokeStyle = `rgba(224, 242, 254, ${(0.52 * envAlpha).toFixed(3)})`;
+          ctx.lineWidth = 2.4;
+          ctx.lineCap = 'round';
+          for (let g = 0; g < 16; g++) {
+            const gx = ((width * 1.3 - ((st.life * 32 + g * 137) % (width * 1.5))) + width * 1.5) % (width * 1.4) - width * 0.15;
+            const gy = ((st.life * 16 + g * 89) % (height * 0.95));
+            ctx.beginPath();
+            ctx.moveTo(gx, gy);
+            ctx.lineTo(gx - 95, gy + 54);
+            ctx.stroke();
+          }
+
+          // 2) Crashing Glacial Ice Spears from the Frozen Sky -> Frost Crystal Shatter!
+          for (const sp of st.spears) {
+            const localT = (st.life - sp.delay) / sp.dur;
+            if (localT < 0) continue;
+            if (localT <= 1) {
+              const cx = sp.x0 + (sp.x1 - sp.x0) * localT;
+              const cy = sp.y0 + (sp.y1 - sp.y0) * localT;
+              const ang = Math.atan2(sp.y1 - sp.y0, sp.x1 - sp.x0);
+              ctx.save();
+              ctx.translate(cx, cy);
+              ctx.rotate(ang);
+              ctx.globalAlpha = Math.min(1, envAlpha * 0.96);
+              // Outer Frost Halo
+              ctx.fillStyle = '#38bdf8';
+              ctx.beginPath();
+              ctx.moveTo(48, 0);
+              ctx.lineTo(-42, -13);
+              ctx.lineTo(-56, 0);
+              ctx.lineTo(-42, 13);
+              ctx.closePath();
+              ctx.fill();
+              // Crystalline White Core
+              ctx.fillStyle = '#f0f9ff';
+              ctx.beginPath();
+              ctx.moveTo(44, 0);
+              ctx.lineTo(-34, -6);
+              ctx.lineTo(-44, 0);
+              ctx.lineTo(-34, 6);
+              ctx.closePath();
+              ctx.fill();
+              ctx.restore();
+            } else if (!sp.impacted) {
+              sp.impacted = true;
+              spawnRing(sp.x1, sp.y1, '#7dd3fc', 135);
+              spawnRing(sp.x1, sp.y1, '#ffffff', 90);
+              spawnBurst(
+                sp.x1,
+                sp.y1,
+                10,
+                ['#ffffff', '#e0f2fe', '#7dd3fc', '#38bdf8'],
+                8.5,
+                7,
+                'SHARD',
+                0.04,
+              );
+            } else if (localT < 2.2) {
+              // Ground Ice Spikes blooming where the spear struck
+              const spikeAlpha = Math.max(0, 1 - (localT - 1) / 1.2) * envAlpha;
+              ctx.save();
+              ctx.translate(sp.x1, sp.y1);
+              ctx.globalAlpha = spikeAlpha;
+              ctx.fillStyle = '#bae6fd';
+              ctx.strokeStyle = '#0284c7';
+              ctx.lineWidth = 1.8;
+              for (const [dx, hgt, tilt] of [
+                [-16, 34, -0.32],
+                [0, 48, 0],
+                [16, 36, 0.32],
+              ] as const) {
+                ctx.save();
+                ctx.translate(dx, 6);
+                ctx.rotate(tilt);
+                ctx.beginPath();
+                ctx.moveTo(0, -hgt);
+                ctx.lineTo(9, 0);
+                ctx.lineTo(-9, 0);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+              }
+              ctx.restore();
+            }
+          }
+
+          // 3) 6-Pointed Crystalline Snowflakes Whipping Across the Entire Stage
+          for (const fl of st.flakes) {
+            fl.x += fl.vx;
+            fl.y += fl.vy;
+            fl.rot += fl.vRot;
+            if (fl.x < -30) fl.x += width * 1.25;
+            if (fl.y > height + 30) fl.y -= height * 1.15;
+
+            ctx.save();
+            ctx.translate(fl.x, fl.y);
+            ctx.rotate(fl.rot);
+            ctx.globalAlpha = envAlpha * 0.92;
+            if (fl.isCrystal) {
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 2.1;
+              const r = fl.size;
+              for (let a = 0; a < 3; a++) {
+                ctx.beginPath();
+                ctx.moveTo(-r, 0);
+                ctx.lineTo(r, 0);
+                ctx.moveTo(r * 0.55, -r * 0.28);
+                ctx.lineTo(r * 0.82, 0);
+                ctx.lineTo(r * 0.55, r * 0.28);
+                ctx.moveTo(-r * 0.55, -r * 0.28);
+                ctx.lineTo(-r * 0.82, 0);
+                ctx.lineTo(-r * 0.55, r * 0.28);
+                ctx.stroke();
+                ctx.rotate(Math.PI / 3);
+              }
+            } else {
+              ctx.fillStyle = '#e0f2fe';
+              ctx.beginPath();
+              ctx.arc(0, 0, fl.size * 0.45, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+        } else {
+          // SILIA_WINDSTORM: Roaring Emerald Gale + 3 Towering Tornadoes + Supersonic Crescent Wind Blades!
+          ctx.fillStyle = `rgba(16, 185, 129, ${(0.18 * envAlpha).toFixed(3)})`;
+          ctx.fillRect(0, 0, width, height);
+
+          // 1) High-Speed Horizontal Wind Streamlines Across the Stage
+          ctx.strokeStyle = `rgba(167, 243, 208, ${(0.48 * envAlpha).toFixed(3)})`;
+          ctx.lineWidth = 2.2;
+          ctx.lineCap = 'round';
+          for (let wIdx = 0; wIdx < 16; wIdx++) {
+            const wx = ((st.life * 36 + wIdx * 149) % (width * 1.35)) - width * 0.2;
+            const wy = height * (0.1 + ((wIdx * 0.055) % 0.78)) + Math.sin(st.life * 0.25 + wIdx) * 12;
+            ctx.beginPath();
+            ctx.moveTo(wx, wy);
+            ctx.quadraticCurveTo(wx + 55, wy - 14, wx + 115, wy);
+            ctx.stroke();
+          }
+
+          // 2) 3 Towering Swirling Wind Tornadoes (`회오리 바람풍`)
+          for (const td of st.tornadoes) {
+            const tx = td.x0 + (td.x1 - td.x0) * prog;
+            const coils = 14;
+            for (let c = 0; c < coils; c++) {
+              const frac = c / (coils - 1);
+              const ly = td.baseY - frac * td.height;
+              const sway = Math.sin(st.life * 0.34 + frac * 4.2 + td.phase) * (10 + frac * 16);
+              const rx = td.baseWidth + Math.pow(frac, 1.35) * 66;
+              const ry = rx * 0.28;
+              ctx.save();
+              ctx.translate(tx + sway, ly);
+              ctx.globalAlpha = envAlpha * (0.85 - frac * 0.22);
+              ctx.strokeStyle = c % 3 === 0 ? '#ecfdf5' : c % 3 === 1 ? '#34d399' : '#10b981';
+              ctx.lineWidth = 3.6 - frac * 1.1;
+              ctx.setLineDash([rx * 1.2, rx * 0.55]);
+              ctx.lineDashOffset = -(st.life * 11 + c * 9);
+              ctx.beginPath();
+              ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+              ctx.stroke();
+              ctx.restore();
+            }
+          }
+
+          // 3) Supersonic Crescent Wind Blades (`초승달 바람칼날`)
+          for (const bl of st.blades) {
+            bl.x += bl.vx;
+            bl.y += bl.vy;
+            if (bl.x > width + 60) bl.x -= width * 1.35;
+
+            ctx.save();
+            ctx.translate(bl.x, bl.y);
+            ctx.rotate(bl.tilt);
+            ctx.globalAlpha = envAlpha * 0.94;
+            ctx.fillStyle = bl.color;
+            ctx.shadowColor = '#34d399';
+            ctx.shadowBlur = 10;
+            const r = bl.radius;
+            ctx.beginPath();
+            ctx.arc(0, 0, r, -Math.PI * 0.44, Math.PI * 0.44, false);
+            ctx.quadraticCurveTo(r * 0.32, 0, Math.cos(-Math.PI * 0.44) * r, Math.sin(-Math.PI * 0.44) * r);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+        ctx.restore();
+        nextStorms.push(st);
+      }
+      ultimateStormsRef.current = nextStorms;
 
       // 0. Update & Draw Swirling Windstorm (`바람폭풍`) Ribbons, Target Streams & Spotlight Rings
       const nextGusts: WindGust[] = [];

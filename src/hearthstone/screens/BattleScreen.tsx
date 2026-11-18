@@ -274,8 +274,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
   const pulseWaveRef = useRef<HTMLSpanElement | null>(null);
   const cueTextRef = useRef<HTMLSpanElement | null>(null);
 
-  const kadanStack = Math.floor(kadanMomentumCount / 10);
-  const subCharge = kadanMomentumCount % 10;
+  const isTierCharged = kadanMomentumCount >= 10;
 
   useEffect(() => {
     if (!rhythmEnabled) return;
@@ -406,24 +405,22 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
             )}
           </button>
 
-          {/* Side X-Stack & 10x Charge Display (`정박 10배수 넘을 때마다 옆에 X스택 표시`) */}
+          {/* Side Cumulative X-Stack Badge (`X1` .. `X10` .. `X22` ...) */}
           <div
             data-testid="kadan-momentum-side-box"
-            className="pointer-events-none absolute left-[calc(100%-6px)] top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center gap-0.5 sm:left-full sm:ml-1.5"
+            className="pointer-events-none absolute right-[calc(100%-6px)] top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center sm:left-full sm:right-auto sm:ml-1.5"
           >
-            {kadanStack >= 1 && (
-              <span
-                data-testid="kadan-x-stack-badge"
-                className="rounded-md border border-yellow-300 bg-gradient-to-b from-sky-500 via-blue-700 to-indigo-950 px-1 py-0.5 text-[10px] font-black leading-none text-yellow-200 shadow-[0_0_12px_rgba(56,189,248,0.85)] sm:px-2 sm:text-xs"
-              >
-                X{kadanStack}
-              </span>
-            )}
             <span
-              data-testid="kadan-momentum-charge"
-              className="rounded border border-sky-400/50 bg-stone-950/90 px-1 py-0.5 text-[8.5px] font-extrabold leading-none text-sky-200 sm:text-[10px]"
+              data-testid="kadan-x-stack-badge"
+              className={`rounded-lg border px-1.5 py-0.5 font-black leading-none shadow-lg transition-transform duration-150 ${
+                isTierCharged
+                  ? 'border-2 border-yellow-300 bg-gradient-to-b from-sky-500 via-blue-700 to-indigo-950 text-[11px] text-yellow-200 shadow-[0_0_14px_rgba(56,189,248,0.9)] sm:px-2 sm:text-xs'
+                  : kadanMomentumCount > 0
+                    ? 'border-emerald-300/80 bg-emerald-950/95 text-[10px] text-emerald-200 sm:text-[11px]'
+                    : 'border-sky-400/40 bg-stone-950/90 text-[9.5px] text-sky-300/75 sm:text-[10.5px]'
+              }`}
             >
-              {subCharge}/10
+              X{kadanMomentumCount}
             </span>
           </div>
         </div>
@@ -1038,6 +1035,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [kadanMomentumCount, setKadanMomentumCount] = useState<number>(0);
   const [kadanUltCutIn, setKadanUltCutIn] = useState<{
     stackTier: number;
+    stackCount: number;
+    seq: number;
+  } | null>(null);
+  const [siliaChainCutIn, setSiliaChainCutIn] = useState<{
+    skillKind: SiliaSkillKind;
+    stackTier: number;
     seq: number;
   } | null>(null);
   const [battleLogExpanded, setBattleLogExpanded] = useState<boolean>(false);
@@ -1046,6 +1049,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const kadanMomentumRef = useRef<number>(0);
   const triggerUltimateShakeRef = useRef<(tier?: number) => void>(() => {});
   const fireKadanUltimateRef = useRef<(stackTier: number) => void>(() => {});
+  const fireSiliaChainRef = useRef<(stackTier: number) => void>(() => {});
 
   const battleBpm = 128;
 
@@ -1129,6 +1133,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       kadanMomentumRef.current = 0;
       setKadanMomentumCount(0);
       setKadanUltCutIn(null);
+      setSiliaChainCutIn(null);
       if (!externalAutoPlay) {
         setAutoPlay(false);
       }
@@ -1166,12 +1171,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (nextMomentum > 0 && nextMomentum % 10 === 0) {
         const stackTier = Math.floor(nextMomentum / 10);
         const seqId = Date.now();
-        setKadanUltCutIn({ stackTier, seq: seqId });
+        setKadanUltCutIn({ stackTier, stackCount: nextMomentum, seq: seqId });
         window.setTimeout(() => {
           setKadanUltCutIn((cur) => (cur?.seq === seqId ? null : cur));
-        }, 1600);
+        }, 1250);
         triggerUltimateShakeRef.current(stackTier);
         fireKadanUltimateRef.current(stackTier);
+
+        // Chained Follow-Up: Right after Kadan's Blizzard Ultimate, Silia unleashes a random Windstorm Ultimate!
+        window.setTimeout(() => {
+          fireSiliaChainRef.current(stackTier);
+        }, 950);
       }
     }
 
@@ -2402,6 +2412,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const tDone = window.setTimeout(() => {
         setAttackAnim((prev) => (prev && prev.id === animId ? null : prev));
         attackLockRef.current = false;
+        // If Kadan's Hero directly attacked, Silia immediately chains a random Windstorm Ultimate!
+        if (side === 'PLAYER' && isHeroAttacker) {
+          const heroChainTier = Math.max(1, Math.floor(kadanMomentumRef.current / 10) || 1);
+          fireSiliaChainRef.current(heroChainTier);
+        }
       }, 500);
 
       attackTimersRef.current = [
@@ -2478,6 +2493,39 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       setMatchState(next);
     };
     runBlast();
+  };
+
+  fireSiliaChainRef.current = (stackTier: number) => {
+    const runSiliaBlast = () => {
+      if (attackLockRef.current) {
+        window.setTimeout(runSiliaBlast, 60);
+        return;
+      }
+      const cur = latestMatchRef.current;
+      if (cur.phase !== 'PLAYING') return;
+      const pool: SiliaSkillKind[] = ['ATTACK', 'DEFENSE', 'HEAL'];
+      const picked = pool[Math.floor(Math.random() * pool.length)];
+
+      document.querySelectorAll('[data-hs-entity]').forEach((el) => {
+        const id = el.getAttribute('data-hs-entity');
+        if (id) recordEntityStagePosition(id, elementCenterInStage(el));
+      });
+      const siliaEl = document.querySelector('[data-silia-toggle="true"]');
+      if (siliaEl) {
+        recordEntityStagePosition('SILIA_WIDGET', elementCenterInStage(siliaEl));
+      }
+
+      const seqId = Date.now();
+      setSiliaChainCutIn({ skillKind: picked, stackTier, seq: seqId });
+      window.setTimeout(() => {
+        setSiliaChainCutIn((prev) => (prev?.seq === seqId ? null : prev));
+      }, 1400);
+
+      triggerUltimateShakeRef.current(stackTier);
+      const next = createEngine(cur).useSiliaChainUltimate(picked, stackTier);
+      setMatchState(next);
+    };
+    runSiliaBlast();
   };
 
   const playerActionStateKey = useMemo(() => {
@@ -7725,35 +7773,36 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         />
       )}
 
-      {/* Kadan 10x Spirit Instant Ultimate Cut-In (Zero TTS Reading · Immediate Speech + Screen Shake + SNSHero Ultimate!) */}
+      {/* Kadan X10/X20 Blizzard Instant Ultimate Cut-In (Zero TTS Reading · Immediate Speech + Screen Shake + Blizzard Storm!) */}
       {kadanUltCutIn && (() => {
         const tier = Math.max(1, Math.min(8, kadanUltCutIn.stackTier));
+        const stackNum = kadanUltCutIn.stackCount || tier * 10;
         const aoeDmg = 2 * tier;
         const armorGain = 3 * tier;
         const skillName =
           tier === 1
-            ? tr('눈꽃 방패 성역파', 'Snowflake Shield Burst')
+            ? tr('혹한 눈보라 폭풍', 'Glacial Blizzard Storm')
             : tier === 2
-              ? tr('서리성광 십자참', 'Frostlight Cross Slash')
-              : tr('창성 눈보라 심판', 'Genesis Blizzard');
+              ? tr('절대영도 빙하참', 'Absolute Zero Cleave')
+              : tr('창성 대눈보라 심판', 'Genesis Blizzard');
         const kadanSpeech =
           tier === 1
             ? tr(
-                '엘윈의 눈꽃 방패여! X1 성역파로 적진을 단숨에 분쇄하라!',
-                'Snowflake Shield of Elwin! Shatter their ranks with X1 Sanctuary Burst!',
+                `모두 얼어붙어라! X${stackNum} 혹한 눈보라 폭풍으로 적진을 휩쓸어라!`,
+                `Freeze everything! Sweep their ranks with X${stackNum} Glacial Blizzard Storm!`,
               )
             : tier === 2
               ? tr(
-                  '카단의 기세 X2 폭발! 서리성광 십자참, 심연을 갈라라!',
-                  "Kadan's Spirit X2! Frostlight Cross Slash—cleave the abyss!",
+                  `카단의 기세 X${stackNum} 폭발! 절대영도 빙하참, 심연을 얼려라!`,
+                  `Kadan's Spirit X${stackNum}! Absolute Zero Cleave—freeze the abyss!`,
                 )
               : tr(
-                  `이것이 눈히어로의 진정한 각성이다! X${kadanUltCutIn.stackTier} 창성 눈보라 심판 작렬!!`,
-                  `Witness the true awakening of SNSHero! X${kadanUltCutIn.stackTier} Genesis Blizzard—ERUPT!!`,
+                  `이것이 눈히어로의 진정한 눈보라다! X${stackNum} 창성 대눈보라 심판 작렬!!`,
+                  `Witness the true Blizzard of SNSHero! X${stackNum} Genesis Blizzard—ERUPT!!`,
                 );
         const effectTag = tr(
-          `적 전체·영웅 -${aoeDmg} 피해 · 방어도 +${armorGain} · 아군 +${tier}/+${tier}${tier >= 2 ? ' & 보호막' : ''}`,
-          `Enemies & Hero -${aoeDmg} · +${armorGain} Armor · Allies +${tier}/+${tier}${tier >= 2 ? ' & Shield' : ''}`,
+          `❄️ 눈보라 적 전체·영웅 -${aoeDmg} · 방어도 +${armorGain} · 아군 +${tier}/+${tier}${tier >= 2 ? '·보호막' : ''}`,
+          `❄️ Blizzard -${aoeDmg} All Enemies · +${armorGain} Armor · Allies +${tier}/+${tier}${tier >= 2 ? '·Shield' : ''}`,
         );
         return (
           <div
@@ -7762,7 +7811,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             data-kadan-ult-tier={kadanUltCutIn.stackTier}
             className="pointer-events-none fixed inset-0 z-[93] select-none overflow-hidden"
           >
-            <div className="absolute inset-0 animate-pulse border-4 border-sky-300/85 bg-radial from-sky-400/22 via-amber-300/12 to-transparent" />
+            <div className="absolute inset-0 animate-pulse border-4 border-sky-200/90 bg-radial from-sky-300/28 via-cyan-400/14 to-transparent" />
             <div
               style={
                 {
@@ -7771,7 +7820,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   '--hs-shake-dur': '380ms',
                 } as React.CSSProperties
               }
-              className="hs-damage-shake-a absolute inset-x-2.5 top-[15%] mx-auto flex max-w-lg items-end gap-2.5 rounded-2xl border-2 border-yellow-300 bg-[#071326]/95 p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_32px_rgba(56,189,248,0.68)] backdrop-blur-md sm:top-[17%] sm:p-4"
+              className="hs-damage-shake-a absolute inset-x-2.5 top-[15%] mx-auto flex max-w-lg items-end gap-2.5 rounded-2xl border-2 border-cyan-200 bg-[#061830]/95 p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_34px_rgba(56,189,248,0.85)] backdrop-blur-md sm:top-[17%] sm:p-4"
             >
               <img
                 data-testid="kadan-cutin-portrait"
@@ -7779,20 +7828,96 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 alt={tr('카단', 'Kadan')}
                 decoding="async"
                 draggable={false}
-                className="h-24 w-24 shrink-0 rounded-xl border-2 border-yellow-300/80 bg-sky-950/75 object-cover object-top sm:h-28 sm:w-28"
+                className="h-24 w-24 shrink-0 rounded-xl border-2 border-cyan-200 bg-sky-950/75 object-cover object-top sm:h-28 sm:w-28"
               />
               <div className="min-w-0 flex-1 text-left">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-md border border-yellow-200 bg-gradient-to-r from-sky-600 to-blue-800 px-2 py-0.5 text-[10.5px] font-black text-yellow-200 shadow">
-                    ❄️⚔ {tr(`카단 눈히어로 필살기 · X${kadanUltCutIn.stackTier}`, `Kadan SNSHero Ultimate · X${kadanUltCutIn.stackTier}`)} · {skillName}
+                  <span className="rounded-md border border-cyan-100 bg-gradient-to-r from-sky-500 to-blue-800 px-2 py-0.5 text-[10.5px] font-black text-white shadow">
+                    ❄️ {tr(`카단 눈보라 필살기 · X${stackNum}`, `Kadan Blizzard Ultimate · X${stackNum}`)} · {skillName}
                   </span>
-                  <span className="text-[10.5px] font-extrabold text-sky-200">{effectTag}</span>
+                  <span className="text-[10.5px] font-extrabold text-cyan-200">{effectTag}</span>
                 </div>
                 <p
                   data-testid="kadan-cutin-dialogue-text"
                   className="mt-1.5 text-xs font-extrabold leading-snug text-white sm:text-sm"
                 >
                   “{kadanSpeech}”
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Silia Chained Random Windstorm Cut-In (`카단 공격 직후 실리아 연속 바람풍 무작위 필살기!`) */}
+      {siliaChainCutIn && (() => {
+        const tier = Math.max(1, Math.min(8, siliaChainCutIn.stackTier));
+        const sk = siliaChainCutIn.skillKind;
+        const skillName =
+          sk === 'ATTACK'
+            ? tr('녹풍 대참격', 'Emerald Tempest')
+            : sk === 'DEFENSE'
+              ? tr('폭풍 결계진', 'Storm Barrier')
+              : tr('회오리 생명풍', 'Vital Cyclone');
+        const siliaSpeech =
+          sk === 'ATTACK'
+            ? tr(
+                '카단에 이어 제가 마무리할게요! 휘몰아쳐라, 녹풍 대참격 바람폭풍!!',
+                "Following Kadan's lead! Roar, Emerald Tempest Windstorm!!",
+              )
+            : sk === 'DEFENSE'
+              ? tr(
+                  '카단의 뒤는 제 회오리가 지켜요! 폭풍 결계진, 적들을 베어 넘겨라!!',
+                  "My gale backs Kadan up! Storm Barrier—slice them apart!!",
+                )
+              : tr(
+                  '회오리 바람이여, 우리를 치유하고 적진을 찢어라! 회오리 생명풍 작렬!!',
+                  'Whirlwind of life, heal us and tear through our foes!!',
+                );
+        const effectTag =
+          sk === 'ATTACK'
+            ? tr(`🌪 적 전체·영웅 -${2 * tier} 바람풍 피해`, `🌪 Windstorm -${2 * tier} All Enemies`)
+            : sk === 'DEFENSE'
+              ? tr(`🌪 아군 보호막·+${tier}/+${tier} & 적 전체 -${tier}`, `🌪 Ally Shield·+${tier}/+${tier} & Enemies -${tier}`)
+              : tr(`🌪 영웅 +${3 * tier} 회복·방어 +${2 * tier} & 적 전체 -${tier}`, `🌪 +${3 * tier} HP·+${2 * tier} Armor & Enemies -${tier}`);
+        return (
+          <div
+            key={siliaChainCutIn.seq}
+            data-testid="silia-chain-cutin-overlay"
+            data-silia-chain-skill={sk}
+            className="pointer-events-none fixed inset-0 z-[94] select-none overflow-hidden"
+          >
+            <div className="absolute inset-0 animate-pulse border-4 border-emerald-300/85 bg-radial from-emerald-400/26 via-teal-400/12 to-transparent" />
+            <div
+              style={
+                {
+                  '--hs-shake-x': '9px',
+                  '--hs-shake-y': '6px',
+                  '--hs-shake-dur': '380ms',
+                } as React.CSSProperties
+              }
+              className="hs-damage-shake-b absolute inset-x-2.5 top-[15%] mx-auto flex max-w-lg items-end gap-2.5 rounded-2xl border-2 border-emerald-300 bg-[#041f15]/95 p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_34px_rgba(16,185,129,0.85)] backdrop-blur-md sm:top-[17%] sm:p-4"
+            >
+              <img
+                data-testid="silia-chain-portrait"
+                src="/hs-assets/upper-hd/062_Celia.webp?v=hd20"
+                alt={tr('실리아', 'Silia')}
+                decoding="async"
+                draggable={false}
+                className="h-24 w-24 shrink-0 rounded-xl border-2 border-emerald-300 bg-emerald-950/75 object-cover object-top sm:h-28 sm:w-28"
+              />
+              <div className="min-w-0 flex-1 text-left">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-md border border-emerald-100 bg-gradient-to-r from-emerald-600 to-teal-800 px-2 py-0.5 text-[10.5px] font-black text-white shadow">
+                    🌪 {tr('실리아 연속 바람풍 필살기', 'Silia Chain Windstorm')} · {skillName}
+                  </span>
+                  <span className="text-[10.5px] font-extrabold text-emerald-200">{effectTag}</span>
+                </div>
+                <p
+                  data-testid="silia-chain-dialogue-text"
+                  className="mt-1.5 text-xs font-extrabold leading-snug text-white sm:text-sm"
+                >
+                  “{siliaSpeech}”
                 </p>
               </div>
             </div>
