@@ -15,13 +15,15 @@ export interface RhythmBeatPhaseInfo {
   beatSec: number;
   barIndex: number;
   beatInBar: number;
+  /** Integer index of the nearest ring beat target (`Math.round(cycleTotal)`) for 1-per-beat +10 claim tracking */
+  beatCycleIndex: number;
   /** 0.0 at exact BGM beat -> approaches 1.0 right before next beat */
   phase01: number;
   /** Progress along a 4-beat bar (0.0 -> 1.0) for 2x speed mode */
   barPhase01: number;
   /** Milliseconds distance to the nearest beat (-beatMs/2 .. +beatMs/2; 0ms = exact BGM drum hit) */
   deltaMs: number;
-  /** True when user SHOULD tap (Green ring window); False on off-beat when user should NOT tap (Red ring window) */
+  /** True when user SHOULD tap for +10 (Green ring window); False on off-beat (+1 mash window) */
   isTapWindow: boolean;
   /** Shrinking outer ring scale (1.72 -> 1.00, hugging 1.00 across the green beat window) */
   ringScale: number;
@@ -1975,6 +1977,7 @@ class SnsHeroCardAudioEngine {
       beatSec: realBeatSec,
       barIndex,
       beatInBar,
+      beatCycleIndex: Math.round(cycleTotal),
       phase01: cyclePhase01,
       barPhase01,
       deltaMs: activeDeltaMs,
@@ -1987,33 +1990,37 @@ class SnsHeroCardAudioEngine {
 
   /**
    * Evaluate player Rhythm Tap using the EXACT same Green/Red window shown on the ring:
-   * - Green ring + center beat (<= 115ms): PERFECT (2.0x)
-   * - Green ring (`isTapWindow === true`): GOOD (1.5x)
-   * - Red ring (`isTapWindow === false`): NORMAL (1.0x / off-beat miss)
+   * - Green ring + center beat (<= 115ms) & not rapid-mashing: PERFECT (2.0x, +10 stacks)
+   * - Green ring (`isTapWindow === true`) & not rapid-mashing: GOOD (1.5x, +10 stacks)
+   * - Red ring (`isTapWindow === false`) or rapid-mashing (`forceMashGrade`): NORMAL (1.0x, +1 stack)
    */
   evaluateRhythmTap(
     bpm = 128,
     speed2x = false,
     comboAfterPerfect = 1,
-  ): { grade: RhythmGrade; multiplier: 1 | 1.5 | 2; deltaMs: number } {
+    forceMashGrade = false,
+  ): { grade: RhythmGrade; multiplier: 1 | 1.5 | 2; deltaMs: number; beatCycleIndex: number } {
     const info = this.getBeatPhaseInfo(bpm, speed2x);
     const absDeltaMs = Math.abs(info.deltaMs);
     const perfectThresholdMs = speed2x ? 145 : 115;
 
     let grade: RhythmGrade = 'NORMAL';
     let multiplier: 1 | 1.5 | 2 = 1;
-    if (info.isTapWindow && absDeltaMs <= perfectThresholdMs) {
-      grade = 'PERFECT';
-      multiplier = 2;
-    } else if (info.isTapWindow) {
-      grade = 'GOOD';
-      multiplier = 1.5;
+    if (!forceMashGrade) {
+      if (info.isTapWindow && absDeltaMs <= perfectThresholdMs) {
+        grade = 'PERFECT';
+        multiplier = 2;
+      } else if (info.isTapWindow) {
+        grade = 'GOOD';
+        multiplier = 1.5;
+      }
     }
 
     if (this.settings.vibrateEnabled && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       try {
         if (grade === 'PERFECT') navigator.vibrate([18, 30, 25]);
-        else if (grade === 'GOOD') navigator.vibrate(12);
+        else if (grade === 'GOOD') navigator.vibrate(14);
+        else navigator.vibrate(7);
       } catch {
         // ignore
       }
@@ -2021,7 +2028,12 @@ class SnsHeroCardAudioEngine {
 
     this.playHarmonicRhythmChord(info.barIndex % 4, grade, comboAfterPerfect >= 3 && grade === 'PERFECT');
 
-    return { grade, multiplier, deltaMs: Math.round(info.deltaMs) };
+    return {
+      grade,
+      multiplier,
+      deltaMs: Math.round(info.deltaMs),
+      beatCycleIndex: info.beatCycleIndex,
+    };
   }
 
   playHarmonicRhythmChord(chordSlot: number, grade: RhythmGrade, playFinale = false): void {
@@ -2075,7 +2087,7 @@ class SnsHeroCardAudioEngine {
         synthTone(triad[0], 0, 0.16, volBase * 0.7);
         synthTone(triad[1], 0.04, 0.2, volBase * 0.75);
       } else {
-        synthTone(triad[0] * 0.5, 0, 0.1, volBase * 0.4);
+        synthTone(triad[0], 0, 0.08, volBase * 0.45);
       }
     } catch {
       // ignore Web Audio errors

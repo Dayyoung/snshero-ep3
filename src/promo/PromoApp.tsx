@@ -777,8 +777,8 @@ export const PromoApp: React.FC = () => {
                   icon: <Swords className="h-6 w-6 text-emerald-300" />,
                   title: tr('카단의 기세 & 합동 필살기', "Kadan's Spirit & Dual Ultimate"),
                   desc: tr(
-                    '자동플레이 중 하단 중앙 초록 링(TAP!)을 눌러 X10·X20 스택을 쌓으면 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다.',
-                    'During Auto-Play, tap the bottom-center green beat ring (TAP!) to stack X10·X20 and unleash Kadan Blizzard + Silia Windstorm!',
+                    '스토리 자동플레이 중 연타(+1) 또는 초록 정박(+10)으로 10배수를 채우면 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다.',
+                    'In Story Auto-Play, mash (+1) or hit the green beat (+10) to trigger Kadan Blizzard + Silia Windstorm every 10x!',
                   ),
                 },
                 {

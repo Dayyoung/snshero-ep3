@@ -420,20 +420,28 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
 
     if (screen === 'BATTLE') {
       const snap = battleSnapshot;
+      const isStoryBattle = (snap?.mode ?? selectedMode) === 'TUTORIAL';
       return [
         autoPlayOption,
-        {
-          id: 'battle_kadan_spirit_guide',
-          icon: '🟢',
-          label: tr('자동플레이 [카단의 기세] 활용법 알려줘', "How do I use [Kadan's Spirit] in Auto-Play?"),
-          highlight: 'tip',
-          onSelect: () => {
-            speak(
-              '자동플레이를 켜면 실리아와 저 사이 하단 중앙에 [카단의 기세] 링이 나타나요! 빨간색(대기)일 때는 기다렸다가 초록색(TAP!)일 때 누르면(또는 Space 키) X1, X2… 기세 스택이 쌓이고, 10배수(X10·X20…)마다 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속으로 작렬합니다!',
-              "Turn on Auto-Play to open the [Kadan's Spirit] ring between Silia and me! Wait on RED, tap on GREEN (or Spacebar) to stack X1, X2… Every 10 stacks (X10·X20…) unleashes my Blizzard Ultimate + Silia's Windstorm Ultimate back-to-back!",
-            );
-          },
-        },
+        ...(isStoryBattle
+          ? [
+              {
+                id: 'battle_kadan_spirit_guide',
+                icon: '🟢',
+                label: tr(
+                  '스토리 [카단의 기세] 활용법 알려줘',
+                  "How do I use Story [Kadan's Spirit]?",
+                ),
+                highlight: 'tip' as const,
+                onSelect: () => {
+                  speak(
+                    '스토리 모드 자동플레이를 켜면 실리아와 저 사이 하단 중앙에 [카단의 기세] 링이 열려요! 마구 연타해도 +1씩 쌓이고, 초록색(TAP+10) 타이밍에 맞춰 누르면 한 번에 +10이 쌓여 즉시 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 작렬합니다!',
+                    "In Story Mode Auto-Play, the [Kadan's Spirit] ring opens between Silia and me! Mash anytime for +1 per tap, or tap on GREEN (TAP+10) for +10 at once—every 10-multiple unleashes my Blizzard + Silia's Windstorm Ultimates!",
+                  );
+                },
+              },
+            ]
+          : []),
         {
           id: 'battle_recommend_play',
           icon: '🃏',
@@ -764,8 +772,8 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
         highlight: 'tip',
         onSelect: () =>
           speak(
-            '매 턴 마나로 [하수인·주문·무기]를 내어 적 영웅 체력을 0으로 만들면 승리해요! 자동플레이 중에는 하단 중앙 [카단의 기세] 링이 초록색(TAP!)일 때 눌러 X10·X20 스택을 채우면 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 발동합니다!',
-            "Spend Mana on Minions, Spells & Weapons to drop the enemy Hero to 0 HP! During Auto-Play, tap the bottom-center [Kadan's Spirit] ring on GREEN (TAP!)—every 10 stacks (X10·X20) triggers my Blizzard + Silia's Windstorm Ultimates!",
+            '매 턴 마나로 [하수인·주문·무기]를 내어 적 영웅 체력을 0으로 만들면 승리해요! 스토리 모드 자동플레이 중에는 하단 중앙 [카단의 기세] 링을 마구 눌러 +1씩 쌓거나 초록색(TAP+10) 타이밍에 눌러 단번에 +10을 채우면 제 눈보라 필살기와 실리아의 바람풍 필살기가 연속 발동합니다!',
+            "Spend Mana on Minions, Spells & Weapons to drop the enemy Hero to 0 HP! In Story Auto-Play, mash [Kadan's Spirit] for +1 or tap on GREEN (TAP+10) for +10—every 10-multiple triggers my Blizzard + Silia's Windstorm Ultimates!",
           ),
       },
       {

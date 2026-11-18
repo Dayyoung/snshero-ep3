@@ -240,13 +240,13 @@ interface CenterRhythmRingHudProps {
   autoSpeed2x: boolean;
   onToggleSpeed2x: () => void;
   isBossParryReady: boolean;
-  mode: GameMode;
-  rhythmFeverPct: number;
   kadanMomentumCount: number;
   rhythmFlash: {
     mult: 1 | 1.5 | 2;
     grade: 'NORMAL' | 'GOOD' | 'PERFECT';
+    stackGain: 1 | 10;
     parried?: boolean;
+    seq: number;
   } | null;
   onTap: () => void;
 }
@@ -257,8 +257,6 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
   autoSpeed2x,
   onToggleSpeed2x,
   isBossParryReady,
-  mode,
-  rhythmFeverPct,
   kadanMomentumCount,
   rhythmFlash,
   onTap,
@@ -317,7 +315,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
 
         if (cueEl && lastTapState !== info.isTapWindow) {
           lastTapState = info.isTapWindow;
-          cueEl.textContent = info.isTapWindow ? 'TAP!' : isKo ? '대기' : 'WAIT';
+          cueEl.textContent = info.isTapWindow ? 'TAP+10' : isKo ? '연타+1' : 'TAP+1';
           cueEl.style.color = info.isTapWindow ? '#86efac' : '#fca5a5';
         }
       }
@@ -343,8 +341,8 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
               onTap();
             }}
             title={tr(
-              '카단의 기세 — 초록색일 때 탭! (10배수마다 X스택 & 카단 눈히어로 필살기 발동)',
-              "Kadan's Spirit — Tap on GREEN! (Every 10 hits stacks X-tier & fires Kadan's Ultimate)",
+              '카단의 기세 (스토리 전용) — 마구 연타 시 +1 · 초록 링 타이밍 탭 시 +10! (10배수마다 합동 필살기)',
+              "Kadan's Spirit (Story Mode) — Mash for +1 · Tap on GREEN for +10! (Every 10 stacks fires Dual Ultimate)",
             )}
             className="pointer-events-auto relative flex h-14 w-14 touch-manipulation items-center justify-center rounded-full focus:outline-none active:scale-92 sm:h-16 sm:w-16"
           >
@@ -354,7 +352,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
               className="pointer-events-none absolute inset-0 rounded-full border-2 border-emerald-400 opacity-0"
             />
 
-            {/* Shrinking Green (Tap!) / Red (Do Not Tap!) Outer Ring */}
+            {/* Shrinking Green (+10!) / Red (+1 Mash) Outer Ring */}
             <span
               ref={ringRef}
               data-testid="ocarina-shrinking-ring"
@@ -372,31 +370,30 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
               </span>
               <span
                 ref={cueTextRef}
-                className="mt-0.5 text-[9px] font-black leading-none tracking-tight text-rose-300 sm:text-[10px]"
+                className="mt-0.5 text-[8.5px] font-black leading-none tracking-tight text-rose-300 sm:text-[9.5px]"
               >
-                {isKo ? '대기' : 'WAIT'}
+                {isKo ? '연타+1' : 'TAP+1'}
               </span>
             </span>
 
-            {/* Hit Feedback Badge (2.0x / 1.5x / 엇박 MISS) */}
+            {/* Hit Feedback Badge (+10⚡ on Green Beat / +1 on Mash) */}
             {rhythmFlash && (
               <span
+                key={rhythmFlash.seq}
                 data-testid="rhythm-multiplier-badge"
                 className={`pointer-events-none absolute -top-2.5 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-black shadow-lg ${
                   rhythmFlash.parried
                     ? 'border-cyan-200 bg-cyan-500 text-stone-950'
-                    : rhythmFlash.mult === 2
-                      ? 'border-yellow-100 bg-emerald-400 text-stone-950'
-                      : rhythmFlash.mult === 1.5
-                        ? 'border-emerald-200 bg-emerald-600 text-white'
-                        : 'border-rose-300 bg-rose-600 text-white'
+                    : rhythmFlash.stackGain === 10
+                      ? 'border-yellow-100 bg-emerald-400 text-stone-950 shadow-[0_0_12px_rgba(74,222,128,0.85)]'
+                      : 'border-sky-300/90 bg-sky-900/95 text-sky-100'
                 }`}
               >
                 {rhythmFlash.parried
-                  ? '🛡-50%'
-                  : rhythmFlash.grade === 'NORMAL'
-                    ? tr('엇박!', 'MISS')
-                    : `${rhythmFlash.mult.toFixed(1)}x`}
+                  ? '🛡+10'
+                  : rhythmFlash.stackGain === 10
+                    ? '+10⚡'
+                    : '+1'}
               </span>
             )}
           </button>
@@ -443,16 +440,6 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
         <span className="font-black text-sky-200">
           {tr('카단의 기세', 'Kadan Spirit')}
         </span>
-
-        {mode !== 'TUTORIAL' && rhythmEnabled && rhythmFeverPct > 0 && (
-          <span
-            data-testid="rhythm-fever-gauge"
-            className="text-yellow-300"
-            title={tr('피버 골드 게이지', 'Bonus Gold Fever Gauge')}
-          >
-            🪙{rhythmFeverPct}%
-          </span>
-        )}
       </div>
     </div>
   );
@@ -1005,10 +992,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [rhythmFlash, setRhythmFlash] = useState<{
     mult: 1 | 1.5 | 2;
     grade: 'NORMAL' | 'GOOD' | 'PERFECT';
+    stackGain: 1 | 10;
     parried?: boolean;
+    seq: number;
   } | null>(null);
   const [rhythmSanctuaryAura, setRhythmSanctuaryAura] = useState<boolean>(false);
-  const [rhythmFeverPct, setRhythmFeverPct] = useState<number>(0);
+  const [rhythmFeverPct] = useState<number>(0);
   const [rhythmFeverBonusGold, setRhythmFeverBonusGold] = useState<number>(0);
   const [kadanMomentumCount, setKadanMomentumCount] = useState<number>(0);
   const [kadanUltCutIn, setKadanUltCutIn] = useState<{
@@ -1025,6 +1014,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const rhythmResonanceUsedTurnRef = useRef<number>(-1);
   const rhythmComboRef = useRef<number>(0);
   const kadanMomentumRef = useRef<number>(0);
+  const lastRhythmTapMsRef = useRef<number>(0);
+  const lastGreenBeatCycleRef = useRef<number>(-999999);
   const triggerUltimateShakeRef = useRef<(tier?: number) => void>(() => {});
   const fireKadanUltimateRef = useRef<(stackTier: number) => void>(() => {});
   const fireSiliaChainRef = useRef<(stackTier: number) => void>(() => {});
@@ -1102,6 +1093,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (prevMatchIdRef.current !== matchState.matchId) {
       prevMatchIdRef.current = matchState.matchId;
       kadanMomentumRef.current = 0;
+      lastRhythmTapMsRef.current = 0;
+      lastGreenBeatCycleRef.current = -999999;
       setKadanMomentumCount(0);
       setKadanUltCutIn(null);
       setSiliaChainCutIn(null);
@@ -1120,11 +1113,28 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [matchState.phase, storyPhase, vsIntroActive]);
 
-  // Handle Kadan's Spirit Beat Tap (Orb Click or Spacebar)
+  // Handle Kadan's Spirit Beat Tap (Story Mode Exclusive · Mash = +1, Green Timing = +10)
   const handleRhythmOrbTap = useCallback(() => {
-    if (!autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING') return;
+    if (mode !== 'TUTORIAL' || !autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING') {
+      return;
+    }
+
+    const nowPerfMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const isRapidMash =
+      lastRhythmTapMsRef.current > 0 && nowPerfMs - lastRhythmTapMsRef.current < 280;
+    lastRhythmTapMsRef.current = nowPerfMs;
+
+    const preview = hsAudio.getBeatPhaseInfo(battleBpm, autoSpeed2x);
+    const alreadyClaimedThisBeat = preview.beatCycleIndex === lastGreenBeatCycleRef.current;
+    const forceMashGrade = isRapidMash || alreadyClaimedThisBeat;
+
     const nextPotentialCombo = rhythmComboRef.current + 1;
-    const res = hsAudio.evaluateRhythmTap(battleBpm, autoSpeed2x, nextPotentialCombo);
+    const res = hsAudio.evaluateRhythmTap(
+      battleBpm,
+      autoSpeed2x,
+      nextPotentialCombo,
+      forceMashGrade,
+    );
     const nextCombo = res.grade === 'PERFECT' ? nextPotentialCombo : 0;
     rhythmComboRef.current = nextCombo;
 
@@ -1133,70 +1143,79 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       window.setTimeout(() => setRhythmSanctuaryAura(false), 1300);
     }
 
-    // Build Kadan's Spirit (`카단의 기세`): every 10 green hits stacks X-tier & unleashes Kadan's SNSHero Ultimate!
-    if (res.grade !== 'NORMAL') {
-      const nextMomentum = kadanMomentumRef.current + 1;
-      kadanMomentumRef.current = nextMomentum;
-      setKadanMomentumCount(nextMomentum);
+    // Mash / off-beat tap = +1 stack; On-beat green timing tap = +10 stacks!
+    const isTimedGreenHit = res.grade !== 'NORMAL';
+    if (isTimedGreenHit) {
+      lastGreenBeatCycleRef.current = res.beatCycleIndex;
+    }
+    const stackGain: 1 | 10 = isTimedGreenHit ? 10 : 1;
+    const prevMomentum = kadanMomentumRef.current;
+    const nextMomentum = prevMomentum + stackGain;
+    kadanMomentumRef.current = nextMomentum;
+    setKadanMomentumCount(nextMomentum);
 
-      if (nextMomentum > 0 && nextMomentum % 10 === 0) {
-        const stackTier = Math.floor(nextMomentum / 10);
-        const seqId = Date.now();
-        setKadanUltCutIn({ stackTier, stackCount: nextMomentum, seq: seqId });
-        window.setTimeout(() => {
-          setKadanUltCutIn((cur) => (cur?.seq === seqId ? null : cur));
-        }, 1250);
-        triggerUltimateShakeRef.current(stackTier);
-        fireKadanUltimateRef.current(stackTier);
+    // Every time a 10-multiple threshold (10, 20, 30...) is reached or crossed, unleash Kadan + Silia Dual Ultimate!
+    const prevTier = Math.floor(prevMomentum / 10);
+    const nextTier = Math.floor(nextMomentum / 10);
+    if (nextTier > prevTier) {
+      const stackTier = nextTier;
+      const seqId = Date.now() + nextMomentum;
+      setKadanUltCutIn({ stackTier, stackCount: nextMomentum, seq: seqId });
+      window.setTimeout(() => {
+        setKadanUltCutIn((cur) => (cur?.seq === seqId ? null : cur));
+      }, 1250);
+      triggerUltimateShakeRef.current(stackTier);
+      fireKadanUltimateRef.current(stackTier);
 
-        // Chained Follow-Up: Right after Kadan's Blizzard Ultimate, Silia unleashes a random Windstorm Ultimate!
-        window.setTimeout(() => {
-          fireSiliaChainRef.current(stackTier);
-        }, 950);
-      }
+      // Chained Follow-Up: Right after Kadan's Blizzard Ultimate, Silia unleashes a random Windstorm Ultimate!
+      window.setTimeout(() => {
+        fireSiliaChainRef.current(stackTier);
+      }, 950);
     }
 
     let parriedBoss = false;
-    if (mode === 'TUTORIAL') {
-      // PvE Story Track: max 1 resonance burst per turn; Boss >= 6 Mana PERFECT triggers Sanctuary Parry!
-      if (res.grade !== 'NORMAL' && rhythmResonanceUsedTurnRef.current !== matchState.turnNumber) {
-        rhythmResonanceUsedTurnRef.current = matchState.turnNumber;
-        const bossParry = matchState.opponent.maxMana >= 6 && res.grade === 'PERFECT';
-        parriedBoss = bossParry;
-        const armorGain = bossParry ? 5 : res.grade === 'PERFECT' ? 4 : 2;
-        setMatchState((prev) => {
-          if (prev.phase !== 'PLAYING') return prev;
-          const nextBoard = prev.player.board.map((m, idx) =>
-            idx === 0 && res.grade === 'PERFECT'
-              ? {
-                  ...m,
-                  permAttack: m.permAttack + 1,
-                  maxHealth: m.maxHealth + 1,
-                  health: m.health + 1,
-                }
-              : m,
-          );
-          return {
-            ...prev,
-            player: {
-              ...prev.player,
-              armor: prev.player.armor + armorGain,
-              board: nextBoard,
-            },
-          };
-        });
-      }
-    } else {
-      // Competitive Fairness Track (RANKED / BOGART / PRACTICE): 0% stat change — fills Ocarina Gold Fever Gauge!
-      const gain = res.grade === 'PERFECT' ? 35 : res.grade === 'GOOD' ? 20 : 6;
-      setRhythmFeverPct((prev) => Math.min(100, prev + gain));
+    // PvE Story Track: max 1 resonance burst per turn; Boss >= 6 Mana PERFECT triggers Sanctuary Parry!
+    if (isTimedGreenHit && rhythmResonanceUsedTurnRef.current !== matchState.turnNumber) {
+      rhythmResonanceUsedTurnRef.current = matchState.turnNumber;
+      const bossParry = matchState.opponent.maxMana >= 6 && res.grade === 'PERFECT';
+      parriedBoss = bossParry;
+      const armorGain = bossParry ? 5 : res.grade === 'PERFECT' ? 4 : 2;
+      setMatchState((prev) => {
+        if (prev.phase !== 'PLAYING') return prev;
+        const nextBoard = prev.player.board.map((m, idx) =>
+          idx === 0 && res.grade === 'PERFECT'
+            ? {
+                ...m,
+                permAttack: m.permAttack + 1,
+                maxHealth: m.maxHealth + 1,
+                health: m.health + 1,
+              }
+            : m,
+        );
+        return {
+          ...prev,
+          player: {
+            ...prev.player,
+            armor: prev.player.armor + armorGain,
+            board: nextBoard,
+          },
+        };
+      });
     }
 
-    setRhythmFlash({ mult: res.multiplier, grade: res.grade, parried: parriedBoss });
+    const flashSeq = Date.now() + nextMomentum;
+    setRhythmFlash({
+      mult: res.multiplier,
+      grade: res.grade,
+      stackGain,
+      parried: parriedBoss,
+      seq: flashSeq,
+    });
     window.setTimeout(() => {
-      setRhythmFlash((cur) => (cur?.mult === res.multiplier ? null : cur));
+      setRhythmFlash((cur) => (cur?.seq === flashSeq ? null : cur));
     }, 900);
   }, [
+    mode,
     autoPlay,
     rhythmEnabled,
     matchState.phase,
@@ -1204,11 +1223,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     matchState.opponent.maxMana,
     battleBpm,
     autoSpeed2x,
-    mode,
   ]);
 
   useEffect(() => {
-    if (!autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING' || storyPhase !== 'CLOSED' || vsIntroActive) {
+    if (
+      mode !== 'TUTORIAL' ||
+      !autoPlay ||
+      !rhythmEnabled ||
+      matchState.phase !== 'PLAYING' ||
+      storyPhase !== 'CLOSED' ||
+      vsIntroActive
+    ) {
       return;
     }
     const onKeyDown = (ev: KeyboardEvent) => {
@@ -1221,7 +1246,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [autoPlay, rhythmEnabled, matchState.phase, storyPhase, vsIntroActive, handleRhythmOrbTap]);
+  }, [
+    mode,
+    autoPlay,
+    rhythmEnabled,
+    matchState.phase,
+    storyPhase,
+    vsIntroActive,
+    handleRhythmOrbTap,
+  ]);
   const [selection, setSelection] = useState<PendingSelection | null>(null);
   const [zoomState, setZoomState] = useState<BattleZoomState | null>(null);
   const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false);
@@ -2382,8 +2415,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const tDone = window.setTimeout(() => {
         setAttackAnim((prev) => (prev && prev.id === animId ? null : prev));
         attackLockRef.current = false;
-        // If Kadan's Hero directly attacked, Silia immediately chains a random Windstorm Ultimate!
-        if (side === 'PLAYER' && isHeroAttacker) {
+        // Story Mode Exclusive: If Kadan's Hero directly attacked, Silia immediately chains a random Windstorm Ultimate!
+        if (mode === 'TUTORIAL' && side === 'PLAYER' && isHeroAttacker) {
           const heroChainTier = Math.max(1, Math.floor(kadanMomentumRef.current / 10) || 1);
           fireSiliaChainRef.current(heroChainTier);
         }
@@ -2397,7 +2430,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       ];
       return true;
     },
-    [resolveHeroPortraitUrl, triggerDamageImpact, isKo, lang],
+    [mode, resolveHeroPortraitUrl, triggerDamageImpact, isKo, lang],
   );
 
   const describeEp0Action = useCallback(
@@ -7852,21 +7885,23 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         );
       })()}
 
-      {/* Bottom-Center Shrinking BGM Pulse Ring Tap (`카단의 기세`, Centered Between Silia & Kadan!) */}
-      {autoPlay && matchState.phase === 'PLAYING' && storyPhase === 'CLOSED' && !vsIntroActive && (
-        <CenterRhythmRingHud
-          rhythmEnabled={rhythmEnabled}
-          battleBpm={battleBpm}
-          autoSpeed2x={autoSpeed2x}
-          onToggleSpeed2x={() => setAutoSpeed2x((v) => !v)}
-          isBossParryReady={isBossParryReady}
-          mode={mode}
-          rhythmFeverPct={rhythmFeverPct}
-          kadanMomentumCount={kadanMomentumCount}
-          rhythmFlash={rhythmFlash}
-          onTap={handleRhythmOrbTap}
-        />
-      )}
+      {/* Story Mode Exclusive: Bottom-Center Shrinking BGM Pulse Ring Tap (`카단의 기세`, Centered Between Silia & Kadan!) */}
+      {mode === 'TUTORIAL' &&
+        autoPlay &&
+        matchState.phase === 'PLAYING' &&
+        storyPhase === 'CLOSED' &&
+        !vsIntroActive && (
+          <CenterRhythmRingHud
+            rhythmEnabled={rhythmEnabled}
+            battleBpm={battleBpm}
+            autoSpeed2x={autoSpeed2x}
+            onToggleSpeed2x={() => setAutoSpeed2x((v) => !v)}
+            isBossParryReady={isBossParryReady}
+            kadanMomentumCount={kadanMomentumCount}
+            rhythmFlash={rhythmFlash}
+            onTap={handleRhythmOrbTap}
+          />
+        )}
 
       {/* Story Mode Left-Side Silia Companion Ultimate Widget (1 skill per turn) */}
       <SiliaUltimateWidget

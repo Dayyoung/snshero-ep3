@@ -2949,12 +2949,12 @@ export const GameOptionsModal: React.FC<{
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <div className="text-xs font-extrabold text-amber-100">
-                        🎵 {tr('오카리나 BGM 리듬 오토 (1.5x · 2.0x)', 'Ocarina BGM Rhythm Auto (1.5x · 2.0x)')}
+                        🎵 {tr('카단의 기세 리듬 링 (스토리 전용)', "Kadan's Spirit Ring (Story Only)")}
                       </div>
                       <div className="text-[10px] text-amber-200/75">
                         {tr(
-                          '정박 탭 시 화음 연주 (스토리 공명 / 랭킹·도박장 골드 피버)',
-                          'Tap on beat for harmonic chords (Story resonance / Ranked Gold Fever)',
+                          '마구 연타 시 +1 · 초록 정박 탭 시 +10 (10배수마다 합동 필살기)',
+                          'Mash for +1 · Tap on GREEN for +10 (Dual Ultimate every 10x)',
                         )}
                       </div>
                     </div>

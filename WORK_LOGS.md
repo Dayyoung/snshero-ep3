@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 12:53 KST] [『카단의 기세』 마구 연타(`+1`) · 초록 정박(`+10`) 누적 방식 개편 및 스토리 모드(`TUTORIAL`) 전용 제한 적용]
+- **요청 및 개선 내역**:
+  1. **『카단의 기세』 연타(`+1`) 및 초록 링 타이밍(`+10`) 이중 누적 체계 구현 (`src/hearthstone/screens/BattleScreen.tsx`, `src/hearthstone/audio.ts`)**:
+     - 기존 빨간 링 구간 `엇박!(MISS)` 무효 처리를 제거하고, **아무 때나 마구 눌러도 `+1`씩 기세 스택이 누적**되도록 개편(`연타+1` / `TAP+1` 큐 및 `+1` 배지 피드백, 경쾌한 하모닉 단음 사운드 재생).
+     - **초록 링(`TAP+10`) 정박 타이밍**에 맞춰 탭하면 **한 번에 `+10` 스택(`+10⚡` / `🛡+10`)** 이 대폭 누적되도록 개편(동일 비트 중복 수령 및 280ms 미만 무작위 고속 연타 시에는 `+1` 연타 판정으로 분리).
+     - 누적 기세가 10의 배수 구간(`10, 20, 30…`)을 도달하거나 돌파(`Math.floor(next / 10) > Math.floor(prev / 10)`, 예: `X3`에서 초록 정박 `+10` 적중 → `X13`)할 때마다 즉시 배수 비례 **카단 눈보라 필살기 + 실리아 무작위 바람풍 연속 필살기**가 발동하도록 개선.
+  2. **『카단의 기세』 스토리 모드(`mode === 'TUTORIAL'`) 전용 제한 (`src/hearthstone/screens/BattleScreen.tsx`)**:
+     - `CenterRhythmRingHud`, `handleRhythmOrbTap`, `Space` 키보드 단축키, 영웅 직접 공격 시 실리아 연속 바람풍 체인을 모두 `mode === 'TUTORIAL'`(스토리 여정 모드)에서만 활성화되도록 격리하고, 랭킹·일반·연습·보가트 도박장 모드에서는 공정 경쟁을 위해 완전 비활성화.
+  3. **게임 방법(`How to Play`) · 전투 규칙 · 옵션 · 카단 AI 챗봇 · 프로모션 한·영 안내 동기화 (`src/hearthstone/components/OnboardingGuideModal.tsx`, `src/hearthstone/components/KadanChatbotWidget.tsx`, `src/hearthstone/services/localLlmAssistant.ts`, `src/hearthstone/components/Modals.tsx`, `src/promo/PromoApp.tsx`)**:
+     - 전 화면의 한·영(`ko`/`en`) 설명을 **스토리 모드 전용 · 마구 연타 시 `+1` / 초록 정박 타이밍 탭 시 `+10`** 규칙에 맞춰 일괄 최신화.
+- **빌드 & E2E 검증**: `npx tsc --noEmit && npm run build` 0 에러 통과, Playwright 한국어 모바일(`360×844`) 스토리 모드 연타(`X0 → X1 → X3`) 및 초록 정박(`X3 → X13` + 눈보라 필살기 즉시 발동) 검증, 영문 데스크톱(`1280×800`) 랭킹전 자동플레이 시 `kadan-command-orb = 0` 및 `Space` 비활성 검증 통과.
+- **버전 관리 & 보고**: 로컬 `git commit` 완료(`git push` 미실행 · 수동 푸시 대기) 및 구글 폼 완료 보고 제출.
+
 ## [2026-11-18 12:19 KST] [405종 전 카드 일러스트 `768×768` 웹툰 화풍 전면 리마스터 · 소설 등장인물 상반신 100% 일치 · 5단계 등급 및 24K 소버린 드래곤 전설 디자인 고도화]
 - **요청 및 개선 내역**:
   1. **전 카드(수집 가능 382종 동결 + 소환 토큰 23종 = 총 405종) `768×768` 한국형 다크 판타지 웹툰 일러스트 전면 리마스터 (`public/hs-assets/cards/{class,neutral,tokens}/*.webp`)**:

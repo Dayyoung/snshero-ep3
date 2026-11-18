@@ -93,18 +93,18 @@ export const HOW_TO_PLAY_SLIDES: GuideStepSlide[] = [
     step: 4,
     shortLabelKo: '카단의 기세',
     shortLabelEn: 'Kadan Spirit',
-    badgeKo: 'STEP 4 · 자동플레이 & 카단의 기세 (X10 연속 필살기)',
-    badgeEn: "STEP 4 · AUTO-PLAY & KADAN'S SPIRIT (X10 CHAIN ULTIMATE)",
-    titleKo: '자동플레이 중 [카단의 기세] 초록 링 탭 → X10 눈보라·바람풍 연속 필살기!',
-    titleEn: "Auto-Play [Kadan's Spirit]: Tap on GREEN → X10 Blizzard & Windstorm Chain!",
+    badgeKo: 'STEP 4 · 스토리 전용 카단의 기세 (연타 +1 · 타이밍 +10)',
+    badgeEn: "STEP 4 · STORY-EXCLUSIVE KADAN'S SPIRIT (MASH +1 · BEAT +10)",
+    titleKo: '스토리 자동플레이 [카단의 기세] — 마구 연타 +1 · 초록 정박 +10 필살기!',
+    titleEn: "Story Auto-Play [Kadan's Spirit]: Mash +1 or Green Beat +10 Ultimate!",
     descKo:
-      '자동플레이를 켜면 실리아와 카단 사이 하단 중앙에 BGM 맥박에 맞춰 수축하는 [카단의 기세] 링이 열립니다. 빨간색(대기)일 때는 기다렸다가 초록색(TAP!) 타이밍에 터치(또는 Space 키)하면 X1, X2… 기세 스택이 쌓이며, 10배수(X10·X20·X30…)마다 카단의 눈보라 광역 필살기와 실리아의 무작위 바람풍 필살기가 연속으로 작렬합니다!',
+      '스토리 모드에서 자동플레이를 켜면 실리아와 카단 사이 하단 중앙에 [카단의 기세] 링이 열립니다. 마구 눌러도 +1씩 기세가 쌓이고, 링이 초록색(TAP+10) 타이밍에 맞춰 터치(또는 Space 키)하면 한 번에 +10씩 쌓여 즉시 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다!',
     descEn:
-      "When Auto-Play is ON, the [Kadan's Spirit] beat ring appears at bottom-center between Silia and Kadan. Hold on RED (WAIT) and tap on GREEN (TAP! or Spacebar) to build X1, X2… stacks—every 10 stacks (X10·X20·X30…) unleashes Kadan's Blizzard Ultimate followed immediately by Silia's random Windstorm Ultimate!",
+      "In Story Mode Auto-Play, the [Kadan's Spirit] ring opens at bottom-center between Silia and Kadan. Rapidly mash at any time for +1 stack per tap, or tap right on the GREEN (TAP+10) beat for +10 stacks at once—every 10-multiple (X10·X20·X30…) fires Kadan's Blizzard + Silia's Windstorm Ultimates!",
     tipKo:
-      '박자·전술 팁: 링 아래 [2B/4B] 버튼으로 2박(기본)·4박 주기를 전환할 수 있고, 우하단 [맹공·수비·각성]으로 카단의 자동 전술을 실시간 변경하며, 랭킹·도박장에서는 공정하게 피버 골드만 충전됩니다.',
+      '스토리 모드 전용: [카단의 기세]는 스토리 여정 전용 각성 시스템이며, 랭킹·일반·연습·도박장 모드에서는 공정한 승부를 위해 비활성화됩니다.',
     tipEn:
-      'Beat & Stance Tip: Switch [2B/4B] cadence below the ring, change [Aggro · Ctrl · Awkn] AI stances at bottom-right, and earn fair bonus Fever Gold in Ranked/Bogart.',
+      "Story Mode Exclusive: [Kadan's Spirit] is exclusive to Story Journey and disabled in Ranked, Casual, Practice, and Bogart modes for fair play.",
     imageUrlKo: '/hs-assets/guide/guide_04_combat_ult.webp',
     imageUrlEn: '/hs-assets/guide/guide_en_04_combat_ult.webp',
   },
@@ -280,23 +280,23 @@ export const HowToPlayCarousel: React.FC<{
             >
               <div className="rounded-xl border border-emerald-400/45 bg-black/50 px-2.5 py-2">
                 <div className="text-[11px] font-black text-emerald-300">
-                  {tr('① 🟢 초록(TAP!) · 🔴 빨강(대기)', '① 🟢 GREEN (TAP!) · 🔴 RED (WAIT)')}
+                  {tr('① ⚡ 마구 연타(+1) · 초록 정박(+10)', '① ⚡ Mash (+1) · Green Beat (+10)')}
                 </div>
                 <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
                   {tr(
-                    '링이 초록색일 때 터치(또는 Space)! 빨간색에 누르면 엇박(MISS)으로 스택이 오르지 않습니다.',
-                    'Tap (or press Space) when the ring turns GREEN! Tapping on RED counts as a MISS.',
+                    '아무 때나 마구 눌러도 +1씩 쌓이고, 초록 링(TAP+10) 타이밍에 누르면 단번에 +10이 쌓입니다!',
+                    'Mash anytime for +1 per tap, or hit right on the GREEN (TAP+10) beat for +10 at once!',
                   )}
                 </div>
               </div>
               <div className="rounded-xl border border-sky-400/45 bg-black/50 px-2.5 py-2">
                 <div className="text-[11px] font-black text-sky-300">
-                  {tr('② 📈 X1 → X10 → X20 기세 누적', '② 📈 Stack X1 → X10 → X20 Spirit')}
+                  {tr('② 📖 스토리 모드 전용 각성', '② 📖 Story Mode Exclusive')}
                 </div>
                 <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
                   {tr(
-                    '2박마다 1스택씩 옆 배지(X1, X2…)에 누적되며, 스토리 매 턴 방어도·공격력 공명 보너스도 부여됩니다.',
-                    'Every 2-beat hit stacks X1, X2… on the side badge and grants turn Armor/Buff resonance in Story.',
+                    '[카단의 기세]는 스토리 여정 전용이며, 정박 적중 시 매 턴 방어도·공격력 공명 보너스도 부여됩니다.',
+                    "Exclusive to Story Journey—on-beat hits also grant per-turn Armor & Attack resonance.",
                   )}
                 </div>
               </div>
@@ -306,8 +306,8 @@ export const HowToPlayCarousel: React.FC<{
                 </div>
                 <div className="mt-0.5 text-[10.5px] leading-snug text-amber-100/85">
                   {tr(
-                    'X10·X20·X30 달성 즉시 배수 비례 [카단 눈보라 필살기] + [실리아 무작위 바람풍 필살기]가 연속 발동합니다!',
-                    'Hitting X10·X20·X30 fires tier-scaled [Kadan Blizzard] + [Silia Random Windstorm] back-to-back!',
+                    '10배수(X10·X20·X30…) 돌파 시마다 배수 비례 [카단 눈보라] + [실리아 바람풍] 연속 필살기가 발동합니다!',
+                    'Crossing every 10-multiple (X10·X20·X30…) fires tier-scaled [Kadan Blizzard] + [Silia Windstorm]!',
                   )}
                 </div>
               </div>
@@ -418,10 +418,10 @@ export const QuickRulesModal: React.FC<QuickRulesModalProps> = ({
       ),
     },
     {
-      name: tr('🟢 카단의 기세 (X10 합동 필살기)', "🟢 Kadan's Spirit (X10 Combo Ult)"),
+      name: tr('🟢 카단의 기세 (스토리 전용 · 연타+1 / 정박+10)', "🟢 Kadan's Spirit (Story · Mash +1 / Beat +10)"),
       desc: tr(
-        '자동플레이 중 하단 중앙 링이 초록색(TAP!)일 때 누르면 X스택이 쌓이고, 10배수(X10·X20…)마다 카단 눈보라 + 실리아 바람풍 연속 필살기가 발동합니다!',
-        'During Auto-Play, tap the bottom-center ring on GREEN (TAP!) to stack X1, X2… Every 10 stacks (X10·X20…) fires Kadan Blizzard + Silia Windstorm!',
+        '스토리 모드 자동플레이 전용! 마구 눌러도 +1씩 쌓이고 초록 링(TAP+10) 타이밍에 누르면 +10씩 쌓여, 10배수마다 카단 눈보라 + 실리아 바람풍 연속 필살기가 발동합니다!',
+        'Story Auto-Play exclusive! Mash anytime for +1 or tap on GREEN (TAP+10) for +10—every 10-multiple triggers Kadan Blizzard + Silia Windstorm!',
       ),
     },
   ];
