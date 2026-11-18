@@ -2,6 +2,11 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 16:20 KST] [Google Ads 일괄 업로드 엑셀 `EU political ads: No` 열 보완]
+- **원인**: Google Ads 웹 미리보기 결과 2종 캠페인(`SNSHero_Search_TCG_KR`, `SNSHero_Search_TCG_EN`)에서 신규 정책 필수 열 `'EU 정치 광고'` 누락 오류 발생
+- **수정**: `01_web_campaigns.xlsx`, `snshero_google_ads_campaigns.xlsx`, `snshero_google_ads_editor.csv` 에 `EU political ads` = `No` 컬럼 추가 및 OOXML 재검증 완료
+- **상태**: 로컬 커밋 완료 (원격 푸시 보류) · 구글 폼 보고 완료
+
 ## [2026-11-18 16:17 KST] [Google Ads 웹 콘솔 일괄 업로드 전용 엑셀 5종(`docs/ads/web_upload/`) 생성 (푸시 대기)]
 - **요청**: Google Ads 웹 콘솔(`도구 → 일괄 작업 → 업로드`) 방식에 맞춘 전용 엑셀 분할 제작
 - **산출물 (`docs/ads/web_upload/`)**:
