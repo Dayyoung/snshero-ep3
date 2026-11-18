@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 구글 폼 보고 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-18 16:15 KST] [Google Ads 캠페인 대량 업로드용 Excel(`.xlsx`) 및 Editor `.csv` 생성 (푸시 대기)]
+- **요청**: `SNSHero_Search_TCG_KR` · `SNSHero_Search_TCG_EN` 캠페인 구조를 한 번에 업로드할 수 있는 엑셀/CSV 파일 제작
+- **산출물**:
+  - `docs/ads/snshero_google_ads_campaigns.xlsx` (7개 시트: `Editor_Import_All`, `Campaigns`, `Ad Groups`, `Keywords`, `Negative Keywords`, `Responsive Search Ads`, `Upload_Guide`)
+  - `docs/ads/snshero_google_ads_editor.csv` (UTF-8 BOM CSV, 총 61행, Google Ads Editor 원클릭 가져오기용)
+- **검증 결과**:
+  - 한글 2바이트(전각) 글자수 폭 검증(`assert`): 모든 한국어/영문 제목 폭 `<= 30`, 설명 폭 `<= 90`, 경로 폭 `<= 15` 통과
+  - OOXML(`.xlsx`) 12개 XML/RELS 파일 파싱 무결성 검증 통과
+- **상태**: 로컬 커밋 완료 (원격 푸시 보류) · 구글 폼 보고 완료
+
 ## [2026-11-18 15:56 KST] [Google Ads 태그 `AW-980426001` 전역 gtag 스니펫 결합 연동 (푸시 대기)]
 - **요청**: Google Ads 계정(`3072359722`)의 Google 태그 ID(`AW-980426001`)를 `snshero.com` 전체 페이지에 연동해 `Google 태그 사용: 아직 설치되지 않음` 해소 및 직접 전환/리마케팅 측정 기반 구축
 - **수정 파일 (9종)**:

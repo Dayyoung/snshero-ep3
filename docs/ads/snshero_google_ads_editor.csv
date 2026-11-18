@@ -1,0 +1,61 @@
+﻿Campaign,Campaign Status,Budget,Budget type,Campaign Type,Networks,Languages,Location,Bid Strategy Type,Maximum CPC bid limit,Ad Group,Ad Group Status,Max CPC,Keyword,Criterion Type,Ad type,Final URL,Path 1,Path 2,Headline 1,Headline 2,Headline 3,Headline 4,Headline 5,Headline 6,Headline 7,Headline 8,Headline 9,Headline 10,Description 1,Description 2,Description 3,Status
+SNSHero_Search_TCG_KR,Paused,12000,Daily,Search,Google search,ko,,Maximize clicks,250,,,,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,Paused,10000,Daily,Search,Google search,en,,Maximize clicks,400,,,,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,South Korea,,,,,,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,United States,,,,,,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,Canada,,,,,,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,United Kingdom,,,,,,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,Australia,,,,,,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,Singapore,,,,,,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_01_무설치웹카드게임,Enabled,250,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_02_덱빌딩전략유사,Enabled,250,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_01_FreeBrowserTCG,Enabled,400,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_02_DeckbuilderAlt,Enabled,400,,,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_01_무설치웹카드게임,,250,무설치 카드게임,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_01_무설치웹카드게임,,250,웹 카드게임,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_01_무설치웹카드게임,,250,브라우저 카드게임,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_01_무설치웹카드게임,,250,무료 카드 배틀 게임,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_01_무설치웹카드게임,,250,눈히어로,Exact,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_01_무설치웹카드게임,,250,snshero,Exact,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_02_덱빌딩전략유사,,250,하스스톤 같은 게임,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_02_덱빌딩전략유사,,250,pc 무설치 웹게임,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_02_덱빌딩전략유사,,250,무료 덱빌딩 게임,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_02_덱빌딩전략유사,,250,턴제 전략 웹게임,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_01_FreeBrowserTCG,,400,free browser card game,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_01_FreeBrowserTCG,,400,no download card game,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_01_FreeBrowserTCG,,400,html5 tcg,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_01_FreeBrowserTCG,,400,free online tcg no signup,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_01_FreeBrowserTCG,,400,snshero,Exact,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_02_DeckbuilderAlt,,400,games like hearthstone free,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_02_DeckbuilderAlt,,400,browser deckbuilder game,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_02_DeckbuilderAlt,,400,free web strategy card game,Phrase,,,,,,,,,,,,,,,,,,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,도박,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,토토,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,카지노,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,슬롯,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,홀덤,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,포커,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,코인,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,비트코인,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,이더리움,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,웹3,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,nft,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,앱테크,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,돈버는게임,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,섯다,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,,,,고스톱,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,casino,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,poker,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,betting,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,gambling,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,slots,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,crypto,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,bitcoin,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,nft,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,blockchain,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,play to earn,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_EN,,,,,,,,,,,,,real money,Campaign Negative Phrase,,,,,,,,,,,,,,,,,,
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_01_무설치웹카드게임,,,,,Responsive search ad,https://snshero.com/game?open=pack3&lang=ko&utm_source=google_ads&utm_medium=cpc&utm_campaign=kr_search_pack3,무료3팩,카드게임,눈히어로 무설치 카드배틀,첫방문 무료 3팩+250G,가입없이 브라우저 플레이,382종 카드 9대 종족 TCG,10팩 내 전설카드 확정,3장 모으면 능력치 3배 각성,40화 풀보이스 스토리 모드,공평한 100% 랜덤 미러덱,지금 3초만에 무료팩 개봉,PC 모바일 웹 즉시 카드게임,설치·가입 없이 3초 만에 무료 카드팩 3개 개봉! 9대 종족 382종 카드로 지금 대결!,첫 10팩 전설 100% 확정! 같은 카드 3장 모으면 3배 각성하는 40화 스토리 무료!,PC·모바일 브라우저 지원! 공평한 랜덤 미러덱 보가트 도박장과 랭킹전에 도전!,Enabled
+SNSHero_Search_TCG_KR,,,,,,,,,,KR_02_덱빌딩전략유사,,,,,Responsive search ad,https://snshero.com/game?open=pack3&lang=ko&utm_source=google_ads&utm_medium=cpc&utm_campaign=kr_search_pack3,무료3팩,카드게임,눈히어로 무설치 카드배틀,첫방문 무료 3팩+250G,가입없이 브라우저 플레이,382종 카드 9대 종족 TCG,10팩 내 전설카드 확정,3장 모으면 능력치 3배 각성,40화 풀보이스 스토리 모드,공평한 100% 랜덤 미러덱,지금 3초만에 무료팩 개봉,PC 모바일 웹 즉시 카드게임,설치·가입 없이 3초 만에 무료 카드팩 3개 개봉! 9대 종족 382종 카드로 지금 대결!,첫 10팩 전설 100% 확정! 같은 카드 3장 모으면 3배 각성하는 40화 스토리 무료!,PC·모바일 브라우저 지원! 공평한 랜덤 미러덱 보가트 도박장과 랭킹전에 도전!,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_01_FreeBrowserTCG,,,,,Responsive search ad,https://snshero.com/game?open=pack3&lang=en&utm_source=google_ads&utm_medium=cpc&utm_campaign=en_search_pack3,Free3Packs,CardGame,SNSHero - Instant Browser TCG,3 Free Packs on First Visit,"Zero Install, Zero Sign-Up",382 Cards & 9 Factions,100% Free-to-Play Web TCG,Legendary Guaranteed in 10,3 Copies = 3x Power Awakening,40-Episode Voiced Story Mode,Fair Mirror-Deck Arena Mode,Open 3 Packs in 3 Seconds,Play a 382-card tactical web TCG right in your browser. Open 3 Free Packs + 250G now!,Collect 3 copies for 3x Awakening power! Play 40 voiced story episodes and Ranked Arena.,No downloads or login needed on PC or mobile. Claim your starter legendary in 10 packs!,Enabled
+SNSHero_Search_TCG_EN,,,,,,,,,,EN_02_DeckbuilderAlt,,,,,Responsive search ad,https://snshero.com/game?open=pack3&lang=en&utm_source=google_ads&utm_medium=cpc&utm_campaign=en_search_pack3,Free3Packs,CardGame,SNSHero - Instant Browser TCG,3 Free Packs on First Visit,"Zero Install, Zero Sign-Up",382 Cards & 9 Factions,100% Free-to-Play Web TCG,Legendary Guaranteed in 10,3 Copies = 3x Power Awakening,40-Episode Voiced Story Mode,Fair Mirror-Deck Arena Mode,Open 3 Packs in 3 Seconds,Play a 382-card tactical web TCG right in your browser. Open 3 Free Packs + 250G now!,Collect 3 copies for 3x Awakening power! Play 40 voiced story episodes and Ranked Arena.,No downloads or login needed on PC or mobile. Claim your starter legendary in 10 packs!,Enabled
