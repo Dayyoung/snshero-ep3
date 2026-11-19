@@ -8472,7 +8472,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           rhythmEnabled && (
             <div
               data-testid="manual-dual-ult-orb"
-              className="pointer-events-none fixed bottom-12 left-[104px] z-[74] flex select-none flex-col items-center sm:bottom-14 sm:left-[122px]"
+              className="pointer-events-none fixed bottom-0.5 left-[58px] z-[74] flex select-none flex-col items-center sm:bottom-1 sm:left-[72px]"
             >
               <button
                 type="button"

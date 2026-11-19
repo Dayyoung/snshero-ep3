@@ -525,11 +525,8 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
 
   if (isNarrationActive) return null;
 
-  // Raise slightly in BATTLE so bottom-right Mana Tray (0/10 + 10 crystals) is 100% unobstructed on all viewports
-  const positionClasses =
-    screen === 'BATTLE'
-      ? 'fixed bottom-12 right-2.5 z-[126] sm:bottom-14 sm:right-4'
-      : 'fixed bottom-2.5 right-2.5 z-[126] sm:bottom-3.5 sm:right-4';
+  // Flush to bottom-right corner identically with bottom-left Kadan Chatbot so cards stay unobstructed
+  const positionClasses = 'fixed bottom-0.5 right-1 z-[126] sm:bottom-1 sm:right-2';
 
   return (
     <div
@@ -1484,7 +1481,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
         </div>
       )}
 
-      {/* Bottom-Right Real Live Chat Floating Icon Button + Real-Time Count Badge */}
+      {/* Bottom-Right Compact Real Live Chat Floating Icon Button + Real-Time Count Badge */}
       <button
         type="button"
         data-testid="live-chat-trigger-btn"
@@ -1497,27 +1494,27 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
           `실시간 라이브 채팅 열기 (현재 ${liveBadgeNumber}명 대화 중)`,
           `Open Real-Time Live Chat (${liveBadgeNumber} active)`,
         )}
-        className="pointer-events-auto group relative flex flex-col items-center focus:outline-none"
+        className="pointer-events-auto group relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-end focus:outline-none"
       >
-        {/* Crisp Modern Real Chat Icon Orb */}
+        {/* Compact Modern Real Chat Icon Orb */}
         <div
-          className={`relative flex h-[54px] w-[54px] items-center justify-center rounded-full border-2 shadow-[0_8px_24px_rgba(0,0,0,0.9),0_0_16px_rgba(14,165,233,0.45)] transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[62px] sm:w-[62px] ${
+          className={`relative flex h-[40px] w-[40px] items-center justify-center rounded-full border-2 shadow-[0_6px_16px_rgba(0,0,0,0.9),0_0_12px_rgba(14,165,233,0.4)] transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[48px] sm:w-[48px] ${
             snap.drawerOpen
               ? 'border-sky-200 bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-900 text-white'
               : 'border-sky-300/90 bg-gradient-to-br from-sky-600 via-[#0e3460] to-[#081529] text-white'
           }`}
         >
-          <MessageCircleMore className="h-7 w-7 stroke-[2.3] drop-shadow sm:h-8 sm:w-8" />
+          <MessageCircleMore className="h-5 w-5 stroke-[2.3] drop-shadow sm:h-6 sm:w-6" />
 
           {/* Top-Left Pulsing Green Live Dot */}
-          <span className="pointer-events-none absolute left-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-slate-950 bg-emerald-400 shadow-[0_0_8px_#34d399]">
+          <span className="pointer-events-none absolute left-0 top-0 flex h-2.5 w-2.5 items-center justify-center rounded-full border border-slate-950 bg-emerald-400 shadow-[0_0_6px_#34d399]">
             <span className="h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
           </span>
 
           {/* Top-Right Real-Time Live Conversation / Unread Count Badge */}
           <span
             data-testid="live-chat-count-badge"
-            className={`pointer-events-none absolute -right-1.5 -top-1.5 flex h-6 min-w-[24px] items-center justify-center rounded-full border-2 px-1.5 text-[11px] font-black leading-none shadow-lg ${
+            className={`pointer-events-none absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border px-1 text-[9.5px] font-black leading-none shadow-md ${
               snap.unreadCount > 0
                 ? 'animate-bounce border-white bg-rose-600 text-white'
                 : 'border-emerald-100 bg-emerald-600 text-white'
@@ -1527,14 +1524,14 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
           </span>
         </div>
 
-        {/* Sleek Live Conversation Pill Under the Real Chat Icon */}
+        {/* Compact Live Conversation Pill Under the Real Chat Icon */}
         <div
           data-testid="live-chat-pill-label"
-          className="mt-1 flex items-center gap-1 rounded-full border border-sky-300/80 bg-[#081322]/95 px-2.5 py-0.5 text-[10px] font-extrabold text-sky-100 shadow-[0_4px_10px_rgba(0,0,0,0.92)] transition group-hover:border-white sm:px-3 sm:text-[11px]"
+          className="mt-0.5 flex items-center gap-0.5 rounded-full border border-sky-300/80 bg-[#081322]/95 px-1.5 py-0.5 text-[8.5px] font-extrabold leading-none text-sky-100 shadow-[0_3px_8px_rgba(0,0,0,0.92)] transition group-hover:border-white sm:px-2 sm:text-[9.5px]"
         >
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
           <span>
-            {tr(`실시간 대화 ${liveBadgeNumber}`, `Live Chat · ${liveBadgeNumber}`)}
+            {tr(`실시간 ${liveBadgeNumber}`, `Live ${liveBadgeNumber}`)}
           </span>
         </div>
       </button>

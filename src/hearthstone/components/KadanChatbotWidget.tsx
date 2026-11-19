@@ -866,11 +866,8 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
 
   if (isNarrationActive) return null;
 
-  // Match LiveCommunityChatWidget vertical baseline identically across all screens (raised in BATTLE to clear Mana Tray)
-  const positionClasses =
-    screen === 'BATTLE'
-      ? 'fixed bottom-12 left-2.5 z-[125] sm:bottom-14 sm:left-3.5'
-      : 'fixed bottom-2.5 left-2.5 z-[125] sm:bottom-3.5 sm:left-3.5';
+  // Flush to bottom-left corner identically with bottom-right Live Chat Icon so cards stay unobstructed
+  const positionClasses = 'fixed bottom-0.5 left-1 z-[125] sm:bottom-1 sm:left-2';
 
   return (
     <div
@@ -1179,14 +1176,14 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
             />
           )}
 
-          {/* Chibi Kadan Sprite (Pre-mounted 4-frame opacity swap — zero WebKit image re-decode per tick!) */}
+          {/* Chibi Kadan Sprite (Compact bottom-flush size so cards stay unobstructed) */}
           <div
-            className={`relative flex h-[74px] w-[74px] items-center justify-center transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[92px] sm:w-[92px] ${
+            className={`relative flex h-[46px] w-[46px] items-center justify-center transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[58px] sm:w-[58px] ${
               siliaCoCastSkill
-                ? 'scale-108 drop-shadow-[0_0_14px_rgba(56,189,248,0.95)]'
+                ? 'scale-108 drop-shadow-[0_0_12px_rgba(56,189,248,0.95)]'
                 : autoPlay
-                  ? 'drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]'
-                  : 'drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)]'
+                  ? 'drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                  : 'drop-shadow-[0_3px_6px_rgba(0,0,0,0.85)]'
             }`}
           >
             {activeFrames.map((src, idx) => (
@@ -1203,9 +1200,9 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
               />
             ))}
 
-            {/* Cute Floating "?" / "⚡" Status Pin (inward right corner on bottom-left widget) */}
+            {/* Cute Floating "?" / "⚡" Status Pin */}
             <span
-              className={`pointer-events-none absolute -right-0.5 top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full border px-1 text-[10px] font-black shadow-md sm:h-6 sm:min-w-[24px] sm:text-xs ${
+              className={`pointer-events-none absolute -right-0.5 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full border px-0.5 text-[8.5px] font-black shadow-md sm:h-[18px] sm:min-w-[18px] sm:text-[9.5px] ${
                 siliaCoCastSkill
                   ? 'border-cyan-100 bg-gradient-to-r from-sky-500 to-emerald-600 text-white animate-bounce'
                   : autoPlay
@@ -1219,9 +1216,9 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
             </span>
           </div>
 
-          {/* Nameplate Pill Below Kadan's Boots */}
+          {/* Compact Nameplate Pill Below Kadan's Boots */}
           <div
-            className={`-mt-1.5 flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold shadow-[0_4px_10px_rgba(0,0,0,0.9)] transition sm:px-3 sm:text-[11px] ${
+            className={`-mt-1 flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[8.5px] font-extrabold leading-none shadow-[0_3px_8px_rgba(0,0,0,0.9)] transition sm:px-2 sm:text-[9.5px] ${
               siliaCoCastSkill
                 ? 'border-cyan-200 bg-gradient-to-r from-sky-700 via-teal-700 to-emerald-800 text-white'
                 : autoPlay
@@ -1231,10 +1228,10 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
           >
             <span>
               {siliaCoCastSkill
-                ? tr('❄️🌪 합동 필살기!', '❄️🌪 Dual Ult!')
+                ? tr('❄️🌪 합동!', '❄️🌪 Dual!')
                 : autoPlay
-                  ? tr('자동플레이 중 (정지)', 'Auto-Playing (Stop)')
-                  : tr('카단 도움말', 'Ask Kadan')}
+                  ? tr('자동(정지)', 'Auto(Off)')
+                  : tr('카단', 'Kadan')}
             </span>
           </div>
         </button>
@@ -1245,7 +1242,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
             data-testid="kadan-silia-dual-cameo"
             className="pointer-events-none flex flex-col items-center animate-[hsCardPop_0.22s_ease-out]"
           >
-            <div className="relative flex h-[72px] w-[72px] items-center justify-center drop-shadow-[0_0_14px_rgba(16,185,129,0.95)] sm:h-[88px] sm:w-[88px]">
+            <div className="relative flex h-[46px] w-[46px] items-center justify-center drop-shadow-[0_0_12px_rgba(16,185,129,0.95)] sm:h-[58px] sm:w-[58px]">
               <img
                 src={
                   SILIA_CO_CAST_FRAMES[siliaCoCastSkill][
@@ -1258,8 +1255,8 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
                 className="h-full w-full select-none object-contain"
               />
             </div>
-            <div className="-mt-1.5 rounded-full border border-emerald-200 bg-gradient-to-r from-emerald-700 to-teal-900 px-2 py-0.5 text-[9.5px] font-black text-emerald-50 shadow-lg">
-              🌪 {tr('실리아 동시참전!', 'Silia Co-Cast!')}
+            <div className="-mt-1 rounded-full border border-emerald-200 bg-gradient-to-r from-emerald-700 to-teal-900 px-1.5 py-0.5 text-[8.5px] font-black leading-none text-emerald-50 shadow-lg">
+              🌪 {tr('실리아!', 'Silia!')}
             </div>
           </div>
         )}
