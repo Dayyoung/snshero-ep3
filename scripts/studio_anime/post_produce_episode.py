@@ -741,6 +741,31 @@ def build_youtube_metadata(
             2: "Act II — The Old Lion's Stand",
             3: "Act III — Three Youths' Covenant",
         },
+        16: {
+            1: "Act I — Balian's Letter",
+            2: "Act II — Brothers Before the Ruins",
+            3: "Act III — Setting Sail East",
+        },
+        17: {
+            1: "Act I — Scroll from Wind Island",
+            2: "Act II — Battle on the Eastern Swells",
+            3: "Act III — Threading Razor Reef",
+        },
+        18: {
+            1: "Act I — The Obsidian Black Sanctum",
+            2: "Act II — Truth in the Memory Shard",
+            3: "Act III — Climb to the Sky Altar",
+        },
+        19: {
+            1: "Act I — Aeolus's Three Trials",
+            2: "Act II — Shattering the Nightmare",
+            3: "Act III — Azure Mantle of Wind",
+        },
+        20: {
+            1: "Act I — Collapse of the Jade Spire",
+            2: "Act II — Shield Against the Black Tsunami",
+            3: "Act III — The Flower Armada Sails West",
+        },
     }
     act_names = act_names_by_ep.get(ep_num, {1: "Act I", 2: "Act II", 3: "Act III"})
     chapters = []
