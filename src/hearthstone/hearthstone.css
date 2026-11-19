@@ -774,3 +774,13 @@
   animation: hsSpiritIgniteSweep 1s linear forwards;
 }
 
+/* Prevent iOS Safari / Mobile WebKit automatic viewport zoom when focusing inputs/selects */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+

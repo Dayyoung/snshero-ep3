@@ -1015,7 +1015,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
                       ? tr("질문/명령 (예: '명치 쳐', '실리아 필살기?')", "Ask/Command (e.g. 'aggro', 'Silia skill?')")
                       : tr("SNSHero 질문 (예: '3배 각성이 뭐야?')", "Ask SNSHero (e.g. 'How does 3x work?')")
                   }
-                  className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-amber-400/35 bg-stone-950 px-2.5 py-1.5 text-[11px] font-bold text-amber-100 placeholder:text-stone-500 focus:border-amber-300 focus:outline-none disabled:opacity-60"
+                  className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-amber-400/35 bg-stone-950 px-2.5 py-1.5 text-[16px] font-bold text-amber-100 placeholder:text-stone-500 focus:border-amber-300 focus:outline-none disabled:opacity-60 sm:text-[11px]"
                 />
                 <button
                   type="submit"

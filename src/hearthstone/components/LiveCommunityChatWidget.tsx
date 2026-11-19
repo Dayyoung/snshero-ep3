@@ -593,7 +593,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                       value={nickDraft}
                       onChange={(e) => setNickDraft(e.target.value)}
                       maxLength={18}
-                      className="h-6 w-28 rounded border border-sky-400 bg-slate-950 px-1.5 text-[11px] font-bold text-white focus:outline-none"
+                      className="h-8 w-32 rounded border border-sky-400 bg-slate-950 px-1.5 text-[16px] font-bold text-white focus:outline-none sm:h-6 sm:w-28 sm:text-[11px]"
                     />
                     <button
                       type="submit"
@@ -823,7 +823,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                   onChange={(e) => setGlobalInput(e.target.value)}
                   maxLength={240}
                   placeholder={tr('실시간 메시지 입력...', 'Type a live message...')}
-                  className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs font-bold text-white placeholder:text-slate-500 focus:border-sky-400 focus:outline-none"
+                  className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 text-[16px] font-bold text-white placeholder:text-slate-500 focus:border-sky-400 focus:outline-none sm:text-xs"
                 />
                 <button
                   type="submit"
@@ -895,7 +895,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                           onChange={(e) => setGuildTagDraft(e.target.value.toUpperCase())}
                           maxLength={5}
                           placeholder={tr('태그 (예: HERO)', 'Tag (HERO)')}
-                          className="min-h-[44px] w-28 rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-xs font-extrabold text-emerald-200 placeholder:text-slate-500"
+                          className="min-h-[44px] w-28 rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-extrabold text-emerald-200 placeholder:text-slate-500 sm:text-xs"
                         />
                         <input
                           type="text"
@@ -904,7 +904,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                           onChange={(e) => setGuildNameDraft(e.target.value)}
                           maxLength={22}
                           placeholder={tr('길드 이름 (2자 이상)', 'Guild Name')}
-                          className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-xs font-bold text-white placeholder:text-slate-500"
+                          className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:text-xs"
                         />
                       </div>
                       <input
@@ -913,7 +913,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                         onChange={(e) => setGuildDescDraft(e.target.value)}
                         maxLength={50}
                         placeholder={tr('길드 한줄 소개 (선택)', 'Guild motto (optional)')}
-                        className="min-h-[40px] w-full rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-xs text-slate-200 placeholder:text-slate-500"
+                        className="min-h-[44px] w-full rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-[16px] text-slate-200 placeholder:text-slate-500 sm:min-h-[40px] sm:text-xs"
                       />
                       <button
                         type="submit"
@@ -933,7 +933,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                       value={guildJoinCode}
                       onChange={(e) => setGuildJoinCode(e.target.value)}
                       placeholder={tr('초대코드 또는 길드태그로 가입', 'Join by Guild Tag or Code')}
-                      className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-2.5 text-xs font-bold text-white placeholder:text-slate-500"
+                      className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:text-xs"
                     />
                     <button
                       type="button"
@@ -1071,7 +1071,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                         `[${snap.currentGuild.tag}] 길드 채팅 입력...`,
                         `Message [${snap.currentGuild.tag}] Guild...`,
                       )}
-                      className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-emerald-500/40 bg-slate-900 px-3 text-xs font-bold text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                      className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-emerald-500/40 bg-slate-900 px-3 text-[16px] font-bold text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none sm:text-xs"
                     />
                     <button
                       type="submit"
@@ -1118,7 +1118,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                   data-testid="live-pvp-deck-select"
                   value={selectedDeck?.id || ''}
                   onChange={(e) => setSelectedDeckId(e.target.value)}
-                  className="mt-1.5 min-h-[44px] w-full rounded-xl border border-amber-400/45 bg-slate-950 px-2.5 text-xs font-extrabold text-white focus:border-amber-300 focus:outline-none"
+                  className="mt-1.5 min-h-[44px] w-full rounded-xl border border-amber-400/45 bg-slate-950 px-2.5 text-[16px] font-extrabold text-white focus:border-amber-300 focus:outline-none sm:text-xs"
                 >
                   {decks.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -1158,7 +1158,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                     '방 제목 (비워두면 자동 생성)',
                     'Room title (optional)',
                   )}
-                  className="min-h-[42px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-xs font-bold text-white placeholder:text-slate-500"
+                  className="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:min-h-[42px] sm:text-xs"
                 />
 
                 {/* Stake Gold Pills */}
@@ -1380,7 +1380,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                   value={goldTargetPeerId}
                   onChange={(e) => setGoldTargetPeerId(e.target.value)}
                   placeholder={tr('받는 유저 ID (예: u_abcd12)', 'Recipient Player ID (e.g. u_abcd12)')}
-                  className="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-xs font-bold text-white placeholder:text-slate-500"
+                  className="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:text-xs"
                 />
 
                 {/* Amount Presets & Input */}
@@ -1409,7 +1409,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                     data-testid="gold-amount-input"
                     value={goldAmount}
                     onChange={(e) => setGoldAmount(Math.max(1, Number(e.target.value) || 1))}
-                    className="min-h-[44px] w-full rounded-xl border border-amber-400/50 bg-slate-950 px-3 text-xs font-black text-yellow-300"
+                    className="min-h-[44px] w-full rounded-xl border border-amber-400/50 bg-slate-950 px-3 text-[16px] font-black text-yellow-300 sm:text-xs"
                   />
                 </div>
 
@@ -1420,7 +1420,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                   onChange={(e) => setGoldNote(e.target.value)}
                   maxLength={60}
                   placeholder={tr('응원 메시지 (선택, 예: 전설 뽑으세요!)', 'Optional note (e.g. Good luck on packs!)')}
-                  className="min-h-[42px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-xs font-bold text-white placeholder:text-slate-500"
+                  className="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:min-h-[42px] sm:text-xs"
                 />
 
                 <button
