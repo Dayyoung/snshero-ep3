@@ -46,6 +46,11 @@ BANNED_GORE_REGEX = re.compile(
     re.IGNORECASE,
 )
 
+BANNED_FILTER_REGEX = re.compile(
+    r"\b(hercul|hercules)\b",
+    re.IGNORECASE,
+)
+
 NO_TEXT_PATTERNS = [
     r"\bno[\s-]+text\b",
     r"\bzero[\s-]+text\b",
@@ -98,12 +103,13 @@ def extract_prompt_list(data: Any) -> list[dict[str, Any]]:
     return []
 
 
-def run_gate1(root: Path, ep: int) -> int:
+def run_gate1(root: Path, ep: int, max_words: int) -> int:
     ep_str = f"{ep:02d}"
     base_dir = root / "output" / "studio_anime" / f"ep{ep_str}_en"
     base_dir.mkdir(parents=True, exist_ok=True)
 
     storyboard_path = base_dir / f"storyboard_ep{ep_str}_en.json"
+    act_bgm_path = base_dir / "act_bgm.json"
     keyframes_dir = base_dir / "keyframes"
     prompts_path = base_dir / f"flow_prompts_ep{ep_str}_en.json"
     report_path = base_dir / "qa_report_gate1.md"
@@ -165,9 +171,9 @@ def run_gate1(root: Path, ep: int) -> int:
                     director_errors.append(
                         f"{cut_code}: audioMode is '{mode}' but dialogueEn is empty."
                     )
-                elif wc > MAX_DIALOGUE_WORDS:
+                elif wc > max_words:
                     director_errors.append(
-                        f"{cut_code}: dialogueEn has {wc} words (max {MAX_DIALOGUE_WORDS}): \"{dialogue}\""
+                        f"{cut_code}: dialogueEn has {wc} words (max {max_words}): \"{dialogue}\""
                     )
             elif mode == "sakuga_action":
                 if wc > 0:
@@ -210,6 +216,30 @@ def run_gate1(root: Path, ep: int) -> int:
             director_errors.append(
                 f"Audio balance fail: sakuga_action={audio_counts['sakuga_action']} (need >= 5)."
             )
+
+    # 1b. act_bgm.json check (required for EP02+, optional for EP01)
+    act_bgm_status = "N/A (EP01)"
+    if ep >= 2 or act_bgm_path.exists():
+        bgm_data, bgm_err = load_json(act_bgm_path)
+        if bgm_err or not isinstance(bgm_data, dict):
+            director_errors.append(bgm_err or "act_bgm.json must be a JSON object.")
+            act_bgm_status = "FAIL"
+        else:
+            bgm_ok = True
+            bgm_dir = root / "public" / "hs-assets" / "snshero-audio" / "bgm"
+            for act_key in ("1", "2", "3"):
+                val = bgm_data.get(act_key)
+                if not val or not isinstance(val, str):
+                    director_errors.append(f"act_bgm.json missing string mapping for Act '{act_key}'.")
+                    bgm_ok = False
+                    continue
+                cand = Path(val)
+                if not cand.is_absolute():
+                    cand = root / cand if (root / cand).exists() else bgm_dir / cand.name
+                if not cand.exists():
+                    director_errors.append(f"act_bgm.json Act '{act_key}' file not found: {val}")
+                    bgm_ok = False
+            act_bgm_status = "PASS (Acts 1-3 verified)" if bgm_ok else "FAIL"
 
     # Ensure 24 rows for table even if storyboard failed
     if not cut_rows:
@@ -311,14 +341,18 @@ def run_gate1(root: Path, ep: int) -> int:
             if found_gore:
                 item_errs.append(f"banned high-risk gore term(s): {', '.join(found_gore)}")
 
+            found_filter = sorted(set(m.group(0) for m in BANNED_FILTER_REGEX.finditer(prompt_text)))
+            if found_filter:
+                item_errs.append(f"banned third-party filter term(s): {', '.join(found_filter)}")
+
             if not NO_TEXT_REGEX.search(prompt_text):
                 item_errs.append("missing explicit No-Text rule")
 
             # Also double-check dialogue word count in prompt metadata if present
             p_mode = str(item.get("audioMode", "")).strip()
             p_dial = str(item.get("dialogueEn", "") or "").strip()
-            if p_mode in ("character_dialogue", "offscreen_narration") and word_count(p_dial) > MAX_DIALOGUE_WORDS:
-                item_errs.append(f"dialogueEn exceeds {MAX_DIALOGUE_WORDS} words ({word_count(p_dial)})")
+            if p_mode in ("character_dialogue", "offscreen_narration") and word_count(p_dial) > max_words:
+                item_errs.append(f"dialogueEn exceeds {max_words} words ({word_count(p_dial)})")
 
             if item_errs:
                 prompter_errors.append(f"{cut_code}: " + "; ".join(item_errs))
@@ -345,7 +379,8 @@ def run_gate1(root: Path, ep: int) -> int:
         "| --- | --- | --- |",
         f"| Storyboard Cuts | {'PASS' if len(cuts) == EXPECTED_CUTS else 'FAIL'} | {len(cuts)}/{EXPECTED_CUTS} cuts |",
         f"| Audio Balance | {'PASS' if (audio_counts['character_dialogue'] >= 14 and audio_counts['offscreen_narration'] <= 2 and audio_counts['sakuga_action'] >= 5 and audio_counts['other'] == 0) else 'FAIL'} | dialogue={audio_counts['character_dialogue']} (>=14), narration={audio_counts['offscreen_narration']} (<=2), sakuga={audio_counts['sakuga_action']} (>=5) |",
-        f"| Max Dialogue Words | {'PASS' if max_words_seen <= MAX_DIALOGUE_WORDS else 'FAIL'} | {max_words_seen} words (max {MAX_DIALOGUE_WORDS}) |",
+        f"| Max Dialogue Words | {'PASS' if max_words_seen <= max_words else 'FAIL'} | {max_words_seen} words (max {max_words}) |",
+        f"| Act BGM Mapping (`act_bgm.json`) | {'PASS' if act_bgm_status != 'FAIL' else 'FAIL'} | {act_bgm_status} |",
         f"| Keyframes (1280x720 PNG >50KB) | {'PASS' if kf_pass_count == EXPECTED_CUTS else 'FAIL'} | {kf_pass_count}/{EXPECTED_CUTS} valid |",
         f"| Flow Prompts (Tags, Safety, No-Text) | {'PASS' if prompts_pass_count == EXPECTED_CUTS else 'FAIL'} | {prompts_pass_count}/{EXPECTED_CUTS} valid |",
         "",
@@ -653,11 +688,18 @@ def main() -> int:
         help="QA Gate to run (1=Pre-Flow, 2=Post-Flow Clips)",
     )
     parser.add_argument("--root", type=str, default=None, help="Repository root override")
+    parser.add_argument(
+        "--max-words",
+        type=int,
+        default=None,
+        help="Max dialogue/narration words per 6s cut (default: 9 for EP02+, 15 for EP01)",
+    )
     args = parser.parse_args()
 
     root = Path(args.root).resolve() if args.root else find_repo_root()
+    max_words = args.max_words if args.max_words is not None else (9 if args.ep >= 2 else MAX_DIALOGUE_WORDS)
     if args.gate == 1:
-        return run_gate1(root, args.ep)
+        return run_gate1(root, args.ep, max_words)
     return run_gate2(root, args.ep)
 
 

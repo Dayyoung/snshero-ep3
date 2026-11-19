@@ -59,7 +59,7 @@ CANONICAL_CHARACTERS: dict[str, dict[str, Any]] = {
         "armorAndOutfit": "weathered charcoal-slate fur-lined winter cloak over dark leather brigandine, worn iron pauldrons, wrapped leather gauntlets",
         "weapon": "twin curved northern lightning swords with etched azure rune fullers",
         "signatureVfx": "crackling cobalt-and-white lightning ribbons trailing twin blade arcs",
-        "voiceToneEn": "deep, steady, gravelly baritone; restrained northern stoicism breaking into fierce protective thunder in combat",
+        "voiceToneEn": "deep, steady, gravelly spoken baritone; restrained northern stoicism breaking into firm protective grit in combat",
         "continuityAnchor": "Aleksandar: tall dark-haired northern warrior in fur-trimmed charcoal cloak and dark leather armor wielding twin lightning-etched blades",
     },
     "Balian": {
@@ -71,20 +71,20 @@ CANONICAL_CHARACTERS: dict[str, dict[str, Any]] = {
         "armorAndOutfit": "heavy quilted winter gambeson, scarred bronze-iron chest plate, crimson-brown wool mantle dusted with snow",
         "weapon": "long arcane flame spear with engraved steel leaf-blade head",
         "signatureVfx": "swirling azure-and-amber arcane flame ribbons spiralling along the spearhead",
-        "voiceToneEn": "rough, seasoned, resonant veteran baritone; gruff warmth with allies and roaring conviction in sacrifice",
+        "voiceToneEn": "rough, seasoned, gravelly spoken veteran baritone; gruff warmth with allies and forceful conviction in sacrifice",
         "continuityAnchor": "Balian: broad-shouldered bearded veteran in scarred iron-bronze armor and rust-brown winter mantle wielding an arcane flame spear",
     },
     "Hercul": {
         "canonicalName": "Hercul",
         "aliases": ["hercul", "hercules"],
-        "role": "Wandering surviving Holy Knight messenger exposing the Shadow Realm conspiracy",
+        "role": "Wandering surviving Holy Knight paladin investigating the Shadow Realm conspiracy",
         "hair": "tousled silver-streaked ash-brown hair partially shadowed beneath a tattered hood",
-        "eyesAndExpression": "weary, solemn gold-flecked eyes carrying ancient sorrow and quiet radiance",
-        "armorAndOutfit": "tattered ivory-and-slate pilgrim cloak over cracked Holy Knight surcoat, torn iron gauntlets leaking faint golden runes",
-        "weapon": "unarmed defensive golden mana aegis; carries the cracked golden Holy Knight seal and twin silver daggers",
+        "eyesAndExpression": "weary, solemn gold-flecked eyes carrying hardened sorrow and quiet resolve",
+        "armorAndOutfit": "tattered ivory-and-slate pilgrim cloak over cracked golden Holy Knight tabard and mud-caked greaves, torn iron gauntlets leaking faint golden runes",
+        "weapon": "heavy runic holy warhammer and defensive golden mana aegis; carries cracked golden seal and silver daggers",
         "signatureVfx": "warm translucent golden rune-barrier dome and floating incandescent motes",
-        "voiceToneEn": "solemn, weathered, resonant elder tenor-baritone; calm prophetic gravity",
-        "continuityAnchor": "Hercul: hooded wandering Holy Knight in tattered pilgrim vestments, cracked golden belt seal, faint golden mana leaking from torn gauntlets",
+        "voiceToneEn": "solemn, weathered, steady spoken elder baritone; calm direct authority",
+        "continuityAnchor": "Hercul: hooded wandering Holy Knight in tattered pilgrim cloak over golden tabard, cracked belt seal, runic warhammer, faint golden mana from torn gauntlets",
     },
     "Elwin": {
         "canonicalName": "Elwin",
@@ -95,7 +95,7 @@ CANONICAL_CHARACTERS: dict[str, dict[str, Any]] = {
         "armorAndOutfit": "thick woven cream-and-forest wool winter cloak draped over a simple homespun frontier dress protecting her pregnant belly",
         "weapon": "unarmed; guards Aleksandar's broken sword-sheath, the rune-etched silver dagger, and golden wheat seeds",
         "signatureVfx": "faint pale-blue rune shimmer beneath her cloak and warm golden gleam on wheat seeds against white snow",
-        "voiceToneEn": "warm, clear, heartfelt mezzo-soprano; trembling with grief yet ringing steady and unbroken against the wind",
+        "voiceToneEn": "warm, clear, heartfelt spoken mezzo-soprano; quiet grief steadied by firm resolve",
         "continuityAnchor": "Elwin: expectant young woman with braided chestnut hair in a heavy cream-and-forest wool winter cloak shielding her belly",
     },
     "Ysela": {
@@ -107,7 +107,7 @@ CANONICAL_CHARACTERS: dict[str, dict[str, Any]] = {
         "armorAndOutfit": "heavy charcoal-and-burgundy wool shawl over sturdy village winter tunic, snow-spattered hem",
         "weapon": "unarmed; shields her unborn child with both arms",
         "signatureVfx": "whirling snow spray and drifting firelight embers",
-        "voiceToneEn": "sharp, passionate, defiant alto-mezzo; fierce cry cutting through chaos",
+        "voiceToneEn": "sharp, direct, defiant spoken alto-mezzo; fierce urgency cutting through chaos",
         "continuityAnchor": "Ysela: expectant woman with wavy auburn hair in a burgundy-and-charcoal winter shawl shielding her belly",
     },
     "Lucian": {
@@ -119,8 +119,104 @@ CANONICAL_CHARACTERS: dict[str, dict[str, Any]] = {
         "armorAndOutfit": "ornate crimson-and-black velvet noble coat trimmed with white ermine fur, gilded silver filigree pauldrons, serpentine Red Glass Court crest",
         "weapon": "gilded courtier rapier at hip; commands mounted imperial legionnaires from warhorse",
         "signatureVfx": "cold crimson-violet rim light and drifting dark ember ash",
-        "voiceToneEn": "silky, aristocratic, venomous mid-tenor; mocking condescension and icy menace",
+        "voiceToneEn": "crisp, aristocratic, cold spoken mid-tenor; mocking condescension and sharp menace",
         "continuityAnchor": "Lucian: pale blond aristocratic courtier in crimson-black ermine-trimmed noble cloak with gilded serpentine crest",
+    },
+    "Grimli": {
+        "canonicalName": "Grimli",
+        "aliases": ["grimli", "dwarf", "blacksmith"],
+        "role": "Broad-shouldered dwarven blacksmith and frontline bruiser of the Seven Pursuers",
+        "hair": "thick braided iron-brown beard and rugged cropped hair",
+        "eyesAndExpression": "fierce squinting charcoal eyes beneath heavy brows, rough frontier grit",
+        "armorAndOutfit": "heavy soot-stained leather blacksmith apron over scarred iron-plated pauldrons and thick fur gauntlets",
+        "weapon": "colossal forged iron war-maul rested across his shoulders",
+        "signatureVfx": "heavy kinetic shockwave rings and flying iron sparks on impact",
+        "voiceToneEn": "rough, gravelly, booming spoken bass-baritone; blunt frontier gruffness",
+        "continuityAnchor": "Grimli: broad-shouldered bearded dwarven blacksmith in scarred iron pauldrons and leather apron carrying a colossal iron maul",
+    },
+    "Aila": {
+        "canonicalName": "Aila",
+        "aliases": ["aila", "demon hunter"],
+        "role": "Sharp-eyed Demon Hunter and ranged marksman of the Seven Pursuers",
+        "hair": "vibrant scarlet-red hair drawn back in tight combat braids",
+        "eyesAndExpression": "narrowed piercing hazel eyes, fierce protective focus",
+        "armorAndOutfit": "fitted dark charcoal-and-crimson leather hunter coat with reinforced shoulder guards and bolt quiver across hip",
+        "weapon": "heavy mechanical dark-steel crossbow loaded with silver-tipped quarrels",
+        "signatureVfx": "gleaming silver bolt streaks slicing through harbor mist",
+        "voiceToneEn": "crisp, sharp, commanding spoken alto; rapid tactical urgency",
+        "continuityAnchor": "Aila: lean hunter with tight scarlet braids in dark crimson-trimmed leather coat aiming a heavy steel crossbow",
+    },
+    "Eliana": {
+        "canonicalName": "Eliana",
+        "aliases": ["eliana", "apothecary"],
+        "role": "Frontier apothecary and alchemist of the Seven Pursuers",
+        "hair": "soft wavy dark-olive-brown hair tucked beneath a practical herbalist hood",
+        "eyesAndExpression": "calm, observant amber-green eyes",
+        "armorAndOutfit": "layered forest-green and tan traveler cloak slung with leather herb-pouches, bandolier of glass vials, and wrapped cuffs",
+        "weapon": "alchemical sun-pepper vapor vials and herbalist remedies",
+        "signatureVfx": "billowing amber-gold alchemical vapor clouds and glowing dust",
+        "voiceToneEn": "calm, articulate, steady spoken mezzo-soprano; practical warmth",
+        "continuityAnchor": "Eliana: hooded frontier apothecary in forest-green cloak lined with leather herb pouches and glass vials",
+    },
+    "Gawain": {
+        "canonicalName": "Gawain",
+        "aliases": ["gawain", "blind tracker"],
+        "role": "Blind frontier tracker and calm moral compass of the Seven Pursuers",
+        "hair": "streaked silver-grey hair tied back neatly, weathered lean face",
+        "eyesAndExpression": "pale clouded sightless eyes framed by serene, razor-sharp composure",
+        "armorAndOutfit": "long slate-grey and weathered navy traveler coat with high collar and wrapped forearms",
+        "weapon": "tall dark-iron tracker staff used to sense ground vibrations and parry strikes",
+        "signatureVfx": "subtle concentric pale-blue tremor ripples radiating across wet cobblestones from his staff tip",
+        "voiceToneEn": "calm, dignified, steady spoken mid-baritone; measured authority",
+        "continuityAnchor": "Gawain: lean silver-haired blind tracker in long slate-grey coat gripping a tall dark-iron staff",
+    },
+    "Kaze": {
+        "canonicalName": "Kaze",
+        "aliases": ["kaze", "gambler"],
+        "role": "Flamboyant gambler and precision blade-and-coin tactician of the Seven Pursuers",
+        "hair": "windswept jet-black hair falling playfully across one brow",
+        "eyesAndExpression": "keen, mischievous dark-gold eyes with a confident half-smirk",
+        "armorAndOutfit": "tailored midnight-indigo and silver-trimmed gambler's coat with loose cuffs and concealed dagger belt",
+        "weapon": "seven gleaming silver shillings and concealed throwing daggers",
+        "signatureVfx": "glinting silver coin arcs tracing precision fracture lines in midair",
+        "voiceToneEn": "quick, wry, confident spoken tenor; sharp playful banter",
+        "continuityAnchor": "Kaze: nimble black-haired gambler in midnight-indigo silver-trimmed coat flicking gleaming silver coins",
+    },
+    "Rondol": {
+        "canonicalName": "Rondol",
+        "aliases": ["rondol", "boatman"],
+        "role": "Canal boatman and hydro-rune wielder of the Seven Pursuers",
+        "hair": "sun-weathered dark brown hair tied under a damp maritime headband",
+        "eyesAndExpression": "steady storm-blue eyes, weathered dockworker grit",
+        "armorAndOutfit": "heavy waxed sea-blue oilskin vest over rolled-sleeve linen shirt, rope belt, waterproof dock boots",
+        "weapon": "carved hardwood canal oar inlaid with glowing hydro-control runes",
+        "signatureVfx": "surging teal-white canal water ribbons freezing into jagged frost spikes",
+        "voiceToneEn": "deep, steady, weathered spoken baritone; calm harbor grit",
+        "continuityAnchor": "Rondol: sturdy dock boatman in dark sea-blue oilskin vest wielding a rune-carved wooden canal oar",
+    },
+    "Robinyard": {
+        "canonicalName": "Robinyard",
+        "aliases": ["robinyard", "acrobat"],
+        "role": "Agile rooftop acrobat and scout of the Seven Pursuers",
+        "hair": "short tousled sandy-brown hair catching the harbor breeze",
+        "eyesAndExpression": "bright alert green eyes, fearless grin",
+        "armorAndOutfit": "lightweight fitted olive-and-charcoal leather acrobat tunic, fingerless climbing wraps, fluttering scarf",
+        "weapon": "unarmed rooftop agility and weighted balance cords",
+        "signatureVfx": "crisp motion-blur wind trails across wet tiled eaves",
+        "voiceToneEn": "light, nimble, earnest spoken young tenor; energetic clarity",
+        "continuityAnchor": "Robinyard: lithe sandy-haired acrobat in fitted olive-charcoal leather and fluttering scarf perched on rooftops",
+    },
+    "Orphan Girl": {
+        "canonicalName": "Orphan Girl",
+        "aliases": ["orphan girl", "young girl", "ragged girl", "child", "girl"],
+        "role": "Rescued harbor orphan whose desperate plea halts the clash between Hercul and the Seven Pursuers",
+        "hair": "tangled dark-brown chin-length hair smudged with harbor soot",
+        "eyesAndExpression": "wide tear-filled brown eyes pleading with raw honesty",
+        "armorAndOutfit": "oversized patched grey-brown wool rags and worn boots",
+        "weapon": "none",
+        "signatureVfx": "falling mist droplets and warm lantern rim light",
+        "voiceToneEn": "trembling, earnest, clear spoken young child's voice",
+        "continuityAnchor": "Orphan Girl: small soot-streaked child in ragged patched wool tunic clutching Hercul's torn surcoat",
     },
     "Imperial Legionnaires": {
         "canonicalName": "Imperial Legionnaires",
@@ -149,13 +245,13 @@ CANONICAL_CHARACTERS: dict[str, dict[str, Any]] = {
     "Narrator": {
         "canonicalName": "Narrator",
         "aliases": ["narrator", "offscreen narrator", "voiceover"],
-        "role": "Off-screen dark-fantasy chronicler framing the opening and closing vows",
+        "role": "Off-screen dark-fantasy chronicler framing the opening and closing scenes",
         "hair": "off-screen",
         "eyesAndExpression": "off-screen",
         "armorAndOutfit": "off-screen",
         "weapon": "none",
         "signatureVfx": "none",
-        "voiceToneEn": "deep, resonant, cinematic off-screen male narrator with solemn mythic cadence",
+        "voiceToneEn": "deep, steady, grounded spoken off-screen male narrator; natural dry documentary gravity",
         "continuityAnchor": "Off-screen narrator only; all on-screen characters keep mouths completely closed",
     },
 }
@@ -217,34 +313,127 @@ CANONICAL_PROPS: dict[str, dict[str, Any]] = {
         "glowAndVfx": "snapping tension sparks, flying wood splinters, swirling gorge mist",
         "continuityAnchor": "snow-covered wooden suspension bridge over an icy chasm with taut frost-crusted mooring cables",
     },
+    "Holy Warhammer": {
+        "canonicalName": "Holy Warhammer",
+        "aliases": ["warhammer", "holy warhammer", "paladin hammer", "hercul's hammer"],
+        "materialAndAppearance": "heavy dark-steel and tarnished-gold paladin warhammer etched with Order sigils along the flanged head",
+        "glowAndVfx": "subtle warm golden rune glow along the hammer head",
+        "continuityAnchor": "Hercul's heavy runic steel-and-gold Holy Knight warhammer",
+    },
+    "Broken Twin Sword Blade": {
+        "canonicalName": "Broken Twin Sword Blade",
+        "aliases": ["broken blade", "broken sword", "shattered blade", "aleksandar's blade", "serrated groove"],
+        "materialAndAppearance": "jagged snapped half of Aleksandar's northern steel blade bearing a cruel serrated groove and tiny royal high-command stamp",
+        "glowAndVfx": "cold frost sheen reflecting off the fractured steel edge",
+        "continuityAnchor": "Aleksandar's snapped northern sword blade with jagged fracture and imperial mark",
+    },
+    "Colossal Iron Maul": {
+        "canonicalName": "Colossal Iron Maul",
+        "aliases": ["maul", "colossal maul", "grimli's maul", "blacksmith hammer"],
+        "materialAndAppearance": "massive forged dark-iron dwarven blacksmith war-maul wrapped in riveted leather grip",
+        "glowAndVfx": "bursts of amber impact sparks on collision",
+        "continuityAnchor": "Grimli's colossal forged dark-iron dwarven maul",
+    },
+    "Heavy Crossbow & Silver Quarrels": {
+        "canonicalName": "Heavy Crossbow & Silver Quarrels",
+        "aliases": ["crossbow", "heavy crossbow", "quarrel", "quarrels", "bolt", "bolts"],
+        "materialAndAppearance": "mechanized dark-steel frontier hunter crossbow loaded with gleaming silver-tipped bolts",
+        "glowAndVfx": "sharp white-silver streak trailing fired bolts",
+        "continuityAnchor": "Aila's heavy dark-steel crossbow with silver-tipped quarrels",
+    },
+    "Iron Tracker Staff": {
+        "canonicalName": "Iron Tracker Staff",
+        "aliases": ["iron staff", "tracker staff", "gawain's staff", "staff"],
+        "materialAndAppearance": "tall slender dark-iron quarterstaff banded with worn grip leather and a polished steel ferrule",
+        "glowAndVfx": "faint pale-blue vibration rings pulsing at the base on impact",
+        "continuityAnchor": "Gawain's tall dark-iron tracker staff",
+    },
+    "Seven Silver Coins": {
+        "canonicalName": "Seven Silver Coins",
+        "aliases": ["silver coins", "coins", "shillings", "crown", "coin"],
+        "materialAndAppearance": "gleaming minted silver frontier shillings spun rapidly across fingers",
+        "glowAndVfx": "crisp metallic silver glints tracing midair arcs",
+        "continuityAnchor": "Kaze's gleaming spinning silver shillings",
+    },
+    "Runic Canal Paddle": {
+        "canonicalName": "Runic Canal Paddle",
+        "aliases": ["paddle", "paddles", "oar", "runic paddle", "runic oar"],
+        "materialAndAppearance": "heavy weathered hardwood boatman oar carved with recessed hydro-control runes",
+        "glowAndVfx": "luminous cyan-blue rune glow pulling swirling canal water",
+        "continuityAnchor": "Rondol's rune-carved hardwood canal oar glowing with cyan hydro-energy",
+    },
+    "Sun-Pepper Alchemical Vials": {
+        "canonicalName": "Sun-Pepper Alchemical Vials",
+        "aliases": ["vial", "vials", "sun-pepper", "sun-peppers", "herb-pouches", "satchel"],
+        "materialAndAppearance": "small stoppered glass apothecary vials filled with bright amber-orange pulverized sun-pepper powder",
+        "glowAndVfx": "dense glowing amber-gold vapor cloud billowing on shatter",
+        "continuityAnchor": "Eliana's glass sun-pepper alchemical vials releasing bright amber vapor",
+    },
+    "Merchant Ledger with Wax Seal": {
+        "canonicalName": "Merchant Ledger with Wax Seal",
+        "aliases": ["ledger", "merchant ledger", "wax seal", "parchment"],
+        "materialAndAppearance": "soot-edged leather-bound ledger open to weathered parchment stamped with a deep crimson serpentine wax seal",
+        "glowAndVfx": "warm lantern light catching the crimson wax emblem",
+        "continuityAnchor": "charred merchant ledger stamped with Prince Lucian's crimson wax seal",
+    },
 }
 
-ACT_PALETTES: dict[str, dict[str, Any]] = {
-    "1": {
-        "actNumber": 1,
-        "actTitle": "Blizzard Oath",
-        "paletteHex": ["#0D1826", "#2B4663", "#C8DCF0", "#D98A3C", "#F6D365"],
-        "colorScheme": "Deep midnight-slate & icy blizzard blue exteriors contrasted with warm amber charcoal hearthlight and radiant golden aegis light inside the weathered log tavern",
-        "lightingDirection": "Harsh cold rim-light from blowing snow gusts at doorways; low warm orange-gold key light from tavern hearth and glowing runes on oak table",
-        "atmosphereAndWeather": "Howling heavy blizzard, layered diagonal snowflakes, frost mist, drifting hearth embers",
+EPISODE_ACT_PALETTES: dict[int, dict[str, dict[str, Any]]] = {
+    1: {
+        "1": {
+            "actNumber": 1,
+            "actTitle": "Blizzard Oath",
+            "paletteHex": ["#0D1826", "#2B4663", "#C8DCF0", "#D98A3C", "#F6D365"],
+            "colorScheme": "Deep midnight-slate & icy blizzard blue exteriors contrasted with warm amber charcoal hearthlight and radiant golden aegis light inside the weathered log tavern",
+            "lightingDirection": "Harsh cold rim-light from blowing snow gusts at doorways; low warm orange-gold key light from tavern hearth and glowing runes on oak table",
+            "atmosphereAndWeather": "Howling heavy blizzard, layered diagonal snowflakes, frost mist, drifting hearth embers",
+        },
+        "2": {
+            "actNumber": 2,
+            "actTitle": "Dawn of Betrayal",
+            "paletteHex": ["#1A161F", "#6B2020", "#E86A2C", "#4CC3FF", "#E2EEF8"],
+            "colorScheme": "Pale steel-blue winter dawn violently torn by blazing crimson-orange village fire, thick charcoal smoke, electric cobalt-white lightning arcs, and azure-amber spear flames",
+            "lightingDirection": "High-contrast dual-tone backlighting: inferno orange-red from burning thatch roofs opposing icy cyan-white dawn light over the snowy gorge and bridge",
+            "atmosphereAndWeather": "Rising ember storms, billowing dark smoke clouds, swirling gorge snow squall, electric spark trails",
+        },
+        "3": {
+            "actNumber": 3,
+            "actTitle": "Vow Beneath the Snow",
+            "paletteHex": ["#182230", "#4A5C70", "#D7E4F0", "#89D4FF", "#E5B95C"],
+            "colorScheme": "Quiet, solemn overcast silver-blue tundra, distant charcoal smoke column against pale twilight sky, punctuated by subtle frost-blue dagger glow and warm golden wheat seeds",
+            "lightingDirection": "Soft diffused overcast sky light with crisp silver-white snow bounce and intimate warm rim highlights on Elwin's face and hands",
+            "atmosphereAndWeather": "Steady windswept snow flurries, swirling ground spindrift, fading distant smoke plume on the horizon",
+        },
     },
-    "2": {
-        "actNumber": 2,
-        "actTitle": "Dawn of Betrayal",
-        "paletteHex": ["#1A161F", "#6B2020", "#E86A2C", "#4CC3FF", "#E2EEF8"],
-        "colorScheme": "Pale steel-blue winter dawn violently torn by blazing crimson-orange village fire, thick charcoal smoke, electric cobalt-white lightning arcs, and azure-amber spear flames",
-        "lightingDirection": "High-contrast dual-tone backlighting: inferno orange-red from burning thatch roofs opposing icy cyan-white dawn light over the snowy gorge and bridge",
-        "atmosphereAndWeather": "Rising ember storms, billowing dark smoke clouds, swirling gorge snow squall, electric spark trails",
-    },
-    "3": {
-        "actNumber": 3,
-        "actTitle": "Vow Beneath the Snow",
-        "paletteHex": ["#182230", "#4A5C70", "#D7E4F0", "#89D4FF", "#E5B95C"],
-        "colorScheme": "Quiet, solemn overcast silver-blue tundra, distant charcoal smoke column against pale twilight sky, punctuated by subtle frost-blue dagger glow and warm golden wheat seeds",
-        "lightingDirection": "Soft diffused overcast sky light with crisp silver-white snow bounce and intimate warm rim highlights on Elwin's face and hands",
-        "atmosphereAndWeather": "Steady windswept snow flurries, swirling ground spindrift, fading distant smoke plume on the horizon",
+    2: {
+        "1": {
+            "actNumber": 1,
+            "actTitle": "Ashes of Elwin & Fog of Sevenbridge",
+            "paletteHex": ["#141B24", "#364554", "#9FB3C8", "#C99A4E", "#E6EEF5"],
+            "colorScheme": "Desolate ash-grey snow ruins of Elwin village transitioning into dense sea-fog slate blue and muted amber dock lanterns in Sevenbridge's fishmongers' alleys",
+            "lightingDirection": "Cold overcast winter diffuse light over charred timber ruins; moody directional harbor lantern rim-light slicing through thick port fog",
+            "atmosphereAndWeather": "Thin rising ash wisps over frozen ruins shifting to swirling damp sea mist and wet stone cobblestones",
+        },
+        "2": {
+            "actNumber": 2,
+            "actTitle": "Clash at Sevenbridge Docks",
+            "paletteHex": ["#121A26", "#2E5B78", "#5AD0FF", "#E89B3C", "#F8DF7A"],
+            "colorScheme": "High-contrast harbor combat palette: radiant golden aegis dome clashing with gleaming silver crossbow bolts, freezing teal canal water surges, and blazing amber sun-pepper vapor clouds",
+            "lightingDirection": "Explosive golden-amber spell backlighting from Hercul's barrier and alchemical vapor contrasting against cool cyan harbor water reflections",
+            "atmosphereAndWeather": "Shredded market awning debris, swirling icy water spray, pungent glowing amber dust clouds, drifting sea fog",
+        },
+        "3": {
+            "actNumber": 3,
+            "actTitle": "Oath of the Seven Pursuers",
+            "paletteHex": ["#101824", "#2F4156", "#B8CDE0", "#8BD8FF", "#E5B85B"],
+            "colorScheme": "Clearing misty harbor dusk illuminated by warm dockside lantern gold, pale frost-blue silver dagger gleam, and divergent horizons of northern blizzard white and southern court shadow",
+            "lightingDirection": "Soft twilight rim-lighting on wet flagstones with warm golden key light on the sealed ledger and crisp silver highlights on clashing blade and iron staff",
+            "atmosphereAndWeather": "Settling sea mist, gentle harbor breeze, distant northern snow clouds gathering on the horizon",
+        },
     },
 }
+
+DEFAULT_ACT_PALETTES = EPISODE_ACT_PALETTES[1]
 
 GLOBAL_STYLE_LOCK: dict[str, Any] = {
     "artDirection": "High-budget modern dark-fantasy cel-shaded 2D anime, crisp hand-inked lineart, rich painted backgrounds, dramatic volumetric rim lighting, 2.5D kinetic camera sweeps, 24fps sakuga animation fluidity",
@@ -339,19 +528,29 @@ def build_continuity_bible(
 ) -> dict[str, Any]:
     ep_num = int(storyboard.get("episodeNumber", 1))
     cuts = storyboard.get("cuts", [])
+    act_palettes = EPISODE_ACT_PALETTES.get(ep_num, DEFAULT_ACT_PALETTES)
 
     characters_map: dict[str, dict[str, Any]] = {}
     props_map: dict[str, dict[str, Any]] = {}
     cut_continuity_map: dict[str, dict[str, Any]] = {}
 
-    # Seed the 4 core recurring props for EP01 so prompter always has them on hand
-    core_prop_keys = [
-        "Cracked Golden Holy Knight Seal",
-        "Twin Lightning Swords",
-        "Arcane Flame Spear",
-        "Silver Daggers",
-    ]
-    for key in core_prop_keys:
+    # Seed episode-specific core recurring props so prompter always has them on hand
+    core_prop_keys_by_ep: dict[int, list[str]] = {
+        1: [
+            "Cracked Golden Holy Knight Seal",
+            "Twin Lightning Swords",
+            "Arcane Flame Spear",
+            "Silver Daggers",
+        ],
+        2: [
+            "Holy Warhammer",
+            "Broken Twin Sword Blade",
+            "Golden Aegis Dome",
+            "Silver Daggers",
+            "Merchant Ledger with Wax Seal",
+        ],
+    }
+    for key in core_prop_keys_by_ep.get(ep_num, []):
         p = dict(CANONICAL_PROPS[key])
         p.pop("aliases", None)
         p["appearingCuts"] = []
@@ -360,7 +559,7 @@ def build_continuity_bible(
     for cut in cuts:
         cut_code = str(cut["cutCode"])
         act_num = int(cut.get("act", 1))
-        act_key = str(act_num) if str(act_num) in ACT_PALETTES else "1"
+        act_key = str(act_num) if str(act_num) in act_palettes else "1"
 
         matched_char_names: list[str] = []
         raw_chars = list(cut.get("characters") or [])
@@ -399,7 +598,7 @@ def build_continuity_bible(
             if pname not in matched_prop_names:
                 matched_prop_names.append(pname)
 
-        palette = ACT_PALETTES[act_key]
+        palette = act_palettes[act_key]
         cut_continuity_map[cut_code] = {
             "cutNumber": cut.get("cutNumber"),
             "act": act_num,
@@ -417,7 +616,7 @@ def build_continuity_bible(
         "episodeTitleEn": storyboard.get("episodeTitleEn", f"Episode {ep_num}"),
         "totalCuts": len(cuts),
         "globalStyleLock": GLOBAL_STYLE_LOCK,
-        "actPalettes": ACT_PALETTES,
+        "actPalettes": act_palettes,
         "characters": characters_map,
         "recurringProps": props_map,
         "cutContinuityMap": cut_continuity_map,

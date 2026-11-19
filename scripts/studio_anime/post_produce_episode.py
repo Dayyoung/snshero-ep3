@@ -660,11 +660,19 @@ def build_youtube_metadata(
         if c.act not in act_starts:
             act_starts[c.act] = c.timeline_start
 
-    act_names = {
-        1: "Act I — Blizzard Oath",
-        2: "Act II — Dawn of Betrayal",
-        3: "Act III — Vow Beneath the Snow",
+    act_names_by_ep = {
+        1: {
+            1: "Act I — Blizzard Oath",
+            2: "Act II — Dawn of Betrayal",
+            3: "Act III — Vow Beneath the Snow",
+        },
+        2: {
+            1: "Act I — Ruins & Harbor Fog",
+            2: "Act II — Clash at Sevenbridge",
+            3: "Act III — Oath of the Seven Pursuers",
+        },
     }
+    act_names = act_names_by_ep.get(ep_num, {1: "Act I", 2: "Act II", 3: "Act III"})
     chapters = []
     for act_id in sorted(act_starts.keys()):
         ts = format_chapter_time(act_starts[act_id])
