@@ -137,10 +137,11 @@ const SHOP_PKG_EN: Record<
     shortSpec: '25 Cards Total (5 Packs) · 20% Off',
   },
   ad_removal: {
-    name: 'Permanent Ad Removal VIP',
+    name: 'Elwin Sanctuary Supporter VIP Pass (Ad-Free)',
     badge: 'VIP Permanent',
-    description: 'Permanently removes banner ads across desktop, tablet, and mobile screens.',
-    shortSpec: 'All Ads Removed Permanently · Instant',
+    description:
+      'Permanently removes banner ads across desktop, tablet, and mobile screens and expands the battlefield viewport.',
+    shortSpec: 'All Ads Removed Permanently + Wide Battlefield · Instant',
   },
   cb_silver: {
     name: 'Frost Silver Card Back',

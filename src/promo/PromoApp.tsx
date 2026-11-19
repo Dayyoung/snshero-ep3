@@ -203,7 +203,7 @@ export const PromoApp: React.FC = () => {
         ),
         imageUrl: '/hs-assets/screenshots/ingame_story_theater.png?v=20261116',
         ctaText: tr('스토리모드 시작', 'Play Story Mode'),
-        ctaHref: '/game?mode=story',
+        ctaHref: '/game?mode=story&ep=1&theater=on',
       },
       {
         id: 'awake',
@@ -1238,19 +1238,19 @@ export const PromoApp: React.FC = () => {
                 {
                   id: 'story',
                   badge: tr('풀보이스 · 3장=3배 각성', 'Voiced · 3x Awakening'),
-                  title: tr('스토리모드 (40부작)', 'Story Mode (40 EPs)'),
+                  title: tr('스토리모드 (40화 성우 풀보이스)', 'Story Mode · 40화 스토리모드'),
                   desc: tr(
                     '5컷 웹툰 극장과 함께 40명의 원작 보스를 격파하세요. 5화마다 보스 팩이 지급됩니다.',
                     'Clear 40 voiced story bosses with 3x Awakened cards and earn Boss Packs every 5 episodes.',
                   ),
                   img: '/hs-assets/screenshots/ingame_story_theater.png?v=20261116',
-                  href: '/game?mode=story',
+                  href: '/game?mode=story&ep=1&theater=on',
                   cta: tr('스토리 출격', 'Play Story'),
                 },
                 {
                   id: 'ranked',
                   badge: tr('공정 1배 룰 · 공식 전적', 'Fair 1x · Official Ladder'),
-                  title: tr('온라인형 랭킹대전', 'Ranked Arena'),
+                  title: tr('온라인형 랭킹대전 (Ranked Arena)', 'Ranked Arena · 실시간 랭크 아레나'),
                   desc: tr(
                     '실시간 도전자와 정통 1배 룰로 겨루며, 오직 랭킹전 결과만 공식 승률·순위에 기록됩니다.',
                     'Compete under fair 1x rules against live-style challengers to climb the Official Ladder.',
@@ -1264,7 +1264,7 @@ export const PromoApp: React.FC = () => {
                 {
                   id: 'bogart',
                   badge: tr('1~1,000G 베팅 · 100% 랜덤덱', '1–1,000G Bet · Random Deck'),
-                  title: tr('보가트의 도박장', "Bogart's Hall"),
+                  title: tr('보가트의 도박장 (Bogart\'s Hall)', "Bogart's Hall · 보가트의 도박장"),
                   desc: tr(
                     '카드 보유량과 무관하게 매 판 30장 랜덤덱으로 승부하고 승리 시 판돈 2배 골드를 획득합니다.',
                     'Wager 1–1,000G with 100% Random 30-Card Decks and win 2x Gold on victory.',
@@ -1284,8 +1284,7 @@ export const PromoApp: React.FC = () => {
                     <div className="aspect-video w-full overflow-hidden bg-black">
                       <img
                         src={m.img}
-                        alt=""
-                        aria-hidden="true"
+                        alt={m.title}
                         loading="lazy"
                         decoding="async"
                         className="h-full w-full object-cover"
@@ -1605,7 +1604,7 @@ export const PromoApp: React.FC = () => {
               <a href="/game" className="hover:text-amber-300">
                 {tr('게임 시작', 'Play Game')}
               </a>
-              <a href="/game?mode=story" className="hover:text-amber-300">
+              <a href="/game?mode=story&ep=1&theater=on" className="hover:text-amber-300">
                 {tr('스토리모드', 'Story Mode')}
               </a>
               <a href="/game?mode=ranked" className="hover:text-amber-300">
@@ -1657,7 +1656,13 @@ export const PromoApp: React.FC = () => {
               </div>
             </div>
 
-            <p className="mt-4 text-[11px] text-stone-500">
+            <p
+              id="kr-official-directory"
+              className="mx-auto mt-4 max-w-3xl text-[11px] leading-relaxed text-stone-400"
+            >
+              눈히어로 · 엘윈마을의 영웅들 · 카단의 여정 (SNSHero.com) — 9대 종족 382종 무설치 정통 전략 웹 TCG · 첫 방문 무료 3팩+250G+160가루 · 40화 성우 풀보이스 스토리 모드(3장=3배 각성) · 보가트의 도박장(1~1,000G 랜덤 30장 덱) · 실시간 랭크 아레나
+            </p>
+            <p className="mt-2 text-[11px] text-stone-500">
               © 2026 SNSHero (SNSHero.com) · Heroes of Elwin Village &amp; Kadan&apos;s Journey.
             </p>
           </div>
@@ -1957,7 +1962,7 @@ export const PromoApp: React.FC = () => {
             }
           }}
           onStartJourney={() => {
-            window.location.href = '/game?mode=story';
+            window.location.href = '/game?mode=story&ep=1&theater=on';
           }}
           onOpenShop={() => {
             window.location.href = '/game?mode=pack';

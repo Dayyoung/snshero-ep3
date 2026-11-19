@@ -1382,3 +1382,23 @@
   - **4. 검증 및 로컬 커밋**:
     - 4종 신규 Python MCP 스모크 테스트 및 MCP JSON-RPC `initialize` 핸드셰이크 통과, `mcp_config.json` 구문 검증 완료.
     - 로컬 `git commit` 완료 (원격 `git push` 보류).
+
+## [2026-11-19 09:38 KST] [/checkMarket 전면 실행 — YouTube 167개 영상·7개 댓글 일괄 교정, GSC 독성 사이트맵 4종 삭제, MKT-078/084/086/087/088/092/093/098 코드 구현 및 웹게임 포털·커뮤니티 정책 분석]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. YouTube (`youtube-snshero-mcp`, `@snshero`) 일괄 교정 완료**:
+    - 157개 영상의 12개 국어 설명란에서 구버전 `3x3`·`110종 미션 게임`·깨진 `snshero.com/#webtoon` 링크를 전량 소거하고 에피소드별 직행 링크(`/game?mode=story&ep=N&utm_source=youtube` · `/webtoon.html`)와 현행 382종 웹 TCG 스펙으로 일괄 교체 (`MKT-023`, `MKT-059`, `MKT-089` 완료).
+    - 10개 `#PRISMLiveStudio` 라이브 아카이브(`Yi_fvtVjKk4`, `eMP2oz_syuE` 외 8건) 제목·설명 전면 교체 (`MKT-032` 완료).
+    - 최상위 조회수 7개 영상(`55vgWkvuLLE` EP06 356뷰, `k2ZER1xjl2E`, `vvGqNI1kwXQ`, `GA46xr2mgMY`, `vbDbsSmpGYc`, `q6-w_dz8Hbs`, `uEXB-kGnfPk` EP31)에 에피소드·보가트 도박장 브릿지 댓글 등록 완료 (`MKT-041`, `MKT-065` 완료).
+  - **2. Google Search Console (`gsc-mcp`, `sc-domain:snshero.com`) 정리 완료**:
+    - `/reddit`·`/r/news/*` 구버전 뉴스룸 오염원이던 독성 레거시 사이트맵 4종(`news-feed.xml`, `news-feed.xml?v=2`, `sitemap-news.xml`, `sitemap.xml?v=2`)을 GSC에서 완전 삭제하고 정식 `https://snshero.com/sitemap.xml` 재제출(에러 0건) 및 `/`, `/game`, `/book.html`, `/webtoon.html` 색인 `PASS` 확인 (`MKT-001`, `MKT-014`, `MKT-026`, `MKT-098` 완료).
+  - **3. 소스코드 개선 및 빌드·Playwright E2E 검증 완료**:
+    - [`public/404.html`](file:///Users/dayyoung/project/snshero/public/404.html) 신설(`/reddit`, `/r/**` `noindex, nofollow` + `/` 리다이렉트), [`index.html`](file:///Users/dayyoung/project/snshero/index.html)·[`game.html`](file:///Users/dayyoung/project/snshero/game.html)·[`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx) 한글 SEO 디렉토리 블록(`#kr-official-directory`, `#kr-seo-overview`) 및 3대 모드 한글 병기·`alt` 정리 (`MKT-086`, `MKT-092`, `MKT-098`).
+    - [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx)·[`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx): `Story Mode` 링크를 `/game?mode=story&ep=1&theater=on`으로 분리해 `EP.0 튜토리얼`과 역할 구분 및 중·후반 프리뷰 체크포인트 안내 보강 (`MKT-088`, `MKT-093`).
+    - [`StoryEncounterOverlays.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/StoryEncounterOverlays.tsx)·[`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx): `invisible` 중복 스팬 3곳 제거로 제0화·스토리 대사 이중 중첩/잘림 DOM 버그 완전 해결 및 `[📖 원작 소설]` 직행 링크 탑재 (`MKT-087`, `MKT-088`).
+    - [`paymentGateway.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/paymentGateway.ts)·[`Modals.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/Modals.tsx): 광고제거 상품을 `엘윈 성소 후원 VIP 패스`로 한·영 리패키징 (`MKT-078`).
+    - `npx tsc --noEmit && npm run build` 통과(`4.12s`), Python Playwright 데스크톱(`1280×800`)·모바일(`390×844`) 한·영 5개 시나리오 에러 0건·가로 넘침 0건·중복 대사 스팬 0건 통과.
+  - **4. 웹게임 포털(CrazyGames·itch.io·GDevelop/gd.games) & 커뮤니티 정책 사전 분석 완료**:
+    - CrazyGames(외부 광고·결제·이탈링크·풀스크린 버튼 금지, Basic/Full 2단계), itch.io(루트 `index.html`+상대경로 zip+Devlog), GDevelop/gd.games(GDevelop 엔진 제작물 전용 정책 확인 — 외부 Vite 빌드 업로드 불가), Reddit 90/10 규칙 및 GeekNews/Disquiet/인벤 가이드라인 정리.
+  - **5. 구글 시트 정규화 및 일괄 최신화**:
+    - 85~99행(`MKT-084`~`MKT-098`) 밀린 컬럼 15건 표준 11열 스키마로 복구, 총 **17건 추가 `완료`** 처리 및 `MKT-088` `진행중` 전환. 로컬 `git commit` 완료 (원격 `git push` 보류).

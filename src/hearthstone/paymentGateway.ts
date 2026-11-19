@@ -102,14 +102,14 @@ export const GAME_SHOP_PACKAGES: GameShopPackage[] = [
   {
     id: 'ad_removal',
     returnParam: 'ad_removal',
-    name: '광고 영구 제거 패키지',
+    name: '엘윈 성소 후원 VIP 패스 (광고 영구 제거)',
     badge: 'VIP 영구 특전',
     packs: 0,
     priceUsd: 2.99,
     priceKrw: 4000,
     description:
-      'PC 좌우 배너 및 태블릿·스마트폰 상단 배너 광고를 계정에서 영구적으로 제거합니다.',
-    shortSpec: '전체 화면 광고 영구 제거 · 즉시 적용',
+      'PC 좌우 배너 및 태블릿·모바일 상단 배너 광고를 영구 제거하고 와이드 전장 뷰포트로 쾌적하게 플레이하세요.',
+    shortSpec: '상·하단 광고 영구 제거 + 와이드 전장 확장 · 즉시 적용',
     isAdRemoval: true,
   },
 ];

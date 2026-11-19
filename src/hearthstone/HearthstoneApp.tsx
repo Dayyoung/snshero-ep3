@@ -470,20 +470,23 @@ export const HearthstoneApp: React.FC = () => {
               if (epNum > maxCleared + 1 && curProg.journeyReincarnation === 0) {
                 setLaunchNotice(
                   tr(
-                    `⚔ 제${epNum}화 스토리 체험 모드로 바로 출격합니다! (현재 해금 진행도: ${maxCleared}화)`,
-                    `⚔ Launching Story Preview for EP.${epNum}! (Unlocked up to EP.${maxCleared})`,
+                    `⚔ 제${epNum}화 스토리 프리뷰 출격! (승리 시 제${epNum}화 체크포인트 즉시 해금 · 무료 3팩 + 3배 각성 지원)`,
+                    `⚔ Story Preview EP.${epNum} Ready! (Win to unlock EP.${epNum} checkpoint · +3 Free Packs & 3x Awakening)`,
                   ),
                 );
               }
               hsStorage.setJourneyProgress(epNum, curProg.journeyReincarnation);
             }
+            const forceTheater = params.get('theater')?.toLowerCase() === 'on';
             setActiveBattleParams({
               mode: 'TUTORIAL',
               deck: chosenDeck,
               preferredOpponentClass: 'ROGUE',
               boardTheme: 'ELWIN_SNOW',
               journeyEpisodeOverride: epNum,
-              skipStoryIntro: params.get('skipIntro') === '1' || params.get('skipIntro') === 'true',
+              skipStoryIntro: forceTheater
+                ? false
+                : params.get('skipIntro') === '1' || params.get('skipIntro') === 'true',
               initialPresetId: resolvedPresetId,
               openPresetModalOnStart: openParam === 'preset',
             });

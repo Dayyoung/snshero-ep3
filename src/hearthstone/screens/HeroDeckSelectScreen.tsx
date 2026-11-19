@@ -333,10 +333,7 @@ const BogartNarrationOverlay: React.FC<{
             aria-label={speechText}
             className="relative min-h-[60px] text-[13.5px] font-extrabold leading-relaxed text-[#1e1510] sm:min-h-[56px] sm:text-[15px]"
           >
-            <span aria-hidden="true" className="invisible block">
-              {speechText}
-            </span>
-            <span className="absolute inset-0 block">{displayedText}</span>
+            {displayedText}
           </p>
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-stone-300 pt-2.5">

@@ -241,6 +241,18 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
         </div>
 
         <div className="flex items-center gap-1.5">
+          {encounter.episode >= 1 && (
+            <a
+              href={`/book.html?ep=${encounter.episode}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              data-testid="story-dialogue-novel-link"
+              className="hidden min-h-[44px] items-center rounded-xl border border-amber-300/35 bg-stone-950/85 px-3 py-1.5 text-xs font-extrabold text-amber-200 shadow-lg transition hover:border-amber-300 hover:text-white sm:inline-flex"
+            >
+              📖 {tr('원작 소설', 'Novel')}
+            </a>
+          )}
           <button
             type="button"
             data-testid="story-fast-intro-btn"
@@ -365,12 +377,9 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
             data-testid="story-dialogue-text"
             data-full-text={speechText}
             aria-label={speechText}
-            className="relative text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
+            className="relative min-h-[3.4em] text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
           >
-            <span aria-hidden="true" className="invisible block">
-              {speechText}
-            </span>
-            <span className="absolute inset-0 block">{displayedText}</span>
+            {displayedText}
           </p>
 
           {/* Bottom-Left Step Indicator & Click / Auto-Advance Hint */}
@@ -601,12 +610,9 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
               data-testid="story-victory-ment-text"
               data-full-text={characterLine}
               aria-label={characterLine}
-              className="relative text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
+              className="relative min-h-[3.2em] text-[13.5px] font-bold leading-relaxed text-[#1b1d22] sm:text-[15px]"
             >
-              <span aria-hidden="true" className="invisible block">
-                {characterLine}
-              </span>
-              <span className="absolute inset-0 block">{displayedVictoryLine}</span>
+              {displayedVictoryLine}
             </p>
 
             {hasItem ? (
