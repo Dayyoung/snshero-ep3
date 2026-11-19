@@ -39,7 +39,7 @@ const BGM_TRACK_BEAT_SPEC: Record<
   duel_1: { bpm: 128, firstBeatOffsetSec: 0.29, playbackRate: 1.0 },
   duel_2: { bpm: 132, firstBeatOffsetSec: 0.15, playbackRate: 1.0 },
   mulligan: { bpm: 122, firstBeatOffsetSec: 0.255, playbackRate: 1.0 },
-  tavern_hub: { bpm: 116, firstBeatOffsetSec: 0.04, playbackRate: 1.0 },
+  tavern_hub: { bpm: 112, firstBeatOffsetSec: 0.04, playbackRate: 1.0 },
   collection: { bpm: 120, firstBeatOffsetSec: 0.1, playbackRate: 1.0 },
 };
 
@@ -570,7 +570,7 @@ class SnsHeroCardAudioEngine {
     }
     this.currentBgmKey = track;
     const targetRate = BGM_TRACK_BEAT_SPEC[track]?.playbackRate ?? 1.0;
-    const audio = new Audio(`/hs-assets/snshero-audio/bgm/${track}.mp3?v=fantasy_orch2`);
+    const audio = new Audio(`/hs-assets/snshero-audio/bgm/${track}.mp3?v=tavern_celtic_v3`);
     const pitchAudio = audio as HTMLAudioElement & {
       preservesPitch?: boolean;
       webkitPreservesPitch?: boolean;
