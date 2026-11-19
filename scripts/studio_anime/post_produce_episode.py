@@ -691,6 +691,31 @@ def build_youtube_metadata(
             2: "Act II — Phantom in the Downpour",
             3: "Act III — The Morning Star",
         },
+        6: {
+            1: "Act I — Six Conflicting Masters",
+            2: "Act II — The Star Hermit's Summit",
+            3: "Act III — Breathing the Stars",
+        },
+        7: {
+            1: "Act I — Poison in the Quarries",
+            2: "Act II — The Traitors' Camp",
+            3: "Act III — Pride of the North",
+        },
+        8: {
+            1: "Act I — Crimson Mane at Auction",
+            2: "Act II — The Girl Who Speaks Truth",
+            3: "Act III — Two Destined Sons Meet",
+        },
+        9: {
+            1: "Act I — Clash on Lighthaven's Stage",
+            2: "Act II — The Secret of Brotherhood",
+            3: "Act III — Moonlit Herb & Balian's Trail",
+        },
+        10: {
+            1: "Act I — Red Glass Palace",
+            2: "Act II — Shattering the Amnesia Hex",
+            3: "Act III — Crimson Dawn Oath",
+        },
     }
     act_names = act_names_by_ep.get(ep_num, {1: "Act I", 2: "Act II", 3: "Act III"})
     chapters = []
