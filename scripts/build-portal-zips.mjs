@@ -131,6 +131,73 @@ function buildPortalBundle(portal, opts) {
   return { portal, zipPath, zipMb, ...stats };
 }
 
+function buildItchioIframeWrapper() {
+  const stageDir = path.join(OUT_ROOT, 'stage-itchio-iframe');
+  fs.mkdirSync(stageDir, { recursive: true });
+  const wrapperHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SNSHero: Heroes of Elwin Village — 382-Card Tactical Web TCG</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #070b14; color: #fef3c7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    #frame-wrap { position: fixed; inset: 0; width: 100%; height: 100%; }
+    iframe { width: 100%; height: 100%; border: 0; display: block; background: #070b14; }
+    #fallback {
+      position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; padding: 24px; text-align: center; background: radial-gradient(circle at top, #172554, #070b14 70%);
+      transition: opacity 0.25s ease;
+    }
+    #fallback.hidden { opacity: 0; pointer-events: none; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px;
+      border-radius: 12px; background: #fbbf24; color: #090d16; font-weight: 800; font-size: 15px;
+      text-decoration: none; box-shadow: 0 8px 24px rgba(251,191,36,0.25);
+    }
+    .sub { font-size: 13px; color: #cbd5e1; max-width: 420px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div id="frame-wrap">
+    <iframe
+      id="snshero-frame"
+      src="https://snshero.com/game?lang=en&embed=itchio"
+      title="SNSHero: Heroes of Elwin Village"
+      allow="autoplay; fullscreen; clipboard-write"
+      allowfullscreen
+    ></iframe>
+  </div>
+  <div id="fallback">
+    <h1 style="font-size:20px;font-weight:900;color:#fde68a;">SNSHero: Heroes of Elwin Village</h1>
+    <p class="sub">Loading live 382-Card Tactical Web TCG from SNSHero.com… If your browser blocks embedded frames, launch directly below.</p>
+    <a class="btn" href="https://snshero.com/game?lang=en&from=itchio&utm_source=itchio&utm_medium=iframe_fallback" target="_blank" rel="noopener noreferrer">
+      Launch Full Game on SNSHero.com ↗
+    </a>
+  </div>
+  <script>
+    (function () {
+      var frame = document.getElementById('snshero-frame');
+      var fb = document.getElementById('fallback');
+      frame.addEventListener('load', function () {
+        fb.classList.add('hidden');
+      });
+    })();
+  </script>
+</body>
+</html>
+`;
+  fs.writeFileSync(path.join(stageDir, 'index.html'), wrapperHtml, 'utf-8');
+  const zipPath = path.join(OUT_ROOT, 'snshero-itchio-iframe.zip');
+  execSync(`cd "${stageDir}" && zip -qr "${zipPath}" .`);
+  const zipKb = +(fs.statSync(zipPath).size / 1024).toFixed(2);
+  fs.rmSync(stageDir, { recursive: true, force: true });
+  return { portal: 'itchio-iframe', zipPath, zipKb, files: 1 };
+}
+
+const itchIframe = buildItchioIframeWrapper();
+
 const cg = buildPortalBundle('crazygames', {
   // CrazyGames cap: <= 1,500 files, <= 250 MB total.
   // Excluding promo screenshots, guide webps, and unused raw busts/audio keeps total < 1,250 files & < 140 MB.
@@ -160,7 +227,8 @@ Generated at: ${new Date().toISOString()}
 
 ## 1. itch.io (\`MKT-100\`) — Ready for Immediate Upload
 - **Upload URL**: https://itch.io/game/new
-- **ZIP Package**: \`dist-portals/snshero-itchio.zip\` (${itch.zipMb} MB, ${itch.files} files — itch.io limit: 1,000 files / 500 MB)
+- **ZIP Package (Recommended — Live iframe Wrapper)**: \`dist-portals/snshero-itchio-iframe.zip\` (${itchIframe.zipKb} KB, 1 file — loads \`https://snshero.com/game?lang=en&embed=itchio\` and gently prompts players to continue on SNSHero.com after 1+ battle or 2.5 min)
+- **ZIP Package (Alternative — Self-Contained Bundle)**: \`dist-portals/snshero-itchio.zip\` (${itch.zipMb} MB, ${itch.files} files — itch.io limit: 1,000 files / 500 MB)
 - **Settings**:
   - Kind of project: **HTML**
   - Check **"This file will be played in the browser"**
@@ -190,4 +258,4 @@ Generated at: ${new Date().toISOString()}
 `;
 
 fs.writeFileSync(path.join(OUT_ROOT, 'PORTAL_SUBMISSION_GUIDE.md'), guide, 'utf-8');
-console.log(JSON.stringify({ crazygames: cg, itchio: itch }, null, 2));
+console.log(JSON.stringify({ crazygames: cg, itchioIframe: itchIframe, itchio: itch }, null, 2));

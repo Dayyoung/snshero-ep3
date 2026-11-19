@@ -1520,3 +1520,15 @@
     - `https://old.reddit.com/r/WebGames/submit`에 규칙 준수 제목(`SNSHero: Heroes of Elwin Village — ...`) 및 직행 링크(`https://snshero.com/game?lang=en`, UTM 없음) 입력 완료 (reCAPTCHA 게이트 존재로 사용자 직접 체크 후 제출 대기).
   - **4. 구글 시트 최신화**:
     - `MKT-025`, `MKT-061` → `완료`, `MKT-079` → `진행중` 갱신 (누적 완료 **74/105건, 70.5%** 돌파).
+
+## [2026-11-19 11:16 KST] [포털 iframe 체험 → 본 서비스(SNSHero.com) 전환 유도 브릿지 & 1.32KB 초경량 itch.io 래퍼 구축]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 포털 iframe 감지 및 본 서비스 유도 브릿지 구현**:
+    - [`portalBridge.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/portalBridge.ts): `detectEmbedSource()` 및 `getFullSiteLaunchUrl()` 추가 (itch.io 등 외부 iframe 임베드 자동 감지, CrazyGames 환경에서는 심사 정책 보호를 위해 `null` 반환으로 외부 유도 전면 차단).
+    - [`EmbedFullSiteBridge.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/EmbedFullSiteBridge.tsx) & [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx): 비전투 화면 좌하단 접기 가능한 미니 배너 + 1판 이상 전투 완료·스토리 EP.2+·2.5분 체험 도달 시 세션 1회 공식 풀버전 전환 모달(영구 저장·40화 풀보이스·랭킹전·보가트 도박장 안내, 모바일 44px+ 터치 타깃·한·영/10개국어 `tr()` 대응) 구현.
+  - **2. 초경량 itch.io iframe 래퍼 ZIP 패키징**:
+    - [`build-portal-zips.mjs`](file:///Users/dayyoung/project/snshero/scripts/build-portal-zips.mjs): `dist-portals/snshero-itchio-iframe.zip` (**1.32 KB, 1개 파일 `index.html`**) 자동 생성 (`https://snshero.com/game?lang=en&embed=itchio` 전체화면 iframe + 차단 시 폴백 버튼 포함).
+  - **3. 검증 및 로컬 커밋**:
+    - `npx tsc --noEmit && npm run build && node scripts/build-portal-zips.mjs` 0에러 통과.
+    - Playwright 데스크톱(`1280×800`, EN)·모바일(`390×844`, KO) 및 CrazyGames(`portal=crazygames`) 정책 차단 검증 전수 통과(에러 0건, 가로 넘침 0px). 로컬 `git commit` 완료 (`git push` 보류).

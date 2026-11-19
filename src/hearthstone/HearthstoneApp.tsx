@@ -4,6 +4,7 @@ import { getLanguageMeta, tr, useHeroLanguage } from '../i18n/heroLang';
 import { hsAudio } from './audio';
 import { cardDb, decodeDeckShareCode } from './cardDb';
 import { GameAdSenseLayout } from './components/GameAdSenseLayout';
+import { EmbedFullSiteBridge } from './components/EmbedFullSiteBridge';
 import type { ArchetypePresetId } from './components/PreBattleDeckModal';
 import {
   KadanChatbotWidget,
@@ -102,6 +103,7 @@ export const HearthstoneApp: React.FC = () => {
   }, []);
 
   const [screen, setScreen] = useState<ScreenName>('BOX_HUB');
+  const [battlesCompletedInSession, setBattlesCompletedInSession] = useState(0);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
 
   useEffect(() => {
@@ -1005,6 +1007,7 @@ export const HearthstoneApp: React.FC = () => {
               setReturnToJourneyActive(false);
               refreshProfile();
               setActiveBattleParams(null);
+              setBattlesCompletedInSession((c) => c + 1);
               setScreen('BOX_HUB');
             }}
           />
@@ -1166,6 +1169,13 @@ export const HearthstoneApp: React.FC = () => {
         onOpenQuestLog={() => setQuestLogOpen(true)}
         tacticalStance={tacticalStance}
         onChangeTacticalStance={setTacticalStance}
+      />
+
+      {/* Portal iframe (e.g. itch.io wrapper) gentle full-site transition prompt */}
+      <EmbedFullSiteBridge
+        screen={screen}
+        battlesCompletedInSession={battlesCompletedInSession}
+        storyProgressEp={profile.journeyMaxStageCleared || 0}
       />
     </>
   );
