@@ -37,7 +37,7 @@ description: SNSHero 마케팅문서(1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKE
 | **`gsc-mcp`** | Google Search Console (`snshero.com`) | 검색어 CTR/노출수 조회, URL 색인 검사, `sitemap.xml` 제출, Indexing API 갱신 알림 |
 | **`google-play-mcp`** | Google Play (`com.dryudryu.SNSHero`) | 다국어 스토어 등록정보(제목·짧은 설명·자세한 설명) 조회/교체, 유저 리뷰 조회 및 답글 |
 | **`github-mcp`** | GitHub (`Dayyoung/snshero` 외) | 저장소 About/Homepage/Topics 갱신, Release 발행(`v2.0.0` 등), 구버전 레포 아카이브 |
-| **`chrome-devtools-marketing`** | 영구 로그인 Chrome 프로필 (`~/.gemini/config/chrome_marketing_profile`) | 공식 API가 없는 외부 콘솔(YouTube Studio 댓글 고정, GSC URL 삭제, 문피아, 네이버 웹소설/도전만화/컷츠, PacPik), **웹게임 포털(CrazyGames·itch.io·GDevelop/gd.games)**, **커뮤니티 정책 분석 및 게시** |
+| **`chrome-devtools-marketing`** | 사용자 기존 로그인 Chrome (`--autoConnect`, `chrome://inspect/#remote-debugging` 승인) | 공식 API가 없는 외부 콘솔(YouTube Studio 댓글 고정, GSC URL 삭제, 문피아, 네이버 웹소설/도전만화/컷츠, PacPik, 티스토리), **웹게임 포털(CrazyGames·itch.io·GDevelop/gd.games)**, **커뮤니티 정책 분석 및 게시** |
 
 ---
 
