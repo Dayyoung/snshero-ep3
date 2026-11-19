@@ -22,7 +22,7 @@ import {
 import { cardDb } from '../hearthstone/cardDb';
 import { computeNextAiAction } from '../hearthstone/engine/aiController';
 import { HERO_CLASS_ORDER, HeroClass } from '../hearthstone/types';
-import { useHeroLanguage } from '../i18n/heroLang';
+import { getLanguageMeta, useHeroLanguage } from '../i18n/heroLang';
 import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
 import {
   ActiveMatchSession,
@@ -154,7 +154,7 @@ function agentBarFill(agentId: BenchmarkAgentId): string {
 }
 
 export const SnsBenchmarkApp: React.FC = () => {
-  const { isKo, setLang, tr } = useHeroLanguage();
+  const { lang, isKo, setLang, tr } = useHeroLanguage();
 
   const [activeTab, setActiveTab] = useState<SnsTabId>('intelligence');
   const [chartMetric, setChartMetric] = useState<ChartMetricKey>('gameIq');
@@ -256,11 +256,12 @@ export const SnsBenchmarkApp: React.FC = () => {
   }, [persistStoreLocally]);
 
   useEffect(() => {
-    document.documentElement.lang = isKo ? 'ko' : 'en';
-    document.title = isKo
-      ? '눈히어로 AI 벤치마크 & 100점 평가 리포트 (/sns) | SNSHero MCP Arena'
-      : 'SNSHero AI 1,000-Match Benchmark & 100-Pt Audit (/sns)';
-  }, [isKo]);
+    document.documentElement.lang = getLanguageMeta(lang).htmlLang;
+    document.title = tr(
+      '눈히어로 AI 벤치마크 & 100점 평가 리포트 (/sns) | SNSHero MCP Arena',
+      'SNSHero AI 1,000-Match Benchmark & 100-Pt Audit (/sns)',
+    );
+  }, [lang, tr]);
 
   useEffect(() => {
     syncFromServer();

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { isKoreanLanguage } from '../../i18n/heroLang';
+import { isKoreanLanguage, tr } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { elementCenterInStage, getStageSize } from '../stageCoords';
 import { VfxEvent } from '../types';
@@ -618,7 +618,7 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
               x: targetPos.x,
               y: targetPos.y - 24,
               vy: -0.75,
-              text: ev.label || (isKoreanLanguage() ? '🛡 바람 보호막!' : '🛡 Wind Shield!'),
+              text: ev.label || (tr('🛡 바람 보호막!', '🛡 Wind Shield!')),
               subKind: 'BUFF',
               life: 0,
               maxLife: 54,

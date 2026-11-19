@@ -51,7 +51,7 @@ import {
   HERO_CLASS_ORDER,
   HeroClass,
 } from '../hearthstone/types';
-import { tr, useHeroLanguage } from '../i18n/heroLang';
+import { getLanguageMeta, HERO_LANGUAGES, tr, useHeroLanguage } from '../i18n/heroLang';
 import { PromoCard, getPromoRaceLabel, getPromoRarityLabel } from './PromoCard';
 
 type FeatureTabId = 'story' | 'awake' | 'pack';
@@ -62,6 +62,7 @@ const YOUTUBE_PLAYLIST_URL_EN = 'https://www.youtube.com/playlist?list=PLFvV2raC
 export const PromoApp: React.FC = () => {
   const { lang, setLang } = useHeroLanguage();
   const isKo = lang === 'ko';
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   const [cards, setCards] = useState<ClassicCardDef[]>([]);
   const [cardsLoading, setCardsLoading] = useState(true);
@@ -158,11 +159,12 @@ export const PromoApp: React.FC = () => {
   };
 
   useEffect(() => {
-    document.documentElement.lang = isKo ? 'ko' : 'en';
-    document.title = isKo
-      ? '눈히어로 : 카단의 여정 (SNSHero) — 무설치 382종 판타지 전략 웹 TCG'
-      : 'SNSHero : Heroes of Elwin Village — 382-Card Tactical Web TCG';
-  }, [isKo]);
+    document.documentElement.lang = getLanguageMeta(lang).htmlLang;
+    document.title = tr(
+      '눈히어로 : 카단의 여정 (SNSHero) — 무설치 382종 판타지 전략 웹 TCG',
+      'SNSHero : Heroes of Elwin Village — 382-Card Tactical Web TCG',
+    );
+  }, [lang]);
 
   useEffect(() => {
     fetch('/hs-assets/data/classic-cards.json')
@@ -411,31 +413,60 @@ export const PromoApp: React.FC = () => {
             </nav>
 
             <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/35 bg-black/45 p-0.5">
+              <div className="relative">
                 <button
                   type="button"
-                  data-testid="header-lang-ko"
-                  onClick={() => setLang('ko')}
-                  className={`min-h-[36px] min-w-[40px] cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
-                    lang === 'ko'
-                      ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                      : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
-                  }`}
+                  data-testid="header-lang-toggle"
+                  aria-expanded={langMenuOpen}
+                  aria-label={tr('언어 선택', 'Select Language')}
+                  onClick={() => setLangMenuOpen((prev) => !prev)}
+                  className="inline-flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border border-amber-400/40 bg-black/55 px-3 py-1.5 text-xs font-extrabold text-amber-100 transition hover:border-amber-300/70 hover:bg-black/75"
                 >
-                  KO
+                  <span aria-hidden="true" className="text-sm leading-none">
+                    {getLanguageMeta(lang).flag}
+                  </span>
+                  <span>{getLanguageMeta(lang).shortLabel}</span>
+                  <span aria-hidden="true" className="text-[10px] text-amber-300/80">
+                    {langMenuOpen ? '▲' : '▼'}
+                  </span>
                 </button>
-                <button
-                  type="button"
-                  data-testid="header-lang-en"
-                  onClick={() => setLang('en')}
-                  className={`min-h-[36px] min-w-[40px] cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
-                    lang === 'en'
-                      ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                      : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
-                  }`}
-                >
-                  EN
-                </button>
+                {langMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setLangMenuOpen(false)}
+                    />
+                    <div
+                      data-testid="header-lang-menu"
+                      className="absolute right-0 z-50 mt-2 grid w-64 grid-cols-2 gap-1 rounded-2xl border border-amber-400/40 bg-[#1a130e]/95 p-2 shadow-2xl backdrop-blur-md"
+                    >
+                      {HERO_LANGUAGES.map((item) => {
+                        const active = lang === item.code;
+                        return (
+                          <button
+                            key={item.code}
+                            type="button"
+                            data-testid={`header-lang-${item.code}`}
+                            onClick={() => {
+                              setLang(item.code);
+                              setLangMenuOpen(false);
+                            }}
+                            className={`flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-left text-xs font-extrabold transition ${
+                              active
+                                ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                                : 'text-amber-100/85 hover:bg-white/10 hover:text-amber-100'
+                            }`}
+                          >
+                            <span aria-hidden="true" className="text-sm leading-none">
+                              {item.flag}
+                            </span>
+                            <span className="truncate">{item.nativeName}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
               <a
                 href={appendAttributionToGameUrl('/game')}
@@ -501,6 +532,36 @@ export const PromoApp: React.FC = () => {
                 'Zero-Install 382-Card Fantasy Web TCG · Claim 3 Free Packs + 250 Gold Instantly',
               )}
             </p>
+
+            <div
+              data-testid="promo-3s-dopamine-hooks"
+              className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[11px] font-extrabold sm:text-xs"
+            >
+              <a
+                href={appendAttributionToGameUrl('/game?mode=story&ep=1&theater=on')}
+                className="inline-flex min-h-[36px] items-center gap-1 rounded-full border border-amber-300/65 bg-amber-950/80 px-3 py-1 text-amber-100 shadow transition hover:border-yellow-200 hover:bg-amber-900/90"
+              >
+                <span>⚡</span>
+                <span>
+                  {tr(
+                    '같은 카드 3장 = 공·체 3배 폭증(×3·×4) 보스 원킬',
+                    '3 Copies = 3x Attack & HP Awakening Boss Kill',
+                  )}
+                </span>
+              </a>
+              <a
+                href={appendAttributionToGameUrl('/game?mode=bogart')}
+                className="inline-flex min-h-[36px] items-center gap-1 rounded-full border border-rose-300/60 bg-rose-950/80 px-3 py-1 text-rose-100 shadow transition hover:border-rose-200 hover:bg-rose-900/90"
+              >
+                <span>🎲</span>
+                <span>
+                  {tr(
+                    '100% 랜덤 30장 덱 · 보가트 도박장 판돈 2배',
+                    "100% Random 30-Card Deck · Bogart's Hall 2x Gold",
+                  )}
+                </span>
+              </a>
+            </div>
 
             <div
               data-testid="promo-hero-cta-pair"
@@ -589,9 +650,10 @@ export const PromoApp: React.FC = () => {
                   {trailerFacadePlaying ? (
                     <iframe
                       key={`${lang}-${activeClip.youtubeId}`}
-                      src={`https://www.youtube-nocookie.com/embed/${activeClip.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+                      src={`https://www.youtube-nocookie.com/embed/${activeClip.youtubeId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : 'https://snshero.com')}`}
                       title={`${tr('눈히어로 공식 웹툰', 'SNSHero Official Webtoon')} - ${activeClip.label}`}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
                       allowFullScreen
                       className="h-full w-full border-0"
                     />
@@ -1628,31 +1690,26 @@ export const PromoApp: React.FC = () => {
               data-testid="footer-language-switcher"
               className="mt-4 flex items-center justify-center"
             >
-              <div className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
-                <button
-                  type="button"
-                  data-testid="footer-lang-ko"
-                  onClick={() => setLang('ko')}
-                  className={`cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
-                    lang === 'ko'
-                      ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                      : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
-                  }`}
-                >
-                  KO
-                </button>
-                <button
-                  type="button"
-                  data-testid="footer-lang-en"
-                  onClick={() => setLang('en')}
-                  className={`cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
-                    lang === 'en'
-                      ? 'bg-amber-400 text-[#1b120b] shadow-sm'
-                      : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
-                  }`}
-                >
-                  EN
-                </button>
+              <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-amber-400/30 bg-black/35 p-1.5">
+                {HERO_LANGUAGES.map((item) => {
+                  const active = lang === item.code;
+                  return (
+                    <button
+                      key={item.code}
+                      type="button"
+                      data-testid={`footer-lang-${item.code}`}
+                      onClick={() => setLang(item.code)}
+                      className={`inline-flex min-h-[38px] cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
+                        active
+                          ? 'bg-amber-400 text-[#1b120b] shadow-sm'
+                          : 'text-amber-200/80 hover:bg-white/10 hover:text-amber-100'
+                      }`}
+                    >
+                      <span aria-hidden="true">{item.flag}</span>
+                      <span>{item.nativeName}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

@@ -11,9 +11,9 @@ import {
   getCardBaseDurability,
 } from '../cardDb';
 import {
-  CARD_CLASS_LABELS_EN,
-  CARD_RACE_LABELS_EN,
-  CARD_RARITY_LABELS_EN,
+  getCardClassLabel,
+  getCardRaceLabel,
+  getCardRarityLabel,
   getCardCharName,
   getCardFactionLabel,
   getCardFlavor,
@@ -726,15 +726,15 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
       if (cardClass === 'DREAM') return '신록';
       return CLASSIC_HEROES[cardClass as HeroClass]?.classNameKo || cardClass;
     }
-    return CARD_CLASS_LABELS_EN[cardClass] || cardClass;
+    return getCardClassLabel(cardClass, lang);
   };
 
   const getRarityLabel = (rarity: CardRarity): string =>
-    isKo ? RARITY_LABEL_KO[rarity] : CARD_RARITY_LABELS_EN[rarity];
+    isKo ? RARITY_LABEL_KO[rarity] : getCardRarityLabel(rarity, lang);
 
   const getRaceLabel = (race?: string): string => {
     if (!race) return '';
-    return isKo ? RACE_KO[race] || race : CARD_RACE_LABELS_EN[race] || race;
+    return isKo ? RACE_KO[race] || race : getCardRaceLabel(race, lang);
   };
 
   const cleanHtml = formatCardHtmlText(cardDisplayText || '', spellPowerBonus, velenMultiplier).trim();
@@ -1172,6 +1172,30 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
             ))}
           </div>
         )}
+
+        <div className="mt-2 flex w-full items-center justify-center">
+          <button
+            type="button"
+            data-testid="card-zoom-share-3x-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              const shareUrl = `https://snshero.com/game?mode=collection&card=${encodeURIComponent(card.id)}&awakened=3x`;
+              if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(shareUrl).catch(() => {});
+              }
+              hsAudio.playSfx('ui_click', 0.7);
+              const btn = e.currentTarget;
+              const prev = btn.textContent;
+              btn.textContent = tr('✅ 3배 각성 카드 링크 복사 완료!', '✅ 3x Card Share Link Copied!');
+              window.setTimeout(() => {
+                if (prev) btn.textContent = prev;
+              }, 1600);
+            }}
+            className="inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl border border-amber-400/45 bg-amber-950/55 px-3 py-1.5 text-xs font-extrabold text-amber-200 transition hover:border-amber-300 hover:bg-amber-900/70"
+          >
+            🔗 {tr('이 카드 3배 각성 링크 복사하기', 'Copy 3x Awakened Card Share Link')}
+          </button>
+        </div>
 
         <div className="mt-2 text-center text-[11px] font-bold text-amber-200/80">
           {hasNav

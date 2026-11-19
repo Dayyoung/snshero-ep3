@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import {
-  CARD_RACE_LABELS_EN,
+  getCardRaceLabel,
   getCardName,
   getCardText,
   getLocalizedHeroInfo,
@@ -749,7 +749,7 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
       ? isSecretSpell
         ? tr('비밀', 'Secret')
         : tr('주문', 'Spell')
-      : (card.race && (isKo ? RACE_KO[card.race] : CARD_RACE_LABELS_EN[card.race])) || '';
+      : (card.race && (isKo ? RACE_KO[card.race] : getCardRaceLabel(card.race, lang))) || '';
 
   const baseWeaponDurability = getCardBaseDurability(card);
   const shownWeaponAttack =
@@ -1620,13 +1620,13 @@ export const HearthstoneCard = React.memo<HearthstoneCardProps>(({
             if (useCleanArtBox) {
               const kwChips: string[] = [];
               const mechs = card.mechanics || [];
-              if (mechs.includes('TAUNT')) kwChips.push(isKo ? '도발' : 'Taunt');
-              if (mechs.includes('DIVINE_SHIELD')) kwChips.push(isKo ? '천상의 보호막' : 'Divine Shield');
-              if (mechs.includes('CHARGE')) kwChips.push(isKo ? '돌진' : 'Charge');
-              if (mechs.includes('BATTLECRY')) kwChips.push(isKo ? '전투의 함성' : 'Battlecry');
-              if (mechs.includes('DEATHRATTLE')) kwChips.push(isKo ? '죽음의 메아리' : 'Deathrattle');
-              if (mechs.includes('WINDFURY')) kwChips.push(isKo ? '질풍' : 'Windfury');
-              if (mechs.includes('STEALTH')) kwChips.push(isKo ? '은신' : 'Stealth');
+              if (mechs.includes('TAUNT')) kwChips.push(tr('도발', 'Taunt'));
+              if (mechs.includes('DIVINE_SHIELD')) kwChips.push(tr('천상의 보호막', 'Divine Shield'));
+              if (mechs.includes('CHARGE')) kwChips.push(tr('돌진', 'Charge'));
+              if (mechs.includes('BATTLECRY')) kwChips.push(tr('전투의 함성', 'Battlecry'));
+              if (mechs.includes('DEATHRATTLE')) kwChips.push(tr('죽음의 메아리', 'Deathrattle'));
+              if (mechs.includes('WINDFURY')) kwChips.push(tr('질풍', 'Windfury'));
+              if (mechs.includes('STEALTH')) kwChips.push(tr('은신', 'Stealth'));
               if (card.spellPower && card.spellPower > 0) {
                 kwChips.push(isKo ? `주문 공격력 +${card.spellPower}` : `Spell Damage +${card.spellPower}`);
               }

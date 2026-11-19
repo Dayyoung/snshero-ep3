@@ -1,4 +1,4 @@
-import { HeroLanguage, isKoreanLanguage } from '../i18n/heroLang';
+import { getCurrentLanguage, HeroLanguage, isKoreanLanguage } from '../i18n/heroLang';
 import {
   CardClass,
   CardRarity,
@@ -7,6 +7,15 @@ import {
   CustomDeck,
   HeroClass,
 } from './types';
+import {
+  APPRENTICE_RANK_TITLE_LOCALIZED,
+  CARD_CLASS_LABELS_LOCALIZED,
+  CARD_RACE_LABELS_LOCALIZED,
+  CARD_RARITY_LABELS_LOCALIZED,
+  CLASSIC_HEROES_LOCALIZED,
+  LEGEND_RANK_TITLE_LOCALIZED,
+  localizeCardText,
+} from './i18nGameData';
 
 export interface LocalizedHeroInfo {
   name: string;
@@ -193,8 +202,8 @@ export const CLASSIC_HEROES_EN: Record<HeroClass, LocalizedHeroInfo> = {
 };
 
 export function getLocalizedHeroInfo(heroClass: HeroClass, lang?: HeroLanguage): LocalizedHeroInfo {
-  const ko = lang ? lang === 'ko' : isKoreanLanguage();
-  if (ko) {
+  const active = lang || getCurrentLanguage();
+  if (active === 'ko') {
     const h = CLASSIC_HEROES[heroClass];
     return {
       name: h.nameKo,
@@ -205,6 +214,10 @@ export function getLocalizedHeroInfo(heroClass: HeroClass, lang?: HeroLanguage):
       heroPowerText: h.heroPowerTextKo,
       emotes: h.emotesKo,
     };
+  }
+  if (active !== 'en') {
+    const localized = CLASSIC_HEROES_LOCALIZED[active]?.[heroClass];
+    if (localized) return localized;
   }
   return CLASSIC_HEROES_EN[heroClass];
 }
@@ -239,9 +252,13 @@ export const CLASSIC_RANK_NAMES_EN: Record<number, string> = {
 };
 
 export function getRankTitle(rank: number, koMap: Record<number, string>, lang?: HeroLanguage): string {
-  const ko = lang ? lang === 'ko' : isKoreanLanguage();
-  if (ko) {
+  const active = lang || getCurrentLanguage();
+  if (active === 'ko') {
     return koMap[rank] || '엘윈 마을 수습생';
+  }
+  if (active !== 'en') {
+    if (rank === 0) return LEGEND_RANK_TITLE_LOCALIZED[active];
+    if (rank === 25) return APPRENTICE_RANK_TITLE_LOCALIZED[active];
   }
   return CLASSIC_RANK_NAMES_EN[rank] || 'Elwin Village Apprentice';
 }
@@ -259,11 +276,10 @@ export const PRESET_DECK_NAMES_EN: Record<string, string> = {
 };
 
 export function getDeckDisplayName(deck: Pick<CustomDeck, 'id' | 'name' | 'heroClass'>, lang?: HeroLanguage): string {
-  const ko = lang ? lang === 'ko' : isKoreanLanguage();
-  if (ko) return deck.name;
-  if (PRESET_DECK_NAMES_EN[deck.id]) return PRESET_DECK_NAMES_EN[deck.id];
-  if (deck.name.includes('의 ')) {
-    const info = CLASSIC_HEROES_EN[deck.heroClass];
+  const active = lang || getCurrentLanguage();
+  if (active === 'ko') return deck.name;
+  if (PRESET_DECK_NAMES_EN[deck.id] || deck.name.includes('의 ')) {
+    const info = getLocalizedHeroInfo(deck.heroClass, active);
     return `${info.className} — ${info.name}`;
   }
   return deck.name;
@@ -283,6 +299,30 @@ export const CARD_CLASS_LABELS_EN: Record<CardClass, string> = {
   DREAM: 'Verdant Arcane',
 };
 
+const CARD_CLASS_LABELS_KO: Record<CardClass, string> = {
+  PRIEST: '인간',
+  MAGE: '물',
+  WARRIOR: '불',
+  HUNTER: '바람',
+  PALADIN: '땅',
+  ROGUE: '언데드',
+  SHAMAN: '엘프',
+  WARLOCK: '드워프',
+  DRUID: '야수',
+  NEUTRAL: '중립',
+  DREAM: '비취 비전',
+};
+
+export function getCardClassLabel(cardClass: CardClass, lang?: HeroLanguage): string {
+  const active = lang || getCurrentLanguage();
+  if (active === 'ko') return CARD_CLASS_LABELS_KO[cardClass] || cardClass;
+  if (active !== 'en') {
+    const loc = CARD_CLASS_LABELS_LOCALIZED[active]?.[cardClass];
+    if (loc) return loc;
+  }
+  return CARD_CLASS_LABELS_EN[cardClass] || cardClass;
+}
+
 export const CARD_RARITY_LABELS_EN: Record<CardRarity, string> = {
   FREE: 'Basic',
   COMMON: 'Common',
@@ -290,6 +330,24 @@ export const CARD_RARITY_LABELS_EN: Record<CardRarity, string> = {
   EPIC: 'Epic',
   LEGENDARY: 'Legendary',
 };
+
+const CARD_RARITY_LABELS_KO: Record<CardRarity, string> = {
+  FREE: '기본',
+  COMMON: '일반',
+  RARE: '희귀',
+  EPIC: '영웅',
+  LEGENDARY: '전설',
+};
+
+export function getCardRarityLabel(rarity: CardRarity, lang?: HeroLanguage): string {
+  const active = lang || getCurrentLanguage();
+  if (active === 'ko') return CARD_RARITY_LABELS_KO[rarity] || rarity;
+  if (active !== 'en') {
+    const loc = CARD_RARITY_LABELS_LOCALIZED[active]?.[rarity];
+    if (loc) return loc;
+  }
+  return CARD_RARITY_LABELS_EN[rarity] || rarity;
+}
 
 export const CARD_RACE_LABELS_EN: Record<string, string> = {
   BEAST: 'Beast',
@@ -303,14 +361,38 @@ export const CARD_RACE_LABELS_EN: Record<string, string> = {
   UNDEAD: 'Undead',
 };
 
+const CARD_RACE_LABELS_KO: Record<string, string> = {
+  BEAST: '야수',
+  DEMON: '심연',
+  DRAGON: '용족',
+  MECHANICAL: '기계',
+  MURLOC: '심해',
+  PIRATE: '해적',
+  TOTEM: '정령석',
+  ELEMENTAL: '정령',
+  UNDEAD: '언데드',
+};
+
+export function getCardRaceLabel(race: string, lang?: HeroLanguage): string {
+  const active = lang || getCurrentLanguage();
+  if (active === 'ko') return CARD_RACE_LABELS_KO[race] || race;
+  if (active !== 'en') {
+    const loc = CARD_RACE_LABELS_LOCALIZED[active]?.[race];
+    if (loc) return loc;
+  }
+  return CARD_RACE_LABELS_EN[race] || race;
+}
+
 export function getCardName(card: Pick<ClassicCardDef, 'name' | 'nameEn'>, lang?: HeroLanguage): string {
   const ko = lang ? lang === 'ko' : isKoreanLanguage();
   return ko ? card.name : (card.nameEn || card.name);
 }
 
 export function getCardText(card: Pick<ClassicCardDef, 'text' | 'textEn'>, lang?: HeroLanguage): string {
-  const ko = lang ? lang === 'ko' : isKoreanLanguage();
-  return ko ? card.text : (card.textEn !== undefined ? card.textEn : card.text);
+  const active = lang || getCurrentLanguage();
+  if (active === 'ko') return card.text;
+  const baseEn = card.textEn !== undefined ? card.textEn : card.text;
+  return active === 'en' ? baseEn : localizeCardText(baseEn, active);
 }
 
 export function getCardFlavor(card: Pick<ClassicCardDef, 'flavor' | 'flavorEn'>, lang?: HeroLanguage): string {
@@ -324,8 +406,29 @@ export function getCardCharName(card: Pick<ClassicCardDef, 'name' | 'nameEn' | '
   return card.snsCharNameEn || card.nameEn || card.name;
 }
 
+const FACTION_EN_TO_CLASS: Record<string, CardClass> = {
+  Human: 'PRIEST',
+  Water: 'MAGE',
+  Fire: 'WARRIOR',
+  Wind: 'HUNTER',
+  Earth: 'PALADIN',
+  Undead: 'ROGUE',
+  Elf: 'SHAMAN',
+  Dwarf: 'WARLOCK',
+  Beast: 'DRUID',
+  Neutral: 'NEUTRAL',
+};
+
 export function getCardFactionLabel(card: Pick<ClassicCardDef, 'snsFactionKo' | 'snsFactionEn'>, lang?: HeroLanguage): string {
-  const ko = lang ? lang === 'ko' : isKoreanLanguage();
-  if (ko) return card.snsFactionKo || '';
-  return card.snsFactionEn || card.snsFactionKo || '';
+  const active = lang || getCurrentLanguage();
+  if (active === 'ko') return card.snsFactionKo || '';
+  const enVal = card.snsFactionEn || card.snsFactionKo || '';
+  if (active !== 'en' && enVal) {
+    for (const [key, cls] of Object.entries(FACTION_EN_TO_CLASS)) {
+      if (enVal.toLowerCase().includes(key.toLowerCase())) {
+        return getCardClassLabel(cls, active);
+      }
+    }
+  }
+  return enVal;
 }

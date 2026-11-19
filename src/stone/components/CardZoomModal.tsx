@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useHeroLanguage } from '../../i18n/heroLang';
+import { useHeroLanguage, type HeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
 import { CLASS_CREST_URL, formatCardHtmlText } from '../cardDb';
 import {
@@ -32,7 +32,7 @@ const RARITY_COLOR: Record<CardRarity, string> = {
   LEGENDARY: 'text-amber-300',
 };
 
-function getClassLabelLocalized(cardClass: CardClass, lang: 'en' | 'ko'): string {
+function getClassLabelLocalized(cardClass: CardClass, lang: HeroLanguage): string {
   if (cardClass === 'DREAM') return lang === 'ko' ? '꿈' : 'Dream';
   return getClassLabel(cardClass, lang);
 }

@@ -265,9 +265,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
     if (!Ctor) {
       inputRef.current?.focus();
       setSpeechText(
-        isKo
-          ? '이 환경에서는 브라우저 마이크 음성 인식이 비활성화되어 있습니다. 왼쪽 입력창에 질문을 입력해 주세요!'
-          : 'Speech recognition is unavailable in this environment. Please type your question on the left!',
+        tr('이 환경에서는 브라우저 마이크 음성 인식이 비활성화되어 있습니다. 왼쪽 입력창에 질문을 입력해 주세요!', 'Speech recognition is unavailable in this environment. Please type your question on the left!'),
       );
       return;
     }
@@ -292,9 +290,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
       rec.onerror = () => {
         setMicListening(false);
         setSpeechText(
-          isKo
-            ? '음성을 인식하지 못했습니다. 마이크 권한을 확인하거나 직접 입력해 주세요!'
-            : 'Could not capture voice. Check mic permission or type your question!',
+          tr('음성을 인식하지 못했습니다. 마이크 권한을 확인하거나 직접 입력해 주세요!', 'Could not capture voice. Check mic permission or type your question!'),
         );
       };
       rec.onend = () => {
@@ -306,9 +302,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
       recognitionRef.current = rec;
       setMicListening(true);
       setSpeechText(
-        isKo
-          ? '🎤 말씀하세요! (예: "3배 각성이 뭐야?", "실리아 필살기 설명해줘", "맹공으로 바꿔")'
-          : '🎤 Listening! Ask anything about SNSHero or give a battle command!',
+        tr('🎤 말씀하세요! (예: "3배 각성이 뭐야?", "실리아 필살기 설명해줘", "맹공으로 바꿔")', '🎤 Listening! Ask anything about SNSHero or give a battle command!'),
       );
       rec.start();
     } catch {

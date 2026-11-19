@@ -1,6 +1,6 @@
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import LZString from 'lz-string';
-import { tr, useHeroLanguage } from '../i18n/heroLang';
+import { getLanguageMeta, tr, useHeroLanguage } from '../i18n/heroLang';
 import { hsAudio } from './audio';
 import { cardDb, decodeDeckShareCode } from './cardDb';
 import { GameAdSenseLayout } from './components/GameAdSenseLayout';
@@ -85,11 +85,12 @@ export const HearthstoneApp: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.documentElement.lang = isKo ? 'ko' : 'en';
-    document.title = isKo
-      ? '눈히어로 — 엘윈마을 카드 배틀'
-      : 'SNSHero — Elwin Village Card Battle';
-  }, [isKo]);
+    document.documentElement.lang = getLanguageMeta(lang).htmlLang;
+    document.title = tr(
+      '눈히어로 — 엘윈마을 카드 배틀',
+      'SNSHero — Elwin Village Card Battle',
+    );
+  }, [lang]);
 
   useEffect(() => {
     initH5GamesAds(!hsAudio.getSettings().muted);

@@ -1,4 +1,4 @@
-import { isKoreanLanguage } from '../i18n/heroLang';
+import { getCurrentLanguage, getSpeechLocale, isKoreanLanguage } from '../i18n/heroLang';
 import { getLocalizedHeroInfo } from './i18nData';
 import { CLASSIC_HEROES, HeroClass } from './types';
 
@@ -1743,7 +1743,9 @@ class SnsHeroCardAudioEngine {
     }
     return new Promise((resolve) => {
       try {
-        const isKo = isKoreanLanguage();
+        const activeLang = getCurrentLanguage();
+        const speechLocale = getSpeechLocale(activeLang);
+        const isKo = activeLang === 'ko';
         const voices = window.speechSynthesis.getVoices();
         if (voices.length === 0) {
           resolve();
@@ -1751,7 +1753,7 @@ class SnsHeroCardAudioEngine {
         }
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = isKo ? 'ko-KR' : 'en-US';
+        u.lang = speechLocale;
         u.rate = rate;
         u.pitch = pitch;
         u.volume = Math.min(1, this.settings.voVolume);
@@ -1771,7 +1773,7 @@ class SnsHeroCardAudioEngine {
           if (maleKoVoice) {
             u.voice = maleKoVoice;
           }
-        } else {
+        } else if (activeLang === 'en') {
           const enVoices = voices.filter((v) => v.lang.startsWith('en'));
           const maleEnVoice =
             enVoices.find((v) =>
@@ -1783,6 +1785,22 @@ class SnsHeroCardAudioEngine {
             enVoices[0];
           if (maleEnVoice) {
             u.voice = maleEnVoice;
+          }
+        } else {
+          const langPrefix = speechLocale.toLowerCase().split('-')[0];
+          const exactLocale = speechLocale.toLowerCase();
+          const matchedVoices = voices.filter(
+            (v) =>
+              v.lang.toLowerCase() === exactLocale ||
+              v.lang.toLowerCase().replace('_', '-') === exactLocale ||
+              v.lang.toLowerCase().startsWith(`${langPrefix}-`) ||
+              v.lang.toLowerCase() === langPrefix,
+          );
+          const preferredVoice =
+            matchedVoices.find((v) => /Male|Otoya|Hattori|Kangkang|Yunxi|Jorge|Thomas|Markus|Daniel|Yuri|Dmitry/i.test(v.name)) ||
+            matchedVoices[0];
+          if (preferredVoice) {
+            u.voice = preferredVoice;
           }
         }
 

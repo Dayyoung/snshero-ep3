@@ -115,7 +115,7 @@ const SiliaDialogueCutsceneOverlay: React.FC<SiliaDialogueCutsceneOverlayProps> 
 }) => {
   const meta = SKILL_CUTSCENE_META[skillKind];
   const r = power.reincarnation;
-  const speakerLabel = isKo ? '실리아' : 'Silia';
+  const speakerLabel = tr('실리아', 'Silia');
   const skillTitle = isKo ? meta.titleKo : meta.titleEn;
 
   const speechLine =

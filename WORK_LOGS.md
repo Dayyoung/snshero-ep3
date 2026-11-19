@@ -1418,3 +1418,24 @@
   - **3. 검증·시트 최신화·로컬 커밋**:
     - `vite build` + `post-build.js` + `build-portal-zips.mjs` 통과, Playwright 데스크톱(`1280×800`)·모바일(`390×844`) 한·영 3개 시나리오 에러 `0건`·가로 넘침 `0건`·우측 메뉴 버튼 잘림 없음 확인.
     - 구글 시트 `MKT-075`, `MKT-090` → `완료`, `MKT-099`, `MKT-100`, `MKT-101` → `진행중` 반영 (대시보드 누적 완료 **48건 / 45.7%**). 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-19 10:05 KST] [게임 지원 언어 2개(KO/EN) → 글로벌 10개 언어 전면 확장]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 글로벌 10개 언어 코어 i18n 엔진 고도화 (`src/i18n/`)**:
+    - [`heroLang.ts`](file:///Users/dayyoung/project/snshero/src/i18n/heroLang.ts): 기존 `en | ko` 2개 언어에서 **`en`, `ko`, `ja`(日本語), `zh-CN`(简体中文), `zh-TW`(繁體中文), `es`(Español), `fr`(Français), `de`(Deutsch), `pt`(Português), `ru`(Русский)** 총 10개 글로벌 언어로 확장.
+    - 브라우저 언어(`navigator.languages`) 자동 감지, URL `?lang=` 및 경로 프리픽스 정규화(`normalizeHeroLanguage`), `localStorage['hero_language']` 영구 저장, Vite 코드 스플리팅 기반 온디맨드 로케일 청크 로딩(`ensureLocaleLoaded`) 및 리렌더링 동기화 구현.
+    - [`dynamicPatterns.ts`](file:///Users/dayyoung/project/snshero/src/i18n/dynamicPatterns.ts): `Turn N`, `Rank N`, `Owned: N Gold`, `Open Card Packs (N packs)`, `Left Today N/M`, `Cooldown Ns` 등 동적 템플릿 문자열의 10개 언어 패턴 번역기 구현.
+    - `src/i18n/locales/{ja,zh-CN,zh-TW,es,fr,de,pt,ru}.ts`: 8개 신규 언어별 **1,181개 UI 번역 키**(총 9,448개 번역 엔트리)를 판타지 TCG 전문 용어로 완비(청크당 ~30–35kB gzip).
+  - **2. 게임 데이터·카드 효과·TTS 10개 언어 현지화 (`src/hearthstone/`)**:
+    - [`i18nGameData.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/i18nGameData.ts) & [`i18nData.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/i18nData.ts): 9대 영웅(이름·칭호·종족·영역·영웅 능력·감정표현 8종), 카드 직업/희귀도/종족/세력 라벨, 랭크 명칭, 프리셋 덱 이름, 382종 카드 효과 키워드·구문 자동 현지화(`localizeCardText`)를 10개 언어로 확장.
+    - [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx) 등 6개 게임 화면의 `isKo` 하드코딩 UI 분기 126건을 `tr()` 파이프라인으로 통합.
+    - [`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts): Web Speech API TTS 음성 언어를 `getSpeechLocale()`로 10개 언어 자동 연동.
+    - [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx), [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx), [`SnsBenchmarkApp.tsx`](file:///Users/dayyoung/project/snshero/src/sns/SnsBenchmarkApp.tsx): `document.documentElement.lang`이 `ko/en`으로 덮어써지지 않고 10개 언어 `htmlLang`으로 정확히 동기화되도록 수정.
+  - **3. 10개 언어 선택 UI 업그레이드 (모바일 44px+ 터치 타깃)**:
+    - [`Modals.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/Modals.tsx) (`GameOptionsModal`): 10개 언어 2열 그리드 선택기(`min-h-[44px]`, 국기·원어명·코드 배지, `options-lang-<code>` testid).
+    - [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx): 헤더 컴팩트 글로벌 언어 드롭다운(`header-lang-toggle`, `44px` 터치 타깃) 및 푸터 10개 언어 칩 선택기(`footer-language-switcher`).
+    - [`src/reader/i18n.ts`](file:///Users/dayyoung/project/snshero/src/reader/i18n.ts) 및 [`src/stone/components/CardZoomModal.tsx`](file:///Users/dayyoung/project/snshero/src/stone/components/CardZoomModal.tsx): `HeroLanguage` 타입 호환성 동기화.
+  - **4. 빌드 및 실측 E2E 검증 완료**:
+    - `npx tsc --noEmit && npm run build` 0에러 통과 (8개 언어 청크 정상 분리 확인).
+    - Python Playwright로 데스크톱(`1280×800`) 및 모바일(`390×844`)에서 `/game.html` 10개 언어 URL 직접 진입, `GameOptionsModal` 10개 언어 실시간 전환, `/` 프로모션 헤더·푸터 전환, 가로 오버플로우 `0px`, 터치 타깃 `>= 44px`, 콘솔/페이지 에러 `0건` 전수 통과. 로컬 `git commit` 완료 (`git push` 보류).

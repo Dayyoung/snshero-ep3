@@ -22,7 +22,7 @@ import {
   VolumeX,
   X,
 } from 'lucide-react';
-import { tr, useHeroLanguage } from '../../i18n/heroLang';
+import { getLanguageMeta, HERO_LANGUAGES, tr, useHeroLanguage } from '../../i18n/heroLang';
 import { trackHeroEvent, trackHeroRewardedAdCompleted } from '../services/analyticsEvents';
 import { computeBluetoothSyncOffsetMs, playRhythmCue } from '../services/rhythmCueEngine';
 import { renderQrCodeSvg } from '../services/qrCodeSvg';
@@ -3010,50 +3010,63 @@ export const GameOptionsModal: React.FC<{
           {/* Tab Panel 1: 전투·시스템 설정 */}
           {activeTab === 'SYSTEM' && (
             <div className="hs-ocarina-dialog space-y-4 rounded-2xl p-4">
-              {/* Language Switcher */}
-              <div className="flex items-center justify-between gap-2 border-b border-amber-400/25 pb-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-extrabold text-amber-100">
-                    {tr('언어 설정 (Language)', 'Language')}
+              {/* Language Switcher (10 Global Languages) */}
+              <div className="border-b border-amber-400/25 pb-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="text-sm font-extrabold text-amber-100">
+                      {tr('언어 설정 (Language)', 'Language')}
+                    </div>
+                    <div className="mt-0.5 text-[11px] font-medium text-sky-200/80">
+                      {tr(
+                        '10개 글로벌 게임 지원 언어 선택',
+                        'Choose from 10 supported game languages',
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-0.5 text-[11px] font-medium text-sky-200/80">
-                    {tr('한국어 또는 영어로 전환', 'Switch between Korean and English')}
+                  <div className="shrink-0 rounded-lg border border-amber-400/40 bg-stone-950/80 px-2.5 py-1 text-[11px] font-extrabold text-amber-200">
+                    {getLanguageMeta(lang).flag} {getLanguageMeta(lang).nativeName}
                   </div>
                 </div>
                 <div
                   data-testid="options-language-selector"
-                  className="flex shrink-0 overflow-hidden rounded-xl border border-[#c8a158]/60 bg-stone-950/80 p-0.5 text-xs font-extrabold"
+                  className="mt-2.5 grid grid-cols-2 gap-1.5"
                 >
-                  <button
-                    type="button"
-                    data-testid="options-lang-en"
-                    onClick={() => {
-                      hsAudio.playSfx('ui_click', 0.75);
-                      setLang('en');
-                    }}
-                    className={`min-h-[38px] rounded-lg px-2.5 transition ${
-                      lang === 'en'
-                        ? 'bg-amber-400 text-stone-950 shadow'
-                        : 'text-amber-200/80 hover:text-white'
-                    }`}
-                  >
-                    English
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="options-lang-ko"
-                    onClick={() => {
-                      hsAudio.playSfx('ui_click', 0.75);
-                      setLang('ko');
-                    }}
-                    className={`min-h-[38px] rounded-lg px-2.5 transition ${
-                      lang === 'ko'
-                        ? 'bg-amber-400 text-stone-950 shadow'
-                        : 'text-amber-200/80 hover:text-white'
-                    }`}
-                  >
-                    한국어
-                  </button>
+                  {HERO_LANGUAGES.map((item) => {
+                    const active = lang === item.code;
+                    return (
+                      <button
+                        key={item.code}
+                        type="button"
+                        data-testid={`options-lang-${item.code}`}
+                        onClick={() => {
+                          hsAudio.playSfx('ui_click', 0.75);
+                          setLang(item.code);
+                        }}
+                        className={`flex min-h-[44px] items-center justify-between gap-1.5 rounded-xl border px-2.5 py-1.5 text-left text-xs font-extrabold transition ${
+                          active
+                            ? 'border-amber-300 bg-amber-400 text-stone-950 shadow'
+                            : 'border-[#c8a158]/35 bg-stone-950/75 text-amber-100/85 hover:border-amber-300/60 hover:text-white'
+                        }`}
+                      >
+                        <span className="flex min-w-0 items-center gap-1.5 truncate">
+                          <span aria-hidden="true" className="shrink-0 text-sm leading-none">
+                            {item.flag}
+                          </span>
+                          <span className="truncate">{item.nativeName}</span>
+                        </span>
+                        <span
+                          className={`shrink-0 rounded px-1 py-0.5 text-[10px] font-black ${
+                            active
+                              ? 'bg-stone-950/15 text-stone-900'
+                              : 'bg-white/5 text-amber-200/65'
+                          }`}
+                        >
+                          {item.shortLabel}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
