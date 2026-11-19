@@ -9,10 +9,11 @@ Transforms raw Veo 6-second clips into a studio-grade 16:9 anime episode with:
   - Uniform 1280x720, 24fps, yuv420p, 48kHz stereo normalization
   - Snappy hard cuts within Acts + 0.25s xfade/acrossfade between Acts
   - Per-Act & episode-customizable orchestral BGM with 1.5s crossfades between Acts:
-      * Act I  (Atmosphere / Village / Oath): tavern_hub.mp3
+      * Act I  (Atmosphere / Village / Oath): mulligan.mp3
       * Act II (Betrayal / Combat / Sakuga):  duel_1.mp3
       * Act III (Aftermath / Emotional Vow):  collection.mp3
-      (Customizable via --act-bgm-json, per-episode act_bgm.json, or single-track --bgm)
+      (Allowed pool: mulligan.mp3, duel_1.mp3, duel_2.mp3, collection.mp3 ONLY;
+       tavern_hub.mp3 is permanently excluded.)
   - Dynamic BGM ducking (-20dB under dialogue/narration, -14dB during sakuga_action)
   - Two-pass YouTube loudness normalization (loudnorm=I=-14:TP=-1.5:LRA=11)
   - Frame-accurate English SRT subtitles (text-free video master)
@@ -41,16 +42,17 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 BGM_DIR = REPO_ROOT / "public/hs-assets/snshero-audio/bgm"
 
 DEFAULT_ACT_BGM_MAP: Dict[int, Path] = {
-    1: BGM_DIR / "tavern_hub.mp3",   # Act I: Atmosphere / Village / Oath
+    1: BGM_DIR / "mulligan.mp3",     # Act I: Atmosphere / Opening / Tension
     2: BGM_DIR / "duel_1.mp3",       # Act II: Betrayal / Combat / Sakuga
     3: BGM_DIR / "collection.mp3",   # Act III: Aftermath / Emotional Vow
 }
 FALLBACK_BGM_CANDIDATES = [
+    BGM_DIR / "mulligan.mp3",
     BGM_DIR / "duel_1.mp3",
     BGM_DIR / "duel_2.mp3",
     BGM_DIR / "collection.mp3",
-    BGM_DIR / "tavern_hub.mp3",
 ]
+EXCLUDED_BGM_NAMES = {"tavern_hub.mp3"}
 DEFAULT_COPY_DIR = Path("/Users/dayyoung/Desktop/내문서/movie")
 BGM_ACT_CROSSFADE_SEC = 1.5
 
@@ -156,6 +158,9 @@ def resolve_act_bgm_map(
         for k, v in raw_map.items():
             act_id = int(str(k).lower().replace("act", "").strip())
             p = resolve_audio_path(str(v))
+            if p.name in EXCLUDED_BGM_NAMES:
+                print(f"[WARN] Excluded BGM '{p.name}' requested for Act {act_id}; remapping to mulligan.mp3", file=sys.stderr)
+                p = BGM_DIR / "mulligan.mp3"
             if not p.is_file():
                 raise FileNotFoundError(f"BGM file for Act {act_id} in {json_path} not found: {p}")
             resolved[act_id] = p
@@ -671,6 +676,21 @@ def build_youtube_metadata(
             2: "Act II — Clash at Sevenbridge",
             3: "Act III — Oath of the Seven Pursuers",
         },
+        3: {
+            1: "Act I — Mistfall Cliff",
+            2: "Act II — Ambush of Medusa Gorgo",
+            3: "Act III — Robinyard's Final Dance",
+        },
+        4: {
+            1: "Act I — Six Winters in the Wastes",
+            2: "Act II — Blood-Brother Rescue",
+            3: "Act III — The Six Guardians Arrive",
+        },
+        5: {
+            1: "Act I — Violet Storm Underground",
+            2: "Act II — Phantom in the Downpour",
+            3: "Act III — The Morning Star",
+        },
     }
     act_names = act_names_by_ep.get(ep_num, {1: "Act I", 2: "Act II", 3: "Act III"})
     chapters = []
@@ -746,6 +766,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Post-produce SNSHero Studio Anime episode.")
     parser.add_argument("--ep", type=int, default=1, help="Episode number (default: 1)")
     parser.add_argument("--dry-run", action="store_true", help="Validate plan and preview timeline/SRT without rendering")
+    parser.add_argument("--skip-missing", action="store_true", help="Skip cuts whose raw MP4 clip is intentionally excluded/missing")
     parser.add_argument("--trim-start", type=float, default=0.15, help="Seconds to trim from start of each clip (default: 0.15)")
     parser.add_argument("--trim-end", type=float, default=0.15, help="Seconds to trim from end of sakuga_action clips (default: 0.15)")
     parser.add_argument("--dialogue-trim-end", type=float, default=0.05, help="Seconds to trim from end of dialogue/narration clips (default: 0.05, anti-cutoff)")
@@ -868,8 +889,15 @@ def main() -> int:
         return 0
 
     if missing_clips:
-        print(f"[ERROR] Missing {len(missing_clips)} raw clips in {clips_dir}: {missing_clips}", file=sys.stderr)
-        return 1
+        if args.skip_missing:
+            print(f"[WARN] Skipping {len(missing_clips)} intentionally excluded/missing clips: {missing_clips}")
+            missing_set = set(missing_clips)
+            clips = [c for c in clips if c.cut_code not in missing_set]
+            est_total = compute_timeline(clips, args.crossfade)
+            bgm_spans = compute_act_bgm_segments(clips, est_total, act_bgm_map)
+        else:
+            print(f"[ERROR] Missing {len(missing_clips)} raw clips in {clips_dir}: {missing_clips}", file=sys.stderr)
+            return 1
 
     tmp_dir = Path(tempfile.mkdtemp(prefix=f"snshero_ep{ep_num:02d}_post_"))
     try:

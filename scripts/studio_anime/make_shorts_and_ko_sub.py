@@ -80,6 +80,66 @@ KO_TRANSLATIONS_BY_EP: Dict[int, List[str]] = {
         "좋소! 아버지들의 유산이\n반드시 이 어둠을 꿰뚫을 것이오!",
         "<i>일곱 기수는 북쪽으로 달렸고,\n한 기사는 홀로 남쪽으로 걸었다.</i>",
     ],
+    3: [
+        "<i>험준한 봉우리를 넘어, 일곱 추적자는 안개폭포 절벽에 들어섰다.</i>",
+        "금지된 암흑 강령술이야.\n이 안개가 살아 있는 마력을 빨아들이고 있어.",
+        "침착해, 모두 검을 뽑아라.\n악의가 이 안개를 엮어냈어.",
+        "내 망치 앞에 서는 악마는\n누구든 모루 꼴이 될 뿐이지!",
+        "긴장 풀어, 동료들.\n두려움은 줄타기 곡예사를 무너뜨리는 법이야.",
+        "돌 위의 여덟 발소리…\n위다! 당장 흩어져!",
+        "어리석은 벌레들 같으니,\n제 발로 무덤에 기어들어오다니!",
+        "숨을 참아!\n보랏빛 맹독이 마력을 부식시켜!",
+        "그 더러운 발톱을\n내 형제들에게서 당장 치워!",
+        "지금이야, 아일라, 그림리!\n서로의 숨소리에 귀를 기울여!",
+        "일곱 추적자들…\n이 대가는 천 배로 되갚아주마!",
+        "울지 마, 친구들.\n저 괴물을 막은 목숨 하나면 충분해.",
+        "북쪽으로 가… 아이를 찾아…\n우리의 맹세를 지켜줘.",
+        "로빈야드, 정신 차려!\n아직 내가 치유할 수 있어!",
+        "방울이 울릴 때마다\n네가 우리 곁에서 춤추는 줄 알마, 형제여.",
+        "우린 여섯이지만,\n그는 언제나 우리와 함께 걷는다.",
+        "무기를 들어라!\n북부 황야를 향해 전진한다!",
+        "<i>희생으로 단련된 여섯 수호자가 서리 속으로 말을 달렸다.</i>",
+    ],
+    4: [
+        "<i>혹독한 여섯 번의 겨울이 북부 초원을 지나갔다.</i>",
+        "어머니, 밖에서 얼어붙은\n어린 늑대를 발견했어요.",
+        "아버지의 은단검으로\n얼음을 깨서 구해냈어요.",
+        "잘했구나, 카단.\n생명을 지키는 일은 그 어떤 마법보다 위대하단다.",
+        "저도 아버지처럼\n단단한 방패가 될 수 있을까요?",
+        "그럼, 내 아가.\n거친 바람이 가장 깊은 뿌리를 키우는 법이란다.",
+        "거기 서!\n그 애한테 손대지 마!",
+        "미쳤어?\n나 두고 어서 도망쳐!",
+        "화살을 쏴라!\n두 녀석을 지금 당장 가라앉혀!",
+        "어째서 목숨을 걸고 내 아들을 구했느냐,\n시골 소년아?",
+        "다친 아이를 절대 버려두지 말라고\n어머니가 가르쳐주셨어요.",
+        "사자의 심장이로군!\n이제부터 넌 길가메시의 의형제다!",
+        "내 목숨은 네 거야, 카단.\n넌 내 형제다.",
+        "찾았다!\n세상에, 알렉산다르의 아들을 찾았어!",
+        "살아 있었구나, 꼬마야…\n꼬박 6년을 찾아 헤맸단다.",
+        "여섯 겨울이 지났는데도\n알렉산다르의 맹세를 잊지 않으셨군요.",
+        "아드님을 결코 부서지지 않는\n방패로 단련시켜 드리겠소.",
+        "<i>북부 천막의 모닥불 아래, 어린 묘목이 깊이 뿌리를 내렸다.</i>",
+    ],
+    5: [
+        "<i>보랏빛 번개가 여섯 스승과 카단을 지하 동굴로 몰아넣었다.</i>",
+        "뒤틀린 마력의 실타래야.\n흑마법이 이 폭풍을 조종하고 있어.",
+        "유황과 흑요석의 부패가\n이 동굴 샘을 오염시켰어.",
+        "여섯 겨울을 쫓았건만…\n알렉산다르의 핏줄이 제 발로 내 거미줄에 들었구나.",
+        "카단, 엎드려!\n네 그림자 뒤에 있어!",
+        "눈을 감아라, 카단!\n시야는 너를 속일 뿐이다!",
+        "빗줄기를 느껴라!\n어떤 환영도 바람 앞엔 숨지 못한다!",
+        "건방진 애송이!\n내 일격을 어떻게 읽어냈지?",
+        "로빈야드의 복수다,\n이 추악한 그림자 마녀야!",
+        "발리안의 아들은 루시안을 섬기고…\n바람섬의 폭풍이 일어난다!",
+        "닥쳐라, 마녀!\n도망치지 말고 강철을 받아라!",
+        "스승님… 바람섬의 실리아란\n누구인가요?",
+        "현자 아이올로스의 예리한 딸이지.\n그림자가 그녀의 힘을 노린다.",
+        "그 아이도 저처럼 쫓기며\n두려워하고 있을까요?",
+        "그렇다면 더 강해져라, 카단.\n진정한 방패는 기다리지 않는다.",
+        "어둠 속 멋진 받아치기였다!\n내일은 바위 훈련을 세 배로 늘린다!",
+        "흉터를 두려워 마라.\n아문 상처는 더 단단한 갑옷이 되니까.",
+        "<i>어둠 너머의 소리에 귀 기울이며, 카단은 새벽별을 마주했다.</i>",
+    ],
 }
 
 
@@ -96,6 +156,10 @@ def parse_srt_blocks(path: Path) -> List[Tuple[str, str, str]]:
     return out
 
 
+def _norm_en(text: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"</?i>", "", text).strip()).lower()
+
+
 def generate_ko_srt(ep_num: int, en_srt_path: Path, ko_srt_path: Path, force: bool = False) -> int:
     en_blocks = parse_srt_blocks(en_srt_path)
     if ko_srt_path.is_file() and not force:
@@ -108,13 +172,37 @@ def generate_ko_srt(ep_num: int, en_srt_path: Path, ko_srt_path: Path, force: bo
         raise RuntimeError(
             f"No built-in Korean translation list for EP{ep_num:02d} and {ko_srt_path} not found."
         )
-    if len(translations) != len(en_blocks):
-        raise RuntimeError(
-            f"EP{ep_num:02d} Korean translation count ({len(translations)}) != EN.srt cue count ({len(en_blocks)})."
-        )
+
+    matched_ko: List[str] = []
+    if len(translations) == len(en_blocks):
+        matched_ko = list(translations)
+    else:
+        # Handle episodes with intentionally excluded cuts (e.g. EP04-CUT09) by mapping
+        # storyboard spoken lines -> KO_TRANSLATIONS_BY_EP[ep_num] and looking up each EN.srt cue.
+        sb_path = en_srt_path.parent / f"storyboard_ep{ep_num:02d}_en.json"
+        if not sb_path.is_file():
+            raise RuntimeError(
+                f"EP{ep_num:02d} Korean translation count ({len(translations)}) != EN.srt cue count ({len(en_blocks)})."
+            )
+        sb = json.loads(sb_path.read_text(encoding="utf-8"))
+        spoken_en = [
+            _norm_en(c.get("dialogueEn", ""))
+            for c in sb.get("cuts", [])
+            if c.get("audioMode") in ("character_dialogue", "offscreen_narration") and c.get("dialogueEn", "").strip()
+        ]
+        if len(spoken_en) != len(translations):
+            raise RuntimeError(
+                f"Storyboard spoken count ({len(spoken_en)}) != KO translations ({len(translations)})."
+            )
+        en_to_ko = dict(zip(spoken_en, translations))
+        for _, _, body in en_blocks:
+            key = _norm_en(body)
+            if key not in en_to_ko:
+                raise RuntimeError(f"Could not match EN.srt cue to KO translation: {body!r}")
+            matched_ko.append(en_to_ko[key])
 
     entries: List[str] = []
-    for (idx_str, timing_line, _), ko_text in zip(en_blocks, translations):
+    for (idx_str, timing_line, _), ko_text in zip(en_blocks, matched_ko):
         entries.append(f"{idx_str}\n{timing_line}\n{ko_text}\n")
     ko_srt_path.write_text("\n".join(entries), encoding="utf-8")
     return len(entries)

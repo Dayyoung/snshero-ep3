@@ -47,7 +47,7 @@ BANNED_GORE_REGEX = re.compile(
 )
 
 BANNED_FILTER_REGEX = re.compile(
-    r"\b(hercul|hercules)\b",
+    r"\b(hercul|hercules|gawain)\b",
     re.IGNORECASE,
 )
 
@@ -231,6 +231,12 @@ def run_gate1(root: Path, ep: int, max_words: int) -> int:
                 val = bgm_data.get(act_key)
                 if not val or not isinstance(val, str):
                     director_errors.append(f"act_bgm.json missing string mapping for Act '{act_key}'.")
+                    bgm_ok = False
+                    continue
+                if ep >= 3 and "tavern_hub.mp3" in val.lower():
+                    director_errors.append(
+                        f"act_bgm.json Act '{act_key}' uses permanently excluded 'tavern_hub.mp3'."
+                    )
                     bgm_ok = False
                     continue
                 cand = Path(val)

@@ -53,9 +53,11 @@ VEO_SAFE_WORD_MAP: List[Tuple[str, str]] = [
     (r"\bDisney\b", "fantasy animation"),
     (r"\bPixar\b", "3D animation"),
     (r"\bMarvel\b", "heroic"),
-    # Third-party character-name safety (avoid Hercules filter in Veo)
+    # Third-party character-name safety (avoid Hercules / Arthurian Gawain filters in Veo)
     (r"\bHercul's\b", "the hooded elder knight's"),
     (r"\bHercul\b", "the hooded elder knight"),
+    (r"\bGawain's\b", "the silver-haired blindfolded tracker's"),
+    (r"\bGawain\b", "the silver-haired blindfolded tracker"),
     # Graphic violence / gore terms (Veo policy-safe fantasy equivalents)
     (r"\bblood-soaked\b", "snow-covered"),
     (r"\bbloodstained\b", "weather-worn"),
