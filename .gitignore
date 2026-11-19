@@ -20,3 +20,6 @@ exports/
 google_ads_*.csv
 *_sheet*.csv
 pending_tasks.txt
+
+# Studio Anime generated outputs (large MP4/PNG assets)
+output/studio_anime/
