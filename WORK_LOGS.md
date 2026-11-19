@@ -1488,3 +1488,22 @@
     - [`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts): 한국어(`ko`)만 한국어 성우 MP3/TTS(`ko-KR`)를 사용하고, 영어(`en`) 및 기타 8개 언어에서는 모두 **영어 성우 음성(`en-US`)**을 기본으로 재생하도록 통일.
   - **3. 검증 및 로컬 커밋**:
     - `npx tsc --noEmit && npm run build` 0에러 통과, 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-19 11:01 KST] [/checkMarket 기존 Chrome 연동 — 티스토리·문피아·네이버 웹소설/도전만화·itch.io LIVE 반영 & Reddit·gd.games 정책 분석 (완료율 68.6% 돌파)]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 티스토리 구글 1페이지 포스트 전면 리뉴얼 (`MKT-050` → `완료`)**:
+    - `https://androday.tistory.com/34` 의 2013년 구버전 3x3 빙고 설명을 **2026년 9대 종족 382종 카드 · 30장 덱 · 10마나 · 30체력 · 3장=3배 각성 · 보가트의 도박장 · 40화 성우 풀보이스 웹툰/웹소설 완벽 가이드**로 전면 교체 및 공개 발행 LIVE 검증 완료.
+  - **2. 문피아(`616551`) & 네이버 웹소설(`1250635`) 전면 현행화 (`MKT-058`, `MKT-100`, `MKT-003`, `MKT-016`, `MKT-022`, `MKT-076` → `완료`)**:
+    - 양대 연재처 작품소개에서 구버전 `"11대 종족과 100인의 가디언"` 완전 삭제 → **9대 종족·중립 382종 카드·3배 각성·무료 3팩+250G·`?lang=ko` 직행 링크**로 LIVE 교체 및 공개 페이지 검증 완료 (`#각성` 태그 추가).
+    - 문피아 **1화(`눈보라 아래 두 서약`), 5화(`폭우 속의 유령`, 마지막 비로그인 무료 회차), 40화(`영웅이 아닌 사람`)** 작가의 말에 각 회차 보스전 직행(`game?mode=story&ep=1/5/40&lang=ko`) 및 **6~40화 비로그인 전편 무료 정주행(`book.html?ep=6&lang=ko`)** 브릿지 LIVE 삽입 완료.
+    - 문피아 공식 **작가공지 (`[완결 감사 & 382종 무설치 웹 TCG 정식 연동 안내]`)** 신규 게시 완료.
+  - **3. 네이버 도전만화(`857363`) 공식 단일 채널 현행화 (`MKT-017` → `완료`)**:
+    - 구버전 `856677` 종료 확인 후, 공식 단일 채널 `857363` 작품 줄거리에 **382종 무설치 웹 TCG 무료 3팩 링크(`https://snshero.com/promotion?lang=ko`)** 삽입 및 저장 LIVE 완료.
+  - **4. 글로벌 웹게임 포털 및 커뮤니티 정책 분석 (`MKT-073`, `MKT-085`, `MKT-101`, `MKT-037`, `MKT-097`)**:
+    - **itch.io (`https://snshero.itch.io/game`)**: 구버전 설명(`1,000 SNS points · 110 cute cards`) 삭제 및 영문 382종 전략 웹 TCG 설명·제목·`1280×720` 와이드 뷰포트 LIVE 갱신 완료 (`dist-portals/snshero-itchio.zip` 파일 첨부만 사용자 1클릭 대기).
+    - **CrazyGames (`developer.crazygames.com/submit`)**: 제출 전 체크리스트 6항목 통과 및 Step 1 폼 오픈 (`dist-portals/snshero-crazygames.zip` 첨부 대기).
+    - **GDevelop / `gd.games` (`MKT-101`)**: 공식 문서(`wiki.gdevelop.io/gdevelop5/publishing/web/`) 실측 분석 결과 GDevelop 5 에디터 내부 Share → Export 전용 포털로 확정(일반 HTML5 zip 직접 업로드 불가).
+    - **Reddit (`r/WebGames`, `r/PlayMyGame`)**: 규칙 API(`/about/rules.json`) 사전 분석 완료 (`r/WebGames` P3 게임명 시작·P4 직접 게임 링크 `https://snshero.com/game?lang=en`·P6 레퍼럴/UTM 금지). 구버전 코인 글 8건은 `u/greggyou` 계정 소유로 확인되어 해당 계정 전환 후 삭제 필요.
+  - **5. 구글 시트 최신화**:
+    - 8건(`MKT-003`, `MKT-016`, `MKT-017`, `MKT-022`, `MKT-050`, `MKT-058`, `MKT-076`, `MKT-100`) `완료` 반영 (누적 완료 **72/105건, 68.6%**).
