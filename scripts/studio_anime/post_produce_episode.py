@@ -2,10 +2,18 @@
 """
 SNSHero Studio Anime — Post-Production & Audio Mastering Pipeline
 Transforms raw Veo 6-second clips into a studio-grade 16:9 anime episode with:
-  - Tight-cut trimming (default 0.15s start / 0.15s end) to eliminate static pauses
+  - Anti-cutoff tight-cut trimming:
+      * 0.15s start trim on all cuts
+      * 0.05s tail trim on character_dialogue & offscreen_narration (prevents speech cutoff)
+      * 0.15s tail trim on sakuga_action cuts (snappy anime pacing)
   - Uniform 1280x720, 24fps, yuv420p, 48kHz stereo normalization
   - Snappy hard cuts within Acts + 0.25s xfade/acrossfade between Acts
-  - Subtle dark-fantasy orchestral BGM layer (-20dB dialogue, -14dB sakuga action)
+  - Per-Act & episode-customizable orchestral BGM with 1.5s crossfades between Acts:
+      * Act I  (Atmosphere / Village / Oath): tavern_hub.mp3
+      * Act II (Betrayal / Combat / Sakuga):  duel_1.mp3
+      * Act III (Aftermath / Emotional Vow):  collection.mp3
+      (Customizable via --act-bgm-json, per-episode act_bgm.json, or single-track --bgm)
+  - Dynamic BGM ducking (-20dB under dialogue/narration, -14dB during sakuga_action)
   - Two-pass YouTube loudness normalization (loudnorm=I=-14:TP=-1.5:LRA=11)
   - Frame-accurate English SRT subtitles (text-free video master)
   - Desktop export copy & youtube_upload_ready.json metadata with auto-chapters
@@ -13,14 +21,13 @@ Transforms raw Veo 6-second clips into a studio-grade 16:9 anime episode with:
 Usage:
   python3 scripts/studio_anime/post_produce_episode.py --ep 1 --dry-run
   python3 scripts/studio_anime/post_produce_episode.py --ep 1
+  python3 scripts/studio_anime/post_produce_episode.py --ep 1 --act-bgm-json path/to/act_bgm.json
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import math
-import os
 import re
 import shutil
 import subprocess
@@ -31,13 +38,21 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_BGM_CANDIDATES = [
-    REPO_ROOT / "public/hs-assets/snshero-audio/bgm/duel_1.mp3",
-    REPO_ROOT / "public/hs-assets/snshero-audio/bgm/duel_2.mp3",
-    REPO_ROOT / "public/hs-assets/snshero-audio/bgm/collection.mp3",
-    REPO_ROOT / "public/hs-assets/snshero-audio/bgm/tavern_hub.mp3",
+BGM_DIR = REPO_ROOT / "public/hs-assets/snshero-audio/bgm"
+
+DEFAULT_ACT_BGM_MAP: Dict[int, Path] = {
+    1: BGM_DIR / "tavern_hub.mp3",   # Act I: Atmosphere / Village / Oath
+    2: BGM_DIR / "duel_1.mp3",       # Act II: Betrayal / Combat / Sakuga
+    3: BGM_DIR / "collection.mp3",   # Act III: Aftermath / Emotional Vow
+}
+FALLBACK_BGM_CANDIDATES = [
+    BGM_DIR / "duel_1.mp3",
+    BGM_DIR / "duel_2.mp3",
+    BGM_DIR / "collection.mp3",
+    BGM_DIR / "tavern_hub.mp3",
 ]
 DEFAULT_COPY_DIR = Path("/Users/dayyoung/Desktop/내문서/movie")
+BGM_ACT_CROSSFADE_SEC = 1.5
 
 
 @dataclass
@@ -91,11 +106,116 @@ def get_duration_and_audio(path: Path) -> Tuple[float, bool]:
     return duration, has_audio
 
 
-def find_default_bgm() -> Optional[Path]:
-    for cand in DEFAULT_BGM_CANDIDATES:
+def find_fallback_bgm() -> Optional[Path]:
+    for cand in FALLBACK_BGM_CANDIDATES:
         if cand.is_file() and cand.stat().st_size > 10_000:
             return cand
     return None
+
+
+def resolve_audio_path(raw: str) -> Path:
+    p = Path(raw).expanduser()
+    if not p.is_absolute():
+        p = (REPO_ROOT / p).resolve()
+    return p
+
+
+def resolve_act_bgm_map(
+    ep_dir: Path,
+    no_bgm: bool,
+    single_bgm_arg: Optional[str],
+    act_bgm_json_arg: Optional[str],
+) -> Dict[int, Path]:
+    """
+    Resolve per-Act BGM tracks. Priority:
+      1. --no-bgm -> {}
+      2. --bgm <single_path> -> applies that single track to all Acts (1, 2, 3...)
+      3. --act-bgm-json <path> (or auto-detected ep_dir/act_bgm.json)
+      4. Built-in mood defaults per Act (tavern_hub / duel_1 / collection)
+    """
+    if no_bgm:
+        return {}
+
+    if single_bgm_arg:
+        p = resolve_audio_path(single_bgm_arg)
+        if not p.is_file():
+            raise FileNotFoundError(f"Specified --bgm file not found: {p}")
+        return {0: p}  # sentinel 0 = single track for entire episode
+
+    json_path: Optional[Path] = None
+    if act_bgm_json_arg:
+        json_path = resolve_audio_path(act_bgm_json_arg)
+        if not json_path.is_file():
+            raise FileNotFoundError(f"Specified --act-bgm-json file not found: {json_path}")
+    elif (ep_dir / "act_bgm.json").is_file():
+        json_path = ep_dir / "act_bgm.json"
+
+    resolved: Dict[int, Path] = {}
+    if json_path:
+        raw_map = json.loads(json_path.read_text(encoding="utf-8"))
+        for k, v in raw_map.items():
+            act_id = int(str(k).lower().replace("act", "").strip())
+            p = resolve_audio_path(str(v))
+            if not p.is_file():
+                raise FileNotFoundError(f"BGM file for Act {act_id} in {json_path} not found: {p}")
+            resolved[act_id] = p
+
+    # Fill missing defaults for Acts 1..3
+    for act_id, default_path in DEFAULT_ACT_BGM_MAP.items():
+        if act_id not in resolved and default_path.is_file() and default_path.stat().st_size > 10_000:
+            resolved[act_id] = default_path
+
+    if not resolved:
+        fb = find_fallback_bgm()
+        if fb:
+            resolved[0] = fb
+
+    return resolved
+
+
+def compute_act_bgm_segments(
+    clips: List[ClipInfo],
+    total_duration: float,
+    act_bgm_map: Dict[int, Path],
+) -> List[Tuple[int, Path, float, float]]:
+    """
+    Compute contiguous Act spans [(act_id, bgm_path, start_sec, end_sec), ...] covering [0, total_duration].
+    Adjacent Acts sharing the exact same BGM file are merged into one continuous span.
+    """
+    if not act_bgm_map or not clips or total_duration <= 0.0:
+        return []
+
+    if 0 in act_bgm_map:
+        return [(0, act_bgm_map[0], 0.0, total_duration)]
+
+    fallback = find_fallback_bgm()
+    raw_spans: List[Tuple[int, Path, float, float]] = []
+
+    for idx, clip in enumerate(clips):
+        bgm_path = act_bgm_map.get(clip.act) or fallback
+        if bgm_path is None:
+            continue
+        start_t = clip.timeline_start if idx > 0 else 0.0
+        end_t = clip.timeline_end if idx < len(clips) - 1 else total_duration
+        if raw_spans and raw_spans[-1][0] == clip.act:
+            prev_act, prev_path, prev_s, _ = raw_spans[-1]
+            raw_spans[-1] = (prev_act, prev_path, prev_s, end_t)
+        elif raw_spans and raw_spans[-1][1] == bgm_path:
+            prev_act, prev_path, prev_s, _ = raw_spans[-1]
+            raw_spans[-1] = (prev_act, prev_path, prev_s, end_t)
+        else:
+            # Anchor boundary cleanly to previous span's end for contiguous partition
+            if raw_spans:
+                start_t = raw_spans[-1][3]
+            raw_spans.append((clip.act, bgm_path, start_t, end_t))
+
+    if raw_spans:
+        a0, p0, _, e0 = raw_spans[0]
+        raw_spans[0] = (a0, p0, 0.0, e0)
+        al, pl, sl, _ = raw_spans[-1]
+        raw_spans[-1] = (al, pl, sl, total_duration)
+
+    return raw_spans
 
 
 def format_srt_time(seconds: float) -> str:
@@ -160,7 +280,7 @@ def build_srt_content(clips: List[ClipInfo], crossfade_dur: float) -> str:
 
         prev_xfade = i > 0 and clips[i - 1].transition_out == "crossfade_0.25s"
         lead_in = (crossfade_dur * 0.6) if prev_xfade else 0.10
-        lead_out = 0.15
+        lead_out = 0.10
 
         start_t = clip.timeline_start + lead_in
         end_t = clip.timeline_end - lead_out
@@ -189,7 +309,7 @@ def normalize_single_clip(
     height: int,
     fps: int,
 ) -> float:
-    """Trim and normalize one clip to uniform 1280x720 24fps yuv420p + 48kHz stereo PCM/AAC."""
+    """Trim and normalize one clip to uniform 1280x720 24fps yuv420p + 48kHz stereo PCM."""
     fade_edge = 0.02
     fade_out_start = max(0.0, clip.trimmed_duration - fade_edge)
 
@@ -248,7 +368,7 @@ def assemble_segments_with_transitions(
     fps: int,
 ) -> Tuple[Path, float]:
     """
-    Group consecutive hard_cut clips into Act segments, concatenate each segment,
+    Group consecutive hard_cut clips into segments, concatenate each segment,
     then join segments with exact 0.25s xfade + acrossfade transitions.
     """
     segments: List[List[ClipInfo]] = []
@@ -302,7 +422,6 @@ def assemble_segments_with_transitions(
         cmd.extend(["-i", str(sf)])
 
     filter_parts: List[str] = []
-    # Video xfade chain + Audio acrossfade chain
     cum_dur = seg_files[0][1]
     prev_v = "[0:v]"
     prev_a = "[0:a]"
@@ -350,7 +469,6 @@ def build_bgm_volume_expr(clips: List[ClipInfo], action_db: float = -14.0, dialo
     if not action_ranges:
         return f"{dialogue_gain}"
 
-    # Merge contiguous/overlapping sakuga_action ranges
     merged: List[Tuple[float, float]] = []
     for s, e in action_ranges:
         if merged and s <= merged[-1][1] + 0.05:
@@ -362,19 +480,85 @@ def build_bgm_volume_expr(clips: List[ClipInfo], action_db: float = -14.0, dialo
     return f"if(gt({conds},0),{action_gain},{dialogue_gain})"
 
 
+def build_act_bgm_bed(
+    bgm_spans: List[Tuple[int, Path, float, float]],
+    total_duration: float,
+    tmp_dir: Path,
+    act_xfade: float = BGM_ACT_CROSSFADE_SEC,
+) -> Optional[Path]:
+    """
+    Render a continuous 48kHz stereo BGM bed across all Acts with smooth 1.5s
+    acrossfade transitions centered on each Act boundary.
+    """
+    if not bgm_spans:
+        return None
+
+    bed_path = tmp_dir / "bgm_bed_48k.wav"
+
+    if len(bgm_spans) == 1:
+        _, track_path, _, _ = bgm_spans[0]
+        cmd = [
+            "ffmpeg", "-y", "-v", "error",
+            "-stream_loop", "-1", "-i", str(track_path),
+            "-af", f"atrim=0:{total_duration:.4f},asetpts=PTS-STARTPTS,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo",
+            "-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2",
+            str(bed_path),
+        ]
+        run_cmd(cmd, check=True)
+        return bed_path
+
+    # Clamp crossfade if any span is very short
+    min_span = min(e - s for _, _, s, e in bgm_spans)
+    xf = min(act_xfade, max(0.2, min_span * 0.45))
+
+    cmd = ["ffmpeg", "-y", "-v", "error"]
+    filter_parts: List[str] = []
+
+    for idx, (_, track_path, start_t, end_t) in enumerate(bgm_spans):
+        cmd.extend(["-stream_loop", "-1", "-i", str(track_path)])
+        extra_start = (xf / 2.0) if idx > 0 else 0.0
+        extra_end = (xf / 2.0) if idx < len(bgm_spans) - 1 else 0.0
+        seg_dur = max(0.5, (end_t - start_t) + extra_start + extra_end)
+        filter_parts.append(
+            f"[{idx}:a]atrim=0:{seg_dur:.4f},asetpts=PTS-STARTPTS,"
+            f"aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[b{idx}]"
+        )
+
+    prev = "[b0]"
+    for idx in range(1, len(bgm_spans)):
+        out = f"[bx{idx}]" if idx < len(bgm_spans) - 1 else "[bmerged]"
+        filter_parts.append(
+            f"{prev}[b{idx}]acrossfade=d={xf:.4f}:c1=tri:c2=tri{out}"
+        )
+        prev = out
+
+    filter_parts.append(f"[bmerged]atrim=0:{total_duration:.4f},asetpts=PTS-STARTPTS[bed]")
+
+    cmd.extend([
+        "-filter_complex", ";".join(filter_parts),
+        "-map", "[bed]",
+        "-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2",
+        str(bed_path),
+    ])
+    run_cmd(cmd, check=True)
+    return bed_path
+
+
 def master_audio_and_encode(
     assembled_path: Path,
     total_duration: float,
     clips: List[ClipInfo],
-    bgm_path: Optional[Path],
+    bgm_spans: List[Tuple[int, Path, float, float]],
     output_mp4: Path,
     tmp_dir: Path,
     fps: int,
+    act_xfade: float = BGM_ACT_CROSSFADE_SEC,
 ) -> Dict[str, Any]:
-    """Mix optional BGM with dynamic ducking, apply two-pass YouTube loudnorm, and encode final MP4."""
+    """Build per-Act BGM bed with 1.5s crossfades, duck under dialogue, apply two-pass YouTube loudnorm, and encode MP4."""
     mixed_audio = tmp_dir / "mixed_audio.wav"
+    bgm_bed = build_act_bgm_bed(bgm_spans, total_duration, tmp_dir, act_xfade=act_xfade)
 
-    if bgm_path and bgm_path.is_file():
+    if bgm_bed and bgm_bed.is_file():
         vol_expr = build_bgm_volume_expr(clips, action_db=-14.0, dialogue_db=-20.0)
         fade_out_st = max(0.0, total_duration - 2.0)
         fc = (
@@ -389,7 +573,7 @@ def master_audio_and_encode(
         mix_cmd = [
             "ffmpeg", "-y", "-v", "error",
             "-i", str(assembled_path),
-            "-stream_loop", "-1", "-i", str(bgm_path),
+            "-i", str(bgm_bed),
             "-filter_complex", fc,
             "-map", "[mix]",
             "-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2",
@@ -450,6 +634,10 @@ def master_audio_and_encode(
     return loudness_stats
 
 
+def _rel_or_str(p: Path) -> str:
+    return str(p.relative_to(REPO_ROOT)) if p.is_relative_to(REPO_ROOT) else str(p)
+
+
 def build_youtube_metadata(
     storyboard: Dict[str, Any],
     clips: List[ClipInfo],
@@ -457,7 +645,7 @@ def build_youtube_metadata(
     master_mp4: Path,
     desktop_copy: Optional[Path],
     srt_path: Path,
-    bgm_path: Optional[Path],
+    bgm_spans: List[Tuple[int, Path, float, float]],
     total_duration: float,
     file_size_bytes: int,
     width: int,
@@ -467,7 +655,6 @@ def build_youtube_metadata(
     ep_title = storyboard.get("episodeTitleEn", f"Episode {ep_num}")
     ep_summary = storyboard.get("episodeSummaryEn", "")
 
-    # Auto-compute Act chapters from actual timeline
     act_starts: Dict[int, float] = {}
     for c in clips:
         if c.act not in act_starts:
@@ -498,6 +685,16 @@ def build_youtube_metadata(
         f"#SNSHero #DarkFantasyAnime #OriginalAnime #IndieAnime #FantasyAnime #AnimePilot"
     )
 
+    bgm_tracks_meta = [
+        {
+            "act": act_id,
+            "track": _rel_or_str(track_path),
+            "startSec": round(start_t, 2),
+            "endSec": round(end_t, 2),
+        }
+        for act_id, track_path, start_t, end_t in bgm_spans
+    ]
+
     return {
         "episodeNumber": ep_num,
         "episodeTitleEn": ep_title,
@@ -523,13 +720,14 @@ def build_youtube_metadata(
         "desktopCopyPath": str(desktop_copy) if desktop_copy else None,
         "subtitlePath": str(srt_path.relative_to(REPO_ROOT)),
         "subtitleAbsPath": str(srt_path),
-        "bgmUsed": str(bgm_path.relative_to(REPO_ROOT)) if bgm_path and bgm_path.is_relative_to(REPO_ROOT) else (str(bgm_path) if bgm_path else None),
+        "bgmTracksByAct": bgm_tracks_meta,
+        "bgmActCrossfadeSec": BGM_ACT_CROSSFADE_SEC if len(bgm_spans) > 1 else 0.0,
         "durationSeconds": round(total_duration, 3),
         "fileSizeBytes": file_size_bytes,
         "fileSizeMB": round(file_size_bytes / (1024 * 1024), 2),
         "resolution": f"{width}x{height}",
         "fps": fps,
-        "audioSpec": "48kHz stereo AAC 192kbps, loudnorm -14 LUFS / -1.5 dBTP",
+        "audioSpec": "48kHz stereo AAC 192kbps, per-Act BGM (-20dB dialogue / -14dB sakuga, 1.5s Act xfade), loudnorm -14 LUFS / -1.5 dBTP",
         "textFreeVideo": True,
         "totalCuts": len(clips),
         "chapters": chapters,
@@ -541,9 +739,12 @@ def main() -> int:
     parser.add_argument("--ep", type=int, default=1, help="Episode number (default: 1)")
     parser.add_argument("--dry-run", action="store_true", help="Validate plan and preview timeline/SRT without rendering")
     parser.add_argument("--trim-start", type=float, default=0.15, help="Seconds to trim from start of each clip (default: 0.15)")
-    parser.add_argument("--trim-end", type=float, default=0.15, help="Seconds to trim from end of each clip (default: 0.15)")
-    parser.add_argument("--crossfade", type=float, default=0.25, help="Crossfade duration in seconds for crossfade_0.25s cuts (default: 0.25)")
-    parser.add_argument("--bgm", type=str, default=None, help="Optional path to BGM audio file")
+    parser.add_argument("--trim-end", type=float, default=0.15, help="Seconds to trim from end of sakuga_action clips (default: 0.15)")
+    parser.add_argument("--dialogue-trim-end", type=float, default=0.05, help="Seconds to trim from end of dialogue/narration clips (default: 0.05, anti-cutoff)")
+    parser.add_argument("--crossfade", type=float, default=0.25, help="Visual/audio crossfade duration for crossfade_0.25s cuts (default: 0.25)")
+    parser.add_argument("--act-bgm-xfade", type=float, default=BGM_ACT_CROSSFADE_SEC, help="Audio crossfade seconds between Act BGM tracks (default: 1.5)")
+    parser.add_argument("--act-bgm-json", type=str, default=None, help="Optional JSON mapping Act number to BGM file path (e.g. {'1':'...','2':'...','3':'...'})")
+    parser.add_argument("--bgm", type=str, default=None, help="Optional single BGM audio file override for entire episode")
     parser.add_argument("--no-bgm", action="store_true", help="Disable BGM mixing")
     parser.add_argument("--copy-dir", type=str, default=str(DEFAULT_COPY_DIR), help="Directory to copy final MP4")
     parser.add_argument("--width", type=int, default=1280, help="Output width (default: 1280)")
@@ -559,29 +760,26 @@ def main() -> int:
     srt_path = ep_dir / f"SNSHero_StudioAnime_EP{ep_num:02d}_EN.srt"
     yt_json_path = ep_dir / "youtube_upload_ready.json"
 
-    # Resolve BGM
-    bgm_path: Optional[Path] = None
-    if not args.no_bgm:
-        if args.bgm:
-            bgm_path = Path(args.bgm).expanduser().resolve()
-            if not bgm_path.is_file():
-                print(f"[ERROR] Specified --bgm file not found: {bgm_path}", file=sys.stderr)
-                return 1
-        else:
-            bgm_path = find_default_bgm()
+    try:
+        act_bgm_map = resolve_act_bgm_map(ep_dir, args.no_bgm, args.bgm, args.act_bgm_json)
+    except FileNotFoundError as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 1
 
     print(f"[post_produce] Episode: EP{ep_num:02d}")
     print(f"[post_produce] Storyboard: {storyboard_path}")
-    print(f"[post_produce] BGM: {bgm_path if bgm_path else 'NONE'}")
+    if not act_bgm_map:
+        print("[post_produce] BGM: NONE")
+    elif 0 in act_bgm_map:
+        print(f"[post_produce] BGM (single override): {_rel_or_str(act_bgm_map[0])}")
+    else:
+        bgm_summary = ", ".join(f"Act {k}={_rel_or_str(v)}" for k, v in sorted(act_bgm_map.items()))
+        print(f"[post_produce] Per-Act BGM ({args.act_bgm_xfade}s xfade): {bgm_summary}")
+    print(f"[post_produce] Trim rules: start={args.trim_start}s | dialogue/narration tail={args.dialogue_trim_end}s | sakuga tail={args.trim_end}s")
 
     if not storyboard_path.is_file():
         if args.dry_run:
             print(f"[DRY-RUN] Storyboard not yet present at {storyboard_path}.")
-            print("[DRY-RUN] Pipeline configuration verified: ffmpeg/ffprobe ready, BGM resolved, output paths configured.")
-            print(f"[DRY-RUN] Planned master MP4: {master_mp4}")
-            print(f"[DRY-RUN] Planned SRT:        {srt_path}")
-            print(f"[DRY-RUN] Planned YouTube JSON: {yt_json_path}")
-            print(f"[DRY-RUN] Planned Desktop Copy: {Path(args.copy_dir) / master_mp4.name}")
             return 0
         print(f"[ERROR] Storyboard not found: {storyboard_path}", file=sys.stderr)
         return 1
@@ -598,6 +796,7 @@ def main() -> int:
     for cut in raw_cuts:
         cut_num = int(cut["cutNumber"])
         cut_code = cut["cutCode"]
+        audio_mode = cut.get("audioMode", "character_dialogue")
         clip_file = clips_dir / f"{cut_code}.mp4"
         if clip_file.is_file() and clip_file.stat().st_size > 10_000:
             raw_dur, has_audio = get_duration_and_audio(clip_file)
@@ -605,9 +804,8 @@ def main() -> int:
             missing_clips.append(cut_code)
             raw_dur, has_audio = 6.0, True
 
-        # Safe trim bounds
         t_start = args.trim_start
-        t_end = args.trim_end
+        t_end = args.dialogue_trim_end if audio_mode in ("character_dialogue", "offscreen_narration") else args.trim_end
         if raw_dur - (t_start + t_end) < 1.5:
             t_start = 0.0
             t_end = 0.0
@@ -618,7 +816,7 @@ def main() -> int:
                 cut_number=cut_num,
                 cut_code=cut_code,
                 act=int(cut.get("act", 1)),
-                audio_mode=cut.get("audioMode", "character_dialogue"),
+                audio_mode=audio_mode,
                 speaker_en=cut.get("speakerEn", ""),
                 dialogue_en=cut.get("dialogueEn", ""),
                 transition_out=cut.get("transitionOut", "hard_cut"),
@@ -632,6 +830,7 @@ def main() -> int:
         )
 
     est_total = compute_timeline(clips, args.crossfade)
+    bgm_spans = compute_act_bgm_segments(clips, est_total, act_bgm_map)
     xfade_cuts = [c.cut_code for c in clips[:-1] if c.transition_out == "crossfade_0.25s"]
     dialogue_cnt = sum(1 for c in clips if c.audio_mode == "character_dialogue")
     narration_cnt = sum(1 for c in clips if c.audio_mode == "offscreen_narration")
@@ -642,19 +841,21 @@ def main() -> int:
         f"(dialogue={dialogue_cnt}, narration={narration_cnt}, sakuga={sakuga_cnt}) | "
         f"Crossfades({args.crossfade}s): {xfade_cuts} | Est. duration: {est_total:.2f}s"
     )
+    for act_id, track_path, s_t, e_t in bgm_spans:
+        label = f"Act {act_id}" if act_id > 0 else "Full"
+        print(f"  [BGM] {label:5s} ({s_t:6.2f}s -> {e_t:6.2f}s): {_rel_or_str(track_path)}")
 
     if args.dry_run:
         print(f"[DRY-RUN] Missing raw clips: {len(missing_clips)}/{len(clips)}")
-        for c in clips[:5]:
+        for c in clips[:6]:
             print(
-                f"  {c.cut_code} | Act {c.act} | {c.audio_mode:19s} | "
+                f"  {c.cut_code} | Act {c.act} | {c.audio_mode:19s} | trim=({c.trim_start:.2f}s, {c.trim_end:.2f}s) | "
                 f"{c.timeline_start:6.2f}s -> {c.timeline_end:6.2f}s | out={c.transition_out}"
             )
-        if len(clips) > 5:
-            print(f"  ... ({len(clips) - 5} more cuts)")
+        if len(clips) > 6:
+            print(f"  ... ({len(clips) - 6} more cuts)")
         srt_preview = build_srt_content(clips, args.crossfade)
-        sub_count = srt_preview.count("-->")
-        print(f"[DRY-RUN] SRT subtitle cues planned: {sub_count}")
+        print(f"[DRY-RUN] SRT subtitle cues planned: {srt_preview.count('-->')}")
         print(f"[DRY-RUN] BGM volume expression: {build_bgm_volume_expr(clips)}")
         return 0
 
@@ -664,42 +865,39 @@ def main() -> int:
 
     tmp_dir = Path(tempfile.mkdtemp(prefix=f"snshero_ep{ep_num:02d}_post_"))
     try:
-        print(f"[post_produce] Stage 1/3: Tight-cut trimming & normalizing {len(clips)} clips to {args.width}x{args.height} @{args.fps}fps...")
+        print(f"[post_produce] Stage 1/3: Anti-cutoff trimming & normalizing {len(clips)} clips to {args.width}x{args.height} @{args.fps}fps...")
         for c in clips:
             norm_file = tmp_dir / f"norm_{c.cut_code}.mkv"
             actual_dur = normalize_single_clip(c, norm_file, args.width, args.height, args.fps)
             c.norm_path = norm_file
             c.trimmed_duration = actual_dur
 
-        # Recompute exact frame-accurate timeline from normalized durations
         exact_est_dur = compute_timeline(clips, args.crossfade)
 
         print("[post_produce] Stage 2/3: Assembling Acts with hard cuts & 0.25s crossfades...")
         assembled_path, assembled_dur = assemble_segments_with_transitions(
             clips, tmp_dir, args.crossfade, args.fps
         )
+        bgm_spans = compute_act_bgm_segments(clips, assembled_dur, act_bgm_map)
         print(f"[post_produce] Assembled duration: {assembled_dur:.3f}s (timeline calc: {exact_est_dur:.3f}s)")
 
-        print("[post_produce] Stage 3/3: Mixing BGM + two-pass YouTube loudnorm (-14 LUFS) + mastering MP4...")
+        print("[post_produce] Stage 3/3: Building per-Act BGM bed (1.5s xfade) + ducking + two-pass YouTube loudnorm (-14 LUFS)...")
         loudness_stats = master_audio_and_encode(
-            assembled_path, assembled_dur, clips, bgm_path, master_mp4, tmp_dir, args.fps
+            assembled_path, assembled_dur, clips, bgm_spans, master_mp4, tmp_dir, args.fps, act_xfade=args.act_bgm_xfade
         )
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    # Verify final master with ffprobe
     final_dur, final_has_audio = get_duration_and_audio(master_mp4)
     final_size = master_mp4.stat().st_size
     if not final_has_audio or final_size < 100_000:
         print(f"[ERROR] Master verification failed: size={final_size}, has_audio={final_has_audio}", file=sys.stderr)
         return 1
 
-    # Write clean English SRT subtitles
     srt_content = build_srt_content(clips, args.crossfade)
     srt_path.write_text(srt_content, encoding="utf-8")
     srt_cues = srt_content.count("-->")
 
-    # Copy to Desktop movie directory
     desktop_copy_path: Optional[Path] = None
     copy_dir = Path(args.copy_dir).expanduser()
     try:
@@ -711,7 +909,6 @@ def main() -> int:
         print(f"[WARN] Could not copy to {copy_dir}: {exc}", file=sys.stderr)
         desktop_copy_path = None
 
-    # Write youtube_upload_ready.json
     yt_meta = build_youtube_metadata(
         storyboard=storyboard,
         clips=clips,
@@ -719,7 +916,7 @@ def main() -> int:
         master_mp4=master_mp4,
         desktop_copy=desktop_copy_path,
         srt_path=srt_path,
-        bgm_path=bgm_path,
+        bgm_spans=bgm_spans,
         total_duration=final_dur,
         file_size_bytes=final_size,
         width=args.width,

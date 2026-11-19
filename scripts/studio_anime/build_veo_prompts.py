@@ -53,6 +53,9 @@ VEO_SAFE_WORD_MAP: List[Tuple[str, str]] = [
     (r"\bDisney\b", "fantasy animation"),
     (r"\bPixar\b", "3D animation"),
     (r"\bMarvel\b", "heroic"),
+    # Third-party character-name safety (avoid Hercules filter in Veo)
+    (r"\bHercul's\b", "the hooded elder knight's"),
+    (r"\bHercul\b", "the hooded elder knight"),
     # Graphic violence / gore terms (Veo policy-safe fantasy equivalents)
     (r"\bblood-soaked\b", "snow-covered"),
     (r"\bbloodstained\b", "weather-worn"),
@@ -270,14 +273,37 @@ def _lookup_entry(index: Dict[str, Tuple[str, Any]], query: str) -> Optional[Tup
     return None
 
 
-def _extract_voice_tone(char_entry: Any) -> str:
-    if not isinstance(char_entry, dict):
+VOICE_TONE_BAN_WORDS = re.compile(
+    r"\b(lyrical|melodic|melodious|ethereal|sing-songy?|musical|operatic|lilting|songlike|chanting|humming|poetic|hauntingly|soaring)\b",
+    re.IGNORECASE,
+)
+
+VOICE_TONE_OVERRIDES: Dict[str, str] = {
+    "elwin": "warm, grounded, natural spoken female voice with quiet grief and steady resolve",
+}
+
+
+def _sanitize_voice_tone(speaker: str, raw_tone: str) -> str:
+    norm_spk = _normalize_key(speaker)
+    if norm_spk in VOICE_TONE_OVERRIDES:
+        return VOICE_TONE_OVERRIDES[norm_spk]
+    if not raw_tone:
         return ""
-    for key in ("voiceToneEn", "voiceTone", "voice_tone", "voice", "delivery", "vocalStyle", "vocal_style"):
-        val = char_entry.get(key)
-        if isinstance(val, str) and val.strip():
-            return val.strip()
-    return ""
+    cleaned = VOICE_TONE_BAN_WORDS.sub("", raw_tone)
+    cleaned = re.sub(r"\s*,\s*,+", ", ", cleaned)
+    cleaned = re.sub(r"\s{2,}", " ", cleaned).strip(" ,;:-")
+    return cleaned
+
+
+def _extract_voice_tone(char_entry: Any, speaker: str = "") -> str:
+    raw = ""
+    if isinstance(char_entry, dict):
+        for key in ("voiceToneEn", "voiceTone", "voice_tone", "voice", "delivery", "vocalStyle", "vocal_style"):
+            val = char_entry.get(key)
+            if isinstance(val, str) and val.strip():
+                raw = val.strip()
+                break
+    return _sanitize_voice_tone(speaker, raw)
 
 
 def _extract_act_palette(bible: Dict[str, Any], act: int) -> str:
@@ -368,12 +394,14 @@ def build_single_cut_prompt(
                 else:
                     char_notes.append(f"{disp} ({desc})")
             if speaker_en and _normalize_key(speaker_en) in (_normalize_key(ch), _normalize_key(disp)):
-                speaker_voice_tone = _extract_voice_tone(data)
+                speaker_voice_tone = _extract_voice_tone(data, speaker_en)
 
     if speaker_en and not speaker_voice_tone:
         found_spk = _lookup_entry(char_index, speaker_en)
         if found_spk:
-            speaker_voice_tone = _extract_voice_tone(found_spk[1])
+            speaker_voice_tone = _extract_voice_tone(found_spk[1], speaker_en)
+        else:
+            speaker_voice_tone = _sanitize_voice_tone(speaker_en, "")
 
     prop_notes: List[str] = []
     for pr in props[:2]:
@@ -424,16 +452,23 @@ def build_single_cut_prompt(
         spk_label = speaker_en or (characters[0] if characters else "the featured character")
         tone_clause = f" ({speaker_voice_tone})" if speaker_voice_tone else ""
         sections.append(
-            f"AUDIO (CHARACTER DIALOGUE): ONLY {spk_label} speaks in clear, expressive English{tone_clause} "
-            f'within 5 seconds with natural lip-sync and facial emotion: "{dialogue_en}". '
-            f"All other characters on screen keep their mouths completely closed and silent. "
+            f"AUDIO (CHARACTER DIALOGUE): ONLY {spk_label} speaks in clear, natural English{tone_clause} "
+            f'with natural lip-sync and facial emotion: "{dialogue_en}". '
+            "STRICTLY NATURAL SPOKEN DIALOGUE ONLY — grounded conversational voice acting with restrained emotion. "
+            "NO singing, NO humming, NO chanting, NO musical or operatic vocalizing. "
+            "Speak at a clear, natural pace and FINISH the entire short line within the first 3.5 to 4.0 seconds, "
+            "followed by 1.5 to 2.0 seconds of silent emotional expression/breath at the end so NO word is ever cut off. "
+            "All other characters on screen keep their mouths completely closed and silent. "
             f"Supporting SFX: {sfx_text}."
         )
     elif audio_mode == "offscreen_narration":
         sections.append(
             "AUDIO (OFF-SCREEN NARRATION): All on-screen characters keep their mouths completely closed "
-            "and silent for the entire 6 seconds. ONLY a deep, resonant off-screen male narrator speaks "
-            f'in the background within 5 seconds: "{dialogue_en}". '
+            "and silent for the entire 6 seconds. ONLY a deep, grounded off-screen male narrator speaks "
+            f'in the background: "{dialogue_en}". '
+            "STRICTLY NATURAL SPOKEN NARRATION ONLY — NO singing, NO humming, NO chanting, NO musical vocalizing. "
+            "Speak at a clear, natural pace and FINISH the entire short line within the first 3.5 to 4.0 seconds, "
+            "followed by 1.5 to 2.0 seconds of silent atmospheric sustain at the end so NO word is ever cut off. "
             f"Supporting ambient SFX: {sfx_text}."
         )
     elif audio_mode == "sakuga_action":
