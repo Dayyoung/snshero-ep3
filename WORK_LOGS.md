@@ -1364,3 +1364,21 @@
     - 로컬 커밋 및 연동 구글 폼 작업 완료 보고 제출 완료.
 
 *(이전 2026-09~10 작업 로그는 기존 원격 저장소 이력에 보관되어 있습니다.)*
+
+## [2026-11-19 09:05 KST] [마케팅 7대 MCP 확장 연동, 웹게임 포털(CrazyGames·itch.io·GDevelop) 과제 추가 및 /checkMarket v2 업그레이드]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 마케팅 MCP 5종 추가 구축 및 `~/.gemini/config/mcp_config.json` 연동 (총 7개 MCP)**:
+    - 기존 `analytics-mcp`(GA4 `properties/223457203`), `google-ads-mcp`(`3072359722`) 유지.
+    - GCP(`gen-lang-client-0764739742`)에 `searchconsole.googleapis.com`, `indexing.googleapis.com`, `androidpublisher.googleapis.com` API 활성화 완료.
+    - 신규 MCP 서버 5종 구축 및 등록: `youtube-snshero-mcp`(`@snshero`, `UCA6QmKiPstbiyBUHtnSMxyA`), `gsc-mcp`(Google Search Console + Indexing API), `google-play-mcp`(`com.dryudryu.SNSHero`), `github-mcp`(`Dayyoung/snshero`), `chrome-devtools-marketing`(영구 프로필 `~/.gemini/config/chrome_marketing_profile`).
+    - 보조 스크립트 생성: YouTube 쓰기 권한 확장용 `reauth_full_scope.py`, 커뮤니티·포털 일괄 로그인용 `open_marketing_browser.sh`.
+  - **2. 마케팅 시트(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`)에 웹게임 포털 배포 과제 3건 추가**:
+    - `MKT-099` (P0): CrazyGames (`https://www.crazygames.com/` · `developer.crazygames.com`) HTML5 포털 전용 빌드 및 정책 준수 심사 제출
+    - `MKT-100` (P0): itch.io (`https://itch.io/login`) HTML5 iframe zip 빌드·커버·Devlog 배포
+    - `MKT-101` (P1): GDevelop / gd.games (`https://gdevelop.io/` · `gd.games`) 플랫폼 엔진 정책 사전 검증 및 적합 방식 배포
+  - **3. `/checkMarket` 스킬 지침서 v2 전면 개정 (`skills/checkMarket/SKILL.md`)**:
+    - 7대 MCP 통합 실행 절차, GA4 실측 KPI 검증, 웹게임 포털 배포 파이프라인, **커뮤니티·포털 게시글 등록 전 '정책·공지 사전 분석 3단계' 절대 원칙** 반영 완료.
+  - **4. 검증 및 로컬 커밋**:
+    - 4종 신규 Python MCP 스모크 테스트 및 MCP JSON-RPC `initialize` 핸드셰이크 통과, `mcp_config.json` 구문 검증 완료.
+    - 로컬 `git commit` 완료 (원격 `git push` 보류).
