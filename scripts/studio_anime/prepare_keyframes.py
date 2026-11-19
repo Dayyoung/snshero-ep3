@@ -761,7 +761,32 @@ EPISODE_ACT_PALETTES: dict[int, dict[str, dict[str, Any]]] = {
     },
 }
 
-DEFAULT_ACT_PALETTES = EPISODE_ACT_PALETTES[1]
+DEFAULT_ACT_PALETTES: dict[str, dict[str, Any]] = {
+    "1": {
+        "actNumber": 1,
+        "actTitle": "Act I — Gathering Tension",
+        "paletteHex": ["#121926", "#2E4057", "#B8CBE0", "#D99543", "#E8F0F8"],
+        "colorScheme": "Atmospheric dark-fantasy shadows matching the attached start-frame keyframe palette, balanced with crisp environmental rim light",
+        "lightingDirection": "Directional cinematic key light and subtle volumetric rim highlights matching the start-frame setting",
+        "atmosphereAndWeather": "Subtle drifting dust, mist, wind-swept cloaks, and ambient environmental particles matching the keyframe",
+    },
+    "2": {
+        "actNumber": 2,
+        "actTitle": "Act II — Clash & Revelation",
+        "paletteHex": ["#14101C", "#5C2232", "#E86A30", "#4CC8FF", "#F4E2A6"],
+        "colorScheme": "High-contrast dark-fantasy combat and dramatic confrontation palette with vivid elemental highlights against deep architectural shadows",
+        "lightingDirection": "Dynamic dual-tone dramatic backlighting with intense elemental/weapon rim light and crisp cel-shaded shadows",
+        "atmosphereAndWeather": "Kinetic energy ribbons, swirling sparks, flying debris, and heightened atmospheric motion",
+    },
+    "3": {
+        "actNumber": 3,
+        "actTitle": "Act III — Aftermath & Resolve",
+        "paletteHex": ["#141E2B", "#3A4E66", "#C8DAEC", "#E5B85C", "#8AD8FF"],
+        "colorScheme": "Poignant clearing twilight or dawn palette matching the attached start-frame keyframe, emphasizing character emotion and quiet determination",
+        "lightingDirection": "Soft directional horizon rim light with warm intimate facial key lighting",
+        "atmosphereAndWeather": "Settling embers, gentle wind drift, clearing mist or sky haze",
+    },
+}
 
 GLOBAL_STYLE_LOCK: dict[str, Any] = {
     "artDirection": "High-budget modern dark-fantasy cel-shaded 2D anime, crisp hand-inked lineart, rich painted backgrounds, dramatic volumetric rim lighting, 2.5D kinetic camera sweeps, 24fps sakuga animation fluidity",

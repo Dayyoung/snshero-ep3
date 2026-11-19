@@ -716,6 +716,31 @@ def build_youtube_metadata(
             2: "Act II — Shattering the Amnesia Hex",
             3: "Act III — Crimson Dawn Oath",
         },
+        11: {
+            1: "Act I — Subterranean Prison Seven",
+            2: "Act II — Clash of Brothers",
+            3: "Act III — The Dagger That Wakes Memory",
+        },
+        12: {
+            1: "Act I — Sanctuary in the Oak Grove",
+            2: "Act II — Shield Against the Vanguard",
+            3: "Act III — Spring Between Two Graves",
+        },
+        13: {
+            1: "Act I — Campfire on the Cedar Road",
+            2: "Act II — Master of the Jade Staff",
+            3: "Act III — Shadows of Wind Island",
+        },
+        14: {
+            1: "Act I — Pillars of the Mist Lake",
+            2: "Act II — Frost Bridge & White Flame",
+            3: "Act III — Warmth Before the Sea",
+        },
+        15: {
+            1: "Act I — Viper Runes at Midnight",
+            2: "Act II — The Old Lion's Stand",
+            3: "Act III — Three Youths' Covenant",
+        },
     }
     act_names = act_names_by_ep.get(ep_num, {1: "Act I", 2: "Act II", 3: "Act III"})
     chapters = []
