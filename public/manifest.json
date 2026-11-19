@@ -14,6 +14,29 @@
   "background_color": "#090604",
   "theme_color": "#1b120b",
   "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "⚔ 스토리모드 (3장=3배 각성)",
+      "short_name": "스토리모드",
+      "description": "40화 성우 풀보이스 스토리모드 바로 출격",
+      "url": "/game?mode=story&ep=1&theater=on&utm_source=pwa_shortcut",
+      "icons": [{ "src": "/hs-assets/brand/pwa-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "🏆 실시간 랭킹대전",
+      "short_name": "랭킹대전",
+      "description": "공정 1배수 공식 전적 랭크 아레나 입장",
+      "url": "/game?mode=ranked&utm_source=pwa_shortcut",
+      "icons": [{ "src": "/hs-assets/brand/pwa-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "📖 40화 공식 웹툰·소설",
+      "short_name": "공식 웹툰",
+      "description": "840컷 성우 풀보이스 40부작 웹툰 무료 감상",
+      "url": "/webtoon?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/hs-assets/brand/pwa-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "icons": [
     {
       "src": "/hs-assets/brand/pwa-icon-192.png",

@@ -7593,6 +7593,44 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     </button>
                   )}
 
+                  {onOpenShopFromBattle && (
+                    <div
+                      data-testid="gameover-blueprint-prestige-strip"
+                      className="rounded-xl border border-amber-400/40 bg-black/45 px-3 py-2 text-left text-[11px] font-bold text-amber-100"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-1.5">
+                        <span className="text-amber-300">
+                          ⚡ {tr('3배 각성 설계도 & 4대 골드 외형', '3x Awakening Blueprint & Gold Prestige')}
+                        </span>
+                        <span className="text-[10px] text-sky-200">
+                          {tr(
+                            `보유 ${profile.dust}가루 · ${profile.gold.toLocaleString()}G`,
+                            `Owned ${profile.dust} Dust · ${profile.gold.toLocaleString()}G`,
+                          )}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] text-stone-200/90">
+                        <span>
+                          {tr(
+                            '2/3장 핵심 카드 제작·5팩 천장 · 배지(300G)/칭호(400G)/테두리(500G)/뒷면(800G)',
+                            'Craft 2/3-copy upgrades · 5-Pack Pity · Badge(300G)/Title(400G)/Frame(500G)/Back(800G)',
+                          )}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            hsAudio.playSfx('gem_a_confirm');
+                            setPostGameAutoPaused(true);
+                            onOpenShopFromBattle();
+                          }}
+                          className="hs-zelda-c-btn min-h-[32px] shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-black text-stone-950"
+                        >
+                          🎁 {tr('보급소 · 외형 상점', 'Packs & Prestige')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     data-testid="gameover-next-step-btn"

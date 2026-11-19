@@ -1447,6 +1447,16 @@
   - **5. 시트 최신화 및 로컬 커밋**:
     - 구글 시트 대시보드 완료율 **`34.9% (29건)` → `58.1% (61 / 105건)`** (+32건 완료, +23.2%p 상승) 달성. 로컬 `git commit` 완료 (`git push` 보류).
 
+## [2026-11-19 10:21 KST] [/checkMarket 전수 점검 최종 완료 — Google Play 스크린샷 8장(EN/KO) 업로드, MKT-038/044/096 완료 및 105건 전수 감사 (완료율 61.0% 달성)]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. Google Play Store 382종 실플레이 스크린샷 8장(`en-US` 4장 + `ko-KR` 4장) LIVE 업로드 커밋 완료 (`MKT-044` → `완료`)** + [`public/manifest.json`](file:///Users/dayyoung/project/snshero/public/manifest.json) OS 퀵 쇼트컷 3종(`스토리모드` · `랭킹대전` · `공식 웹툰`) 탑재.
+  - **2. [`public/robots.txt`](file:///Users/dayyoung/project/snshero/public/robots.txt) 구버전 `/shop/` · `/bench/` 차단 보강 (`MKT-038` → `완료`)**.
+  - **3. [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx) 전투 종료 모달에 `3배 각성 설계도 & 4대 골드 외형` 직행 스트립 탑재 (`MKT-096` → `완료`)**.
+  - **4. 105건 전수 감사 및 시트 최신화**:
+    - Row 101(`MKT-100`) 비표준 `'제안 완료'` 스키마 정규화 완료 (비표준 0건).
+    - 최종 완료율 **`61.0%` (`64 / 105건` 완료 · `27건` 진행중 · `14건` 실행대기 · `0건` 누락)**. `npm run build` 통과(`6.53s`), 로컬 `git commit` 완료 (`git push` 보류).
+
 ## [2026-11-19 10:05 KST] [게임 지원 언어 2개(KO/EN) → 글로벌 10개 언어 전면 확장]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

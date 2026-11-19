@@ -23,6 +23,8 @@ Disallow: /promo
 Disallow: /promo.html
 Disallow: /promotion
 Disallow: /promotion.html
+Disallow: /shop/
+Disallow: /bench/
 Disallow: /*?lang=*
 Disallow: /test/
 
