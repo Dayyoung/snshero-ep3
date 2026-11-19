@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { isKoreanLanguage, tr, useHeroLanguage } from '../../i18n/heroLang';
+import { isKoreanLanguage, setLanguage, tr, useHeroLanguage } from '../../i18n/heroLang';
+import { portalGameplayStart, portalGameplayStop } from '../portalBridge';
 import { extractShortHeroCalloutName, hsAudio } from '../audio';
 import {
   CLASSIC_RANK_NAMES,
@@ -149,45 +150,37 @@ function diagnoseDefeatAndCounter(
   const playerDeckEmpty = ms.player.deck.length === 0;
   if (playerDeckEmpty) {
     return {
-      reasonText: isKo
-        ? '30장 덱이 모두 소진되어 탈진 피해를 입었어요! 템포가 빠른 속공 덱으로 초중반에 끝내보세요.'
-        : 'Your 30-card deck ran out into Fatigue! Close games faster with an Aggro Rush preset.',
+      reasonText: tr('30장 덱이 모두 소진되어 탈진 피해를 입었어요! 템포가 빠른 속공 덱으로 초중반에 끝내보세요.', 'Your 30-card deck ran out into Fatigue! Close games faster with an Aggro Rush preset.'),
       presetId: 'AGGRO',
-      presetLabel: isKo ? '속공 돌파형' : 'Aggro Rush',
+      presetLabel: tr('속공 돌파형', 'Aggro Rush'),
       stance: 'AGGRO',
-      stanceLabel: isKo ? '공격적(맹공)' : 'Aggro',
+      stanceLabel: tr('공격적(맹공)', 'Aggro'),
     };
   }
   if (oppTaunts >= 1) {
     return {
-      reasonText: isKo
-        ? '적 도발(Taunt) 방패벽에 공격이 가로막혔어요! 고화력 3배 각성 일격 덱으로 도발을 단숨에 돌파하세요.'
-        : 'Enemy Taunt minions blocked your attacks! Smash through with 3x Awakening powerhouses.',
+      reasonText: tr('적 도발(Taunt) 방패벽에 공격이 가로막혔어요! 고화력 3배 각성 일격 덱으로 도발을 단숨에 돌파하세요.', 'Enemy Taunt minions blocked your attacks! Smash through with 3x Awakening powerhouses.'),
       presetId: 'AWAKENING',
-      presetLabel: isKo ? '3배 각성 일격형' : '3x Awakening',
+      presetLabel: tr('3배 각성 일격형', '3x Awakening'),
       stance: 'AWAKENING',
-      stanceLabel: isKo ? '각성연계' : 'Awakening',
+      stanceLabel: tr('각성연계', 'Awakening'),
     };
   }
   if (oppBoardSize >= 3 || ms.turnNumber <= 7) {
     return {
-      reasonText: isKo
-        ? '적의 다수 하수인 공세에 명치가 먼저 뚫렸어요! 도발·제압기 중심 철벽 반격형으로 필드를 잠그세요.'
-        : 'Enemy board pressure overwhelmed your Hero! Stabilize with Taunts & removals.',
+      reasonText: tr('적의 다수 하수인 공세에 명치가 먼저 뚫렸어요! 도발·제압기 중심 철벽 반격형으로 필드를 잠그세요.', 'Enemy board pressure overwhelmed your Hero! Stabilize with Taunts & removals.'),
       presetId: 'CONTROL',
-      presetLabel: isKo ? '철벽 반격형' : 'Taunt & Control',
+      presetLabel: tr('철벽 반격형', 'Taunt & Control'),
       stance: 'CONTROL',
-      stanceLabel: isKo ? '방어적(수비)' : 'Control',
+      stanceLabel: tr('방어적(수비)', 'Control'),
     };
   }
   return {
-    reasonText: isKo
-      ? '후반 에이스 싸움에서 화력이 살짝 부족했어요! 보유 ×3 각성 카드를 최우선 편성해 재도전하세요.'
-      : 'Late-game firepower fell slightly short! Deploy your ×3 Awakened aces to overpower them.',
+    reasonText: tr('후반 에이스 싸움에서 화력이 살짝 부족했어요! 보유 ×3 각성 카드를 최우선 편성해 재도전하세요.', 'Late-game firepower fell slightly short! Deploy your ×3 Awakened aces to overpower them.'),
     presetId: 'AWAKENING',
-    presetLabel: isKo ? '3배 각성 일격형' : '3x Awakening',
+    presetLabel: tr('3배 각성 일격형', '3x Awakening'),
     stance: 'AWAKENING',
-    stanceLabel: isKo ? '각성연계' : 'Awakening',
+    stanceLabel: tr('각성연계', 'Awakening'),
   };
 }
 
@@ -330,7 +323,7 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
 
         if (cueEl && lastTapState !== info.isTapWindow) {
           lastTapState = info.isTapWindow;
-          cueEl.textContent = info.isTapWindow ? 'TAP+10' : isKo ? '연타+1' : 'TAP+1';
+          cueEl.textContent = info.isTapWindow ? 'TAP+10' : tr('연타+1', 'TAP+1');
           cueEl.style.color = info.isTapWindow ? '#86efac' : '#fca5a5';
         }
       }
@@ -487,16 +480,10 @@ const CenterRhythmRingHud: React.FC<CenterRhythmRingHudProps> = ({
                 }`}
               >
                 {isIgniting
-                  ? isKo
-                    ? '1초대기'
-                    : 'WAIT 1s'
+                  ? tr('1초대기', 'WAIT 1s')
                   : isReady
-                    ? isKo
-                      ? '필살기!'
-                      : 'FIRE!'
-                    : isKo
-                      ? '연타+1'
-                      : 'TAP+1'}
+                    ? tr('필살기!', 'FIRE!')
+                    : tr('연타+1', 'TAP+1')}
               </span>
             </span>
 
@@ -778,16 +765,10 @@ const EndTurnLeverPlate: React.FC<{
         } ${!isPlayerTurn ? 'text-stone-300' : 'text-white'}`}
       >
         {!isPlayerTurn
-          ? isKo
-            ? '상대 턴'
-            : 'Enemy Turn'
+          ? tr('상대 턴', 'Enemy Turn')
           : noMovesLeft
-            ? isKo
-              ? '할 일 없음'
-              : 'Job Done'
-            : isKo
-              ? '턴 종료'
-              : 'End Turn'}
+            ? tr('할 일 없음', 'Job Done')
+            : tr('턴 종료', 'End Turn')}
       </span>
     </div>
   );
@@ -950,6 +931,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
+  useEffect(() => {
+    portalGameplayStart();
+    return () => {
+      portalGameplayStop();
+    };
+  }, []);
   const [resolvedChallenger] = useState<ChallengerMeta | null>(() => {
     if (challengerMeta) return challengerMeta;
     if (mode === 'RANKED' || mode === 'BOGART_GAMBLE') {
@@ -1221,11 +1208,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     mode === 'TUTORIAL' && (matchState.journeyMeta?.episode ?? 1) === 0
       ? {
           speaker: 'KADAN',
-          badge: isKoreanLanguage() ? '튜토리얼 실전 시작' : 'Tutorial Drill Start',
-          headline: isKoreanLanguage() ? '3초마다 카드 해설!' : 'Card Tip Every 3s!',
-          reason: isKoreanLanguage()
-            ? '매 턴 카드를 내는 이유를 쉽게 알려드릴게요!'
-            : "I'll explain why each card is played every turn!",
+          badge: tr('튜토리얼 실전 시작', 'Tutorial Drill Start'),
+          headline: tr('3초마다 카드 해설!', 'Card Tip Every 3s!'),
+          reason: tr('매 턴 카드를 내는 이유를 쉽게 알려드릴게요!', "I'll explain why each card is played every turn!"),
         }
       : null,
   );
@@ -1842,12 +1827,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ...confirmed,
           bannerMessage:
             confirmed.activeSide === 'PLAYER'
-              ? isKo
-                ? '내 턴!'
-                : 'YOUR TURN!'
-              : isKo
-                ? '상대 턴'
-                : 'ENEMY TURN',
+              ? tr('내 턴!', 'YOUR TURN!')
+              : tr('상대 턴', 'ENEMY TURN'),
         });
       }
       return;
@@ -1879,10 +1860,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (matchState.phase === 'MULLIGAN') {
       return {
         tone: 'amber' as const,
-        badge: isKo ? '멀리건' : 'Mulligan',
-        text: isKo
-          ? '1~3코스트 카드는 남기고, 큰 카드를 눌러 1회 교체한 뒤 [확인]을 누르세요.'
-          : 'Keep 1–3 Cost cards, tap high-Cost cards to replace once, then press [Confirm].',
+        badge: tr('멀리건', 'Mulligan'),
+        text: tr('1~3코스트 카드는 남기고, 큰 카드를 눌러 1회 교체한 뒤 [확인]을 누르세요.', 'Keep 1–3 Cost cards, tap high-Cost cards to replace once, then press [Confirm].'),
       };
     }
     if (matchState.phase === 'GAME_OVER') {
@@ -1891,10 +1870,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (matchState.phase !== 'PLAYING' || matchState.activeSide !== 'PLAYER') {
       return {
         tone: 'slate' as const,
-        badge: isKo ? '상대 턴' : 'Enemy Turn',
-        text: isKo
-          ? '상대가 카드를 내고 공격하는 중입니다. 내 턴이 올 때까지 잠시 기다리세요.'
-          : 'Opponent is playing cards and attacking. Please wait for your turn.',
+        badge: tr('상대 턴', 'Enemy Turn'),
+        text: tr('상대가 카드를 내고 공격하는 중입니다. 내 턴이 올 때까지 잠시 기다리세요.', 'Opponent is playing cards and attacking. Please wait for your turn.'),
       };
     }
     const playableCount = matchState.player.hand.filter(
@@ -1910,7 +1887,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (playableCount > 0) {
         return {
           tone: 'sky' as const,
-          badge: isKo ? '자동플레이' : 'Auto-Play',
+          badge: tr('자동플레이', 'Auto-Play'),
           text: isKo
             ? `AI가 남은 마나(${matchState.player.mana})로 낼 수 있는 카드를 선택 중입니다. (상단 버튼으로 수동 전환 가능)`
             : `AI is picking playable cards with ${matchState.player.mana} Mana remaining. (Tap Auto to take control)`,
@@ -1919,7 +1896,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (totalAttackers > 0) {
         return {
           tone: 'sky' as const,
-          badge: isKo ? '자동플레이' : 'Auto-Play',
+          badge: tr('자동플레이', 'Auto-Play'),
           text: isKo
             ? `AI가 공격 가능한 유닛(${totalAttackers}기)으로 적을 공격하고 있습니다.`
             : `AI is attacking with ${totalAttackers} ready unit(s).`,
@@ -1927,10 +1904,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }
       return {
         tone: 'sky' as const,
-        badge: isKo ? '자동플레이' : 'Auto-Play',
-        text: isKo
-          ? 'AI가 이번 턴 행동을 마치고 턴을 넘깁니다. 직접 조종하려면 [자동 OFF]를 누르세요.'
-          : 'AI is ending the turn. Tap [Auto OFF] anytime to play manually.',
+        badge: tr('자동플레이', 'Auto-Play'),
+        text: tr('AI가 이번 턴 행동을 마치고 턴을 넘깁니다. 직접 조종하려면 [자동 OFF]를 누르세요.', 'AI is ending the turn. Tap [Auto OFF] anytime to play manually.'),
       };
     }
 
@@ -1940,38 +1915,30 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       );
       return {
         tone: 'emerald' as const,
-        badge: isKo ? '공격 조준' : 'Targeting',
+        badge: tr('공격 조준', 'Targeting'),
         text: hasEnemyTaunt
-          ? isKo
-            ? '🛡️ 도발 하수인이 앞을 막고 있습니다! 도발 방패 하수인을 먼저 공격하세요.'
-            : '🛡️ A Taunt minion blocks the way! Attack the shielded Taunt minion first.'
-          : isKo
-            ? '상대 하수인이나 위쪽 상대 영웅 초상화를 눌러 공격하세요! (취소: 빈 곳 클릭)'
-            : 'Tap an enemy minion or top enemy hero portrait to attack! (Tap empty space to cancel)',
+          ? tr('🛡️ 도발 하수인이 앞을 막고 있습니다! 도발 방패 하수인을 먼저 공격하세요.', '🛡️ A Taunt minion blocks the way! Attack the shielded Taunt minion first.')
+          : tr('상대 하수인이나 위쪽 상대 영웅 초상화를 눌러 공격하세요! (취소: 빈 곳 클릭)', 'Tap an enemy minion or top enemy hero portrait to attack! (Tap empty space to cancel)'),
       };
     }
     if (selection?.kind === 'HAND_CARD') {
       return {
         tone: 'emerald' as const,
-        badge: isKo ? '대상 선택' : 'Select Target',
-        text: isKo
-          ? '초록·노란빛으로 강조된 대상(아군 또는 적)을 눌러 카드 효과를 발동하세요!'
-          : 'Tap any highlighted target (ally or enemy) to trigger the card effect!',
+        badge: tr('대상 선택', 'Select Target'),
+        text: tr('초록·노란빛으로 강조된 대상(아군 또는 적)을 눌러 카드 효과를 발동하세요!', 'Tap any highlighted target (ally or enemy) to trigger the card effect!'),
       };
     }
     if (playableCount > 0) {
       return {
         tone: 'emerald' as const,
         badge: isKo ? `마나 ${matchState.player.mana}/${matchState.player.maxMana}` : `Mana ${matchState.player.mana}/${matchState.player.maxMana}`,
-        text: isKo
-          ? '아래 손패에서 초록빛 테두리 카드를 눌러 전장에 소환하세요!'
-          : 'Tap a green-glowing card in your hand below to play it onto the board!',
+        text: tr('아래 손패에서 초록빛 테두리 카드를 눌러 전장에 소환하세요!', 'Tap a green-glowing card in your hand below to play it onto the board!'),
       };
     }
     if (totalAttackers > 0) {
       return {
         tone: 'emerald' as const,
-        badge: isKo ? '공격 가능' : 'Ready to Attack',
+        badge: tr('공격 가능', 'Ready to Attack'),
         text: isKo
           ? `전장의 초록빛 내 하수인${heroCanAttack ? ' 또는 영웅' : ''}을 누른 뒤 적을 공격하세요!`
           : `Tap a green-glowing minion${heroCanAttack ? ' or hero' : ''}, then tap an enemy target!`,
@@ -1979,10 +1946,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
     return {
       tone: 'amber' as const,
-      badge: isKo ? '턴 마무리' : 'Wrap Up',
-      text: isKo
-        ? '할 수 있는 행동을 마쳤습니다! 오른쪽 [턴 종료] 버튼을 눌러 턴을 넘기세요.'
-        : 'All moves done! Press [End Turn] on the right to pass the turn.',
+      badge: tr('턴 마무리', 'Wrap Up'),
+      text: tr('할 수 있는 행동을 마쳤습니다! 오른쪽 [턴 종료] 버튼을 눌러 턴을 넘기세요.', 'All moves done! Press [End Turn] on the right to pass the turn.'),
     };
   }, [matchState, autoPlay, selection, engine, isKo]);
 
@@ -2226,23 +2191,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (latest?.actorSide === 'OPPONENT' && latest.cardId) {
         const playedDef = cardDb.getCard(latest.cardId);
         if (playedDef?.rarity === 'LEGENDARY') {
-          tauntMsg = isKo
-            ? '전설 에이스 등판! 이건 쉽게 못 막을걸? 😎'
-            : 'Behold my Legendary ace! Try stopping this! 😎';
+          tauntMsg = tr('전설 에이스 등판! 이건 쉽게 못 막을걸? 😎', 'Behold my Legendary ace! Try stopping this! 😎');
         } else if (playedDef?.type === 'SPELL') {
-          tauntMsg = isKo
-            ? '깔끔하게 정리 완료~ 계산대로야! ✨'
-            : 'Clean answer~ Everything according to plan! ✨';
+          tauntMsg = tr('깔끔하게 정리 완료~ 계산대로야! ✨', 'Clean answer~ Everything according to plan! ✨');
         }
       }
     } else if (matchState.player.health <= 10 && matchState.activeSide === 'OPPONENT') {
-      tauntMsg = isKo
-        ? '킬각이 보이는데? 체크메이트! ⚡'
-        : 'I see lethal on board! Checkmate! ⚡';
+      tauntMsg = tr('킬각이 보이는데? 체크메이트! ⚡', 'I see lethal on board! Checkmate! ⚡');
     } else if (matchState.activeSide === 'PLAYER' && matchState.turnSecondsLeft === 20) {
-      tauntMsg = isKo
-        ? '음… 장고 중이군? 신중하게 내보라고!'
-        : 'Thinking hard over there? Make your best move!';
+      tauntMsg = tr('음… 장고 중이군? 신중하게 내보라고!', 'Thinking hard over there? Make your best move!');
     }
 
     if (tauntMsg) {
@@ -2847,11 +2804,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           ep0SummaryShownTurnRef.current = null;
           setEp0Dialogue({
             speaker: 'KADAN',
-            badge: isKo ? '1턴 개시 · 멀리건 완료' : 'Turn 1 Start · Mulligan Done',
-            headline: isKo ? '저비용 카드 확보 완료!' : 'Low-Cost Hand Ready!',
-            reason: isKo
-              ? '초반에 바로 낼 수 있는 저비용 카드를 남겼어요!'
-              : 'Kept low-Mana cards to play right away early on!',
+            badge: tr('1턴 개시 · 멀리건 완료', 'Turn 1 Start · Mulligan Done'),
+            headline: tr('저비용 카드 확보 완료!', 'Low-Cost Hand Ready!'),
+            reason: tr('초반에 바로 낼 수 있는 저비용 카드를 남겼어요!', 'Kept low-Mana cards to play right away early on!'),
           });
         }
         setMatchState(eng.confirmMulligan(replaceUids));
@@ -2895,11 +2850,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (isEp0Tutorial && cur.turnNumber >= 2 && plannedAction?.kind === 'PLAY_CARD') {
       setEp0Dialogue({
         speaker: 'KADAN',
-        badge: isKo ? '오카리나 리듬 오토 체험' : 'Ocarina Rhythm Auto',
-        headline: isKo ? '수축하는 황금 링에 맞춰 탭/Space!' : 'Tap / Space on the Golden Beat Ring!',
-        reason: isKo
-          ? '정박에 맞추면 BGM 화음이 울리며 1.5x · 2.0x 성소 공명이 발동합니다!'
-          : 'Hit on beat to play BGM chords & trigger 1.5x · 2.0x Sanctuary Resonance!',
+        badge: tr('오카리나 리듬 오토 체험', 'Ocarina Rhythm Auto'),
+        headline: tr('수축하는 황금 링에 맞춰 탭/Space!', 'Tap / Space on the Golden Beat Ring!'),
+        reason: tr('정박에 맞추면 BGM 화음이 울리며 1.5x · 2.0x 성소 공명이 발동합니다!', 'Hit on beat to play BGM chords & trigger 1.5x · 2.0x Sanctuary Resonance!'),
       });
     }
     const timer = window.setTimeout(() => {
@@ -2982,9 +2935,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             : `⚡ Auto-Play: Hero Power [${snap.player.heroPowerNameKo}]!`,
         );
         if (isEp0Tutorial) {
-          const hpReason = isKo
-            ? '남은 2마나로 영웅 능력을 사용합니다.'
-            : 'Spending 2 leftover Mana on Hero Power.';
+          const hpReason = tr('남은 2마나로 영웅 능력을 사용합니다.', 'Spending 2 leftover Mana on Hero Power.');
           ep0TurnPlaysRef.current.push(
             isKo ? `영웅 능력 → ${hpReason}` : `Hero Power → ${hpReason}`,
           );
@@ -3009,19 +2960,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             speaker: 'KADAN',
             badge: isKo ? `카단 ${snap.turnNumber}턴 · 공격` : `Kadan T${snap.turnNumber} · Attack`,
             headline: isFace
-              ? isKo
-                ? '상대 본체 직접 타격!'
-                : 'Direct Hero Strike!'
-              : isKo
-                ? '적 하수인 먼저 정리!'
-                : 'Clear Enemy Minion First!',
+              ? tr('상대 본체 직접 타격!', 'Direct Hero Strike!')
+              : tr('적 하수인 먼저 정리!', 'Clear Enemy Minion First!'),
             reason: isFace
-              ? isKo
-                ? '도발이 없어 본체를 직접 공격합니다.'
-                : 'No Taunt blocks the lane — hit the Hero directly!'
-              : isKo
-                ? '적 하수인을 먼저 잡아 필드를 지킵니다.'
-                : 'Trade with enemy minions first to hold the board!',
+              ? tr('도발이 없어 본체를 직접 공격합니다.', 'No Taunt blocks the lane — hit the Hero directly!')
+              : tr('적 하수인을 먼저 잡아 필드를 지킵니다.', 'Trade with enemy minions first to hold the board!'),
           });
         }
         const started = triggerPhysicalAttack('PLAYER', action.attackerId, action.defenderId);
@@ -3037,16 +2980,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             const summaryText =
               ep0TurnPlaysRef.current.length > 0
                 ? ep0TurnPlaysRef.current[ep0TurnPlaysRef.current.length - 1]
-                : isKo
-                  ? '마나가 부족해 다음 턴(+1)을 준비합니다.'
-                  : 'Low on Mana — preparing +1 Max Mana next turn!';
+                : tr('마나가 부족해 다음 턴(+1)을 준비합니다.', 'Low on Mana — preparing +1 Max Mana next turn!');
             setAiHighlightText(
               isKo ? `💬 카단 ${snap.turnNumber}턴 요약` : `💬 Kadan Turn ${snap.turnNumber} Recap`,
             );
             setEp0Dialogue({
               speaker: 'KADAN',
               badge: isKo ? `카단 ${snap.turnNumber}턴 종료` : `Kadan End of T${snap.turnNumber}`,
-              headline: isKo ? '이번 턴 핵심 이유' : 'Key Move This Turn',
+              headline: tr('이번 턴 핵심 이유', 'Key Move This Turn'),
               reason: summaryText,
             });
             setEp0SummaryNonce((n) => n + 1);
@@ -3158,9 +3099,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         const def = cardDb.mustGetCard(action.cardId);
         const isSecret = def.mechanics.includes('SECRET');
         const dispName = isSecret
-          ? isKo
-            ? '? 비밀'
-            : '? Secret'
+          ? tr('? 비밀', '? Secret')
           : getCardName(def, lang);
         hsAudio.playSfx('card_place', 0.85);
         setAiHighlightText(
@@ -3192,9 +3131,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             : `${snap.opponent.heroNameKo}: Hero Power [${snap.opponent.heroPowerNameKo}]!`,
         );
         if (isEp0Tutorial) {
-          const botHpReason = isKo
-            ? '방어도 +2로 내구력을 테스트합니다.'
-            : 'Testing durability with +2 Armor.';
+          const botHpReason = tr('방어도 +2로 내구력을 테스트합니다.', 'Testing durability with +2 Armor.');
           ep0OpponentPlaysRef.current.push(
             isKo ? `영웅 능력 → ${botHpReason}` : `Hero Power → ${botHpReason}`,
           );
@@ -3217,10 +3154,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           setEp0Dialogue({
             speaker: 'SCARECROW',
             badge: isKo ? `로봇 ${snap.turnNumber}턴 · 공격` : `Bot T${snap.turnNumber} · Attack`,
-            headline: isKo ? '소환 다음 턴 반격!' : 'Ready Next Turn Counter!',
-            reason: isKo
-              ? '소환한 다음 턴부터 공격할 수 있습니다.'
-              : 'Minions can attack starting the turn after they enter.',
+            headline: tr('소환 다음 턴 반격!', 'Ready Next Turn Counter!'),
+            reason: tr('소환한 다음 턴부터 공격할 수 있습니다.', 'Minions can attack starting the turn after they enter.'),
           });
         }
         const started = triggerPhysicalAttack('OPPONENT', action.attackerId, action.defenderId);
@@ -3236,16 +3171,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             const summaryText =
               ep0OpponentPlaysRef.current.length > 0
                 ? ep0OpponentPlaysRef.current[ep0OpponentPlaysRef.current.length - 1]
-                : isKo
-                  ? '상대 턴 종료! 마나 +1을 받아 반격합니다.'
-                  : 'Enemy turn ends! Gain +1 Max Mana to strike back.';
+                : tr('상대 턴 종료! 마나 +1을 받아 반격합니다.', 'Enemy turn ends! Gain +1 Max Mana to strike back.');
             setAiHighlightText(
               isKo ? `💬 카단 · ${snap.turnNumber}턴 해설` : `💬 Kadan · Turn ${snap.turnNumber} Note`,
             );
             setEp0Dialogue({
               speaker: 'KADAN',
               badge: isKo ? `카단 · ${snap.turnNumber}턴 해설` : `Kadan · T${snap.turnNumber} Insight`,
-              headline: isKo ? '상대 수에 대비하는 이유' : 'Why We Counter That Play',
+              headline: tr('상대 수에 대비하는 이유', 'Why We Counter That Play'),
               reason: summaryText,
             });
             setEp0SummaryNonce((n) => n + 1);
@@ -3393,7 +3326,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 ...s,
                 errorBanner:
                   check.reason ||
-                  (isKoreanLanguage() ? '마나가 부족합니다!' : 'Not enough Mana!'),
+                  (tr('마나가 부족합니다!', 'Not enough Mana!')),
               }));
             }
             suppressNextClickRef.current = true;
@@ -3563,9 +3496,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               if (enemyHasTaunt) {
                 setMatchState((s) => ({
                   ...s,
-                  errorBanner: isKoreanLanguage()
-                    ? '도발 능력이 있는 하수인이 가로막고 있습니다!'
-                    : 'A minion with Taunt is in the way!',
+                  errorBanner: tr('도발 능력이 있는 하수인이 가로막고 있습니다!', 'A minion with Taunt is in the way!'),
                 }));
               }
             }
@@ -3747,7 +3678,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         } else {
           setMatchState((s) => ({
             ...s,
-            errorBanner: isKo ? '올바른 대상이 아닙니다!' : 'Not a valid target!',
+            errorBanner: tr('올바른 대상이 아닙니다!', 'Not a valid target!'),
           }));
         }
         return;
@@ -3763,7 +3694,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         } else {
           setMatchState((s) => ({
             ...s,
-            errorBanner: isKo ? '올바른 대상이 아닙니다!' : 'Not a valid target!',
+            errorBanner: tr('올바른 대상이 아닙니다!', 'Not a valid target!'),
           }));
         }
         return;
@@ -3782,7 +3713,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         } else {
           setMatchState((s) => ({
             ...s,
-            errorBanner: isKo ? '올바른 대상이 아닙니다!' : 'Not a valid target!',
+            errorBanner: tr('올바른 대상이 아닙니다!', 'Not a valid target!'),
           }));
         }
         return;
@@ -3807,14 +3738,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           if (enemyHasTaunt) {
             setMatchState((s) => ({
               ...s,
-              errorBanner: isKo
-                ? '도발 능력이 있는 하수인이 가로막고 있습니다!'
-                : 'A minion with Taunt is in the way!',
+              errorBanner: tr('도발 능력이 있는 하수인이 가로막고 있습니다!', 'A minion with Taunt is in the way!'),
             }));
           } else {
             setMatchState((s) => ({
               ...s,
-              errorBanner: isKo ? '공격할 수 없는 대상입니다!' : 'Cannot attack that target!',
+              errorBanner: tr('공격할 수 없는 대상입니다!', 'Cannot attack that target!'),
             }));
           }
         }
@@ -3867,7 +3796,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       } else if (getHeroAttack(matchState.player, true) > 0) {
         setMatchState((s) => ({
           ...s,
-          errorBanner: swing.reason || (isKo ? '공격할 수 없습니다.' : 'Cannot attack right now.'),
+          errorBanner: swing.reason || (tr('공격할 수 없습니다.', 'Cannot attack right now.')),
         }));
       }
       return;
@@ -3896,7 +3825,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (!hpCheck.canUse) {
       setMatchState((s) => ({
         ...s,
-        errorBanner: hpCheck.reason || (isKo ? '사용할 수 없습니다.' : 'Cannot use Hero Power.'),
+        errorBanner: hpCheck.reason || (tr('사용할 수 없습니다.', 'Cannot use Hero Power.')),
       }));
       return;
     }
@@ -3964,22 +3893,18 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (toy.vfxKind === 'TOY_CATAPULT') {
         targetEntity = 'TOY_BR';
       } else if (toy.vfxKind === 'TOY_BELL') {
-        vfxLabel = isKo ? '♪ 땡~!' : '♪ Clang!';
+        vfxLabel = tr('♪ 땡~!', '♪ Clang!');
       } else if (toy.vfxKind === 'TOY_RADISH') {
         const roll = Math.random();
         if (roll < 0.18) {
           vfxValue = 777;
-          vfxLabel = isKo ? '★ 황금 영초!!' : '★ Golden Root!!';
-          toastMsg = isKo
-            ? '✦ 대박!! 바람 신전 텃밭에서 전설의 [황금 영초]가 뽑혔습니다!!'
-            : '✦ Jackpot!! Plucked a legendary [Golden Spirit Root]!';
+          vfxLabel = tr('★ 황금 영초!!', '★ Golden Root!!');
+          toastMsg = tr('✦ 대박!! 바람 신전 텃밭에서 전설의 [황금 영초]가 뽑혔습니다!!', '✦ Jackpot!! Plucked a legendary [Golden Spirit Root]!');
         } else if (roll < 0.3) {
-          vfxLabel = isKo ? '🥾 낡은 장화?!' : '🥾 Old Boot?!';
-          toastMsg = isKo
-            ? '엇?! 영초 대신 흙 묻은 낡은 가죽 장화가 뽑혔습니다!'
-            : 'Huh?! Pulled up a muddy old leather boot instead!';
+          vfxLabel = tr('🥾 낡은 장화?!', '🥾 Old Boot?!');
+          toastMsg = tr('엇?! 영초 대신 흙 묻은 낡은 가죽 장화가 뽑혔습니다!', 'Huh?! Pulled up a muddy old leather boot instead!');
         } else {
-          vfxLabel = isKo ? '🌱 영초 수확!' : '🌱 Herb Plucked!';
+          vfxLabel = tr('🌱 영초 수확!', '🌱 Herb Plucked!');
         }
       }
 
@@ -4047,23 +3972,23 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const buildMinionStatusPills = (m: MinionInstance): string[] => {
     const pills: string[] = [];
-    if (m.silenced) pills.push(isKo ? '침묵 상태' : 'Silenced');
-    if (hasMinionTaunt(m)) pills.push(isKo ? '도발' : 'Taunt');
-    if (m.divineShield) pills.push(isKo ? '빛의 보호막' : 'Divine Shield');
-    if (m.stealth || m.concealedUntilNextTurn) pills.push(isKo ? '은신' : 'Stealth');
-    if (m.windfury) pills.push(isKo ? '질풍' : 'Windfury');
-    if (m.frozen) pills.push(isKo ? '빙결' : 'Frozen');
-    if (m.charge || m.auraCharge) pills.push(isKo ? '돌진' : 'Charge');
-    if (m.poisonous && !m.silenced) pills.push(isKo ? '독성' : 'Poisonous');
-    if (m.elusive && !m.silenced) pills.push(isKo ? '주문·영웅 능력 대상 불가' : 'Elusive');
-    if (m.cantAttack) pills.push(isKo ? '공격 불가' : "Can't Attack");
+    if (m.silenced) pills.push(tr('침묵 상태', 'Silenced'));
+    if (hasMinionTaunt(m)) pills.push(tr('도발', 'Taunt'));
+    if (m.divineShield) pills.push(tr('빛의 보호막', 'Divine Shield'));
+    if (m.stealth || m.concealedUntilNextTurn) pills.push(tr('은신', 'Stealth'));
+    if (m.windfury) pills.push(tr('질풍', 'Windfury'));
+    if (m.frozen) pills.push(tr('빙결', 'Frozen'));
+    if (m.charge || m.auraCharge) pills.push(tr('돌진', 'Charge'));
+    if (m.poisonous && !m.silenced) pills.push(tr('독성', 'Poisonous'));
+    if (m.elusive && !m.silenced) pills.push(tr('주문·영웅 능력 대상 불가', 'Elusive'));
+    if (m.cantAttack) pills.push(tr('공격 불가', "Can't Attack"));
     if (m.spellDamage > 0 && !m.silenced) {
       pills.push(isKo ? `주문 공격력 +${m.spellDamage}` : `Spell Damage +${m.spellDamage}`);
     }
     if (m.exhausted && !m.charge && !m.auraCharge && !m.cantAttack) {
-      pills.push(isKo ? '소환 후유증 (다음 턴 공격 가능)' : 'Summoning Sickness (Ready next turn)');
+      pills.push(tr('소환 후유증 (다음 턴 공격 가능)', 'Summoning Sickness (Ready next turn)'));
     } else if (m.attacksMadeThisTurn > 0 && (!m.windfury || m.attacksMadeThisTurn >= 2)) {
-      pills.push(isKo ? '이번 턴 공격 완료' : 'Already Attacked');
+      pills.push(tr('이번 턴 공격 완료', 'Already Attacked'));
     }
     return pills;
   };
@@ -4080,7 +4005,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       const primaryAction: CardZoomAction = !isPlayerTurn
         ? {
-            label: isKo ? '상대 턴에는 카드를 사용할 수 없습니다' : "Cannot play cards on opponent's turn",
+            label: tr('상대 턴에는 카드를 사용할 수 없습니다', "Cannot play cards on opponent's turn"),
             disabled: true,
             onClick: () => {},
           }
@@ -4090,9 +4015,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 ? isKo
                   ? `사용 불가 · ${check.reason}`
                   : `Unavailable · ${check.reason}`
-                : isKo
-                  ? '마나가 부족합니다'
-                  : 'Not enough Mana',
+                : tr('마나가 부족합니다', 'Not enough Mana'),
               disabled: true,
               onClick: () => {},
             }
@@ -4137,7 +4060,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         matchState.player.board.length > 0
           ? [
               {
-                label: isKo ? '전장 위치 직접 지정하여 놓기' : 'Choose Exact Board Position',
+                label: tr('전장 위치 직접 지정하여 놓기', 'Choose Exact Board Position'),
                 variant: 'brass',
                 onClick: () => {
                   setZoomState(null);
@@ -4235,22 +4158,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           journeyMultiplier={cardMult}
           subtitleBadge={
             marked
-              ? isKo
-                ? '시작 손패 교체 · 현재 [교체 예정 ✕]'
-                : 'Starting Hand · Marked [Replace ✕]'
-              : isKo
-                ? '시작 손패 교체 · 현재 [손패 유지]'
-                : 'Starting Hand · Marked [Keep]'
+              ? tr('시작 손패 교체 · 현재 [교체 예정 ✕]', 'Starting Hand · Marked [Replace ✕]')
+              : tr('시작 손패 교체 · 현재 [손패 유지]', 'Starting Hand · Marked [Keep]')
           }
           navigation={mulliganNav}
           primaryAction={{
             label: marked
-              ? isKo
-                ? '교체 취소 (시작 손패에 유지)'
-                : 'Cancel Replace (Keep Card)'
-              : isKo
-                ? '교체 표시하기 (덱으로 교체)'
-                : 'Mark for Replace (Redraw)',
+              ? tr('교체 취소 (시작 손패에 유지)', 'Cancel Replace (Keep Card)')
+              : tr('교체 표시하기 (덱으로 교체)', 'Mark for Replace (Redraw)'),
             variant: marked ? 'arcane' : 'crimson',
             onClick: () => {
               toggleMulliganCard(hc.uid);
@@ -4258,7 +4173,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           }}
           secondaryActions={[
             {
-              label: isKo ? '확인 (닫기)' : 'OK (Close)',
+              label: tr('확인 (닫기)', 'OK (Close)'),
               variant: 'brass',
               onClick: () => setZoomState(null),
             },
@@ -4303,12 +4218,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           navigation={chooseNav}
           primaryAction={{
             label: opt.needsTarget
-              ? isKo
-                ? '이 효과 선택 · 대상 지정'
-                : 'Choose Effect · Select Target'
-              : isKo
-                ? '이 효과 사용'
-                : 'Use This Effect',
+              ? tr('이 효과 선택 · 대상 지정', 'Choose Effect · Select Target')
+              : tr('이 효과 사용', 'Use This Effect'),
             variant: 'emerald',
             onClick: () => {
               setZoomState(null);
@@ -4374,13 +4285,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         <CardZoomModal
           card={def}
           subtitleBadge={
-            isKo
-              ? '정찰 추적 — 가져올 카드 1장 선택 (나머지 2장 버림)'
-              : 'Tracking — Draw 1 Card (Discard the other 2)'
+            tr('정찰 추적 — 가져올 카드 1장 선택 (나머지 2장 버림)', 'Tracking — Draw 1 Card (Discard the other 2)')
           }
           navigation={trackingNav}
           primaryAction={{
-            label: isKo ? '이 카드 손으로 가져오기' : 'Draw This Card',
+            label: tr('이 카드 손으로 가져오기', 'Draw This Card'),
             variant: 'emerald',
             onClick: () => {
               setZoomState(null);
@@ -4448,12 +4357,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           card={def}
           subtitleBadge={
             zoomState.isFriendly
-              ? isKo
-                ? '아군 전장 영웅·동료 정보'
-                : 'Friendly Board Minion'
-              : isKo
-                ? '적 전장 영웅·동료 정보'
-                : 'Enemy Board Minion'
+              ? tr('아군 전장 영웅·동료 정보', 'Friendly Board Minion')
+              : tr('적 전장 영웅·동료 정보', 'Enemy Board Minion')
           }
           liveStats={{
             attack: getMinionAttack(liveMinion),
@@ -4465,7 +4370,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           primaryAction={
             canSwing && validTargets.length > 0
               ? {
-                  label: isKo ? '이 동료로 공격 대상 선택' : 'Select Target to Attack',
+                  label: tr('이 동료로 공격 대상 선택', 'Select Target to Attack'),
                   variant: 'emerald',
                   onClick: () => {
                     setZoomState(null);
@@ -4477,7 +4382,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   },
                 }
               : {
-                  label: isKo ? '확인 (닫기)' : 'OK (Close)',
+                  label: tr('확인 (닫기)', 'OK (Close)'),
                   variant: 'brass',
                   onClick: () => setZoomState(null),
                 }
@@ -4526,7 +4431,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           }
           navigation={historyNav}
           primaryAction={{
-            label: isKo ? '확인 (닫기)' : 'OK (Close)',
+            label: tr('확인 (닫기)', 'OK (Close)'),
             variant: 'brass',
             onClick: () => setZoomState(null),
           }}
@@ -5362,6 +5267,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <div className="flex shrink-0 items-center gap-1 sm:justify-self-end">
             <button
               type="button"
+              data-testid="battle-top-lang-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                hsAudio.playSfx('ui_click', 0.7);
+                setLanguage(isKo ? 'en' : 'ko');
+              }}
+              aria-label={isKo ? 'Switch to English' : '한국어로 전환'}
+              title={isKo ? 'Switch to English' : '한국어로 전환'}
+              className="min-h-[36px] rounded-xl border border-sky-300/55 bg-stone-950/90 px-2 py-1 text-[10px] font-extrabold text-sky-200 shadow hover:border-sky-200 hover:text-white sm:min-h-[38px] sm:px-2.5 sm:text-xs"
+            >
+              {isKo ? 'EN' : '한'}
+            </button>
+            <button
+              type="button"
               data-testid="battle-rules-btn"
               onClick={(e) => {
                 e.stopPropagation();
@@ -5775,7 +5694,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 </div>
               </div>
               <span className="hs-num ml-2 whitespace-nowrap rounded-full bg-red-900 px-2 py-0.5 text-xs text-yellow-200 shadow">
-                🔥 {matchState.turnSecondsLeft}{isKo ? '초!' : 's!'}
+                🔥 {matchState.turnSecondsLeft}{tr('초!', 's!')}
               </span>
             </div>
           )}
@@ -7132,7 +7051,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       <span>{tr(`보유 ${item.newOwnedCount}장`, `Owned ${item.newOwnedCount}`)}</span>
                       {item.newJourneyMultiplier > 1 ? (
                         <span className="ml-1 text-yellow-300">
-                          · ⚡×{item.newJourneyMultiplier}{isKo ? '배 각성!' : ' Awakened!'}
+                          · ⚡×{item.newJourneyMultiplier}{tr('배 각성!', ' Awakened!')}
                         </span>
                       ) : item.isNew ? (
                         <span className="ml-1 text-sky-300">· {tr('신규', 'NEW')}</span>
@@ -7199,7 +7118,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       ? `⚔ 강화된 덱으로 제${matchState.journeyMeta?.episode ?? profile.journeyEpisode ?? 0}화 다시 도전하기`
                       : `⚔ Retry EP ${matchState.journeyMeta?.episode ?? profile.journeyEpisode ?? 0} with Boosted Deck`}
                     {autoPlay && !postGameAutoPaused
-                      ? ` (${Math.max(1, Math.ceil(drawRetryRemainingMs / 1000))}${isKo ? '초' : 's'})`
+                      ? ` (${Math.max(1, Math.ceil(drawRetryRemainingMs / 1000))}${tr('초', 's')})`
                       : ' ▶'}
                   </button>
                 )}
@@ -7612,7 +7531,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                           ? tr(`⚔ 제${outcomeSummary.nextEpisode}화 시작`, `⚔ Start Episode ${outcomeSummary.nextEpisode}`)
                           : tr(`⚔ 다음 여정 (제${outcomeSummary.nextEpisode}화)`, `⚔ Next Episode (EP ${outcomeSummary.nextEpisode})`)}
                         {autoPlay && !postGameAutoPaused
-                          ? ` · ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${isKo ? '초' : 's'}`
+                          ? ` · ${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${tr('초', 's')}`
                           : ' ▶'}
                       </button>
                     ) : !didWin ? (
@@ -7627,7 +7546,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       >
                         {tr('🎁 카드팩 1개 개봉해 전력 강화', '🎁 Open 1 Pack to Power Up')}
                         {autoPlay && !postGameAutoPaused
-                          ? ` (${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${isKo ? '초' : 's'})`
+                          ? ` (${Math.max(1, Math.ceil(postGameRemainingMs / 1000))}${tr('초', 's')})`
                           : ' ▶'}
                       </button>
                     ) : (

@@ -215,11 +215,14 @@ export const CHECKOUT_COUNTRIES: CheckoutCountryOption[] = [
   },
 ];
 
+import { isPortalNoAdsEnvironment } from './portalBridge';
+
 export const POPUP_PAYMENT_EVENT_KEY = 'hero_hs_last_popup_payment';
 export const HS_AD_REMOVED_KEY = 'hero_hs_ad_removed';
 
 export function isHsGameAdRemoved(): boolean {
   if (typeof window === 'undefined') return false;
+  if (isPortalNoAdsEnvironment()) return true;
   try {
     return (
       localStorage.getItem(HS_AD_REMOVED_KEY) === 'true' ||

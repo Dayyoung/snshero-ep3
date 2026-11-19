@@ -1402,3 +1402,19 @@
     - CrazyGames(외부 광고·결제·이탈링크·풀스크린 버튼 금지, Basic/Full 2단계), itch.io(루트 `index.html`+상대경로 zip+Devlog), GDevelop/gd.games(GDevelop 엔진 제작물 전용 정책 확인 — 외부 Vite 빌드 업로드 불가), Reddit 90/10 규칙 및 GeekNews/Disquiet/인벤 가이드라인 정리.
   - **5. 구글 시트 정규화 및 일괄 최신화**:
     - 85~99행(`MKT-084`~`MKT-098`) 밀린 컬럼 15건 표준 11열 스키마로 복구, 총 **17건 추가 `완료`** 처리 및 `MKT-088` `진행중` 전환. 로컬 `git commit` 완료 (원격 `git push` 보류).
+
+## [2026-11-19 09:50 KST] [MKT-075 전투 KO/EN 1탭 토글, MKT-090 랭킹 3승 스탬프·9종족 AI 배지, MKT-099/100 CrazyGames·itch.io HTML5 포털 ZIP 패키저 구축]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 전투 상단 바 1탭 `KO/EN` 토글 (`MKT-075`) & 랭킹 3승 스탬프 / 9종족 숙련 AI 배지 (`MKT-090`)**:
+    - [`BattleScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BattleScreen.tsx): 전장 상단 유틸리티 바에 모바일 안전(`390×844` 우측 넘침 0px 검증) `EN/한` 1탭 언어 토글(`battle-top-lang-btn`) 추가 및 CrazyGames SDK 라이프사이클 훅(`portalGameplayStart`/`portalGameplayStop`) 연동.
+    - [`HeroDeckSelectScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/HeroDeckSelectScreen.tsx): 공식 랭킹대전 카드 내 3승 스탬프 진행 바(`1승 +25G · 2승 +50G · 3승 +105G=1팩!`) 및 AI 수련 모드 `9종족 숙련 AI X/9 (+2팩)` 배지 추가.
+  - **2. HTML5 웹게임 포털 배포 런타임 & 자동 패키저 구축 (`MKT-099`, `MKT-100`, `MKT-101`)**:
+    - [`portalBridge.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/portalBridge.ts) & [`paymentGateway.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/paymentGateway.ts): CrazyGames/itch.io 포털 환경 자동 감지 시 외부 AdSense 배너 전면 차단 및 CrazyGames SDK 이벤트 안전 래핑.
+    - [`scripts/build-portal-zips.mjs`](file:///Users/dayyoung/project/snshero/scripts/build-portal-zips.mjs) (`npm run build:portals`):
+      - `dist-portals/snshero-itchio.zip` (**939개 파일 / 107.28 MB** — itch.io 1,000파일·500MB 상한 충족, 루트 `index.html`·AdSense 제거)
+      - `dist-portals/snshero-crazygames.zip` (**1,271개 파일 / 134.04 MB** — CrazyGames 1,500파일·250MB 상한 충족, SDK v2 포함·AdSense 제거)
+      - `dist-portals/PORTAL_SUBMISSION_GUIDE.md` (CrazyGames · itch.io · GDevelop/gd.games 정책 및 등록 메타 가이드 생성)
+  - **3. 검증·시트 최신화·로컬 커밋**:
+    - `vite build` + `post-build.js` + `build-portal-zips.mjs` 통과, Playwright 데스크톱(`1280×800`)·모바일(`390×844`) 한·영 3개 시나리오 에러 `0건`·가로 넘침 `0건`·우측 메뉴 버튼 잘림 없음 확인.
+    - 구글 시트 `MKT-075`, `MKT-090` → `완료`, `MKT-099`, `MKT-100`, `MKT-101` → `진행중` 반영 (대시보드 누적 완료 **48건 / 45.7%**). 로컬 `git commit` 완료 (`git push` 보류).

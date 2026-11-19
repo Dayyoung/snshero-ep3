@@ -192,7 +192,7 @@ const BogartNarrationOverlay: React.FC<{
   const totalLines = BOGART_NARRATION_LINES.length;
   const safeIdx = Math.min(lineIdx, totalLines - 1);
   const speechText = isKo ? BOGART_NARRATION_LINES[safeIdx].ko : BOGART_NARRATION_LINES[safeIdx].en;
-  const speakerLabel = isKo ? '고블린 도박왕 보가트' : 'Goblin Gambling King Bogart';
+  const speakerLabel = tr('고블린 도박왕 보가트', 'Goblin Gambling King Bogart');
 
   const handleAutoNext = useCallback(() => {
     if (safeIdx + 1 < totalLines) {
@@ -1156,6 +1156,39 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                   {tr(
                     `공식 전적: ${profile.rankedWins || 0}승 ${Math.max(0, (profile.rankedGames || 0) - (profile.rankedWins || 0))}패 · 연승 ${profile.rankedWinStreak || 0} · 3승 보너스 ${profile.threeWinCounter}/3`,
                     `Official: ${profile.rankedWins || 0}W ${Math.max(0, (profile.rankedGames || 0) - (profile.rankedWins || 0))}L · Streak ${profile.rankedWinStreak || 0} · 3-Win ${profile.threeWinCounter}/3`,
+                  )}
+                </div>
+                <div
+                  data-testid="ranked-3win-stamp-bar"
+                  className="mt-1.5 flex flex-wrap items-center gap-1 text-[10px] font-extrabold"
+                >
+                  {[
+                    { step: 1, label: tr('1승 +25G', '1W +25G') },
+                    { step: 2, label: tr('2승 +50G', '2W +50G') },
+                    { step: 3, label: tr('3승 +105G=1팩!', '3W +105G=1 Pack!') },
+                  ].map((s) => {
+                    const filled = (profile.threeWinCounter || 0) >= s.step;
+                    return (
+                      <span
+                        key={s.step}
+                        className={`rounded-md border px-1.5 py-0.5 ${
+                          filled
+                            ? 'border-amber-300 bg-amber-500/30 text-amber-100'
+                            : 'border-white/15 bg-black/40 text-stone-400'
+                        }`}
+                      >
+                        {filled ? '★ ' : '○ '}
+                        {s.label}
+                      </span>
+                    );
+                  })}
+                  {(mode === 'PRACTICE_NORMAL' || mode === 'PRACTICE_EXPERT') && (
+                    <span
+                      data-testid="ai-9faction-stamp-badge"
+                      className="rounded-md border border-emerald-400/50 bg-emerald-950/70 px-1.5 py-0.5 text-emerald-200"
+                    >
+                      🛡️ {tr(`9종족 숙련 AI ${profile.practiceExpertCleared?.length || 0}/9 (+2팩)`, `9-Faction AI ${profile.practiceExpertCleared?.length || 0}/9 (+2 Packs)`)}
+                    </span>
                   )}
                 </div>
               </div>
