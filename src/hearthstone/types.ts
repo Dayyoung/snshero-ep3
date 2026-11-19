@@ -620,6 +620,18 @@ export interface JourneyBattleMeta {
   playerCardMultipliers: Record<string, number>;
 }
 
+export interface LivePvpMeta {
+  roomId: string;
+  role: 'HOST' | 'GUEST';
+  hostPeerId: string;
+  hostName: string;
+  guestPeerId: string;
+  guestName: string;
+  stakeGold: number;
+  guildId?: string;
+  guildTag?: string;
+}
+
 export interface BattleMatchState {
   matchId: string;
   mode: GameMode;
@@ -643,6 +655,7 @@ export interface BattleMatchState {
   errorBanner: string | null;
   tutorialStep: number;
   journeyMeta?: JourneyBattleMeta;
+  livePvpMeta?: LivePvpMeta;
   siliaUsedThisTurn?: boolean;
   siliaLastSkillKind?: 'DEFENSE' | 'ATTACK' | 'HEAL';
 }

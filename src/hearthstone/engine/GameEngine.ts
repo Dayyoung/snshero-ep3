@@ -12,6 +12,7 @@ import {
   HandCardInstance,
   HeroClass,
   JourneyBattleMeta,
+  LivePvpMeta,
   MinionInstance,
   PlayerBattleState,
   PlayerSide,
@@ -125,6 +126,7 @@ export function createBattleMatch(opts: {
   opponentCustomHero?: CustomBattleHeroSpec;
   boardTheme?: BoardThemeId;
   journeyMeta?: JourneyBattleMeta;
+  livePvpMeta?: LivePvpMeta;
 }): BattleMatchState {
   const themes: BoardThemeId[] = ['STORMWIND', 'ORGRIMMAR', 'PANDARIA'];
   const boardTheme = opts.boardTheme || themes[Math.floor(Math.random() * themes.length)];
@@ -191,6 +193,7 @@ export function createBattleMatch(opts: {
     errorBanner: null,
     tutorialStep: opts.mode === 'TUTORIAL' ? 1 : 0,
     journeyMeta: opts.mode === 'TUTORIAL' ? opts.journeyMeta : undefined,
+    livePvpMeta: opts.livePvpMeta,
     siliaUsedThisTurn: false,
   };
 }
@@ -1594,6 +1597,55 @@ export function createEngine(rawState: BattleMatchState) {
     return state;
   };
 
+  const confirmPvpDualMulligan = (
+    hostReplaceUids: string[],
+    guestReplaceUids: string[],
+  ): BattleMatchState => {
+    if (state.phase !== 'MULLIGAN') return state;
+
+    const p = state.player;
+    const pNewHand: HandCardInstance[] = [];
+    const pReturned: string[] = [];
+    for (const hc of p.hand) {
+      if (hostReplaceUids.includes(hc.uid) && p.deck.length > 0) {
+        const replacement = p.deck.shift()!;
+        pReturned.push(hc.cardId);
+        pNewHand.push({ uid: nextUid('hand'), cardId: replacement, costMod: 0 });
+      } else {
+        pNewHand.push(hc);
+      }
+    }
+    p.hand = pNewHand;
+    p.deck = shuffleArray([...p.deck, ...pReturned]);
+
+    const o = state.opponent;
+    const oNewHand: HandCardInstance[] = [];
+    const oReturned: string[] = [];
+    for (const hc of o.hand) {
+      if (guestReplaceUids.includes(hc.uid) && o.deck.length > 0) {
+        const replacement = o.deck.shift()!;
+        oReturned.push(hc.cardId);
+        oNewHand.push({ uid: nextUid('hand'), cardId: replacement, costMod: 0 });
+      } else {
+        oNewHand.push(hc);
+      }
+    }
+    o.hand = oNewHand;
+    o.deck = shuffleArray([...o.deck, ...oReturned]);
+
+    const secondSide: PlayerSide = state.firstPlayer === 'PLAYER' ? 'OPPONENT' : 'PLAYER';
+    getPlayer(secondSide).hand.push({
+      uid: nextUid('coin'),
+      cardId: 'GAME_005',
+      costMod: 0,
+    });
+
+    state.phase = 'PLAYING';
+    state.mulliganSelectedUids = [];
+    beginTurn(state.firstPlayer);
+    return state;
+  };
+
   const playCardFromHand = (
     side: PlayerSide,
     handUid: string,
@@ -1843,9 +1895,12 @@ export function createEngine(rawState: BattleMatchState) {
     return state;
   };
 
-  const resolveTrackingChoice = (chosenCardId: string): BattleMatchState => {
+  const resolveTrackingChoice = (
+    chosenCardId: string,
+    side: PlayerSide = state.activeSide,
+  ): BattleMatchState => {
     if (!state.trackingPrompt) return state;
-    addCardToHand('PLAYER', chosenCardId);
+    addCardToHand(side, chosenCardId);
     state.trackingPrompt = null;
     recalculateAuras();
     return state;
@@ -2807,6 +2862,7 @@ export function createEngine(rawState: BattleMatchState) {
     getValidAttackTargets,
     getTotalSpellPower,
     confirmMulligan,
+    confirmPvpDualMulligan,
     playCardFromHand,
     resolveTrackingChoice,
     useHeroPower,

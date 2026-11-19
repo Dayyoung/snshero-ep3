@@ -1180,6 +1180,22 @@ const dict: Record<string, string> = {
   "Last Updated:": "最后更新：",
   "Choose from 10 supported game languages": "从10种支持的游戏语言中选择",
   "Select Language": "选择语言",
+  "Live Chat · Guild & Duel Hub": "实时聊天 · 公会与对战大厅",
+  "Guild": "公会聊天",
+  "Duel Room": "对战房间",
+  "Send Gold": "赠送金币",
+  "Type a live message...": "输入实时消息...",
+  "Send": "发送",
+  "Join or Create a Guild": "加入或创建公会",
+  "New Guild": "创建公会",
+  "Choose Your 30-Card Deck": "选择出战的30张卡组",
+  "Host a Live 1v1 Duel Room": "创建实时1v1卡组对战房",
+  "Create Duel Room with My Deck": "用我的卡组创建对战房",
+  "Battle with My Deck!": "用我的卡组立即迎战！",
+  "Gift Gold to Another Player": "向其他玩家赠送金币",
+  "Waiting for Opponent Mulligan...": "等待对手换牌中...",
+  "❄️🌪 Dual Ult!": "❄️🌪 合体必杀！",
+  "Silia Co-Cast!": "希莉亚同调参战！",
 };
 
 export default dict;

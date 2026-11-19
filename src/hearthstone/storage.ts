@@ -154,7 +154,7 @@ export const MODE_REWARD_GUIDES: Record<GameMode, ModeRewardGuide> = {
   TUTORIAL: {
     mode: 'TUTORIAL',
     modeNameKo: '스토리모드 (카단의 여정)',
-    playStyleBadge: '우측하단 카단 자동플레이 지원(시작 시 OFF) · 3장=3배 각성',
+    playStyleBadge: '좌측하단 카단 자동플레이·실리아 합동필살기 지원(시작 시 OFF) · 3장=3배 각성',
     baseWinRewardText: '승리 시 45G~240G+ (회차·환생 비례 증가)',
     specialBonusText: '최초 돌파 +30G · 5화마다 보스 팩 +1개 · 40화 완주 시 +300G & 팩 +3개 + 환생 개방',
     summaryOneLine: '회차 돌파 골드 + 5화 단위 눈히어로 팩 + 40화 완주 시 3팩 & 환생 보너스',
@@ -2920,6 +2920,264 @@ class HearthstoneStorage {
       goldAdded: REWARDED_AD_GOLD_AMOUNT,
       newGold: p.gold,
       quota: this.getRewardedAdQuotaStatus(nowMs),
+    };
+  }
+
+  getGoldGiftHistory(): {
+    id: string;
+    direction: 'SENT' | 'RECEIVED';
+    counterpartyId: string;
+    counterpartyName: string;
+    amount: number;
+    note?: string;
+    timestamp: number;
+  }[] {
+    try {
+      const raw = localStorage.getItem('hero_hs_gold_gift_history');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  }
+
+  private pushGoldGiftLog(entry: {
+    id: string;
+    direction: 'SENT' | 'RECEIVED';
+    counterpartyId: string;
+    counterpartyName: string;
+    amount: number;
+    note?: string;
+    timestamp: number;
+  }) {
+    try {
+      const list = [entry, ...this.getGoldGiftHistory()].slice(0, 60);
+      localStorage.setItem('hero_hs_gold_gift_history', JSON.stringify(list));
+    } catch {
+      // ignore
+    }
+  }
+
+  sendGoldGiftToPlayer(
+    rawAmount: number,
+    toPlayerId: string,
+    toPlayerName: string,
+    note?: string,
+  ): {
+    ok: boolean;
+    transferId: string;
+    amount: number;
+    remainingGold: number;
+    errorKo?: string;
+    errorEn?: string;
+  } {
+    const amount = Math.floor(Number(rawAmount) || 0);
+    const p = this.getProfile();
+    if (amount < 1) {
+      return {
+        ok: false,
+        transferId: '',
+        amount: 0,
+        remainingGold: p.gold,
+        errorKo: '최소 1G 이상의 골드를 입력해 주세요.',
+        errorEn: 'Enter at least 1 Gold.',
+      };
+    }
+    if (p.gold < amount) {
+      return {
+        ok: false,
+        transferId: '',
+        amount: 0,
+        remainingGold: p.gold,
+        errorKo: `보유 골드(${p.gold}G)가 부족합니다.`,
+        errorEn: `Not enough Gold (Owned: ${p.gold}G).`,
+      };
+    }
+    const transferId = `gift_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    p.gold = Math.max(0, p.gold - amount);
+    this.saveProfile(p);
+    this.pushGoldGiftLog({
+      id: transferId,
+      direction: 'SENT',
+      counterpartyId: toPlayerId,
+      counterpartyName: toPlayerName,
+      amount,
+      note,
+      timestamp: Date.now(),
+    });
+    return {
+      ok: true,
+      transferId,
+      amount,
+      remainingGold: p.gold,
+    };
+  }
+
+  claimReceivedGoldGift(
+    transferId: string,
+    rawAmount: number,
+    fromPlayerId: string,
+    fromPlayerName: string,
+    note?: string,
+  ): { claimed: boolean; newGold: number; amount: number } {
+    const amount = Math.max(1, Math.min(1_000_000, Math.floor(Number(rawAmount) || 0)));
+    const p = this.getProfile();
+    if (!transferId) {
+      return { claimed: false, newGold: p.gold, amount: 0 };
+    }
+    try {
+      const rawClaimed = localStorage.getItem('hero_hs_claimed_gold_transfers');
+      const claimedList: string[] = rawClaimed ? JSON.parse(rawClaimed) : [];
+      if (Array.isArray(claimedList) && claimedList.includes(transferId)) {
+        return { claimed: false, newGold: p.gold, amount: 0 };
+      }
+      const nextClaimed = [transferId, ...(Array.isArray(claimedList) ? claimedList : [])].slice(0, 500);
+      localStorage.setItem('hero_hs_claimed_gold_transfers', JSON.stringify(nextClaimed));
+    } catch {
+      // ignore
+    }
+    p.gold = Math.max(0, p.gold + amount);
+    this.saveProfile(p);
+    this.pushGoldGiftLog({
+      id: transferId,
+      direction: 'RECEIVED',
+      counterpartyId: fromPlayerId,
+      counterpartyName: fromPlayerName,
+      amount,
+      note,
+      timestamp: Date.now(),
+    });
+    return { claimed: true, newGold: p.gold, amount };
+  }
+
+  escrowPvpStake(roomId: string, rawStake: number): boolean {
+    const stake = Math.max(0, Math.floor(Number(rawStake) || 0));
+    if (stake <= 0) return true;
+    try {
+      const rawEscrows = localStorage.getItem('hero_hs_pvp_escrows');
+      const escrows: Record<string, number> = rawEscrows ? JSON.parse(rawEscrows) : {};
+      if (escrows[roomId]) return true;
+      const p = this.getProfile();
+      if (p.gold < stake) return false;
+      p.gold = Math.max(0, p.gold - stake);
+      escrows[roomId] = stake;
+      localStorage.setItem('hero_hs_pvp_escrows', JSON.stringify(escrows));
+      this.saveProfile(p);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  refundPvpStake(roomId: string): number {
+    try {
+      const rawEscrows = localStorage.getItem('hero_hs_pvp_escrows');
+      const escrows: Record<string, number> = rawEscrows ? JSON.parse(rawEscrows) : {};
+      const stake = Math.max(0, Math.floor(Number(escrows[roomId]) || 0));
+      if (stake <= 0) return 0;
+      delete escrows[roomId];
+      localStorage.setItem('hero_hs_pvp_escrows', JSON.stringify(escrows));
+      const p = this.getProfile();
+      p.gold += stake;
+      this.saveProfile(p);
+      return stake;
+    } catch {
+      return 0;
+    }
+  }
+
+  settlePvpMatchOutcome(
+    roomId: string,
+    didWin: boolean,
+    rawStakeGold: number,
+    heroClass: HeroClass,
+    opponentName: string,
+  ): MatchRewardBreakdown {
+    const p = this.getProfile();
+    const prevRank = p.rank;
+    const stake = Math.max(0, Math.floor(Number(rawStakeGold) || 0));
+    try {
+      const rawEscrows = localStorage.getItem('hero_hs_pvp_escrows');
+      const escrows: Record<string, number> = rawEscrows ? JSON.parse(rawEscrows) : {};
+      if (escrows[roomId] !== undefined) {
+        delete escrows[roomId];
+        localStorage.setItem('hero_hs_pvp_escrows', JSON.stringify(escrows));
+      }
+    } catch {
+      // ignore
+    }
+
+    p.totalGames += 1;
+    let baseWinGold = 0;
+    let bonusGold = 0;
+    let bonusLabel: string | null = null;
+    let questGold = 0;
+
+    if (didWin) {
+      p.totalWins += 1;
+      p.classWins[heroClass] = (p.classWins[heroClass] || 0) + 1;
+      if (stake > 0) {
+        baseWinGold = stake;
+        bonusGold = stake;
+        bonusLabel = tr(
+          `⚔ 실시간 대전방 승리 상금 (vs ${opponentName} · 판돈 ${stake}G × 2배!)`,
+          `⚔ Live Duel Room Victory Pot (vs ${opponentName} · ${stake}G × 2x!)`,
+        );
+      } else {
+        const today = new Date().toISOString().slice(0, 10);
+        let usedFriendlyWins = 0;
+        try {
+          const rawDaily = localStorage.getItem('hero_hs_pvp_friendly_daily');
+          const parsedDaily = rawDaily ? JSON.parse(rawDaily) : null;
+          if (parsedDaily && parsedDaily.date === today) {
+            usedFriendlyWins = Number(parsedDaily.count) || 0;
+          }
+          if (usedFriendlyWins < 5) {
+            baseWinGold = 15;
+            bonusLabel = tr(
+              `⚔ 실시간 유저 카드덱 친선전 승리 (vs ${opponentName})`,
+              `⚔ Live Deck Friendly Duel Victory (vs ${opponentName})`,
+            );
+            localStorage.setItem(
+              'hero_hs_pvp_friendly_daily',
+              JSON.stringify({ date: today, count: usedFriendlyWins + 1 }),
+            );
+          }
+        } catch {
+          baseWinGold = 15;
+        }
+      }
+      p.gold += baseWinGold + bonusGold;
+    }
+
+    this.saveProfile(p);
+    if (didWin) {
+      questGold = this.recordQuestProgress('WIN', 1);
+    }
+    const updatedProfile = this.getProfile();
+    const totalEarned = baseWinGold + bonusGold + questGold;
+    return {
+      mode: 'CASUAL',
+      didWin,
+      goldEarned: totalEarned,
+      goldDelta: stake > 0 ? (didWin ? stake + questGold : -stake) : totalEarned,
+      baseWinGold,
+      bonusGold,
+      bonusLabel,
+      questGold,
+      packsEarned: 0,
+      packReason: null,
+      prevRank,
+      newRank: updatedProfile.rank,
+      newStars: updatedProfile.stars,
+      streakBonus: false,
+      threeWinProgress: updatedProfile.threeWinCounter,
+      bogartStakeGold: stake > 0 ? stake : undefined,
+      bogartPayoutGold: stake > 0 ? (didWin ? stake * 2 : 0) : undefined,
+      isOfficialRanked: false,
     };
   }
 }

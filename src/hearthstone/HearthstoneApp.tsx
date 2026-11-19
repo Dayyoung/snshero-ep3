@@ -10,6 +10,8 @@ import {
   KadanChatbotWidget,
   LiveBattleHelpSnapshot,
 } from './components/KadanChatbotWidget';
+import { LiveCommunityChatWidget } from './components/LiveCommunityChatWidget';
+import { snsheroLiveNetwork } from './services/snsheroLiveNetwork';
 import {
   GameOptionsModal,
   PaymentSuccessModal,
@@ -158,6 +160,29 @@ export const HearthstoneApp: React.FC = () => {
   const refreshProfile = useCallback(() => {
     setProfile(hsStorage.getProfile());
   }, []);
+
+  // Subscribe to Live 1v1 PvP Duel Room Match Start
+  useEffect(() => {
+    return snsheroLiveNetwork.onMatchStart(({ initialMatchState }) => {
+      snsheroLiveNetwork.setDrawerOpen(false);
+      setGlobalAutoPlay(false);
+      setBattleSnapshot(null);
+      refreshProfile();
+      const pvpDeck: CustomDeck = {
+        id: 'live_pvp_deck',
+        name: 'Live PvP Deck',
+        heroClass: initialMatchState.player.heroClass,
+        cards: [...initialMatchState.player.deck],
+      };
+      setBattleSessionKey((k) => k + 1);
+      setActiveBattleParams({
+        mode: 'CASUAL',
+        deck: pvpDeck,
+        restoredMatchState: initialMatchState,
+      });
+      setScreen('BATTLE');
+    });
+  }, [refreshProfile]);
 
   useEffect(() => {
     let mounted = true;
@@ -581,6 +606,33 @@ export const HearthstoneApp: React.FC = () => {
             }
           }
         }
+        // Check for pending Live 1v1 PvP Duel match started from PromoApp (`/`)
+        if (typeof sessionStorage !== 'undefined') {
+          try {
+            const pendingPvpRaw = sessionStorage.getItem('snshero_pending_live_pvp_match');
+            if (pendingPvpRaw) {
+              sessionStorage.removeItem('snshero_pending_live_pvp_match');
+              const parsedPvp = JSON.parse(pendingPvpRaw) as BattleMatchState;
+              if (parsedPvp && parsedPvp.livePvpMeta && parsedPvp.phase !== 'GAME_OVER') {
+                const pvpDeck: CustomDeck = {
+                  id: 'live_pvp_deck',
+                  name: 'Live PvP Deck',
+                  heroClass: parsedPvp.player.heroClass,
+                  cards: [...parsedPvp.player.deck],
+                };
+                setActiveBattleParams({
+                  mode: 'CASUAL',
+                  deck: pvpDeck,
+                  restoredMatchState: parsedPvp,
+                });
+                setScreen('BATTLE');
+              }
+            }
+          } catch {
+            // ignore
+          }
+        }
+
         // DEV-031: Check for active Bogart Gambling Hall escrow snapshot on refresh (F5)
         if (typeof sessionStorage !== 'undefined') {
           try {
@@ -1143,7 +1195,7 @@ export const HearthstoneApp: React.FC = () => {
         )}
       </GameAdSenseLayout>
 
-      {/* Fullscreen Bottom-Right 2-Head-Tall Chibi Kadan Chatbot */}
+      {/* Fullscreen Bottom-Left 2-Head-Tall Chibi Kadan Chatbot (Moved to Silia's Side + Silia Dual Ultimate Cameo) */}
       <KadanChatbotWidget
         screen={screen}
         profile={profile}
@@ -1169,6 +1221,22 @@ export const HearthstoneApp: React.FC = () => {
         onOpenQuestLog={() => setQuestLogOpen(true)}
         tacticalStance={tacticalStance}
         onChangeTacticalStance={setTacticalStance}
+      />
+
+      {/* Bottom-Right Real Live Chat Icon + Real-Time Count, Gold Gifting, Guild Chat & 1v1 Deck Duel Rooms */}
+      <LiveCommunityChatWidget
+        screen={screen}
+        profile={profile}
+        onProfileChanged={refreshProfile}
+        onOpenCollection={() => {
+          setGlobalAutoPlay(false);
+          setBattleSnapshot(null);
+          if (screen === 'BATTLE') {
+            setActiveBattleParams(null);
+          }
+          refreshProfile();
+          setScreen('COLLECTION');
+        }}
       />
 
       {/* Portal iframe (e.g. itch.io wrapper) gentle full-site transition prompt */}

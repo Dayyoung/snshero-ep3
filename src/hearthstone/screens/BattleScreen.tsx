@@ -22,7 +22,14 @@ import {
 } from '../components/CardVisual';
 import { CardZoomAction, CardZoomModal } from '../components/CardZoomModal';
 import { LiveBattleHelpSnapshot } from '../components/KadanChatbotWidget';
-import { SiliaSkillKind, SiliaUltimateWidget } from '../components/SiliaUltimateWidget';
+import { SiliaSkillKind } from '../components/SiliaUltimateWidget';
+import { CARD_SCRIPTS } from '../engine/cardEffects';
+import {
+  PvpGuestAction,
+  flipEntityId,
+  mirrorMatchStateForGuest,
+} from '../engine/pvpSync';
+import { snsheroLiveNetwork } from '../services/snsheroLiveNetwork';
 import {
   trackHeroBattleCompleted,
   trackHeroBattleStarted,
@@ -1100,7 +1107,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   );
   const [episodeSelectorOpen, setEpisodeSelectorOpen] = useState(false);
   const [autoPlay, setAutoPlayInternal] = useState<boolean>(() => Boolean(externalAutoPlay));
-  const [siliaAutoPaused, setSiliaAutoPaused] = useState(false);
+  const [siliaAutoPaused] = useState(false);
   const [internalStance, setInternalStance] = useState<KadanTacticalStance>('BALANCED');
   const activeStance = externalTacticalStance ?? internalStance;
   const setActiveStance = useCallback(
@@ -1134,6 +1141,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [kadanUltCutIn, setKadanUltCutIn] = useState<{
     stackTier: number;
     stackCount: number;
+    siliaSkill: SiliaSkillKind;
     seq: number;
   } | null>(null);
   const [siliaChainCutIn, setSiliaChainCutIn] = useState<{
@@ -1141,6 +1149,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     stackTier: number;
     seq: number;
   } | null>(null);
+  const [pvpWaitingOpponentMulligan, setPvpWaitingOpponentMulligan] = useState(false);
+  const pvpHostMulliganRef = useRef<string[] | null>(null);
+  const pvpGuestMulliganRef = useRef<string[] | null>(null);
+  const lastAppliedGuestSeqRef = useRef<number>(0);
+  const livePvpMeta = matchState.livePvpMeta;
+  const isLivePvp = Boolean(livePvpMeta);
+  const isPvpHost = livePvpMeta?.role === 'HOST';
+  const isPvpGuest = livePvpMeta?.role === 'GUEST';
   const [battleLogExpanded, setBattleLogExpanded] = useState<boolean>(false);
   const rhythmResonanceUsedTurnRef = useRef<number>(-1);
   const rhythmComboRef = useRef<number>(0);
@@ -1259,9 +1275,9 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     }
   }, [matchState.phase, storyPhase, vsIntroActive]);
 
-  // Handle Kadan's Spirit Beat Tap (Story Mode Exclusive · Charge 0->100 -> 1s Flame Lockout -> Tap to Unleash Ultimate!)
+  // Handle Kadan & Silia Dual Spirit Beat Tap (Story Mode Exclusive · Charge 0->100 -> 1s Flame Lockout -> Tap to Unleash Kadan+Silia Dual Ultimate Together!)
   const handleRhythmOrbTap = useCallback(() => {
-    if (mode !== 'TUTORIAL' || !autoPlay || !rhythmEnabled || matchState.phase !== 'PLAYING') {
+    if (mode !== 'TUTORIAL' || !rhythmEnabled || matchState.phase !== 'PLAYING') {
       return;
     }
 
@@ -1270,7 +1286,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       return;
     }
 
-    // 2) After 1-second lockout (`READY`), tapping unleashes Kadan Blizzard + Silia Windstorm Ultimate & resets to 0!
+    // 2) After 1-second lockout (`READY`), tapping unleashes Kadan Blizzard + Silia Windstorm Dual Ultimate SIMULTANEOUSLY & resets to 0!
     if (kadanSpiritPhaseRef.current === 'READY') {
       kadanSpiritPhaseRef.current = 'CHARGING';
       kadanMomentumRef.current = 0;
@@ -1280,20 +1296,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       const stackTier = Math.min(8, kadanUltCastCountRef.current + 1);
       kadanUltCastCountRef.current = stackTier;
-      const seqId = Date.now() + stackTier;
-      setKadanUltCutIn({ stackTier, stackCount: 100, seq: seqId });
-      window.setTimeout(() => {
-        setKadanUltCutIn((cur) => (cur?.seq === seqId ? null : cur));
-      }, 1450);
 
       hsAudio.playSfx('big_attack', 0.95);
       triggerUltimateShakeRef.current(stackTier + 1);
       fireKadanUltimateRef.current(stackTier);
-
-      // Chained Follow-Up: Right after Kadan's Blizzard Ultimate, Silia unleashes a random Windstorm Ultimate!
-      window.setTimeout(() => {
-        fireSiliaChainRef.current(stackTier);
-      }, 950);
       return;
     }
 
@@ -2124,13 +2130,22 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           setPlayerEmoteText(matchState.player.customHero.emotesKo.concede);
         }
       }
-      const summary = hsStorage.recordMatchOutcome(
-        matchState.player.heroClass,
-        didWin,
-        mode,
-        matchState.opponent.heroClass,
-        bogartStakeGold || 0,
-      );
+      const summary =
+        isLivePvp && livePvpMeta
+          ? hsStorage.settlePvpMatchOutcome(
+              livePvpMeta.roomId,
+              didWin,
+              livePvpMeta.stakeGold,
+              matchState.player.heroClass,
+              isPvpHost ? livePvpMeta.guestName : livePvpMeta.hostName,
+            )
+          : hsStorage.recordMatchOutcome(
+              matchState.player.heroClass,
+              didWin,
+              mode,
+              matchState.opponent.heroClass,
+              bogartStakeGold || 0,
+            );
       // DEV-043: Competitive Fairness 2-Track — Ranked & Bogart have 0% stat change; Ocarina Rhythm Fever awards bonus Gold!
       if ((mode === 'RANKED' || mode === 'BOGART_GAMBLE') && rhythmFeverPct >= 25) {
         const feverGold = Math.min(30, Math.max(5, Math.round((rhythmFeverPct / 100) * 30)));
@@ -2385,8 +2400,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           setSelection(null);
           setHandDrag(null);
           document.body.classList.remove('hs-dragging-active');
-          const nextEng = createEngine(prev);
           hsAudio.playSfx('end_turn');
+          if (prev.livePvpMeta?.role === 'GUEST') {
+            snsheroLiveNetwork.sendPvpGuestAction(
+              prev.livePvpMeta.roomId,
+              prev.livePvpMeta.hostPeerId,
+              { kind: 'END_TURN' },
+            );
+            return prev;
+          }
+          const nextEng = createEngine(prev);
           return nextEng.endTurn();
         }
         return { ...prev, turnSecondsLeft: nextSec };
@@ -2570,6 +2593,15 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         phase: 'WINDUP',
       });
 
+      const curPvp = matchStateRef.current.livePvpMeta;
+      if (curPvp?.role === 'GUEST' && side === 'PLAYER') {
+        snsheroLiveNetwork.sendPvpGuestAction(curPvp.roomId, curPvp.hostPeerId, {
+          kind: 'PERFORM_ATTACK',
+          attackerId: flipEntityId(attackerId)!,
+          defenderId: flipEntityId(defenderId)!,
+        });
+      }
+
       const tLunge = window.setTimeout(() => {
         setAttackAnim((prev) =>
           prev && prev.id === animId ? { ...prev, phase: 'LUNGE' } : prev,
@@ -2582,7 +2614,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           const exchangedDamage = Math.max(1, attackVal + counterDmg);
           hsAudio.vibrateByDamage(exchangedDamage);
           const latest = matchStateRef.current;
-          if (latest.phase === 'PLAYING') {
+          if (latest.phase === 'PLAYING' && latest.livePvpMeta?.role !== 'GUEST') {
             const sim = createEngine(latest);
             const next = sim.performAttack(side, attackerId, defenderId);
             setMatchState(next);
@@ -2671,15 +2703,48 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       }
       const cur = latestMatchRef.current;
       if (cur.phase !== 'PLAYING') return;
+
+      // Smartly pick Silia's co-cast Windstorm skill to fire TOGETHER with Kadan's Blizzard!
+      const pickedSiliaSkill: SiliaSkillKind =
+        cur.player.health <= 18
+          ? 'HEAL'
+          : cur.player.board.some((m) => !m.divineShield)
+            ? 'DEFENSE'
+            : 'ATTACK';
+
       document.querySelectorAll('[data-hs-entity]').forEach((el) => {
         const id = el.getAttribute('data-hs-entity');
         if (id) recordEntityStagePosition(id, elementCenterInStage(el));
       });
       const kadanEl = document.querySelector('[data-testid="kadan-chatbot-avatar-btn"]');
       if (kadanEl) {
-        recordEntityStagePosition('KADAN_WIDGET', elementCenterInStage(kadanEl));
+        const pt = elementCenterInStage(kadanEl);
+        recordEntityStagePosition('KADAN_WIDGET', pt);
+        recordEntityStagePosition('SILIA_WIDGET', { x: pt.x + 36, y: pt.y });
       }
-      const next = createEngine(cur).useKadanMomentumUltimate(stackTier);
+
+      window.dispatchEvent(
+        new CustomEvent('snshero:dual-ultimate-cast', {
+          detail: { skillKind: pickedSiliaSkill },
+        }),
+      );
+
+      const seqId = Date.now() + stackTier;
+      setKadanUltCutIn({
+        stackTier,
+        stackCount: 100,
+        siliaSkill: pickedSiliaSkill,
+        seq: seqId,
+      });
+      window.setTimeout(() => {
+        setKadanUltCutIn((prev) => (prev?.seq === seqId ? null : prev));
+      }, 1750);
+
+      const afterKadan = createEngine(cur).useKadanMomentumUltimate(stackTier);
+      const next =
+        afterKadan.phase === 'PLAYING'
+          ? createEngine(afterKadan).useSiliaChainUltimate(pickedSiliaSkill, stackTier)
+          : afterKadan;
       setMatchState(next);
     };
     runBlast();
@@ -2700,10 +2765,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         const id = el.getAttribute('data-hs-entity');
         if (id) recordEntityStagePosition(id, elementCenterInStage(el));
       });
-      const siliaEl = document.querySelector('[data-silia-toggle="true"]');
-      if (siliaEl) {
-        recordEntityStagePosition('SILIA_WIDGET', elementCenterInStage(siliaEl));
+      const kadanEl = document.querySelector('[data-testid="kadan-chatbot-avatar-btn"]');
+      if (kadanEl) {
+        const pt = elementCenterInStage(kadanEl);
+        recordEntityStagePosition('SILIA_WIDGET', { x: pt.x + 36, y: pt.y });
       }
+
+      window.dispatchEvent(
+        new CustomEvent('snshero:dual-ultimate-cast', {
+          detail: { skillKind: picked },
+        }),
+      );
 
       const seqId = Date.now();
       setSiliaChainCutIn({ skillKind: picked, stackTier, seq: seqId });
@@ -2784,6 +2856,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
     // 1. Auto-Mulligan: swap cards costing >= 4 and start duel!
     if (cur.phase === 'MULLIGAN') {
+      if (cur.livePvpMeta) return;
       const t = window.setTimeout(() => {
         const snap = latestMatchRef.current;
         if (snap.phase !== 'MULLIGAN') return;
@@ -3020,10 +3093,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     describeEp0Action,
   ]);
 
-  // Step-by-Step Opponent AI Turn Execution Loop
+  // Step-by-Step Opponent AI Turn Execution Loop (Disabled during Live 1v1 PvP Duel!)
   useEffect(() => {
     const cur = latestMatchRef.current;
     if (
+      Boolean(cur.livePvpMeta) ||
       storyPhase !== 'CLOSED' ||
       vsIntroActive ||
       mulliganSwapping ||
@@ -3207,15 +3281,194 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     describeEp0Action,
   ]);
 
+  const commitPlayerEndTurn = useCallback(() => {
+    const cur = matchStateRef.current;
+    if (cur.phase !== 'PLAYING' || cur.activeSide !== 'PLAYER') return;
+    if (cur.livePvpMeta?.role === 'GUEST') {
+      snsheroLiveNetwork.sendPvpGuestAction(
+        cur.livePvpMeta.roomId,
+        cur.livePvpMeta.hostPeerId,
+        { kind: 'END_TURN' },
+      );
+      return;
+    }
+    setMatchState(createEngine(cur).endTurn());
+  }, []);
+
+  const commitPlayerHeroPower = useCallback((targetId?: string) => {
+    const cur = matchStateRef.current;
+    if (cur.phase !== 'PLAYING' || cur.activeSide !== 'PLAYER') return;
+    if (cur.livePvpMeta?.role === 'GUEST') {
+      snsheroLiveNetwork.sendPvpGuestAction(
+        cur.livePvpMeta.roomId,
+        cur.livePvpMeta.hostPeerId,
+        { kind: 'USE_HERO_POWER', targetId: flipEntityId(targetId) },
+      );
+      return;
+    }
+    setMatchState(createEngine(cur).useHeroPower('PLAYER', targetId));
+  }, []);
+
+  const commitResolveTracking = useCallback((cardId: string) => {
+    const cur = matchStateRef.current;
+    if (!cur.trackingPrompt) return;
+    if (cur.livePvpMeta?.role === 'GUEST') {
+      setMatchState((prev) => ({ ...prev, trackingPrompt: null }));
+      snsheroLiveNetwork.sendPvpGuestAction(
+        cur.livePvpMeta.roomId,
+        cur.livePvpMeta.hostPeerId,
+        { kind: 'RESOLVE_TRACKING', cardId },
+      );
+      return;
+    }
+    setMatchState(createEngine(cur).resolveTrackingChoice(cardId, 'PLAYER'));
+  }, []);
+
   const handleConcede = useCallback(() => {
     if (matchState.phase === 'GAME_OVER') return;
+    if (matchState.livePvpMeta?.role === 'GUEST') {
+      snsheroLiveNetwork.sendPvpGuestAction(
+        matchState.livePvpMeta.roomId,
+        matchState.livePvpMeta.hostPeerId,
+        { kind: 'CONCEDE' },
+      );
+      return;
+    }
     const eng = createEngine(matchState);
     setMatchState(eng.concede('PLAYER'));
   }, [matchState]);
 
+  // ==================== LIVE 1v1 PVP STATE & ACTION SYNC ====================
+  const pvpSyncDigest = useMemo(() => {
+    if (!isPvpHost) return '';
+    return [
+      playerActionStateKey,
+      matchState.phase,
+      matchState.activeSide,
+      matchState.turnNumber,
+      matchState.winner || '',
+      matchState.history[0]?.id || '',
+      matchState.vfxQueue.length,
+      matchState.chooseOnePrompt ? 1 : 0,
+      matchState.trackingPrompt ? 1 : 0,
+    ].join('|');
+  }, [
+    isPvpHost,
+    playerActionStateKey,
+    matchState.phase,
+    matchState.activeSide,
+    matchState.turnNumber,
+    matchState.winner,
+    matchState.history,
+    matchState.vfxQueue.length,
+    matchState.chooseOnePrompt,
+    matchState.trackingPrompt,
+  ]);
+
+  // Host -> Guest authoritative state broadcast whenever meaningful battle state advances
+  useEffect(() => {
+    if (!isPvpHost || !livePvpMeta) return;
+    if (matchState.phase === 'MULLIGAN') return;
+    snsheroLiveNetwork.sendPvpStateSync(
+      livePvpMeta.roomId,
+      livePvpMeta.guestPeerId,
+      mirrorMatchStateForGuest(matchState),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPvpHost, livePvpMeta?.roomId, livePvpMeta?.guestPeerId, pvpSyncDigest]);
+
+  // Guest <- Host state sync listener
+  useEffect(() => {
+    if (!isPvpGuest || !livePvpMeta) return;
+    return snsheroLiveNetwork.onPvpStateSync((roomId, guestState, seq) => {
+      if (roomId !== livePvpMeta.roomId) return;
+      if (seq <= lastAppliedGuestSeqRef.current) return;
+      lastAppliedGuestSeqRef.current = seq;
+      if (guestState.phase === 'PLAYING') {
+        setPvpWaitingOpponentMulligan(false);
+        setMulliganSwapping(false);
+      }
+      setMatchState(guestState);
+    });
+  }, [isPvpGuest, livePvpMeta]);
+
+  // Host <- Guest action execution listener
+  useEffect(() => {
+    if (!isPvpHost || !livePvpMeta) return;
+    return snsheroLiveNetwork.onPvpGuestAction((roomId, action: PvpGuestAction) => {
+      if (roomId !== livePvpMeta.roomId) return;
+      const cur = matchStateRef.current;
+
+      if (action.kind === 'MULLIGAN_CONFIRM') {
+        pvpGuestMulliganRef.current = action.replaceUids;
+        if (cur.phase === 'MULLIGAN' && pvpHostMulliganRef.current !== null) {
+          const eng = createEngine(cur);
+          const started = eng.confirmPvpDualMulligan(
+            pvpHostMulliganRef.current,
+            pvpGuestMulliganRef.current,
+          );
+          setPvpWaitingOpponentMulligan(false);
+          setMulliganSwapping(false);
+          setMatchState(started);
+        }
+        return;
+      }
+
+      if (action.kind === 'CONCEDE') {
+        if (cur.phase !== 'GAME_OVER') {
+          setMatchState(createEngine(cur).concede('OPPONENT'));
+        }
+        return;
+      }
+
+      if (cur.phase !== 'PLAYING' || cur.activeSide !== 'OPPONENT') return;
+
+      if (action.kind === 'PLAY_CARD') {
+        hsAudio.playSfx('card_place', 0.85);
+        const next = createEngine(cur).playCardFromHand('OPPONENT', action.handUid, action.opts);
+        setMatchState(next);
+      } else if (action.kind === 'USE_HERO_POWER') {
+        hsAudio.playSfx('hero_power', 0.85);
+        const next = createEngine(cur).useHeroPower('OPPONENT', action.targetId);
+        setMatchState(next);
+      } else if (action.kind === 'PERFORM_ATTACK') {
+        const started = triggerPhysicalAttack('OPPONENT', action.attackerId, action.defenderId);
+        if (!started) {
+          const next = createEngine(cur).performAttack(
+            'OPPONENT',
+            action.attackerId,
+            action.defenderId,
+          );
+          setMatchState(next);
+        }
+      } else if (action.kind === 'RESOLVE_TRACKING') {
+        const next = createEngine(cur).resolveTrackingChoice(action.cardId, 'OPPONENT');
+        setMatchState(next);
+      } else if (action.kind === 'END_TURN') {
+        hsAudio.playSfx('end_turn', 0.85);
+        setMatchState(createEngine(cur).endTurn());
+      }
+    });
+  }, [isPvpHost, livePvpMeta, triggerPhysicalAttack]);
+
+  // Live PvP Emote listener
+  useEffect(() => {
+    if (!isLivePvp || !livePvpMeta) return;
+    return snsheroLiveNetwork.onPvpEmote((roomId, emoteKey) => {
+      if (roomId !== livePvpMeta.roomId || opponentSquelched) return;
+      const cur = matchStateRef.current;
+      const oEmotes =
+        cur.opponent.customHero?.emotesKo ||
+        getLocalizedHeroInfo(cur.opponent.heroClass, lang).emotes;
+      setOpponentEmoteText(oEmotes[emoteKey]);
+      hsAudio.playHeroVo(cur.opponent.heroClass, emoteKey);
+      window.setTimeout(() => setOpponentEmoteText(null), 2800);
+    });
+  }, [isLivePvp, livePvpMeta, opponentSquelched, lang]);
+
   // Toggle Mulligan Card Selection (1-Click authentic Hearthstone stamp!)
   const toggleMulliganCard = (uid: string) => {
-    if (mulliganSwapping) return;
+    if (mulliganSwapping || pvpWaitingOpponentMulligan) return;
     hsAudio.playSfx('card_flip', 0.75);
     setMatchState((prev) => {
       const exists = prev.mulliganSelectedUids.includes(uid);
@@ -3229,7 +3482,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   };
 
   const confirmMulliganNow = () => {
-    if (mulliganSwapping) return;
+    if (mulliganSwapping || pvpWaitingOpponentMulligan) return;
     hsAudio.playSfx('box_press');
     hsAudio.playBgm(Math.random() < 0.5 ? 'duel_1' : 'duel_2');
 
@@ -3237,6 +3490,38 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     const keptUids = matchState.player.hand
       .filter((h) => !selectedToSwap.includes(h.uid))
       .map((h) => h.uid);
+
+    // Live 1v1 PvP Mulligan Handshake
+    if (isLivePvp && livePvpMeta) {
+      knownHandUidsRef.current = new Set(keptUids);
+      const goingSecond = matchState.firstPlayer === 'OPPONENT';
+      if (goingSecond) {
+        hsAudio.playInnkeeper('coin');
+        setCoinGiftShowcase(true);
+        window.setTimeout(() => setCoinGiftShowcase(false), 1750);
+      }
+      if (isPvpHost) {
+        pvpHostMulliganRef.current = selectedToSwap;
+        if (pvpGuestMulliganRef.current !== null) {
+          const eng = createEngine(matchStateRef.current);
+          const started = eng.confirmPvpDualMulligan(
+            selectedToSwap,
+            pvpGuestMulliganRef.current,
+          );
+          setPvpWaitingOpponentMulligan(false);
+          setMatchState(started);
+        } else {
+          setPvpWaitingOpponentMulligan(true);
+        }
+      } else {
+        setPvpWaitingOpponentMulligan(true);
+        snsheroLiveNetwork.sendPvpGuestAction(livePvpMeta.roomId, livePvpMeta.hostPeerId, {
+          kind: 'MULLIGAN_CONFIRM',
+          replaceUids: selectedToSwap,
+        });
+      }
+      return;
+    }
 
     const finalizeMulligan = () => {
       const goingSecond = matchState.firstPlayer === 'OPPONENT';
@@ -3271,6 +3556,38 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     if (!hc) return;
     const def = cardDb.mustGetCard(hc.cardId);
     hsAudio.playSfx('card_place', 0.9);
+
+    if (cur.livePvpMeta?.role === 'GUEST') {
+      const spec = CARD_SCRIPTS[def.id];
+      if (spec?.chooseOne && opts?.chooseOptionIndex === undefined) {
+        const preview = createEngine(cur).playCardFromHand('PLAYER', handUid, opts);
+        setSelection(null);
+        setHoveredHandCost(null);
+        setMatchState(preview);
+        return;
+      }
+      if (def.type === 'MINION') hsStorage.recordQuestProgress('MINION', 1);
+      else if (def.type === 'SPELL') hsStorage.recordQuestProgress('SPELL', 1);
+      setSelection(null);
+      setHoveredHandCost(null);
+      setMatchState((prev) => ({ ...prev, chooseOnePrompt: null }));
+      snsheroLiveNetwork.sendPvpGuestAction(
+        cur.livePvpMeta.roomId,
+        cur.livePvpMeta.hostPeerId,
+        {
+          kind: 'PLAY_CARD',
+          handUid,
+          opts: opts
+            ? {
+                ...opts,
+                targetId: flipEntityId(opts.targetId),
+              }
+            : undefined,
+        },
+      );
+      return;
+    }
+
     const eng = createEngine(cur);
     const next = eng.playCardFromHand('PLAYER', handUid, opts);
     // Quest tracking!
@@ -3480,8 +3797,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               triggerPhysicalAttack('PLAYER', ad.sourceId, targetId);
             } else {
               hsAudio.playSfx('hero_power', 0.9);
-              const eng = createEngine(cur);
-              setMatchState(eng.useHeroPower('PLAYER', targetId));
+              commitPlayerHeroPower(targetId);
             }
           } else {
             if (
@@ -3703,9 +4019,8 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       if (selection.kind === 'HERO_POWER') {
         if (selection.validTargets.includes(entityId)) {
           hsAudio.playSfx('hero_power', 0.9);
-          const eng = createEngine(matchState);
           setSelection(null);
-          setMatchState(eng.useHeroPower('PLAYER', entityId));
+          commitPlayerHeroPower(entityId);
         } else if (entityId === 'PLAYER_HERO') {
           // BLD-2702: Damage Hero Powers (e.g. Poseidon Hydro Blast) disallow self-hit — clicking own hero cleanly cancels targeting
           hsAudio.playSfx('ui_click', 0.45);
@@ -3837,13 +4152,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       });
     } else {
       hsAudio.playSfx('hero_power', 0.9);
-      const eng = createEngine(matchState);
       setSelection(null);
-      setMatchState(eng.useHeroPower('PLAYER'));
+      commitPlayerHeroPower();
     }
   };
 
-  // Emote Trigger + Polite Rival Reply (Respects Opponent Squelch!)
+  // Emote Trigger + Live PvP Relay / Polite Rival Reply (Respects Opponent Squelch!)
   const triggerPlayerEmote = (
     emoteKey: 'greetings' | 'well_played' | 'thanks' | 'wow' | 'oops' | 'threaten',
   ) => {
@@ -3854,6 +4168,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     setPlayerEmoteText(pEmotes[emoteKey]);
     hsAudio.playHeroVo(matchState.player.heroClass, emoteKey);
     window.setTimeout(() => setPlayerEmoteText(null), 2800);
+
+    if (isLivePvp && livePvpMeta) {
+      const targetPeer = isPvpHost ? livePvpMeta.guestPeerId : livePvpMeta.hostPeerId;
+      snsheroLiveNetwork.sendPvpEmote(livePvpMeta.roomId, targetPeer, emoteKey);
+      return;
+    }
 
     if (opponentSquelched) return;
 
@@ -4294,8 +4614,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             onClick: () => {
               setZoomState(null);
               hsAudio.playSfx('card_place');
-              const eng = createEngine(matchState);
-              setMatchState(eng.resolveTrackingChoice(zoomState.cardId));
+              commitResolveTracking(zoomState.cardId);
             },
           }}
           onCancel={() => setZoomState(null)}
@@ -5148,6 +5467,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         {/* 3-State Stone & Brass End Turn Lever */}
         <button
           type="button"
+          data-testid="battle-end-turn-btn"
           disabled={!isPlayerTurn || Boolean(attackAnim)}
           onClick={(e) => {
             e.stopPropagation();
@@ -5156,8 +5476,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             setHoveredBoardMinion(null);
             setHoveredHistoryItem(null);
             hsAudio.playSfx('end_turn');
-            const eng = createEngine(matchState);
-            setMatchState(eng.endTurn());
+            commitPlayerEndTurn();
           }}
           className={`group relative flex h-[54px] w-[114px] items-center justify-center transition ${
             !isPlayerTurn
@@ -5400,6 +5719,39 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* ==================== CENTER ZONE: 7v7 BATTLEFIELD ARENA ==================== */}
       <main className="relative z-20 mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center gap-1 px-1.5 sm:gap-2 sm:px-12">
+        {/* Live 1v1 Player Deck Duel Room Status Strip */}
+        {isLivePvp && livePvpMeta && (
+          <div
+            data-testid="live-pvp-battle-banner"
+            className="mx-auto flex flex-wrap items-center justify-center gap-2 rounded-2xl border-2 border-emerald-400/75 bg-[#061812]/92 px-3 py-1 text-[10.5px] font-extrabold text-emerald-100 shadow-lg sm:text-xs"
+          >
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+            <span>
+              ⚔️{' '}
+              {tr(
+                `실시간 1:1 유저 카드덱 대결 (${livePvpMeta.hostName} vs ${livePvpMeta.guestName})`,
+                `Live 1v1 Deck Duel (${livePvpMeta.hostName} vs ${livePvpMeta.guestName})`,
+              )}
+            </span>
+            <span className="rounded bg-amber-500/25 px-1.5 py-0.5 text-yellow-200">
+              {livePvpMeta.stakeGold > 0
+                ? tr(`내기 판돈 ${livePvpMeta.stakeGold}G`, `${livePvpMeta.stakeGold}G Wager`)
+                : tr('친선 진검승부', 'Friendly Duel')}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                hsAudio.playSfx('gem_c_select');
+                setEmoteMenuOpen((v) => !v);
+              }}
+              className="rounded-lg border border-sky-400/50 bg-sky-950/80 px-2 py-0.5 text-[10px] font-extrabold text-sky-200 hover:bg-sky-900"
+            >
+              💬 {tr('감정표현', 'Emotes')}
+            </button>
+          </div>
+        )}
+
         {/* DEV-027/028: Live Challenger Arena / Bogart Mirror-Deck Status Strip + 1-Tap Emote & Mute */}
         {(mode === 'RANKED' || mode === 'BOGART_GAMBLE') && resolvedChallenger && (
           <div
@@ -5761,13 +6113,13 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
             <button
               type="button"
+              data-testid="battle-end-turn-mobile-btn"
               disabled={!isPlayerTurn || Boolean(attackAnim)}
               onClick={() => {
                 if (!isPlayerTurn || attackAnim) return;
                 setSelection(null);
                 hsAudio.playSfx('end_turn');
-                const eng = createEngine(matchState);
-                setMatchState(eng.endTurn());
+                commitPlayerEndTurn();
               }}
               className={`relative flex h-[34px] w-[76px] shrink-0 items-center justify-center transition ${
                 !isPlayerTurn ? 'cursor-not-allowed opacity-90' : 'active:scale-95'
@@ -6668,13 +7020,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
-              disabled={mulliganSwapping}
+              data-testid="mulligan-confirm-btn"
+              disabled={mulliganSwapping || pvpWaitingOpponentMulligan}
               onClick={confirmMulliganNow}
               className="hs-arcane-btn hs-title hs-outline-sm rounded-2xl px-9 py-2.5 text-lg font-extrabold tracking-wider text-white disabled:opacity-75 sm:px-11 sm:py-3 sm:text-xl"
             >
-              {mulliganSwapping
-                ? tr('교체 중...', 'Replacing...')
-                : tr('게임 시작 (전투 개시)', 'Start Game (Confirm)')}
+              {pvpWaitingOpponentMulligan
+                ? tr('상대 모험가 카드 교체 대기 중...', 'Waiting for Opponent Mulligan...')
+                : mulliganSwapping
+                  ? tr('교체 중...', 'Replacing...')
+                  : tr('게임 시작 (전투 개시)', 'Start Game (Confirm)')}
             </button>
             <button
               type="button"
@@ -6858,8 +7213,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                     e.stopPropagation();
                     setZoomState(null);
                     hsAudio.playSfx('card_place', 0.9);
-                    const eng = createEngine(matchState);
-                    setMatchState(eng.resolveTrackingChoice(cid));
+                    commitResolveTracking(cid);
                   }}
                   className="cursor-pointer transition hover:scale-108"
                 >
@@ -7927,75 +8281,94 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         />
       )}
 
-      {/* Kadan X100 Blizzard Instant Ultimate Cut-In (Zero TTS Reading · Immediate Speech + Screen Shake + Blizzard Storm!) */}
+      {/* Kadan & Silia Simultaneous Dual Ultimate Cut-In (`카단이 필살기 쓸때 실리아도 같이 시전!`) */}
       {kadanUltCutIn && (() => {
         const tier = Math.max(1, Math.min(8, kadanUltCutIn.stackTier));
         const stackNum = kadanUltCutIn.stackCount || 100;
+        const sk = kadanUltCutIn.siliaSkill || 'ATTACK';
         const aoeDmg = 5 * tier;
         const armorGain = 6 * tier;
         const buffStat = 2 * tier;
-        const skillName =
+        const kadanSkillName =
           tier === 1
             ? tr('혹한 눈보라 폭풍', 'Glacial Blizzard Storm')
             : tier === 2
               ? tr('절대영도 빙하참', 'Absolute Zero Cleave')
               : tr('창성 대눈보라 심판', 'Genesis Blizzard');
-        const kadanSpeech =
-          tier === 1
+        const siliaSkillName =
+          sk === 'ATTACK'
+            ? tr('녹풍 대참격', 'Emerald Tempest')
+            : sk === 'DEFENSE'
+              ? tr('폭풍 결계진', 'Storm Barrier')
+              : tr('회오리 생명풍', 'Vital Cyclone');
+        const dualSpeech =
+          sk === 'ATTACK'
             ? tr(
-                `기세 100 폭발! 모두 얼어붙어라, 혹한 눈보라 폭풍으로 적진을 휩쓸어라!!`,
-                `Spirit 100 ERUPT! Freeze everything with Glacial Blizzard Storm!!`,
+                `카단 & 실리아 합동 오의! 혹한 눈보라와 녹풍 대참격으로 적진을 동시에 휩쓸어라!!`,
+                `Kadan & Silia Dual Ultimate! Glacial Blizzard + Emerald Tempest—obliterate them together!!`,
               )
-            : tier === 2
+            : sk === 'DEFENSE'
               ? tr(
-                  `카단의 기세 100 재각성! 절대영도 빙하참, 심연을 얼려라!!`,
-                  `Kadan's Spirit 100 Re-Awakened! Absolute Zero Cleave—freeze the abyss!!`,
+                  `우리 둘의 힘으로 동료를 지키고 심판한다! 눈보라 폭풍 & 폭풍 결계진 동시 발동!!`,
+                  `Together we shield and strike! Glacial Blizzard + Storm Barrier—UNLEASH!!`,
                 )
               : tr(
-                  `이것이 눈히어로의 진정한 눈보라다! 창성 대눈보라 심판 작렬!!`,
-                  `Witness the true Blizzard of SNSHero! Genesis Blizzard—ERUPT!!`,
+                  `얼음과 생명의 바람이 공명한다! 눈보라 심판 & 회오리 생명풍 합동 작렬!!`,
+                  `Frost and Vital Gale as one! Blizzard Judgment + Vital Cyclone—ERUPT!!`,
                 );
+        const totalWindDmg = sk === 'ATTACK' ? 2 * tier : tier;
         const effectTag = tr(
-          `❄️ 눈보라 적 전체·영웅 -${aoeDmg} · 방어도 +${armorGain} · 아군 +${buffStat}/+${buffStat}·보호막`,
-          `❄️ Blizzard -${aoeDmg} All Enemies · +${armorGain} Armor · Allies +${buffStat}/+${buffStat}·Shield`,
+          `❄️🌪 합동 적 전체 -${aoeDmg + totalWindDmg} · 방어 +${armorGain} · 아군 강화·보호막`,
+          `❄️🌪 Dual AoE -${aoeDmg + totalWindDmg} · +${armorGain} Armor · Ally Buff & Shield`,
         );
         return (
           <div
             key={kadanUltCutIn.seq}
             data-testid="kadan-ultimate-cutin-overlay"
             data-kadan-ult-tier={kadanUltCutIn.stackTier}
+            data-silia-dual-skill={sk}
             className="pointer-events-none fixed inset-0 z-[96] select-none overflow-hidden"
           >
             <div
               style={
                 {
-                  '--hs-shake-x': '9px',
-                  '--hs-shake-y': '6px',
-                  '--hs-shake-dur': '380ms',
+                  '--hs-shake-x': '10px',
+                  '--hs-shake-y': '7px',
+                  '--hs-shake-dur': '400ms',
                 } as React.CSSProperties
               }
-              className="hs-damage-shake-a absolute inset-x-2.5 top-[48px] mx-auto flex max-w-md items-center gap-2.5 rounded-2xl border-2 border-cyan-200 bg-[#041528]/92 p-2 shadow-[0_14px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(56,189,248,0.7)] backdrop-blur-sm sm:top-[54px] sm:p-2.5"
+              className="hs-damage-shake-a absolute inset-x-2.5 top-[48px] mx-auto flex max-w-lg items-center gap-2.5 rounded-2xl border-2 border-cyan-200 bg-gradient-to-r from-[#041528]/95 via-[#061f1e]/95 to-[#031c13]/95 p-2 shadow-[0_16px_40px_rgba(0,0,0,0.94),0_0_26px_rgba(16,185,129,0.65)] backdrop-blur-sm sm:top-[54px] sm:p-2.5"
             >
-              <img
-                data-testid="kadan-cutin-portrait"
-                src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
-                alt={tr('카단', 'Kadan')}
-                decoding="async"
-                draggable={false}
-                className="h-16 w-16 shrink-0 rounded-xl border-2 border-cyan-200 bg-sky-950/75 object-cover object-top sm:h-20 sm:w-20"
-              />
+              <div className="flex shrink-0 items-center -space-x-2">
+                <img
+                  data-testid="kadan-cutin-portrait"
+                  src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
+                  alt={tr('카단', 'Kadan')}
+                  decoding="async"
+                  draggable={false}
+                  className="z-10 h-14 w-14 rounded-xl border-2 border-cyan-200 bg-sky-950/80 object-cover object-top shadow-lg sm:h-18 sm:w-18"
+                />
+                <img
+                  data-testid="silia-cutin-dual-portrait"
+                  src="/hs-assets/upper-hd/062_Celia.webp?v=hd20"
+                  alt={tr('실리아', 'Silia')}
+                  decoding="async"
+                  draggable={false}
+                  className="h-14 w-14 rounded-xl border-2 border-emerald-300 bg-emerald-950/80 object-cover object-top shadow-lg sm:h-18 sm:w-18"
+                />
+              </div>
               <div className="min-w-0 flex-1 text-left">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-md border border-cyan-100 bg-gradient-to-r from-sky-500 to-blue-800 px-2 py-0.5 text-[10.5px] font-black text-white shadow">
-                    ❄️ {tr(`카단 눈보라 필살기 · X${stackNum}`, `Kadan Blizzard Ultimate · X${stackNum}`)} · {skillName}
+                  <span className="rounded-md border border-cyan-100 bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-700 px-2 py-0.5 text-[10px] font-black text-white shadow sm:text-[10.5px]">
+                    ❄️🌪 {tr(`카단·실리아 합동 필살기 X${stackNum}`, `Kadan & Silia Dual Ult X${stackNum}`)} · {kadanSkillName} + {siliaSkillName}
                   </span>
-                  <span className="text-[10.5px] font-extrabold text-cyan-200">{effectTag}</span>
+                  <span className="text-[10px] font-extrabold text-emerald-200 sm:text-[10.5px]">{effectTag}</span>
                 </div>
                 <p
                   data-testid="kadan-cutin-dialogue-text"
-                  className="mt-1.5 text-xs font-extrabold leading-snug text-white sm:text-sm"
+                  className="mt-1 text-xs font-extrabold leading-snug text-white sm:text-sm"
                 >
-                  “{kadanSpeech}”
+                  “{dualSpeech}”
                 </p>
               </div>
             </div>
@@ -8078,12 +8451,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         );
       })()}
 
-      {/* Story Mode Exclusive: Bottom-Center Shrinking BGM Pulse Ring Tap (`카단의 기세`, Centered Between Silia & Kadan!) */}
+      {/* Story Mode Exclusive: BGM Pulse Ring Tap (`카단·실리아 합동 필살기 기세`) — Centered in Auto-Play, Compact Left-Side Orb beside Kadan in Manual Play! */}
       {mode === 'TUTORIAL' &&
-        autoPlay &&
         matchState.phase === 'PLAYING' &&
         storyPhase === 'CLOSED' &&
-        !vsIntroActive && (
+        !vsIntroActive &&
+        (autoPlay ? (
           <CenterRhythmRingHud
             rhythmEnabled={rhythmEnabled}
             battleBpm={battleBpm}
@@ -8095,46 +8468,44 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             rhythmFlash={rhythmFlash}
             onTap={handleRhythmOrbTap}
           />
-        )}
-
-      {/* Story Mode Left-Side Silia Companion Ultimate Widget (1 skill per turn) */}
-      <SiliaUltimateWidget
-        visible={
-          mode === 'TUTORIAL' &&
-          matchState.phase === 'PLAYING' &&
-          storyPhase === 'CLOSED' &&
-          !vsIntroActive
-        }
-        isPlayerTurn={matchState.activeSide === 'PLAYER'}
-        usedThisTurn={Boolean(matchState.siliaUsedThisTurn)}
-        reincarnation={matchState.journeyMeta?.reincarnation ?? 0}
-        friendlyBoardCount={matchState.player.board.length}
-        enemyBoardCount={matchState.opponent.board.length}
-        friendlyNames={matchState.player.board.map((m) => {
-          const def = cardDb.getCard(m.cardId);
-          return def ? getCardName(def, lang) : m.name;
-        })}
-        enemyNames={matchState.opponent.board.map((m) => {
-          const def = cardDb.getCard(m.cardId);
-          return def ? getCardName(def, lang) : m.name;
-        })}
-        onInteractionPauseChange={setSiliaAutoPaused}
-        onCastSkill={(skillKind: SiliaSkillKind) => {
-          // Snapshot live stage coordinates of all entities BEFORE state mutation
-          // so even minions killed immediately (e.g. 1 HP) get targeted Windstorm VFX!
-          document.querySelectorAll('[data-hs-entity]').forEach((el) => {
-            const id = el.getAttribute('data-hs-entity');
-            if (id) recordEntityStagePosition(id, elementCenterInStage(el));
-          });
-          const siliaEl = document.querySelector('[data-silia-toggle="true"]');
-          if (siliaEl) {
-            recordEntityStagePosition('SILIA_WIDGET', elementCenterInStage(siliaEl));
-          }
-          triggerDamageImpact(16, { isFinisher: true, customDurationMs: 480 });
-          const next = createEngine(latestMatchRef.current).useSiliaSkill(skillKind);
-          setMatchState(next);
-        }}
-      />
+        ) : (
+          rhythmEnabled && (
+            <div
+              data-testid="manual-dual-ult-orb"
+              className="pointer-events-none fixed bottom-3 left-[104px] z-[74] flex select-none flex-col items-center sm:bottom-4 sm:left-[122px]"
+            >
+              <button
+                type="button"
+                data-testid="manual-dual-ult-btn"
+                disabled={kadanSpiritPhase === 'IGNITING'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRhythmOrbTap();
+                }}
+                title={tr(
+                  '카단·실리아 합동 필살기 충전 (100 달성 후 탭 시 동시 발동!)',
+                  'Charge Kadan & Silia Dual Ultimate (Tap at 100 to unleash both!)',
+                )}
+                className={`pointer-events-auto flex min-h-[46px] min-w-[54px] flex-col items-center justify-center rounded-2xl border-2 px-2 py-1 shadow-xl transition active:scale-95 ${
+                  kadanSpiritPhase === 'READY'
+                    ? 'animate-bounce border-yellow-200 bg-gradient-to-b from-amber-500 via-orange-600 to-red-800 text-white shadow-[0_0_20px_rgba(251,146,60,0.95)]'
+                    : kadanSpiritPhase === 'IGNITING'
+                      ? 'border-orange-300 bg-orange-900/95 text-amber-100'
+                      : 'border-cyan-300/75 bg-[#071824]/95 text-cyan-100 hover:border-emerald-300'
+                }`}
+              >
+                <span className="text-xs leading-none">
+                  {kadanSpiritPhase === 'READY' ? '🔥❄️🌪' : '❄️🌪'}
+                </span>
+                <span className="mt-0.5 text-[10px] font-black leading-none">
+                  {kadanSpiritPhase === 'READY'
+                    ? tr('합동필살!', 'DUAL ULT!')
+                    : `${kadanMomentumCount}/100`}
+                </span>
+              </button>
+            </div>
+          )
+        ))}
 
       {/* Universal Enlarged Card Inspection & Bottom Action Modal */}
       {renderActiveZoomModal()}

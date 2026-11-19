@@ -1180,6 +1180,22 @@ const dict: Record<string, string> = {
   "Last Updated:": "Dernière mise à jour :",
   "Choose from 10 supported game languages": "Choisissez parmi 10 langues prises en charge",
   "Select Language": "Choisir la langue",
+  "Live Chat · Guild & Duel Hub": "Chat en Direct · Guilde & Duels",
+  "Guild": "Guilde",
+  "Duel Room": "Salon Duel",
+  "Send Gold": "Don d'Or",
+  "Type a live message...": "Écrire un message en direct...",
+  "Send": "Envoyer",
+  "Join or Create a Guild": "Rejoindre ou Créer une Guilde",
+  "New Guild": "Nouvelle Guilde",
+  "Choose Your 30-Card Deck": "Choisissez votre deck de 30 cartes",
+  "Host a Live 1v1 Duel Room": "Créer un Salon de Duel 1v1",
+  "Create Duel Room with My Deck": "Ouvrir un Salon avec Mon Deck",
+  "Battle with My Deck!": "Combattre avec Mon Deck !",
+  "Gift Gold to Another Player": "Offrir de l'Or à un joueur",
+  "Waiting for Opponent Mulligan...": "En attente de l'adversaire...",
+  "❄️🌪 Dual Ult!": "❄️🌪 Ultime Duo !",
+  "Silia Co-Cast!": "Silia en duo !",
 };
 
 export default dict;

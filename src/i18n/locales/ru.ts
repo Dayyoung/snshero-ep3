@@ -1180,6 +1180,22 @@ const dict: Record<string, string> = {
   "Last Updated:": "Обновлено:",
   "Choose from 10 supported game languages": "Выберите один из 10 языков игры",
   "Select Language": "Выбрать язык",
+  "Live Chat · Guild & Duel Hub": "Живой чат · Гильдия и Дуэли",
+  "Guild": "Гильдия",
+  "Duel Room": "Дуэльная",
+  "Send Gold": "Дать золото",
+  "Type a live message...": "Введите сообщение...",
+  "Send": "Отпр.",
+  "Join or Create a Guild": "Вступить или создать гильдию",
+  "New Guild": "Создать",
+  "Choose Your 30-Card Deck": "Выберите свою колоду из 30 карт",
+  "Host a Live 1v1 Duel Room": "Создать комнату дуэли 1 на 1",
+  "Create Duel Room with My Deck": "Создать дуэль с моей колодой",
+  "Battle with My Deck!": "В бой с моей колодой!",
+  "Gift Gold to Another Player": "Подарить золото игроку",
+  "Waiting for Opponent Mulligan...": "Ожидание муллигана соперника...",
+  "❄️🌪 Dual Ult!": "❄️🌪 Двойной ульт!",
+  "Silia Co-Cast!": "Силия вместе!",
 };
 
 export default dict;

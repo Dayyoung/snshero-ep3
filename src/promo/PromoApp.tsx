@@ -28,6 +28,8 @@ import {
   SnsBoosterPackArt,
 } from '../hearthstone/components/SnsHeroArtKit';
 import { KadanChatbotWidget } from '../hearthstone/components/KadanChatbotWidget';
+import { LiveCommunityChatWidget } from '../hearthstone/components/LiveCommunityChatWidget';
+import { snsheroLiveNetwork } from '../hearthstone/services/snsheroLiveNetwork';
 import { HowToPlayCarousel } from '../hearthstone/components/OnboardingGuideModal';
 import { SharedAdSenseShell } from '../components/SharedAdSenseShell';
 import { hsAudio } from '../hearthstone/audio';
@@ -67,10 +69,30 @@ export const PromoApp: React.FC = () => {
   const [cards, setCards] = useState<ClassicCardDef[]>([]);
   const [cardsLoading, setCardsLoading] = useState(true);
   const [promoAutoRunning, setPromoAutoRunning] = useState(false);
-  const [promoProfile] = useState(() => {
+  const [promoProfile, setPromoProfile] = useState(() => {
     hsStorage.ensureInitialized();
     return hsStorage.getProfile();
   });
+
+  useEffect(() => {
+    const syncPromoProfile = () => setPromoProfile(hsStorage.getProfile());
+    window.addEventListener('snshero:state-changed', syncPromoProfile);
+    const unsubPvp = snsheroLiveNetwork.onMatchStart(({ initialMatchState }) => {
+      try {
+        sessionStorage.setItem(
+          'snshero_pending_live_pvp_match',
+          JSON.stringify(initialMatchState),
+        );
+      } catch {
+        // ignore
+      }
+      window.location.href = '/game?livePvp=1';
+    });
+    return () => {
+      window.removeEventListener('snshero:state-changed', syncPromoProfile);
+      unsubPvp();
+    };
+  }, []);
   const [selectedHeroClass, setSelectedHeroClass] = useState<HeroClass>('PRIEST');
   const [activeFeatureTab, setActiveFeatureTab] = useState<FeatureTabId>('story');
 
@@ -1992,7 +2014,7 @@ export const PromoApp: React.FC = () => {
           </div>
         )}
 
-        {/* Bottom-Right Kadan Chatbot */}
+        {/* Bottom-Left Kadan Chatbot (Moved to Silia's Side) */}
         <KadanChatbotWidget
           screen="BOX_HUB"
           profile={promoProfile}
@@ -2026,6 +2048,16 @@ export const PromoApp: React.FC = () => {
           }}
           onOpenQuestLog={() => {
             window.location.href = '/game';
+          }}
+        />
+
+        {/* Bottom-Right Real Live Chat Icon + Real-Time Count, Gold Gifting, Guild Chat & 1v1 Deck Duel Rooms */}
+        <LiveCommunityChatWidget
+          screen="BOX_HUB"
+          profile={promoProfile}
+          onProfileChanged={() => setPromoProfile(hsStorage.getProfile())}
+          onOpenCollection={() => {
+            window.location.href = '/game?mode=collection';
           }}
         />
       </div>

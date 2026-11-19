@@ -1122,8 +1122,8 @@ export const CollectionScreen: React.FC<{
               )}
             </div>
 
-            {/* Bottom Filter Bar: Sapphire Mana Gems + Rarity + Search (Mobile pr-16 clears KadanChatbotWidget!) */}
-            <div className="mt-1 flex shrink-0 flex-col gap-1.5 border-t-2 border-[#8c6633]/35 pr-16 pt-1.5 sm:mt-1.5 sm:pr-0 sm:pt-2">
+            {/* Bottom Filter Bar: Sapphire Mana Gems + Rarity + Search (Mobile px-16 clears Left Kadan & Right Live Chat!) */}
+            <div className="mt-1 flex shrink-0 flex-col gap-1.5 border-t-2 border-[#8c6633]/35 px-16 pt-1.5 sm:mt-1.5 sm:px-0 sm:pt-2">
               <div className="flex flex-wrap items-center justify-between gap-1.5">
                 {/* Sapphire Mana Crystal Filter Row */}
                 <div className="hs-no-scrollbar flex items-center gap-1 overflow-x-auto">

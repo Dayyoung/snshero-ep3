@@ -157,8 +157,8 @@ function getEntityCenter(entityId?: string): { x: number; y: number } {
 
   if (entityId === 'PLAYER_HERO') return { x: w * 0.5, y: h * 0.77 };
   if (entityId === 'OPPONENT_HERO') return { x: w * 0.5, y: h * 0.17 };
-  if (entityId === 'SILIA_WIDGET') return { x: w * 0.08, y: h * 0.86 };
-  if (entityId === 'KADAN_WIDGET') return { x: w * 0.92, y: h * 0.86 };
+  if (entityId === 'SILIA_WIDGET') return { x: w * 0.14, y: h * 0.86 };
+  if (entityId === 'KADAN_WIDGET') return { x: w * 0.08, y: h * 0.86 };
   if (entityId === 'PLAYER_DECK') return { x: w * 0.94, y: h * 0.62 };
   if (entityId === 'OPPONENT_DECK') return { x: w * 0.94, y: h * 0.31 };
   if (entityId === 'TOY_TL') return { x: w * 0.08, y: h * 0.12 };

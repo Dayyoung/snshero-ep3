@@ -329,6 +329,71 @@ const RULES: PatternRule[] = [
       ru: (_, n) => `${n} наб.`,
     },
   },
+  {
+    regex: /^Live Chat · (\d+)$/,
+    replace: {
+      ja: (_, n) => `ライブチャット · ${n}`,
+      'zh-CN': (_, n) => `实时聊天 · ${n}`,
+      'zh-TW': (_, n) => `即時聊天 · ${n}`,
+      es: (_, n) => `Chat en vivo · ${n}`,
+      fr: (_, n) => `Chat en direct · ${n}`,
+      de: (_, n) => `Live-Chat · ${n}`,
+      pt: (_, n) => `Chat ao vivo · ${n}`,
+      ru: (_, n) => `Чат онлайн · ${n}`,
+    },
+  },
+  {
+    regex: /^(\d+)\s*Live$/,
+    replace: {
+      ja: (_, n) => `リアルタイム ${n}人`,
+      'zh-CN': (_, n) => `实时 ${n}人`,
+      'zh-TW': (_, n) => `即時 ${n}人`,
+      es: (_, n) => `${n} en vivo`,
+      fr: (_, n) => `${n} en direct`,
+      de: (_, n) => `${n} Live`,
+      pt: (_, n) => `${n} ao vivo`,
+      ru: (_, n) => `${n} в сети`,
+    },
+  },
+  {
+    regex: /^(\d+)\s*Online$/,
+    replace: {
+      ja: (_, n) => `接続中 ${n}人`,
+      'zh-CN': (_, n) => `在线 ${n}人`,
+      'zh-TW': (_, n) => `在線 ${n}人`,
+      es: (_, n) => `${n} conectados`,
+      fr: (_, n) => `${n} en ligne`,
+      de: (_, n) => `${n} Online`,
+      pt: (_, n) => `${n} online`,
+      ru: (_, n) => `${n} онлайн`,
+    },
+  },
+  {
+    regex: /^Open Duel Rooms \((\d+)\)$/,
+    replace: {
+      ja: (_, n) => `公開中の対戦ルーム (${n})`,
+      'zh-CN': (_, n) => `开放中的对战房 (${n})`,
+      'zh-TW': (_, n) => `開放中的對戰房 (${n})`,
+      es: (_, n) => `Salas de duelo abiertas (${n})`,
+      fr: (_, n) => `Salons de duel ouverts (${n})`,
+      de: (_, n) => `Offene Duellräume (${n})`,
+      pt: (_, n) => `Salas de duelo abertas (${n})`,
+      ru: (_, n) => `Открытые комнаты дуэли (${n})`,
+    },
+  },
+  {
+    regex: /^Send ([\d,]+)G Now$/,
+    replace: {
+      ja: (_, n) => `${n}G を今すぐ贈る`,
+      'zh-CN': (_, n) => `立即赠送 ${n}G`,
+      'zh-TW': (_, n) => `立即贈送 ${n}G`,
+      es: (_, n) => `Enviar ${n}G ahora`,
+      fr: (_, n) => `Envoyer ${n}G maintenant`,
+      de: (_, n) => `${n}G jetzt senden`,
+      pt: (_, n) => `Enviar ${n}G agora`,
+      ru: (_, n) => `Отправить ${n}G сейчас`,
+    },
+  },
 ];
 
 function er(n: string): string {

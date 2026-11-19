@@ -71,6 +71,21 @@ const RUN_FRAMES = [
   '/hs-assets/kadan-bot/run_04.webp',
 ];
 
+const SILIA_CO_CAST_FRAMES: Record<'ATTACK' | 'DEFENSE' | 'HEAL', string[]> = {
+  ATTACK: [
+    '/hs-assets/silia-bot/cast_attack_01.webp',
+    '/hs-assets/silia-bot/cast_attack_02.webp',
+  ],
+  DEFENSE: [
+    '/hs-assets/silia-bot/cast_defense_01.webp',
+    '/hs-assets/silia-bot/cast_defense_02.webp',
+  ],
+  HEAL: [
+    '/hs-assets/silia-bot/cast_heal_01.webp',
+    '/hs-assets/silia-bot/cast_heal_02.webp',
+  ],
+};
+
 export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
   screen,
   profile,
@@ -104,6 +119,25 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmSource, setLlmSource] = useState<'ON_DEVICE_PROMPT_API' | 'LOCAL_KNOWLEDGE_ENGINE' | null>(null);
   const [micListening, setMicListening] = useState(false);
+  const [siliaCoCastSkill, setSiliaCoCastSkill] = useState<'ATTACK' | 'DEFENSE' | 'HEAL' | null>(null);
+
+  useEffect(() => {
+    const onDualCast = (ev: Event) => {
+      const detail = (ev as CustomEvent<{ skillKind?: 'ATTACK' | 'DEFENSE' | 'HEAL' }>).detail;
+      const sk = detail?.skillKind || 'ATTACK';
+      setSiliaCoCastSkill(sk);
+    };
+    window.addEventListener('snshero:dual-ultimate-cast', onDualCast as EventListener);
+    return () => {
+      window.removeEventListener('snshero:dual-ultimate-cast', onDualCast as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!siliaCoCastSkill) return;
+    const t = window.setTimeout(() => setSiliaCoCastSkill(null), 1950);
+    return () => window.clearTimeout(t);
+  }, [siliaCoCastSkill]);
 
   const kadanRootRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -311,9 +345,15 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
     }
   };
 
-  // Preload all 8 sprite frames once so frame transitions never flicker
+  // Preload all sprite frames once so frame transitions never flicker
   useEffect(() => {
-    [...IDLE_FRAMES, ...RUN_FRAMES].forEach((src) => {
+    [
+      ...IDLE_FRAMES,
+      ...RUN_FRAMES,
+      ...SILIA_CO_CAST_FRAMES.ATTACK,
+      ...SILIA_CO_CAST_FRAMES.DEFENSE,
+      ...SILIA_CO_CAST_FRAMES.HEAL,
+    ].forEach((src) => {
       const img = new Image();
       img.src = src;
     });
@@ -826,7 +866,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
     <div
       ref={kadanRootRef}
       data-testid="kadan-chatbot-root"
-      className="pointer-events-none fixed bottom-2 right-2 z-[125] flex flex-col items-end sm:bottom-3.5 sm:right-4"
+      className="pointer-events-none fixed bottom-2.5 left-2.5 z-[125] flex flex-col items-start sm:bottom-3.5 sm:left-3.5"
     >
       {/* Speech Dialogue Bubble & Context Help Menu */}
       {(menuOpen || speechText) && (
@@ -1104,73 +1144,116 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
         </div>
       )}
 
-      {/* Bottom-Right 2-Head-Tall Chibi Kadan Character Button */}
-      <button
-        type="button"
-        data-testid="kadan-chatbot-avatar-btn"
-        data-kadan-mode={autoPlay ? 'running' : 'idle'}
-        onClick={handleKadanClick}
-        aria-label={
-          autoPlay
-            ? tr('달리는 카단 (클릭 시 자동플레이 중지)', 'Running Kadan (Click to stop Auto-Play)')
-            : tr('카단 챗봇 (클릭 시 카드 도움말 열기)', 'Kadan Chatbot (Click for card help)')
-        }
-        className="pointer-events-auto group relative flex flex-col items-center focus:outline-none"
-      >
-        {/* Running Aura / Speed Lines Effect when Auto-Play is Active */}
-        {autoPlay && (
-          <div className="pointer-events-none absolute inset-x-1 bottom-4 top-2 rounded-full bg-emerald-400/20 blur-md animate-pulse" />
-        )}
-
-        {/* Chibi Kadan Sprite (Pre-mounted 4-frame opacity swap — zero WebKit image re-decode per tick!) */}
-        <div
-          className={`relative flex h-[74px] w-[74px] items-center justify-center transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[92px] sm:w-[92px] ${
-            autoPlay ? 'drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]' : 'drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)]'
-          }`}
+      {/* Bottom-Left 2-Head-Tall Chibi Kadan Character Button (+ Silia Co-Cast Cameo on Dual Ultimate!) */}
+      <div className="flex items-end gap-1">
+        <button
+          type="button"
+          data-testid="kadan-chatbot-avatar-btn"
+          data-kadan-mode={autoPlay ? 'running' : 'idle'}
+          onClick={handleKadanClick}
+          aria-label={
+            autoPlay
+              ? tr('달리는 카단 (클릭 시 자동플레이 중지)', 'Running Kadan (Click to stop Auto-Play)')
+              : tr('카단 챗봇 (클릭 시 카드 도움말 열기)', 'Kadan Chatbot (Click for card help)')
+          }
+          className="pointer-events-auto group relative flex flex-col items-center focus:outline-none"
         >
-          {activeFrames.map((src, idx) => (
-            <img
-              key={src}
-              src={src}
-              decoding="async"
-              alt=""
-              aria-hidden="true"
-              draggable={false}
-              className={`absolute inset-0 h-full w-full select-none object-contain ${
-                idx === frameIdx ? 'opacity-100' : 'opacity-0'
+          {/* Running Aura / Dual Ultimate Aura */}
+          {(autoPlay || siliaCoCastSkill) && (
+            <div
+              className={`pointer-events-none absolute inset-x-1 bottom-4 top-2 rounded-full blur-md animate-pulse ${
+                siliaCoCastSkill
+                  ? 'bg-gradient-to-r from-cyan-400/35 to-emerald-400/35'
+                  : 'bg-emerald-400/20'
               }`}
             />
-          ))}
+          )}
 
-          {/* Cute Floating "?" / "⚡" Status Pin */}
-          <span
-            className={`pointer-events-none absolute -left-0.5 top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full border px-1 text-[10px] font-black shadow-md sm:h-6 sm:min-w-[24px] sm:text-xs ${
-              autoPlay
-                ? 'border-emerald-200 bg-emerald-600 text-white animate-bounce'
-                : menuOpen
-                  ? 'border-sky-200 bg-sky-600 text-white'
-                  : 'border-amber-200 bg-stone-900/95 text-amber-200'
+          {/* Chibi Kadan Sprite (Pre-mounted 4-frame opacity swap — zero WebKit image re-decode per tick!) */}
+          <div
+            className={`relative flex h-[74px] w-[74px] items-center justify-center transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[92px] sm:w-[92px] ${
+              siliaCoCastSkill
+                ? 'scale-108 drop-shadow-[0_0_14px_rgba(56,189,248,0.95)]'
+                : autoPlay
+                  ? 'drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]'
+                  : 'drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)]'
             }`}
           >
-            {autoPlay ? '⚡' : '?'}
-          </span>
-        </div>
+            {activeFrames.map((src, idx) => (
+              <img
+                key={src}
+                src={src}
+                decoding="async"
+                alt=""
+                aria-hidden="true"
+                draggable={false}
+                className={`absolute inset-0 h-full w-full select-none object-contain ${
+                  idx === frameIdx ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            ))}
 
-        {/* Nameplate Pill Below Kadan's Boots */}
-        <div
-          className={`-mt-1.5 flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold shadow-[0_4px_10px_rgba(0,0,0,0.9)] transition sm:px-3 sm:text-[11px] ${
-            autoPlay
-              ? 'border-emerald-300 bg-gradient-to-r from-emerald-700 to-teal-900 text-emerald-50'
-              : 'border-[#deb96e] bg-stone-950/95 text-amber-100 group-hover:border-sky-300 group-hover:text-sky-100'
-          }`}
-        >
-          <span>
-            {autoPlay
-              ? tr('자동플레이 중 (정지)', 'Auto-Playing (Stop)')
-              : tr('카단 도움말', 'Ask Kadan')}
-          </span>
-        </div>
-      </button>
+            {/* Cute Floating "?" / "⚡" Status Pin (inward right corner on bottom-left widget) */}
+            <span
+              className={`pointer-events-none absolute -right-0.5 top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full border px-1 text-[10px] font-black shadow-md sm:h-6 sm:min-w-[24px] sm:text-xs ${
+                siliaCoCastSkill
+                  ? 'border-cyan-100 bg-gradient-to-r from-sky-500 to-emerald-600 text-white animate-bounce'
+                  : autoPlay
+                    ? 'border-emerald-200 bg-emerald-600 text-white animate-bounce'
+                    : menuOpen
+                      ? 'border-sky-200 bg-sky-600 text-white'
+                      : 'border-amber-200 bg-stone-900/95 text-amber-200'
+              }`}
+            >
+              {siliaCoCastSkill ? '❄️🌪' : autoPlay ? '⚡' : '?'}
+            </span>
+          </div>
+
+          {/* Nameplate Pill Below Kadan's Boots */}
+          <div
+            className={`-mt-1.5 flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold shadow-[0_4px_10px_rgba(0,0,0,0.9)] transition sm:px-3 sm:text-[11px] ${
+              siliaCoCastSkill
+                ? 'border-cyan-200 bg-gradient-to-r from-sky-700 via-teal-700 to-emerald-800 text-white'
+                : autoPlay
+                  ? 'border-emerald-300 bg-gradient-to-r from-emerald-700 to-teal-900 text-emerald-50'
+                  : 'border-[#deb96e] bg-stone-950/95 text-amber-100 group-hover:border-sky-300 group-hover:text-sky-100'
+            }`}
+          >
+            <span>
+              {siliaCoCastSkill
+                ? tr('❄️🌪 합동 필살기!', '❄️🌪 Dual Ult!')
+                : autoPlay
+                  ? tr('자동플레이 중 (정지)', 'Auto-Playing (Stop)')
+                  : tr('카단 도움말', 'Ask Kadan')}
+            </span>
+          </div>
+        </button>
+
+        {/* Silia Co-Cast Cameo Sprite (Appears beside Kadan ONLY during Dual Ultimate!) */}
+        {siliaCoCastSkill && (
+          <div
+            data-testid="kadan-silia-dual-cameo"
+            className="pointer-events-none flex flex-col items-center animate-[hsCardPop_0.22s_ease-out]"
+          >
+            <div className="relative flex h-[72px] w-[72px] items-center justify-center drop-shadow-[0_0_14px_rgba(16,185,129,0.95)] sm:h-[88px] sm:w-[88px]">
+              <img
+                src={
+                  SILIA_CO_CAST_FRAMES[siliaCoCastSkill][
+                    frameIdx % SILIA_CO_CAST_FRAMES[siliaCoCastSkill].length
+                  ]
+                }
+                alt={tr('실리아 합동 필살기', 'Silia Dual Ultimate')}
+                decoding="async"
+                draggable={false}
+                className="h-full w-full select-none object-contain"
+              />
+            </div>
+            <div className="-mt-1.5 rounded-full border border-emerald-200 bg-gradient-to-r from-emerald-700 to-teal-900 px-2 py-0.5 text-[9.5px] font-black text-emerald-50 shadow-lg">
+              🌪 {tr('실리아 동시참전!', 'Silia Co-Cast!')}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

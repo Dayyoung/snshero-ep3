@@ -1180,6 +1180,22 @@ const dict: Record<string, string> = {
   "Last Updated:": "最終更新:",
   "Choose from 10 supported game languages": "対応する10言語から選択",
   "Select Language": "言語を選択",
+  "Live Chat · Guild & Duel Hub": "ライブチャット・ギルド＆対戦ロビー",
+  "Guild": "ギルド",
+  "Duel Room": "対戦ルーム",
+  "Send Gold": "ゴールド贈呈",
+  "Type a live message...": "リアルタイムメッセージを入力...",
+  "Send": "送信",
+  "Join or Create a Guild": "ギルド加入・新規創設",
+  "New Guild": "ギルド創設",
+  "Choose Your 30-Card Deck": "出撃する自分の30枚デッキを選択",
+  "Host a Live 1v1 Duel Room": "リアルタイム1対1対戦ルーム作成",
+  "Create Duel Room with My Deck": "自分のデッキで対戦ルーム開設",
+  "Battle with My Deck!": "自分のデッキで即対戦！",
+  "Gift Gold to Another Player": "他プレイヤーにゴールドを贈る",
+  "Waiting for Opponent Mulligan...": "対戦相手のマリガン待機中...",
+  "❄️🌪 Dual Ult!": "❄️🌪 合体必殺技！",
+  "Silia Co-Cast!": "シリア同時参戦！",
 };
 
 export default dict;

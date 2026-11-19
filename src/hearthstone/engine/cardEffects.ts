@@ -653,7 +653,7 @@ export const CARD_SCRIPTS: Record<string, CardScriptSpec> = {
       const p = ops.getPlayer(side);
       const top3 = p.deck.splice(0, 3);
       if (top3.length === 0) return;
-      if (side === 'PLAYER' && top3.length > 1) {
+      if ((side === 'PLAYER' || Boolean(ops.state.livePvpMeta)) && top3.length > 1) {
         ops.state.trackingPrompt = { cards: top3 };
       } else {
         ops.addCardToHand(side, top3[0]);
