@@ -1432,6 +1432,21 @@
   - **3. 검증·로컬 커밋**:
     - `npm run build` 통과(`12.01s`), Playwright 데스크톱·모바일 4개 시나리오 에러 `0건`·가로 넘침 `0건`·훅/CTA 렌더링 통과. 로컬 `git commit` 완료 (`git push` 보류).
 
+## [2026-11-19 10:16 KST] [7대 MCP 전면 가동 — Google Play 4개국어(EN/KO/JA/ZH) 전면 교체, GitHub 메타/릴리스 v2.1.0/레거시 아카이브, 언어별 커뮤니티 마케팅 원칙 명문화 (완료율 58.1% 돌파)]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. Google Play Store (`google-play-mcp`, `com.dryudryu.SNSHero`) 4개국어 스토어 등록정보 LIVE 커밋 완료**:
+    - 구버전 `'1,000 SNS points · Over 110 cute cards'` 문구를 완전 제거하고 `en-US`, `ko-KR`, `ja-JP`, `zh-CN` 4개 언어 모두 현행 **382종 전략 웹 TCG · 무료 3팩+250G · 40화 풀보이스(3장=3배 각성) · 보가트 도박장** 스펙으로 LIVE 커밋 완료 (`MKT-005`, `MKT-008`, `MKT-080` → `완료`).
+  - **2. GitHub (`github-mcp`, `Dayyoung/snshero` & `Dayyoung/snshero-board`) LIVE 정비 완료**:
+    - `Dayyoung/snshero` About 설명·홈페이지(`https://snshero.com/`)·10개 토픽 태그 갱신, 공식 Release **`v2.1.0`** 발행(`https://github.com/Dayyoung/snshero/releases/tag/v2.1.0`), 구버전 레포 `Dayyoung/snshero-board` 설명 리다이렉트 및 `archived: true` 전환 완료 (`MKT-019`, `MKT-043`, `MKT-091` → `완료`).
+  - **3. `/checkMarket` 스킬 (`skills/checkMarket/SKILL.md`) 언어별 커뮤니티 마케팅 원칙 추가**:
+    - 각 커뮤니티 주 사용 언어(영어 `?lang=en`, 한국어 `?lang=ko`, 일본어 `?lang=ja`, 중국어 `?lang=zh-CN`/`zh-TW` 등)에 맞춘 원어민 톤 카피 + 대응 `?lang=` 직행 링크 + 해당 언어 스크린샷 매칭 원칙 명문화.
+  - **4. 브라우저(`chrome-devtools-marketing`) 세션 점검**:
+    - CrazyGames Developer Portal(`SNSHero` 로그인 확인) 제출 페이지 진입 및 6대 사전 체크리스트 통과 확인 (ZIP 업로드 경로는 브라우저에서 직접 드래그앤드롭 안내).
+    - 기존 `gd.games` 페이지(`SNSHero.com - Ai Rebellion`, 407 plays) 및 `itch.io`(`snshero.itch.io/game`) 확인 완료; PacPik·문피아·네이버·Reddit·GeekNews·Disquiet·gd.games는 해당 브라우저 프로필 내 로그인 필요 상태 확인.
+  - **5. 시트 최신화 및 로컬 커밋**:
+    - 구글 시트 대시보드 완료율 **`34.9% (29건)` → `58.1% (61 / 105건)`** (+32건 완료, +23.2%p 상승) 달성. 로컬 `git commit` 완료 (`git push` 보류).
+
 ## [2026-11-19 10:05 KST] [게임 지원 언어 2개(KO/EN) → 글로벌 10개 언어 전면 확장]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

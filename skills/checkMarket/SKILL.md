@@ -57,7 +57,11 @@ description: SNSHero 마케팅문서(1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKE
        - **CrazyGames** (`https://www.crazygames.com/` / `https://developer.crazygames.com/`): 외부 이탈 링크·자체 결제·외부 광고(AdSense 등) 제거, CrazyGames SDK v3 라이프사이클 훅, 상대경로 HTML5 zip 준수
        - **itch.io** (`https://itch.io/`): HTML5 iframe 상대경로(`./`) 호환, 커버(630×500)·스크린샷·적합 태그·Devlog 규칙 준수
        - **GDevelop / gd.games** (`https://gdevelop.io/` / `https://gd.games/`): **gd.games가 GDevelop 엔진 제작물 전용 정책인지 최우선 확인** 후, 전용 제한 시 GDevelop 경량 프로모션 데모 제작 또는 포럼 정책에 맞는 방식으로만 진행
-2. **2단계 — 커뮤니티 맞춤형 리라이팅 & 정책 필터링**:
+2. **2단계 — 커뮤니티 맞춤형 리라이팅, 언어·로케일 최적화 & 정책 필터링**:
+   - **커뮤니티 사용 언어 100% 맞춤화 (Locale-Matched Marketing 절대 원칙)**:
+     - **영어권 커뮤니티·포털**(Reddit `r/WebGames`·`r/PlayMyGame`·`r/digitaltabletop`, CrazyGames, itch.io, Product Hunt, IndieDB, Hacker News 등): 자연스러운 원어민 영어 + `?lang=en` 직행 링크 + 영문 스크린샷/GIF 사용.
+     - **한국어권 커뮤니티·연재처**(GeekNews, Disquiet, PacPik, 인벤, 디시, 아카라이브, 문피아, 네이버 웹소설/도전만화/컷츠 등): 자연스러운 한국어 + `?lang=ko` 직행 링크 + 국문 스크린샷/GIF 사용.
+     - **기타 글로벌 언어권**(일본어 `?lang=ja`, 중국어 간체/번체 `?lang=zh-CN`/`?lang=zh-TW`, 독일어 `?lang=de`, 스페인어 `?lang=es`, 프랑스어 `?lang=fr`, 포르투갈어 `?lang=pt`, 러시아어 `?lang=ru` 등): 반드시 해당 커뮤니티 주 언어와 대응 `?lang=<code>` 링크를 매칭해 유입 즉시 모국어 UI로 진입하도록 구성.
    - 정책 위반 소지가 있는 과장 홍보 문구·금지 링크·부적합 톤을 제거하고, 각 커뮤니티가 선호하는 형식(예: GeekNews/Disquiet → 기술 회고·아키텍처 중심, Reddit `r/WebGames` → 무료 무설치 플레이 링크와 피드백 요청 중심, 국내 게임 커뮤니티 → 직접 플레이 GIF + 솔직한 1인 개발 밸런스 피드백 요청)으로 원고를 재작성합니다.
    - 중복/도배 방지를 위해 동일 게시판 최근 게시 이력을 먼저 확인합니다.
 3. **3단계 — 최종 정책 체크리스트 검증 후 게시**:
