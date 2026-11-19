@@ -80,11 +80,56 @@ function stripExternalTagsAndInjectPortal(html, portal) {
 
   const sdkSnippet =
     portal === 'crazygames'
-      ? `  <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>\n  <script>window.__SNSHERO_PORTAL__ = 'crazygames';</script>\n`
+      ? `  <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+  <script>
+    window.__SNSHERO_PORTAL__ = 'crazygames';
+    // CrazyGames requires English as default language on initial load
+    try { if (!localStorage.getItem('hero_language')) localStorage.setItem('hero_language', 'en'); } catch (e) {}
+    // Safety net: rewrite any root-relative /hs-assets/ fetch to subpath-relative ./hs-assets/
+    (function () {
+      var origFetch = window.fetch;
+      if (typeof origFetch === 'function') {
+        window.fetch = function (input, init) {
+          if (typeof input === 'string' && input.indexOf('/hs-assets/') === 0) {
+            input = '.' + input;
+          }
+          return origFetch.call(this, input, init);
+        };
+      }
+      // Initialize CrazyGames SDK v3 cleanly
+      window.addEventListener('load', function () {
+        try {
+          if (window.CrazyGames && window.CrazyGames.SDK && typeof window.CrazyGames.SDK.init === 'function') {
+            window.CrazyGames.SDK.init().catch(function () {});
+          }
+        } catch (e) {}
+      });
+    })();
+  </script>\n`
       : `  <script>window.__SNSHERO_PORTAL__ = 'itchio';</script>\n`;
 
   out = out.replace('<head>', `<head>\n${sdkSnippet}`);
   return out;
+}
+
+function rewriteSubpathAssetsInDir(dir) {
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      rewriteSubpathAssetsInDir(p);
+    } else if (entry.isFile() && /\.(js|css|json)$/i.test(entry.name)) {
+      const raw = fs.readFileSync(p, 'utf-8');
+      if (raw.includes('/hs-assets/') || raw.includes('/assets/')) {
+        const patched = raw
+          .replace(/(["'`(])\/hs-assets\//g, '$1./hs-assets/')
+          .replace(/(["'`(])\/assets\//g, '$1./assets/');
+        if (patched !== raw) {
+          fs.writeFileSync(p, patched, 'utf-8');
+        }
+      }
+    }
+  }
 }
 
 function buildPortalBundle(portal, opts) {
@@ -110,6 +155,10 @@ function buildPortalBundle(portal, opts) {
   // 3. Copy hs-assets filtered to stay comfortably under file-count & size caps
   copyDirFiltered(path.join(DIST, 'hs-assets'), path.join(stageDir, 'hs-assets'), opts.skipPrefixes);
 
+  // 3.5 Rewrite root-relative /hs-assets/ & /assets/ inside JS/CSS/JSON for portal subpath hosting
+  rewriteSubpathAssetsInDir(path.join(stageDir, 'assets'));
+  rewriteSubpathAssetsInDir(path.join(stageDir, 'hs-assets', 'data'));
+
   // 4. Write portal-compliant root index.html
   const rawHtml = fs.readFileSync(path.join(DIST, 'game.html'), 'utf-8');
   let portalHtml = stripExternalTagsAndInjectPortal(rawHtml, portal);
@@ -126,7 +175,13 @@ function buildPortalBundle(portal, opts) {
   const zipPath = path.join(OUT_ROOT, `snshero-${portal}.zip`);
   execSync(`cd "${stageDir}" && zip -qr "${zipPath}" .`);
   const zipMb = +(fs.statSync(zipPath).size / (1024 * 1024)).toFixed(2);
-  fs.rmSync(stageDir, { recursive: true, force: true });
+  if (portal === 'crazygames') {
+    const uploadDir = path.join(OUT_ROOT, 'crazygames-upload');
+    fs.rmSync(uploadDir, { recursive: true, force: true });
+    fs.renameSync(stageDir, uploadDir);
+  } else {
+    fs.rmSync(stageDir, { recursive: true, force: true });
+  }
 
   return { portal, zipPath, zipMb, ...stats };
 }
