@@ -1532,3 +1532,17 @@
   - **3. 검증 및 로컬 커밋**:
     - `npx tsc --noEmit && npm run build && node scripts/build-portal-zips.mjs` 0에러 통과.
     - Playwright 데스크톱(`1280×800`, EN)·모바일(`390×844`, KO) 및 CrazyGames(`portal=crazygames`) 정책 차단 검증 전수 통과(에러 0건, 가로 넘침 0px). 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-19 16:46 KST] [/checkMarket 국내 커뮤니티 집중 배포 — 티스토리 신규글·GeekNews·Velog·루리웹 LIVE 완료 & Disquiet 세팅 (완료율 72.4% 돌파)]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 티스토리 신규 최신 글 발행 & 기존 글 이미지 보강**:
+    - 신규 글 `https://androday.tistory.com/58` 발행 (2026년 최신 작성일 + 고화질 스크린샷 4장 + `?lang=ko` 직행 링크), 기존 `https://androday.tistory.com/34`에도 고화질 스크린샷 4장 삽입 완료.
+  - **2. 국내 핵심 커뮤니티 4곳 집중 배포 (`MKT-055`, `MKT-073` → `완료`)**:
+    - **GeekNews (`Show GN`)**: `https://news.hada.io/topic?id=37462` 기술 회고 프로젝트 소개 게시 완료.
+    - **Velog (1인 개발기)**: `https://velog.io/@snshero/...` 고화질 인게임 스크린샷 4장 포함 기술 회고 발행 및 이미지 4장 LIVE 로드 검증 완료.
+    - **루리웹 (`앱 추천/홍보 모바일`)**: `https://bbs.ruliweb.com/mobile/board/300034/read/301292` `[개발자 홍보/웹]` 게시 및 고화질 스크린샷 4장 LIVE 로드 검증 완료.
+    - **Disquiet (`disquiet.io/products/new`)**: 프로덕트 이름·한 줄 소개·상세 소개·URL 입력 완료 (썸네일/스크린샷 첨부 후 등록 대기).
+    - **아카라이브 (`arca.live/b/gamedev`)**: 비활성화 채널(`403`) 확인 후 스킵.
+  - **3. 구글 시트 최신화**:
+    - `MKT-055`, `MKT-073` → `완료` 갱신 (누적 완료 **76/105건, 72.4%**).
