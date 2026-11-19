@@ -1419,6 +1419,19 @@
     - `vite build` + `post-build.js` + `build-portal-zips.mjs` 통과, Playwright 데스크톱(`1280×800`)·모바일(`390×844`) 한·영 3개 시나리오 에러 `0건`·가로 넘침 `0건`·우측 메뉴 버튼 잘림 없음 확인.
     - 구글 시트 `MKT-075`, `MKT-090` → `완료`, `MKT-099`, `MKT-100`, `MKT-101` → `진행중` 반영 (대시보드 누적 완료 **48건 / 45.7%**). 로컬 `git commit` 완료 (`git push` 보류).
 
+## [2026-11-19 10:05 KST] [/checkMarket 3차 가속 — YouTube 장편 14편 챕터(MKT-077), 3초 도파민 훅(MKT-103), 6-Step 동적 CTA(MKT-099), 3배 각성 공유(MKT-091), 40화 정적 SEO(MKT-082/083) 완료율 52%+ 돌파]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. YouTube 장편 웹툰 본편 Key Moments 타임스탬프 챕터 삽입 (`MKT-077` → `완료`)**:
+    - 최상위 조회수 장편 웹툰 14편(`q6-w_dz8Hbs`, `qFsQnrjnv4E`, `GQ3_HDM-bW8`, `dw8NvSqKxDo` 등)에 4막 타임스탬프 챕터(`00:00`~) LIVE 반영 완료 (금일 YouTube API 할당량 10,000 units 100% 알차게 소진: 총 181개 영상 수정 + 7개 댓글 등록).
+  - **2. 프로모션·가이드·도감·웹소설/웹툰 코드 개선**:
+    - [`PromoApp.tsx`](file:///Users/dayyoung/project/snshero/src/promo/PromoApp.tsx) & [`OnboardingGuideModal.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/OnboardingGuideModal.tsx): 유튜브 임베드 `origin`+`enablejsapi=1`·`strict-origin-when-cross-origin` 교정, `HowToPlayCarousel` 1~6단계별 동적 게임 직행 CTA 탑재 (`MKT-099` → `완료`), 히어로 3초 도파민 훅 2종(`3장=3배 각성` · `보가트 도박장 2배`) 전면 배치 (`MKT-103` → `진행중`).
+    - [`CardZoomModal.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/CardZoomModal.tsx): 3배 각성 카드 1클릭 공유 링크(`?mode=collection&card=ID&awakened=3x`) 버튼 탑재 (`MKT-091` → `진행중`).
+    - [`book.html`](file:///Users/dayyoung/project/snshero/book.html) & [`webtoon.html`](file:///Users/dayyoung/project/snshero/webtoon.html): 1~40화 전 회차 정적 `<nav>` 목차 및 보스전(`/game?mode=story&ep=1~40`) 직행 링크 탑재 (`MKT-028`, `MKT-029` → `완료`, `MKT-082`, `MKT-083` → `진행중`).
+    - 기존 코드·외부 통합 완료 검증: `MKT-004`(도전만화 `857363` 단일화), `MKT-011`(`/webtoon` SEO + 유튜브 정비), `MKT-053`(성우 풀보이스 오디오 웹툰 모드) → `완료`.
+  - **3. 검증·로컬 커밋**:
+    - `npm run build` 통과(`12.01s`), Playwright 데스크톱·모바일 4개 시나리오 에러 `0건`·가로 넘침 `0건`·훅/CTA 렌더링 통과. 로컬 `git commit` 완료 (`git push` 보류).
+
 ## [2026-11-19 10:05 KST] [게임 지원 언어 2개(KO/EN) → 글로벌 10개 언어 전면 확장]
 - **작업자**: `Antigravity Assistant`
 - **작업 개요**:

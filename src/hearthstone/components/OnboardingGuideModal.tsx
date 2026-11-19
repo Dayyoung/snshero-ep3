@@ -317,6 +317,29 @@ export const HowToPlayCarousel: React.FC<{
           <div className="mt-2.5 rounded-xl border border-emerald-400/40 bg-emerald-950/60 px-3 py-2 text-[11px] font-bold text-emerald-100 sm:text-xs">
             💡 {isKo ? slide.tipKo : slide.tipEn}
           </div>
+
+          {variant === 'promo' && (() => {
+            const stepCtaMap: Record<number, { href: string; ko: string; en: string }> = {
+              1: { href: '/game', ko: '🏰 엘윈 성소 허브 바로 입장 →', en: '🏰 Enter Elwin Sanctuary Hub →' },
+              2: { href: '/game?mode=story&ep=0', ko: '🎯 30초 실전 드래그 튜토리얼 체험 →', en: '🎯 Try 30s Interactive Drill →' },
+              3: { href: '/game?mode=story&ep=0', ko: '⚔ 지금 바로 카드 소환해 보기 →', en: '⚔ Summon Your First Card Now →' },
+              4: { href: '/game?mode=story&ep=1&theater=on', ko: '🔥 제1화 카단·실리아 합동 필살기 출격 →', en: '🔥 Launch EP.1 Dual Ult Battle →' },
+              5: { href: '/game?open=pack3', ko: '🎁 첫 방문 무료 3팩 지금 개봉하기 →', en: '🎁 Open Your 3 Free Packs Now →' },
+              6: { href: '/game?mode=ranked', ko: '🏆 30장 덱으로 공식 랭킹대전 도전 →', en: '🏆 Enter Official Ranked Arena →' },
+            };
+            const cta = stepCtaMap[slide.step] || stepCtaMap[1];
+            return (
+              <div className="mt-3">
+                <a
+                  href={cta.href}
+                  data-testid={`howto-step-cta-${slide.step}`}
+                  className="hs-gold-btn inline-flex min-h-[44px] w-full items-center justify-center rounded-xl px-4 py-2 text-xs font-black text-stone-950 shadow transition hover:brightness-110 sm:text-sm"
+                >
+                  {isKo ? cta.ko : cta.en}
+                </a>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
