@@ -12,7 +12,7 @@ export type ReaderMode = 'book' | 'webtoon';
 
 const SNS_LOGO_KO_URL = '/hs-assets/brand/logo-ko.webp';
 const SNS_LOGO_EN_URL = '/hs-assets/brand/logo-en.webp';
-const getLogoUrl = (lang: SupportedLanguage) => (lang === 'en' ? SNS_LOGO_EN_URL : SNS_LOGO_KO_URL);
+const getLogoUrl = (lang: SupportedLanguage) => (lang === 'ko' ? SNS_LOGO_KO_URL : SNS_LOGO_EN_URL);
 
 let mobileMenuOpen = false;
 

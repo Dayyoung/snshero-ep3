@@ -15,7 +15,7 @@ import {
   QuestLogModal,
   TavernShopModal,
 } from './components/Modals';
-import { SNS_LOGO_URL } from './components/SnsHeroArtKit';
+import { getSnsLogoUrl } from './components/SnsHeroArtKit';
 import { initSnsHeroConsoleApi } from './consoleApi';
 import {
   GamePaymentReturnResult,
@@ -692,7 +692,7 @@ export const HearthstoneApp: React.FC = () => {
   if (popupReturnDone) {
     return (
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-[#0c0805] p-6 text-center text-amber-100">
-        <img src={SNS_LOGO_URL} alt={tr('눈히어로', 'SNSHero')} className="w-48 drop-shadow" />
+        <img src={getSnsLogoUrl(lang)} alt={tr('눈히어로', 'SNSHero')} className="w-48 drop-shadow" />
         <div className="mt-5 max-w-md rounded-2xl border-2 border-emerald-400/70 bg-emerald-950/50 p-6 shadow-2xl">
           <div className="text-xl font-extrabold text-emerald-200">
             {tr('결제 및 보급품 지급 완료!', 'Payment & Supplies Delivered!')}
@@ -720,7 +720,7 @@ export const HearthstoneApp: React.FC = () => {
   if (popupBridge.isBridge) {
     return (
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-[#0c0805] p-6 text-center text-amber-100">
-        <img src={SNS_LOGO_URL} alt={tr('눈히어로', 'SNSHero')} className="w-48 drop-shadow" />
+        <img src={getSnsLogoUrl(lang)} alt={tr('눈히어로', 'SNSHero')} className="w-48 drop-shadow" />
         <div className="mt-5 w-full max-w-md rounded-2xl border-2 border-amber-500/60 bg-stone-950/90 p-6 shadow-2xl">
           <div className="text-xs font-extrabold tracking-widest text-amber-300">
             {tr('눈히어로 공식 팝업 결제창', 'SNSHero Official Checkout Window')}
@@ -776,7 +776,7 @@ export const HearthstoneApp: React.FC = () => {
     return (
       <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-stone-950 text-amber-100">
         <img
-          src={SNS_LOGO_URL}
+          src={getSnsLogoUrl(lang)}
           alt={tr('눈히어로', 'SNSHero')}
           className="w-64 animate-pulse drop-shadow-[0_12px_28px_rgba(56,189,248,0.45)]"
         />

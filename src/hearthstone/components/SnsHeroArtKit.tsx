@@ -2,11 +2,11 @@ import React from 'react';
 import { isKoreanLanguage, tr } from '../../i18n/heroLang';
 import { HeroClass, SnsCardBackId } from '../types';
 
-export const SNS_LOGO_URL = '/hs-assets/brand/logo-ko.webp';
+export const SNS_LOGO_URL = '/hs-assets/brand/logo-en.webp';
 export const SNS_LOGO_KO_URL = '/hs-assets/brand/logo-ko.webp';
 export const SNS_LOGO_EN_URL = '/hs-assets/brand/logo-en.webp';
 export function getSnsLogoUrl(lang?: string): string {
-  if (lang) return lang === 'en' ? SNS_LOGO_EN_URL : SNS_LOGO_KO_URL;
+  if (lang) return lang === 'ko' ? SNS_LOGO_KO_URL : SNS_LOGO_EN_URL;
   return isKoreanLanguage() ? SNS_LOGO_KO_URL : SNS_LOGO_EN_URL;
 }
 export const SNS_ICON_URL = '/icon.png';

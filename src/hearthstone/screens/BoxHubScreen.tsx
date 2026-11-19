@@ -571,7 +571,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
           >
             <img
               src={getSnsLogoUrl(lang)}
-              alt={lang === 'en' ? 'SNSHero' : '눈히어로'}
+              alt={lang === 'ko' ? '눈히어로' : 'SNSHero'}
               draggable={false}
               className="w-[196px] drop-shadow-[0_14px_22px_rgba(0,0,0,0.94)] sm:w-[308px]"
             />

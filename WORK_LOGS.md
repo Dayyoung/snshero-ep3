@@ -1452,3 +1452,14 @@
   - **4. 빌드 및 실측 E2E 검증 완료**:
     - `npx tsc --noEmit && npm run build` 0에러 통과 (8개 언어 청크 정상 분리 확인).
     - Python Playwright로 데스크톱(`1280×800`) 및 모바일(`390×844`)에서 `/game.html` 10개 언어 URL 직접 진입, `GameOptionsModal` 10개 언어 실시간 전환, `/` 프로모션 헤더·푸터 전환, 가로 오버플로우 `0px`, 터치 타깃 `>= 44px`, 콘솔/페이지 에러 `0건` 전수 통과. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-19 10:08 KST] [비한국어 9개 언어 로고 이미지·성우 음성 영문 기본화 보강]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **1. 로고 및 번역 불가 시각 에셋 영문 기본화**:
+    - [`SnsHeroArtKit.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/components/SnsHeroArtKit.tsx): `SNS_LOGO_URL` 기본값을 `/hs-assets/brand/logo-en.webp`로 변경하고, `getSnsLogoUrl(lang)`이 `lang === 'ko'`일 때만 한글 로고, 그 외 9개 언어(`en`, `ja`, `zh-CN`, `zh-TW`, `es`, `fr`, `de`, `pt`, `ru`)에서는 모두 영문 로고를 반환하도록 수정.
+    - [`HearthstoneApp.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/HearthstoneApp.tsx), [`ReaderChrome.ts`](file:///Users/dayyoung/project/snshero/src/reader/ReaderChrome.ts), [`BoxHubScreen.tsx`](file:///Users/dayyoung/project/snshero/src/hearthstone/screens/BoxHubScreen.tsx): 로딩·결제창·리더 헤더 로고 및 `alt` 속성이 한국어 외 모든 언어에서 영문 로고(`logo-en.webp`) 및 `SNSHero`를 기본 표시하도록 통일.
+  - **2. 성우 음성(VO / 스토리 나레이션 / 매치업 TTS) 영어 기본화**:
+    - [`audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts): 한국어(`ko`)만 한국어 성우 MP3/TTS(`ko-KR`)를 사용하고, 영어(`en`) 및 기타 8개 언어에서는 모두 **영어 성우 음성(`en-US`)**을 기본으로 재생하도록 통일.
+  - **3. 검증 및 로컬 커밋**:
+    - `npx tsc --noEmit && npm run build` 0에러 통과, 로컬 `git commit` 완료 (`git push` 보류).
