@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
+import { useRegisterNarrationOverlay } from '../services/narrationVisibility';
 import { useModalDismiss } from '../useModalDismiss';
 import {
   KADAN_JOURNEY_EPISODES,
@@ -38,6 +39,7 @@ export const KadanJourneyStoryModal: React.FC<KadanJourneyStoryModalProps> = ({
   onStartBattle,
   onCloseReview,
 }) => {
+  useRegisterNarrationOverlay(true);
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   const [viewingEpisode, setViewingEpisode] = useState<number>(episode);

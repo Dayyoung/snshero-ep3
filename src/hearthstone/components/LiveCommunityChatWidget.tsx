@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
+import { useIsNarrationActive } from '../services/narrationVisibility';
 import { getLocalizedHeroInfo } from '../i18nData';
 import {
   LiveChatMessage,
@@ -55,6 +56,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
+  const isNarrationActive = useIsNarrationActive();
 
   const snap = useSyncExternalStore(
     snsheroLiveNetwork.subscribe,
@@ -520,6 +522,8 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
 
   const liveBadgeNumber = Math.max(1, snap.onlineCount);
   const openRoomsCount = snap.openRooms.filter((r) => r.status === 'WAITING').length;
+
+  if (isNarrationActive) return null;
 
   // Raise slightly in BATTLE so bottom-right Mana Tray (0/10 + 10 crystals) is 100% unobstructed on all viewports
   const positionClasses =

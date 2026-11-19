@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Mic, MicOff } from 'lucide-react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
+import { useIsNarrationActive } from '../services/narrationVisibility';
 import {
   LocalLlmCapability,
   askLocalLlmAssistant,
@@ -103,6 +104,7 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
 }) => {
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
+  const isNarrationActive = useIsNarrationActive();
 
   const [frameIdx, setFrameIdx] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -862,11 +864,19 @@ export const KadanChatbotWidget: React.FC<KadanChatbotWidgetProps> = ({
 
   const activeFrames = autoPlay ? RUN_FRAMES : IDLE_FRAMES;
 
+  if (isNarrationActive) return null;
+
+  // Match LiveCommunityChatWidget vertical baseline identically across all screens (raised in BATTLE to clear Mana Tray)
+  const positionClasses =
+    screen === 'BATTLE'
+      ? 'fixed bottom-12 left-2.5 z-[125] sm:bottom-14 sm:left-3.5'
+      : 'fixed bottom-2.5 left-2.5 z-[125] sm:bottom-3.5 sm:left-3.5';
+
   return (
     <div
       ref={kadanRootRef}
       data-testid="kadan-chatbot-root"
-      className="pointer-events-none fixed bottom-2.5 left-2.5 z-[125] flex flex-col items-start sm:bottom-3.5 sm:left-3.5"
+      className={`pointer-events-none ${positionClasses} flex flex-col items-start`}
     >
       {/* Speech Dialogue Bubble & Context Help Menu */}
       {(menuOpen || speechText) && (

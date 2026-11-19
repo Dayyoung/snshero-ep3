@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { hsAudio } from '../audio';
+import { useRegisterNarrationOverlay } from '../services/narrationVisibility';
 import { KADAN_JOURNEY_EPISODES, getJourneyEpisodeDef } from '../kadanJourneyData';
 import {
   StoryEpisodeEncounterSpec,
@@ -148,6 +149,7 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
   autoPlayActive = false,
   onComplete,
 }) => {
+  useRegisterNarrationOverlay(true);
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   const [lineIdx, setLineIdx] = useState(0);
@@ -441,6 +443,7 @@ export const StoryVictorySceneOverlay: React.FC<StoryVictorySceneOverlayProps> =
   autoPlayActive = false,
   onFinishEpisode,
 }) => {
+  useRegisterNarrationOverlay(true);
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   const hasItem = Boolean(encounter.rewardItem);

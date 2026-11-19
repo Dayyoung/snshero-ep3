@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { hsAudio } from '../audio';
+import { useRegisterNarrationOverlay } from '../services/narrationVisibility';
 import { useModalDismiss } from '../useModalDismiss';
 import {
   CLASSIC_RANK_NAMES,
@@ -188,6 +189,7 @@ const BogartNarrationOverlay: React.FC<{
   ownedGold: number;
   onConfirmEnter: () => void;
 }> = ({ isKo, ownedGold, onConfirmEnter }) => {
+  useRegisterNarrationOverlay(true);
   const [lineIdx, setLineIdx] = useState(0);
   const totalLines = BOGART_NARRATION_LINES.length;
   const safeIdx = Math.min(lineIdx, totalLines - 1);
