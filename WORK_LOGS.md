@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-20 10:32 KST] [실시간 PvP 대결 중 상대 이탈·연결끊김 시 즉시 상대 패배(남은 플레이어 즉시 승리) 처리 구현]
+- **요청 및 개선 내역**:
+  - 실시간 1:1 PvP 대결 중 상대방이 브라우저 탭을 닫거나 새로고침(`beforeunload` / `pagehide`), 화면 이탈(언마운트), 항복, 또는 네트워크 단절로 나갔을 때 남은 플레이어 화면이 멈춰 있던 문제를 해결.
+  - `snsheroLiveNetwork.ts`에 `PVP_FORFEIT`·`PVP_PING` 패킷 및 `setActiveBattleRoom`, `sendPvpForfeit`, `sendPvpPing`, `onPvpOpponentLeft`, `onPvpPing` API를 추가하고 `beforeunload`/`pagehide`/`PRESENCE_LEAVE` 발생 시 상대에게 즉시 이탈 신호를 전송하도록 구현.
+  - `BattleScreen.tsx`에서 상대 이탈 신호 수신 또는 3초 주기 하트비트 12초 무응답 감지 시 즉시 `concede('OPPONENT')`를 실행하여 남은 플레이어가 즉시 승리 화면 및 보상 정산(`🚪 상대방이 대결에서 나가 즉시 승리했습니다!` 배지 표시)으로 전환되도록 적용.
+- **검증**:
+  - `npx tsc --noEmit && npm run build` 에러 0건 통과.
+  - Playwright 2탭 실시간 E2E 검증: 게스트 탭 닫기 → 호스트 즉시 승리, 호스트 탭 닫기 → 게스트 즉시 승리 양방향 모두 통과.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-20 10:18 KST] [랭킹대전 실시간 매칭 전환 + 보가트 도박장·9종족 수련 통합 및 주사위 자동배팅·회전 빨려듦 연출 구현]
 - **요청 및 개선 내역**:
   1. **실시간 랭킹대전 (`RANKED`) 개편**:

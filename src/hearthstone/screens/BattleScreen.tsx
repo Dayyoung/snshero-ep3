@@ -1154,6 +1154,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     seq: number;
   } | null>(null);
   const [pvpWaitingOpponentMulligan, setPvpWaitingOpponentMulligan] = useState(false);
+  const [pvpOpponentLeftNotice, setPvpOpponentLeftNotice] = useState<string | null>(null);
   const pvpHostMulliganRef = useRef<string[] | null>(null);
   const pvpGuestMulliganRef = useRef<string[] | null>(null);
   const lastAppliedGuestSeqRef = useRef<number>(0);
@@ -3334,13 +3335,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
   const handleConcede = useCallback(() => {
     if (matchState.phase === 'GAME_OVER') return;
-    if (matchState.livePvpMeta?.role === 'GUEST') {
-      snsheroLiveNetwork.sendPvpGuestAction(
+    if (matchState.livePvpMeta) {
+      const oppPeerId =
+        matchState.livePvpMeta.role === 'HOST'
+          ? matchState.livePvpMeta.guestPeerId
+          : matchState.livePvpMeta.hostPeerId;
+      snsheroLiveNetwork.sendPvpForfeit(
         matchState.livePvpMeta.roomId,
-        matchState.livePvpMeta.hostPeerId,
-        { kind: 'CONCEDE' },
+        oppPeerId,
+        'CONCEDE',
       );
-      return;
+      if (matchState.livePvpMeta.role === 'GUEST') {
+        snsheroLiveNetwork.sendPvpGuestAction(
+          matchState.livePvpMeta.roomId,
+          matchState.livePvpMeta.hostPeerId,
+          { kind: 'CONCEDE' },
+        );
+      }
+      snsheroLiveNetwork.setActiveBattleRoom(null, null);
     }
     const eng = createEngine(matchState);
     setMatchState(eng.concede('PLAYER'));
@@ -3473,6 +3485,89 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       window.setTimeout(() => setOpponentEmoteText(null), 2800);
     });
   }, [isLivePvp, livePvpMeta, opponentSquelched, lang]);
+
+  // Live PvP Opponent Leave / Disconnect -> Instant Opponent Defeat (Player Instant Victory)
+  useEffect(() => {
+    if (!isLivePvp || !livePvpMeta) return;
+    const roomId = livePvpMeta.roomId;
+    const opponentPeerId =
+      livePvpMeta.role === 'HOST' ? livePvpMeta.guestPeerId : livePvpMeta.hostPeerId;
+
+    snsheroLiveNetwork.setActiveBattleRoom(roomId, opponentPeerId);
+    let lastOpponentActivityAt = Date.now();
+
+    const triggerOpponentForfeitVictory = (reason: 'LEAVE' | 'CONCEDE' | 'DISCONNECT') => {
+      const cur = matchStateRef.current;
+      if (cur.phase === 'GAME_OVER') return;
+      setPvpWaitingOpponentMulligan(false);
+      setMulliganSwapping(false);
+      setSelection(null);
+      setPvpOpponentLeftNotice(
+        reason === 'DISCONNECT'
+          ? tr(
+              '📡 상대방과의 연결이 끊어져 상대가 즉시 패배했습니다!',
+              '📡 Opponent disconnected — Instant Victory!',
+            )
+          : reason === 'CONCEDE'
+            ? tr(
+                '🏳️ 상대방이 항복하여 즉시 승리했습니다!',
+                '🏳️ Opponent conceded — Instant Victory!',
+              )
+            : tr(
+                '🚪 상대방이 대결에서 나가 즉시 승리했습니다!',
+                '🚪 Opponent left the match — Instant Victory!',
+              ),
+      );
+      snsheroLiveNetwork.setActiveBattleRoom(null, null);
+      setMatchState(createEngine(cur).concede('OPPONENT'));
+    };
+
+    const unsubLeft = snsheroLiveNetwork.onPvpOpponentLeft((evtRoomId, peerId, reason) => {
+      if (evtRoomId !== roomId && peerId !== opponentPeerId) return;
+      triggerOpponentForfeitVictory(reason);
+    });
+
+    const unsubPing = snsheroLiveNetwork.onPvpPing((evtRoomId, peerId) => {
+      if (evtRoomId !== roomId && peerId !== opponentPeerId) return;
+      lastOpponentActivityAt = Date.now();
+    });
+
+    // Send an immediate ping and then every 3s; if opponent silent for 12s, declare disconnect victory
+    snsheroLiveNetwork.sendPvpPing(roomId, opponentPeerId);
+    const heartbeatIv = window.setInterval(() => {
+      if (matchStateRef.current.phase === 'GAME_OVER') {
+        snsheroLiveNetwork.setActiveBattleRoom(null, null);
+        return;
+      }
+      snsheroLiveNetwork.sendPvpPing(roomId, opponentPeerId);
+      if (Date.now() - lastOpponentActivityAt > 12_000) {
+        triggerOpponentForfeitVictory('DISCONNECT');
+      }
+    }, 3_000);
+
+    return () => {
+      window.clearInterval(heartbeatIv);
+      unsubLeft();
+      unsubPing();
+      if (matchStateRef.current.phase !== 'GAME_OVER') {
+        snsheroLiveNetwork.sendPvpForfeit(roomId, opponentPeerId, 'LEAVE');
+      }
+      snsheroLiveNetwork.setActiveBattleRoom(null, null);
+    };
+  }, [
+    isLivePvp,
+    livePvpMeta?.roomId,
+    livePvpMeta?.hostPeerId,
+    livePvpMeta?.guestPeerId,
+    livePvpMeta?.role,
+  ]);
+
+  // Clear active battle room marker as soon as match reaches GAME_OVER
+  useEffect(() => {
+    if (isLivePvp && matchState.phase === 'GAME_OVER') {
+      snsheroLiveNetwork.setActiveBattleRoom(null, null);
+    }
+  }, [isLivePvp, matchState.phase]);
 
   // Toggle Mulligan Card Selection (1-Click authentic Hearthstone stamp!)
   const toggleMulliganCard = (uid: string) => {
@@ -7628,6 +7723,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                       ? tr(`제${matchState.journeyMeta.episode}화 패배`, `Episode ${matchState.journeyMeta.episode} Defeat`)
                       : tr('패배', 'Defeat')}
                 </h2>
+                {pvpOpponentLeftNotice && didWin && (
+                  <div
+                    data-testid="pvp-opponent-left-victory-badge"
+                    className="relative z-10 mt-1.5 rounded-full border border-emerald-300/80 bg-emerald-950/90 px-3.5 py-1 text-xs font-extrabold text-emerald-100 shadow-lg"
+                  >
+                    {pvpOpponentLeftNotice}
+                  </div>
+                )}
                 {(() => {
                   const resGrade = gradeRhythmPerformance(
                     Math.round(rhythmFeverPct / 12),

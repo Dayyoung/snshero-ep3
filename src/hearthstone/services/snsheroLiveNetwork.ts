@@ -204,6 +204,21 @@ type WirePacket =
       roomId: string;
       targetPeerId: string;
       emoteKey: LiveEmoteKey;
+    }
+  | {
+      pktId: string;
+      type: 'PVP_FORFEIT';
+      senderId: string;
+      roomId: string;
+      targetPeerId: string;
+      reason: 'LEAVE' | 'CONCEDE' | 'DISCONNECT';
+    }
+  | {
+      pktId: string;
+      type: 'PVP_PING';
+      senderId: string;
+      roomId: string;
+      targetPeerId: string;
     };
 
 export const PRESET_GUILDS: GuildInfo[] = [
@@ -356,6 +371,12 @@ type MatchStartHandler = (params: {
 type PvpStateSyncHandler = (roomId: string, guestState: BattleMatchState, seq: number) => void;
 type PvpGuestActionHandler = (roomId: string, action: PvpGuestAction, seq: number) => void;
 type PvpEmoteHandler = (roomId: string, emoteKey: LiveEmoteKey) => void;
+type PvpOpponentLeftHandler = (
+  roomId: string,
+  peerId: string,
+  reason: 'LEAVE' | 'CONCEDE' | 'DISCONNECT',
+) => void;
+type PvpPingHandler = (roomId: string, peerId: string) => void;
 type GoldReceivedToastHandler = (info: {
   fromName: string;
   amount: number;
@@ -395,7 +416,10 @@ class SnsheroLiveNetworkService {
   private pvpStateHandlers = new Set<PvpStateSyncHandler>();
   private pvpActionHandlers = new Set<PvpGuestActionHandler>();
   private pvpEmoteHandlers = new Set<PvpEmoteHandler>();
+  private pvpOpponentLeftHandlers = new Set<PvpOpponentLeftHandler>();
+  private pvpPingHandlers = new Set<PvpPingHandler>();
   private goldToastHandlers = new Set<GoldReceivedToastHandler>();
+  private activeBattleInfo: { roomId: string; opponentPeerId: string } | null = null;
 
   private cachedSnapshot: LiveNetworkSnapshot | null = null;
   private heartbeatTimer: number | null = null;
@@ -439,7 +463,14 @@ class SnsheroLiveNetworkService {
       this.pruneStaleEntities();
     }, 10_000);
 
-    window.addEventListener('beforeunload', () => {
+    const handleUnloadOrHide = () => {
+      if (this.activeBattleInfo) {
+        this.sendPvpForfeit(
+          this.activeBattleInfo.roomId,
+          this.activeBattleInfo.opponentPeerId,
+          'LEAVE',
+        );
+      }
       this.sendPacket(
         {
           pktId: makeId('pkt'),
@@ -448,7 +479,9 @@ class SnsheroLiveNetworkService {
         },
         `${TOPIC_PREFIX}/global`,
       );
-    });
+    };
+    window.addEventListener('beforeunload', handleUnloadOrHide);
+    window.addEventListener('pagehide', handleUnloadOrHide);
 
     window.addEventListener('snshero:state-changed', () => {
       this.updateSelfPresence();
@@ -829,6 +862,15 @@ class SnsheroLiveNetworkService {
             this.rooms.delete(roomId);
           }
         }
+        if (
+          this.activeBattleInfo &&
+          this.activeBattleInfo.opponentPeerId === pkt.senderId
+        ) {
+          const { roomId } = this.activeBattleInfo;
+          for (const cb of this.pvpOpponentLeftHandlers) {
+            cb(roomId, pkt.senderId, 'LEAVE');
+          }
+        }
         this.emitChange();
         break;
       }
@@ -971,6 +1013,9 @@ class SnsheroLiveNetworkService {
 
       case 'PVP_STATE_SYNC': {
         if (pkt.targetGuestId !== this.peerId) return;
+        for (const cb of this.pvpPingHandlers) {
+          cb(pkt.roomId, pkt.senderId);
+        }
         for (const cb of this.pvpStateHandlers) {
           cb(pkt.roomId, pkt.guestState, pkt.seq);
         }
@@ -979,6 +1024,9 @@ class SnsheroLiveNetworkService {
 
       case 'PVP_GUEST_ACTION': {
         if (pkt.targetHostId !== this.peerId) return;
+        for (const cb of this.pvpPingHandlers) {
+          cb(pkt.roomId, pkt.senderId);
+        }
         for (const cb of this.pvpActionHandlers) {
           cb(pkt.roomId, pkt.action, pkt.seq);
         }
@@ -987,8 +1035,33 @@ class SnsheroLiveNetworkService {
 
       case 'PVP_EMOTE': {
         if (pkt.targetPeerId !== this.peerId) return;
+        for (const cb of this.pvpPingHandlers) {
+          cb(pkt.roomId, pkt.senderId);
+        }
         for (const cb of this.pvpEmoteHandlers) {
           cb(pkt.roomId, pkt.emoteKey);
+        }
+        break;
+      }
+
+      case 'PVP_FORFEIT': {
+        if (
+          pkt.targetPeerId !== this.peerId &&
+          this.activeBattleInfo?.roomId !== pkt.roomId
+        ) {
+          return;
+        }
+        if (pkt.senderId === this.peerId) return;
+        for (const cb of this.pvpOpponentLeftHandlers) {
+          cb(pkt.roomId, pkt.senderId, pkt.reason);
+        }
+        break;
+      }
+
+      case 'PVP_PING': {
+        if (pkt.targetPeerId !== this.peerId || pkt.senderId === this.peerId) return;
+        for (const cb of this.pvpPingHandlers) {
+          cb(pkt.roomId, pkt.senderId);
         }
         break;
       }
@@ -1047,6 +1120,33 @@ class SnsheroLiveNetworkService {
     return () => {
       this.pvpEmoteHandlers.delete(cb);
     };
+  }
+
+  onPvpOpponentLeft(cb: PvpOpponentLeftHandler): () => void {
+    this.init();
+    this.pvpOpponentLeftHandlers.add(cb);
+    return () => {
+      this.pvpOpponentLeftHandlers.delete(cb);
+    };
+  }
+
+  onPvpPing(cb: PvpPingHandler): () => void {
+    this.init();
+    this.pvpPingHandlers.add(cb);
+    return () => {
+      this.pvpPingHandlers.delete(cb);
+    };
+  }
+
+  setActiveBattleRoom(roomId: string | null, opponentPeerId: string | null) {
+    this.init();
+    if (roomId && opponentPeerId) {
+      this.activeBattleInfo = { roomId, opponentPeerId };
+      this.setInBattle(true);
+    } else {
+      this.activeBattleInfo = null;
+      this.setInBattle(false);
+    }
   }
 
   onGoldReceived(cb: GoldReceivedToastHandler): () => void {
@@ -1824,6 +1924,43 @@ class SnsheroLiveNetworkService {
         roomId,
         targetPeerId,
         emoteKey,
+      },
+      `${TOPIC_PREFIX}/room/${roomId}`,
+    );
+  }
+
+  sendPvpForfeit(
+    roomId: string,
+    targetPeerId: string,
+    reason: 'LEAVE' | 'CONCEDE' | 'DISCONNECT' = 'LEAVE',
+  ) {
+    this.init();
+    this.subscribeRoomTopic(roomId);
+    const pkt: WirePacket = {
+      pktId: makeId('pvpforf'),
+      type: 'PVP_FORFEIT',
+      senderId: this.peerId,
+      roomId,
+      targetPeerId,
+      reason,
+    };
+    this.sendPacket(pkt, `${TOPIC_PREFIX}/room/${roomId}`);
+    this.sendPacket(
+      { ...pkt, pktId: makeId('pvpforfd') },
+      `${TOPIC_PREFIX}/direct/${targetPeerId}`,
+    );
+  }
+
+  sendPvpPing(roomId: string, targetPeerId: string) {
+    this.init();
+    this.subscribeRoomTopic(roomId);
+    this.sendPacket(
+      {
+        pktId: makeId('pvpping'),
+        type: 'PVP_PING',
+        senderId: this.peerId,
+        roomId,
+        targetPeerId,
       },
       `${TOPIC_PREFIX}/room/${roomId}`,
     );
