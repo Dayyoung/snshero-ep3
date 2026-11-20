@@ -5822,234 +5822,63 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* ==================== CENTER ZONE: 7v7 BATTLEFIELD ARENA ==================== */}
       <main className="relative z-20 mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center gap-1 px-1.5 sm:gap-2 sm:px-12">
-        {/* Live 1v1 Player Deck Duel Room Status Strip */}
-        {isLivePvp && livePvpMeta && (
+        {/* Compact Single-Line Mode / Opponent Pill Under Opponent Portrait */}
+        {isLivePvp && livePvpMeta ? (
           <div
             data-testid="live-pvp-battle-banner"
-            className="mx-auto flex flex-wrap items-center justify-center gap-2 rounded-2xl border-2 border-emerald-400/75 bg-[#061812]/92 px-3 py-1 text-[10.5px] font-extrabold text-emerald-100 shadow-lg sm:text-xs"
+            className="mx-auto flex max-w-[92vw] items-center justify-center gap-1.5 rounded-full border border-emerald-400/70 bg-[#061812]/90 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-100 shadow sm:px-3 sm:text-[11px]"
           >
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-            <span>
+            <span className="inline-block h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+            <span className="truncate">
               ⚔️{' '}
-              {tr(
-                `실시간 1:1 유저 카드덱 대결 (${livePvpMeta.hostName} vs ${livePvpMeta.guestName})`,
-                `Live 1v1 Deck Duel (${livePvpMeta.hostName} vs ${livePvpMeta.guestName})`,
-              )}
+              {livePvpMeta.isRanked
+                ? tr('실시간 랭킹', 'Live Ranked')
+                : tr('실시간 1:1', 'Live 1v1')}{' '}
+              · {isPvpHost ? livePvpMeta.guestName : livePvpMeta.hostName}
             </span>
-            <span className="rounded bg-amber-500/25 px-1.5 py-0.5 text-yellow-200">
+            <span className="shrink-0 rounded bg-amber-500/25 px-1.5 py-0.5 text-[9.5px] text-yellow-200">
               {livePvpMeta.stakeGold > 0
-                ? tr(`내기 판돈 ${livePvpMeta.stakeGold}G`, `${livePvpMeta.stakeGold}G Wager`)
-                : tr('친선 진검승부', 'Friendly Duel')}
+                ? `${livePvpMeta.stakeGold.toLocaleString()}G`
+                : tr('친선', 'Friendly')}
             </span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                hsAudio.playSfx('gem_c_select');
-                setEmoteMenuOpen((v) => !v);
-              }}
-              className="rounded-lg border border-sky-400/50 bg-sky-950/80 px-2 py-0.5 text-[10px] font-extrabold text-sky-200 hover:bg-sky-900"
-            >
-              💬 {tr('감정표현', 'Emotes')}
-            </button>
           </div>
-        )}
-
-        {/* DEV-027/028: Live Challenger Arena / Bogart Mirror-Deck Status Strip + 1-Tap Emote & Mute */}
-        {(mode === 'RANKED' || mode === 'BOGART_GAMBLE') && resolvedChallenger && (
+        ) : mode === 'BOGART_GAMBLE' ? (
           <div
             data-testid="battle-challenger-badge"
-            className="mx-auto flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-amber-400/55 bg-stone-950/90 px-2.5 py-1 text-[10px] font-extrabold text-amber-100 shadow-lg sm:px-3.5 sm:text-xs"
+            className="mx-auto flex max-w-[92vw] items-center justify-center gap-1.5 rounded-full border border-amber-400/55 bg-stone-950/88 px-2.5 py-0.5 text-[10px] font-extrabold text-yellow-200 shadow sm:px-3 sm:text-[11px]"
           >
-            {mode === 'BOGART_GAMBLE' ? (
-              <span className="text-yellow-300">
-                🎲 {tr(`보가트 도박장 · 판돈 ${(bogartStakeGold ?? 100).toLocaleString()}G (승리 +${((bogartStakeGold ?? 100) * 2).toLocaleString()}G) · 🎲 100% 랜덤덱`, `Bogart's Hall · Stake ${(bogartStakeGold ?? 100).toLocaleString()}G (Win +${((bogartStakeGold ?? 100) * 2).toLocaleString()}G) · 🎲 100% Random Deck`)}
-              </span>
-            ) : (
-              <span className="text-sky-200">
-                🏆 {resolvedChallenger.badgeIcon} <b className="text-white">{resolvedChallenger.nickname}</b>{' '}
-                <span className="text-yellow-300">〈{isKo ? resolvedChallenger.titleKo : resolvedChallenger.titleEn}〉</span>
-              </span>
-            )}
-            <button
-              type="button"
-              data-testid="challenger-prestige-info-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                hsAudio.playSfx('gem_c_select', 0.7);
-                setChallengerPrestigeOpen((v) => !v);
-              }}
-              className="rounded-lg border border-yellow-300/55 bg-amber-950/85 px-2 py-0.5 text-[10px] font-extrabold text-yellow-200 hover:bg-amber-900"
-            >
-              👑 {tr('치장품 보기', 'Loadout')}
-            </button>
-            <span className="text-stone-600">|</span>
-            <button
-              type="button"
-              data-testid="battle-emote-trigger-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                hsAudio.playSfx('gem_c_select');
-                setEmoteMenuOpen((v) => !v);
-              }}
-              className="rounded-lg border border-sky-400/50 bg-sky-950/80 px-2 py-0.5 text-[10px] font-extrabold text-sky-200 hover:bg-sky-900"
-            >
-              💬 {tr('감정표현', 'Emotes')}
-            </button>
-            <button
-              type="button"
-              data-testid="battle-taunt-mute-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                hsAudio.playSfx('ui_click', 0.75);
-                setOpponentSquelched((prev) => {
-                  const next = !prev;
-                  if (next) setOpponentEmoteText(null);
-                  return next;
-                });
-              }}
-              className={`rounded-lg border px-2 py-0.5 text-[10px] font-extrabold ${
-                opponentSquelched
-                  ? 'border-rose-400/60 bg-rose-950/85 text-rose-200'
-                  : 'border-stone-500/60 bg-stone-900 text-stone-200'
-              }`}
-            >
-              {opponentSquelched ? tr('🔇 차단됨', '🔇 Muted') : tr('🔊 도발 허용', '🔊 Taunts ON')}
-            </button>
-          </div>
-        )}
-
-        {/* DEV-035: Challenger Gold Prestige 4-Piece Loadout Popover + Shop Shortcut */}
-        {challengerPrestigeOpen && resolvedChallenger && (
-          <div
-            data-testid="challenger-prestige-popover"
-            onClick={(e) => e.stopPropagation()}
-            className="hs-ocarina-dialog mx-auto flex w-full max-w-md flex-wrap items-center justify-between gap-2 rounded-2xl px-3.5 py-2 text-[11px] font-extrabold text-amber-100 shadow-2xl"
-          >
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <div className="text-yellow-300">
-                👑 {resolvedChallenger.nickname} · {tr('장착 골드 치장품', 'Equipped Gold Cosmetics')}
-              </div>
-              <div className="text-[10.5px] text-sky-200">
-                {resolvedChallenger.badgeIcon} 〈{isKo ? resolvedChallenger.titleKo : resolvedChallenger.titleEn}〉 ·{' '}
-                {isKo
-                  ? resolvedChallenger.frameNameKo || '24K 로얄 골드 프레임'
-                  : resolvedChallenger.frameNameEn || '24K Royal Gold Frame'}{' '}
-                ·{' '}
-                {isKo
-                  ? resolvedChallenger.cardBackNameKo || '엘윈 성소의 문장'
-                  : resolvedChallenger.cardBackNameEn || 'Elwin Sanctuary Crest'}
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-1.5">
-              {onOpenShopFromBattle && (
-                <button
-                  type="button"
-                  data-testid="challenger-open-shop-btn"
-                  onClick={() => {
-                    hsAudio.playSfx('gem_a_confirm');
-                    setChallengerPrestigeOpen(false);
-                    onOpenShopFromBattle();
-                  }}
-                  className="hs-zelda-c-btn min-h-[34px] rounded-xl px-2.5 py-1 text-[10px] font-black text-stone-950"
-                >
-                  🪙 {tr('상점 보기', 'Gold Shop')}
-                </button>
+            <span className="truncate">
+              🎲{' '}
+              {tr(
+                `보가트 ${bogartDifficulty === 'EXPERT' ? '숙련' : '일반'} · ${(bogartStakeGold ?? 100).toLocaleString()}G (승리 +${((bogartStakeGold ?? 100) * 2).toLocaleString()}G)`,
+                `Bogart ${bogartDifficulty === 'EXPERT' ? 'Expert' : 'Normal'} · ${(bogartStakeGold ?? 100).toLocaleString()}G (Win +${((bogartStakeGold ?? 100) * 2).toLocaleString()}G)`,
               )}
-              <button
-                type="button"
-                onClick={() => setChallengerPrestigeOpen(false)}
-                className="min-h-[34px] rounded-xl border border-amber-400/40 bg-black/45 px-2 text-[10px] text-amber-200"
-              >
-                ✕
-              </button>
-            </div>
+            </span>
           </div>
-        )}
-
-        {/* Kadan's Journey Stage Status Strip */}
-        {mode === 'TUTORIAL' && matchState.journeyMeta && (
-          <div className="mx-auto flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-emerald-400/55 bg-stone-950/88 px-3 py-1 text-[10.5px] font-extrabold text-emerald-100 shadow-lg sm:px-4 sm:text-xs">
-            <span className="text-yellow-300">
+        ) : mode === 'RANKED' && resolvedChallenger ? (
+          <div
+            data-testid="battle-challenger-badge"
+            className="mx-auto flex max-w-[92vw] items-center justify-center gap-1.5 rounded-full border border-sky-400/50 bg-stone-950/88 px-2.5 py-0.5 text-[10px] font-extrabold text-sky-200 shadow sm:px-3 sm:text-[11px]"
+          >
+            <span className="truncate">
+              🏆 {resolvedChallenger.badgeIcon} <b className="text-white">{resolvedChallenger.nickname}</b>
+            </span>
+          </div>
+        ) : mode === 'TUTORIAL' && matchState.journeyMeta ? (
+          <div className="mx-auto flex max-w-[92vw] items-center justify-center gap-1.5 rounded-full border border-emerald-400/50 bg-stone-950/88 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-100 shadow sm:px-3 sm:text-[11px]">
+            <span className="truncate text-yellow-300">
               {matchState.journeyMeta.reincarnation > 0
-                ? tr(`환생 ${matchState.journeyMeta.reincarnation}회차 · `,
-                    `Reincarnation ${matchState.journeyMeta.reincarnation} · `,
-                  )
+                ? tr(`환생 ${matchState.journeyMeta.reincarnation} · `, `R${matchState.journeyMeta.reincarnation} · `)
                 : ''}
               {isKo
                 ? `제${matchState.journeyMeta.episode}화 「${matchState.journeyMeta.episodeTitle}」`
                 : `EP ${matchState.journeyMeta.episode}: ${matchState.journeyMeta.episodeTitle}`}
             </span>
-            <span className="text-stone-500">|</span>
-            <span>
-              {tr(`적 스탯 ×${matchState.journeyMeta.enemyStatScale}배`,
-                `Enemy Stats ×${matchState.journeyMeta.enemyStatScale}`,
-              )}
+            <span className="shrink-0 text-emerald-300">
+              ×{matchState.journeyMeta.enemyStatScale}
             </span>
-            {journeyDeckStats.boostedCount > 0 && (
-              <>
-                <span className="text-stone-500">|</span>
-                <span className="text-emerald-300">
-                  {isKo
-                    ? `내 3장+ 배수 강화 ${journeyDeckStats.boostedCount}종 (최대 ×${journeyDeckStats.maxMultiplier}배)`
-                    : `${journeyDeckStats.boostedCount} 3+ Card Boosts (Max ×${journeyDeckStats.maxMultiplier})`}
-                </span>
-              </>
-            )}
           </div>
-        )}
-
-        {/* Live Beginner Coach Banner (Collapsible) */}
-        {coachTip && !isEp0Tutorial && storyPhase === 'CLOSED' && !vsIntroActive && (
-          <div
-            data-testid="battle-coach-banner"
-            className="mx-auto flex max-w-2xl items-center justify-between gap-2 rounded-xl border border-amber-400/45 bg-stone-950/90 px-2.5 py-1 text-[11px] text-amber-50 shadow-md sm:px-3.5 sm:text-xs"
-          >
-            {coachCollapsed ? (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCoachCollapsed(false);
-                }}
-                className="flex items-center gap-1.5 font-extrabold text-amber-200 hover:text-amber-100"
-              >
-                <span>💡</span>
-                <span>{tr('코치 힌트 펼치기', 'Show Coach Tip')}</span>
-              </button>
-            ) : (
-              <>
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <span
-                    className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-black ${
-                      coachTip.tone === 'emerald'
-                        ? 'bg-emerald-600 text-white'
-                        : coachTip.tone === 'sky'
-                          ? 'bg-sky-600 text-white'
-                          : coachTip.tone === 'amber'
-                            ? 'bg-amber-600 text-stone-950'
-                            : 'bg-stone-700 text-stone-200'
-                    }`}
-                  >
-                    {coachTip.badge}
-                  </span>
-                  <span className="truncate font-bold sm:whitespace-normal">{coachTip.text}</span>
-                </div>
-                <button
-                  type="button"
-                  title={tr('코치 배너 접기', 'Hide Coach Tip')}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCoachCollapsed(true);
-                  }}
-                  className="shrink-0 rounded border border-amber-400/30 px-1.5 py-0.5 text-[10px] font-bold text-amber-200 hover:bg-stone-800"
-                >
-                  —
-                </button>
-              </>
-            )}
-          </div>
-        )}
+        ) : null}
 
         {/* Episode 0 Mobile Full-Width Tutorial Speech Bubble (Never Squished) */}
         {isEp0Tutorial &&
@@ -6320,6 +6149,58 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
 
       {/* ==================== BOTTOM ZONE: CENTERED PLAYER HERO + CURVED HAND + BOTTOM-RIGHT MANA ==================== */}
       <footer className="relative z-30 flex w-full flex-col items-center pb-1 sm:pb-1.5">
+        {/* Live Situation / Coach Status Pill Above Player Portrait (Balanced with Top 1-Line Mode Pill) */}
+        {coachTip && !isEp0Tutorial && storyPhase === 'CLOSED' && !vsIntroActive && (
+          <div
+            data-testid="battle-coach-banner"
+            className="mb-1 flex max-w-[92vw] items-center justify-between gap-1.5 rounded-full border border-amber-400/45 bg-stone-950/90 px-2.5 py-0.5 text-[10px] text-amber-50 shadow sm:max-w-xl sm:px-3 sm:text-[11px]"
+          >
+            {coachCollapsed ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCoachCollapsed(false);
+                }}
+                className="flex items-center gap-1 font-extrabold text-amber-200 hover:text-amber-100"
+              >
+                <span>💡</span>
+                <span>{tr('상황 안내 펼치기', 'Show Status')}</span>
+              </button>
+            ) : (
+              <>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span
+                    className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9.5px] font-black ${
+                      coachTip.tone === 'emerald'
+                        ? 'bg-emerald-600 text-white'
+                        : coachTip.tone === 'sky'
+                          ? 'bg-sky-600 text-white'
+                          : coachTip.tone === 'amber'
+                            ? 'bg-amber-600 text-stone-950'
+                            : 'bg-stone-700 text-stone-200'
+                    }`}
+                  >
+                    {coachTip.badge}
+                  </span>
+                  <span className="truncate font-bold">{coachTip.text}</span>
+                </div>
+                <button
+                  type="button"
+                  title={tr('상황 안내 접기', 'Hide Status')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCoachCollapsed(true);
+                  }}
+                  className="shrink-0 rounded-full border border-amber-400/30 px-1.5 text-[9.5px] font-bold text-amber-200 hover:bg-stone-800"
+                >
+                  —
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Centered Player Hero Arch + Out-of-Flow Emote Trigger (Zero Center Offset!) */}
         <div className="relative flex w-full items-center justify-center px-2">
           <div className="relative flex items-center justify-center">
