@@ -739,7 +739,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
         hsAudio.playSfx('ui_click', 0.45);
         onCancel();
       }}
-      className="fixed inset-0 z-[130] flex items-center justify-center bg-black/78 px-3 py-2.5 backdrop-blur-[3px] sm:px-8 sm:py-6"
+      className="fixed inset-0 z-[130] flex items-center justify-center bg-black/78 px-2 py-2 backdrop-blur-[3px] sm:px-8 sm:py-5"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -747,7 +747,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={(e) => finishSwipe(e.pointerId)}
         onPointerCancel={(e) => finishSwipe(e.pointerId)}
-        className="hs-wood-panel relative flex max-h-[92dvh] w-full max-w-[356px] touch-pan-y select-none flex-col items-center overflow-hidden rounded-3xl px-3.5 pb-3 pt-2.5 text-amber-100 shadow-[0_26px_70px_rgba(0,0,0,0.95)] sm:max-w-[424px] sm:px-5 sm:pb-4 sm:pt-3.5"
+        className="hs-wood-panel relative flex max-h-[94dvh] w-full max-w-[380px] touch-pan-y select-none flex-col items-center overflow-hidden rounded-3xl px-2.5 pb-3 pt-2.5 text-amber-100 shadow-[0_26px_70px_rgba(0,0,0,0.95)] sm:max-w-[464px] sm:px-5 sm:pb-4 sm:pt-3.5"
       >
         <button
           type="button"
@@ -825,7 +825,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
                         ? 'radial-gradient(circle, rgba(192,132,252,0.32) 0%, rgba(126,34,206,0.14) 45%, transparent 72%)'
                         : 'radial-gradient(circle, rgba(56,189,248,0.24) 0%, transparent 70%)',
                 }}
-                className="pointer-events-none absolute h-[290px] w-[260px] rounded-full"
+                className="pointer-events-none absolute h-[350px] w-[310px] rounded-full"
               />
             )}
             {hasNav && (
@@ -854,7 +854,11 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
                 transition:
                   swipeOffsetX !== 0 ? 'none' : 'transform 170ms cubic-bezier(0.22, 1, 0.36, 1)',
               }}
-              className="-my-4 origin-center scale-[0.86] sm:-my-1 sm:scale-[0.96]"
+              className={
+                showFlavor
+                  ? 'my-1 origin-center scale-[1.0] sm:my-4 sm:scale-[1.1]'
+                  : 'my-4 origin-center scale-[1.08] sm:my-8 sm:scale-[1.18]'
+              }
             >
               <HearthstoneCard
                 card={card}

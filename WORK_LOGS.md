@@ -1649,3 +1649,9 @@
     - `npx tsc --noEmit && npm run build` 0에러 통과.
     - Playwright 실측 검증: 모바일(`375×667` KO, `390×844` KO/EN) 및 데스크톱(`1280×800` KO/EN) 전 뷰포트에서 `[data-testid="card-zoom-primary-action"]` 뷰포트 내 즉시 노출(`inViewport: true`), 44px+ 터치 타깃, 중복 정보 미노출, 영문 미번역 한글 0건 확인.
     - 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-20 17:25 KST] [카드 확대 모달 카드 표시 크기 상향 및 원격 푸시]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`CardZoomModal.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/CardZoomModal.tsx): 모달 최대 너비를 `max-w-[380px] sm:max-w-[464px]`로 확장하고, 전투 확대 카드 스케일을 `scale-[1.08] sm:scale-[1.18]`(컬렉션/팩 `scale-[1.0] sm:scale-[1.1]`)으로 약 25% 확대하여 가독성과 박력을 강화.
+  - `npx tsc --noEmit && npm run build` 및 Playwright 모바일(`390×844`)·데스크톱(`1280×800`) 검증 통과(사용 버튼 `inViewport: true`, 48px 터치 타깃 유지). 로컬 커밋 후 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.
