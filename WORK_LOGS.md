@@ -1636,3 +1636,16 @@
     - **아카라이브 (`arca.live/b/gamedev`)**: 비활성화 채널(`403`) 확인 후 스킵.
   - **3. 구글 시트 최신화**:
     - `MKT-055`, `MKT-073` → `완료` 갱신 (누적 완료 **76/105건, 72.4%**).
+
+## [2026-11-20 16:42 KST] [카드플레이 확대 모달 중복 정보 제거 및 모바일 사용 버튼 상시 노출 개선]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **문제 원인**: [`CardZoomModal.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/CardZoomModal.tsx)에서 확대 카드(`HearthstoneCard size="LG"`) 하단에 카드명·마나·공격력·생명력·능력 텍스트·일반 카드 유형 설명·제작/추출 가루·3배 각성 링크 공유 버튼 등이 중복으로 나열되어, 모바일 화면(`375×667`, `390×844`)에서 실제 `카드 사용` 버튼(`primaryAction`)이 뷰포트 밖으로 밀려 보이지 않는 문제 발생.
+  - **수정 내용**:
+    - 전투 플레이 확대 모드(`!showFlavor`)에서 확대 카드와 겹치는 중복 정보 패널(이름·스탯·유형 안내·능력 텍스트·제작/추출 가루·공유 버튼)을 제거하고, 전장 하수인 점검(`liveStats`) 시에만 현재 전장 수치 및 상태 배지를 간결하게 표시하도록 정리.
+    - 컬렉션/팩 개봉 확대 모드(`showFlavor`)에서는 중복 이름/스탯/능력 설명을 제거하고 비중복 정보(제작/추출 가루·플레이버·원작 웹소설 로어 브릿지·3배 각성 링크)만 스크롤 영역에 유지.
+    - 모달 레이아웃을 `max-h-[92dvh] overflow-hidden` + 내부 스크롤 영역(`flex-1 overflow-y-auto`) + 하단 고정 액션 푸터(`shrink-0`, `min-h-[48px]` 사용 버튼 + `44px` 닫기 버튼)로 개편하여 모바일에서 스크롤 없이 사용 버튼이 항상 즉시 표시되도록 보장.
+  - **검증 및 로컬 커밋**:
+    - `npx tsc --noEmit && npm run build` 0에러 통과.
+    - Playwright 실측 검증: 모바일(`375×667` KO, `390×844` KO/EN) 및 데스크톱(`1280×800` KO/EN) 전 뷰포트에서 `[data-testid="card-zoom-primary-action"]` 뷰포트 내 즉시 노출(`inViewport: true`), 44px+ 터치 타깃, 중복 정보 미노출, 영문 미번역 한글 0건 확인.
+    - 로컬 `git commit` 완료 (`git push` 보류).

@@ -7,8 +7,6 @@ import {
   CRAFTING_COST,
   DISENCHANT_VALUE,
   GOLDEN_DISENCHANT_VALUE,
-  formatCardHtmlText,
-  getCardBaseDurability,
 } from '../cardDb';
 import {
   getCardClassLabel,
@@ -18,7 +16,6 @@ import {
   getCardFactionLabel,
   getCardFlavor,
   getCardName,
-  getCardText,
 } from '../i18nData';
 import {
   CLASSIC_HEROES,
@@ -31,7 +28,6 @@ import {
   HearthstoneCard,
   HsAttackBadge,
   HsHealthBadge,
-  HsManaGem,
   RACE_KO,
 } from './CardVisual';
 
@@ -685,37 +681,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
     }
   };
 
-  const shownCost = effectiveCost !== undefined ? effectiveCost : card.cost;
-  const costState: 'normal' | 'buffed' | 'nerfed' =
-    shownCost < card.cost ? 'buffed' : shownCost > card.cost ? 'nerfed' : 'normal';
-
-  const multActive =
-    !liveStats &&
-    journeyMultiplier > 1 &&
-    (card.type === 'MINION' || card.type === 'WEAPON');
-
-  const shownAttack = liveStats
-    ? liveStats.attack
-    : multActive
-      ? card.type === 'WEAPON'
-        ? Math.max(1, (card.attack ?? 1) * journeyMultiplier)
-        : (card.attack ?? 0) * journeyMultiplier
-      : card.attack;
-
-  const baseWeaponDur = getCardBaseDurability(card);
-  const shownHealth =
-    liveStats !== undefined
-      ? liveStats.health
-      : multActive
-        ? card.type === 'WEAPON'
-          ? Math.max(1, baseWeaponDur * journeyMultiplier)
-          : Math.max(1, (card.health ?? 1) * journeyMultiplier)
-        : card.type === 'WEAPON'
-          ? baseWeaponDur
-          : card.health;
-
   const cardDisplayName = getCardName(card, lang);
-  const cardDisplayText = getCardText(card, lang);
   const cardDisplayFlavor = getCardFlavor(card, lang);
   const cardCharLabel = getCardCharName(card, lang);
   const cardFactionLabel = getCardFactionLabel(card, lang);
@@ -737,7 +703,6 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
     return isKo ? RACE_KO[race] || race : getCardRaceLabel(race, lang);
   };
 
-  const cleanHtml = formatCardHtmlText(cardDisplayText || '', spellPowerBonus, velenMultiplier).trim();
   const craftDust = card.rarity !== 'FREE' ? CRAFTING_COST[card.rarity] : null;
   const disenchantDust =
     card.rarity !== 'FREE'
@@ -774,7 +739,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
         hsAudio.playSfx('ui_click', 0.45);
         onCancel();
       }}
-      className="fixed inset-0 z-[130] flex items-center justify-center bg-black/78 px-3 py-3 backdrop-blur-[3px] sm:px-8 sm:py-6"
+      className="fixed inset-0 z-[130] flex items-center justify-center bg-black/78 px-3 py-2.5 backdrop-blur-[3px] sm:px-8 sm:py-6"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -782,7 +747,7 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={(e) => finishSwipe(e.pointerId)}
         onPointerCancel={(e) => finishSwipe(e.pointerId)}
-        className="hs-wood-panel relative flex max-h-[94%] w-full max-w-[356px] touch-pan-y select-none flex-col items-center overflow-y-auto rounded-3xl px-3.5 pb-3.5 pt-2.5 text-amber-100 shadow-[0_26px_70px_rgba(0,0,0,0.95)] sm:max-w-[424px] sm:px-5 sm:pb-4 sm:pt-3.5"
+        className="hs-wood-panel relative flex max-h-[92dvh] w-full max-w-[356px] touch-pan-y select-none flex-col items-center overflow-hidden rounded-3xl px-3.5 pb-3 pt-2.5 text-amber-100 shadow-[0_26px_70px_rgba(0,0,0,0.95)] sm:max-w-[424px] sm:px-5 sm:pb-4 sm:pt-3.5"
       >
         <button
           type="button"
@@ -791,45 +756,47 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
             onCancel();
           }}
           aria-label={tr('카드 선택 취소', 'Close inspection')}
-          className="hs-brass-btn absolute right-2.5 top-2.5 z-40 flex h-8 w-8 items-center justify-center rounded-full text-xs font-extrabold text-amber-100"
+          className="hs-brass-btn absolute right-2 top-2 z-40 flex h-11 w-11 items-center justify-center rounded-full text-sm font-extrabold text-amber-100 sm:right-2.5 sm:top-2.5 sm:h-9 sm:w-9"
         >
           ✕
         </button>
 
-        {/* Subtitle + 5-Tier Rarity Prestige Badge + Navigation Counter Row */}
-        <div className="mb-1 flex max-w-[88%] flex-wrap items-center justify-center gap-1.5">
-          <div
-            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10.5px] font-black tracking-wide shadow ${
-              card.rarity === 'LEGENDARY'
-                ? 'border-yellow-200 bg-gradient-to-r from-amber-900 via-orange-700 to-amber-900 text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.7)]'
-                : card.rarity === 'EPIC'
-                  ? 'border-purple-300/85 bg-gradient-to-r from-purple-950 via-purple-800 to-purple-950 text-purple-100 shadow-[0_0_12px_rgba(192,132,252,0.55)]'
-                  : card.rarity === 'RARE'
-                    ? 'border-sky-300/80 bg-sky-950/95 text-sky-100 shadow-[0_0_10px_rgba(56,189,248,0.45)]'
-                    : card.rarity === 'COMMON'
-                      ? 'border-slate-300/70 bg-slate-900/95 text-slate-100'
-                      : 'border-stone-500/70 bg-stone-900/95 text-stone-300'
-            }`}
-          >
-            <span>
-              {card.rarity === 'LEGENDARY'
-                ? '★'
-                : card.rarity === 'EPIC'
-                  ? '◆'
-                  : card.rarity === 'RARE'
-                    ? '❖'
-                    : card.rarity === 'COMMON'
-                      ? '◇'
-                      : '•'}
-            </span>
-            <span>
-              {isGolden
-                ? tr(`황금 ${getRarityLabel(card.rarity)}`, `Golden ${getRarityLabel(card.rarity)}`)
-                : tr(`${getRarityLabel(card.rarity)} 카드`, `${getRarityLabel(card.rarity)} Card`)}
-            </span>
-          </div>
+        {/* Compact Top Header Badges (Pinned) */}
+        <div className="mb-1 flex min-h-[34px] w-full shrink-0 flex-wrap items-center justify-center gap-1.5 pl-2 pr-11 sm:pr-10">
+          {showFlavor && (
+            <div
+              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10.5px] font-black tracking-wide shadow ${
+                card.rarity === 'LEGENDARY'
+                  ? 'border-yellow-200 bg-gradient-to-r from-amber-900 via-orange-700 to-amber-900 text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.7)]'
+                  : card.rarity === 'EPIC'
+                    ? 'border-purple-300/85 bg-gradient-to-r from-purple-950 via-purple-800 to-purple-950 text-purple-100 shadow-[0_0_12px_rgba(192,132,252,0.55)]'
+                    : card.rarity === 'RARE'
+                      ? 'border-sky-300/80 bg-sky-950/95 text-sky-100 shadow-[0_0_10px_rgba(56,189,248,0.45)]'
+                      : card.rarity === 'COMMON'
+                        ? 'border-slate-300/70 bg-slate-900/95 text-slate-100'
+                        : 'border-stone-500/70 bg-stone-900/95 text-stone-300'
+              }`}
+            >
+              <span>
+                {card.rarity === 'LEGENDARY'
+                  ? '★'
+                  : card.rarity === 'EPIC'
+                    ? '◆'
+                    : card.rarity === 'RARE'
+                      ? '❖'
+                      : card.rarity === 'COMMON'
+                        ? '◇'
+                        : '•'}
+              </span>
+              <span>
+                {isGolden
+                  ? tr(`황금 ${getRarityLabel(card.rarity)}`, `Golden ${getRarityLabel(card.rarity)}`)
+                  : tr(`${getRarityLabel(card.rarity)} 카드`, `${getRarityLabel(card.rarity)} Card`)}
+              </span>
+            </div>
+          )}
           {subtitleBadge && (
-            <div className="truncate rounded-full border border-amber-300/60 bg-stone-950/90 px-3 py-0.5 text-[11px] font-extrabold text-amber-200 shadow">
+            <div className="max-w-full truncate rounded-full border border-amber-300/60 bg-stone-950/90 px-3 py-0.5 text-[11px] font-extrabold text-amber-200 shadow">
               {subtitleBadge}
             </div>
           )}
@@ -844,366 +811,302 @@ export const CardZoomModal: React.FC<CardZoomModalProps> = ({
           )}
         </div>
 
-        {/* Enlarged Card + Pedestal Rarity Halo + Left/Right Prev/Next Buttons */}
-        <div className="relative flex w-full items-center justify-center">
-          {(card.rarity === 'LEGENDARY' || card.rarity === 'EPIC' || card.rarity === 'RARE') && (
+        {/* Scrollable Middle Body: Enlarged Card + Optional Live Battle Statuses / Collection Lore */}
+        <div className="flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto overflow-x-hidden py-0.5">
+          {/* Enlarged Card + Pedestal Rarity Halo + Left/Right Prev/Next Buttons */}
+          <div className="relative flex w-full shrink-0 items-center justify-center">
+            {(card.rarity === 'LEGENDARY' || card.rarity === 'EPIC' || card.rarity === 'RARE') && (
+              <div
+                style={{
+                  background:
+                    card.rarity === 'LEGENDARY'
+                      ? 'radial-gradient(circle, rgba(251,191,36,0.38) 0%, rgba(234,88,12,0.16) 45%, transparent 72%)'
+                      : card.rarity === 'EPIC'
+                        ? 'radial-gradient(circle, rgba(192,132,252,0.32) 0%, rgba(126,34,206,0.14) 45%, transparent 72%)'
+                        : 'radial-gradient(circle, rgba(56,189,248,0.24) 0%, transparent 70%)',
+                }}
+                className="pointer-events-none absolute h-[290px] w-[260px] rounded-full"
+              />
+            )}
+            {hasNav && (
+              <button
+                type="button"
+                data-testid="card-zoom-prev"
+                disabled={!canPrev}
+                aria-label={tr('이전 카드 보기', 'Previous card')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  triggerPrev();
+                }}
+                className={`hs-brass-btn absolute left-0 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-2xl font-black text-amber-100 shadow-[0_6px_18px_rgba(0,0,0,0.88)] transition sm:h-12 sm:w-12 sm:text-3xl ${
+                  canPrev
+                    ? 'hover:scale-108 hover:brightness-115 active:scale-95'
+                    : 'cursor-not-allowed opacity-35'
+                }`}
+              >
+                ‹
+              </button>
+            )}
+
             <div
               style={{
-                background:
-                  card.rarity === 'LEGENDARY'
-                    ? 'radial-gradient(circle, rgba(251,191,36,0.38) 0%, rgba(234,88,12,0.16) 45%, transparent 72%)'
-                    : card.rarity === 'EPIC'
-                      ? 'radial-gradient(circle, rgba(192,132,252,0.32) 0%, rgba(126,34,206,0.14) 45%, transparent 72%)'
-                      : 'radial-gradient(circle, rgba(56,189,248,0.24) 0%, transparent 70%)',
+                transform: `translate3d(${activeShiftX}px, 0, 0) rotate(${swipeOffsetX * 0.035}deg)`,
+                transition:
+                  swipeOffsetX !== 0 ? 'none' : 'transform 170ms cubic-bezier(0.22, 1, 0.36, 1)',
               }}
-              className="pointer-events-none absolute h-[290px] w-[260px] rounded-full"
-            />
-          )}
-          {hasNav && (
-            <button
-              type="button"
-              data-testid="card-zoom-prev"
-              disabled={!canPrev}
-              aria-label={tr('이전 카드 보기', 'Previous card')}
-              onClick={(e) => {
-                e.stopPropagation();
-                triggerPrev();
-              }}
-              className={`hs-brass-btn absolute left-0 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-2xl font-black text-amber-100 shadow-[0_6px_18px_rgba(0,0,0,0.88)] transition sm:h-12 sm:w-12 sm:text-3xl ${
-                canPrev
-                  ? 'hover:scale-108 hover:brightness-115 active:scale-95'
-                  : 'cursor-not-allowed opacity-35'
-              }`}
+              className="-my-4 origin-center scale-[0.86] sm:-my-1 sm:scale-[0.96]"
             >
-              ‹
-            </button>
-          )}
+              <HearthstoneCard
+                card={card}
+                effectiveCost={effectiveCost}
+                spellPowerBonus={spellPowerBonus}
+                velenMultiplier={velenMultiplier}
+                isGolden={isGolden}
+                playableGlow={playableGlow}
+                rarityAura={rarityAura || card.rarity}
+                journeyMultiplier={journeyMultiplier}
+                size="LG"
+                enableTilt={swipeOffsetX === 0}
+              />
+            </div>
 
-          <div
-            style={{
-              transform: `translate3d(${activeShiftX}px, 0, 0) rotate(${swipeOffsetX * 0.035}deg)`,
-              transition:
-                swipeOffsetX !== 0 ? 'none' : 'transform 170ms cubic-bezier(0.22, 1, 0.36, 1)',
-            }}
-            className="-my-4 origin-center scale-[0.82] sm:-my-1 sm:scale-[0.96]"
-          >
-            <HearthstoneCard
-              card={card}
-              effectiveCost={effectiveCost}
-              spellPowerBonus={spellPowerBonus}
-              velenMultiplier={velenMultiplier}
-              isGolden={isGolden}
-              playableGlow={playableGlow}
-              rarityAura={rarityAura || card.rarity}
-              journeyMultiplier={journeyMultiplier}
-              size="LG"
-              enableTilt={swipeOffsetX === 0}
-            />
+            {hasNav && (
+              <button
+                type="button"
+                data-testid="card-zoom-next"
+                disabled={!canNext}
+                aria-label={tr('다음 카드 보기', 'Next card')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  triggerNext();
+                }}
+                className={`hs-brass-btn absolute right-0 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-2xl font-black text-amber-100 shadow-[0_6px_18px_rgba(0,0,0,0.88)] transition sm:h-12 sm:w-12 sm:text-3xl ${
+                  canNext
+                    ? 'hover:scale-108 hover:brightness-115 active:scale-95'
+                    : 'cursor-not-allowed opacity-35'
+                }`}
+              >
+                ›
+              </button>
+            )}
           </div>
 
-          {hasNav && (
-            <button
-              type="button"
-              data-testid="card-zoom-next"
-              disabled={!canNext}
-              aria-label={tr('다음 카드 보기', 'Next card')}
-              onClick={(e) => {
-                e.stopPropagation();
-                triggerNext();
-              }}
-              className={`hs-brass-btn absolute right-0 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-2xl font-black text-amber-100 shadow-[0_6px_18px_rgba(0,0,0,0.88)] transition sm:h-12 sm:w-12 sm:text-3xl ${
-                canNext
-                  ? 'hover:scale-108 hover:brightness-115 active:scale-95'
-                  : 'cursor-not-allowed opacity-35'
-              }`}
-            >
-              ›
-            </button>
+          {/* Live Board Minion Stats & Active Status Pills (only when inspecting a minion on the battlefield) */}
+          {liveStats && (
+            <div className="mt-1.5 flex w-full shrink-0 flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-[#a88246]/70 bg-stone-950/75 px-3 py-1.5">
+              <span className="text-[11px] font-extrabold text-amber-200/90">
+                {tr('현재 전장 수치', 'Live Stats')}
+              </span>
+              <div className="flex items-center gap-1">
+                <HsAttackBadge
+                  value={liveStats.attack}
+                  buffed={liveStats.attack > (card.attack ?? 0)}
+                  size={24}
+                />
+                <HsHealthBadge
+                  value={liveStats.health}
+                  state={
+                    liveStats.health < liveStats.maxHealth
+                      ? 'damaged'
+                      : liveStats.maxHealth > (card.health ?? 1)
+                        ? 'buffed'
+                        : 'normal'
+                  }
+                  size={23}
+                />
+              </div>
+              {liveStats.statuses && liveStats.statuses.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-1">
+                  {liveStats.statuses.map((st, idx) => (
+                    <span
+                      key={idx}
+                      className="rounded-full border border-[#8b6532] bg-[#36200f] px-2 py-0.5 text-[10.5px] font-extrabold text-amber-200"
+                    >
+                      {st}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Collection / Pack Inspection Details (Dust, Flavor, Lore, 3x Share — hidden during battle play) */}
+          {showFlavor && (
+            <div className="mt-1.5 w-full shrink-0 rounded-2xl border-2 border-[#a88246] bg-gradient-to-b from-[#fdf6e4] to-[#ecdab5] px-3 py-2 text-[#221409] shadow-[inset_0_2px_8px_rgba(68,40,14,0.22)]">
+              <div className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-[#5a3b1c]">
+                <img
+                  src={CLASS_CREST_URL[card.cardClass] || CLASS_CREST_URL.NEUTRAL}
+                  alt=""
+                  className="h-4 w-4 shrink-0 rounded-full border border-[#6e4c23] object-cover"
+                />
+                <span className="rounded bg-[#422813] px-1.5 py-0.5 text-[10.5px] font-extrabold text-amber-100">
+                  {getClassLabel(card.cardClass)}
+                </span>
+                {cardCharLabel && cardCharLabel !== cardDisplayName && (
+                  <span className="rounded border border-[#8c6432]/60 bg-[#f6e7c5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#4a2b0f]">
+                    {cardCharLabel}
+                    {cardFactionLabel && card.cardClass === 'NEUTRAL' ? ` · ${cardFactionLabel}` : ''}
+                  </span>
+                )}
+                {(!cardCharLabel || cardCharLabel === cardDisplayName) &&
+                  cardFactionLabel &&
+                  card.cardClass === 'NEUTRAL' && (
+                    <span className="rounded border border-[#8c6432]/60 bg-[#f6e7c5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#4a2b0f]">
+                      {cardFactionLabel}
+                    </span>
+                  )}
+                <span>·</span>
+                <span>{isKo ? TYPE_LABEL_KO[card.type] : TYPE_LABEL_EN[card.type]}</span>
+                {card.race && getRaceLabel(card.race) && (
+                  <>
+                    <span>·</span>
+                    <span className="font-extrabold text-[#7c2d12]">{getRaceLabel(card.race)}</span>
+                  </>
+                )}
+                {isGolden && (
+                  <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-extrabold text-stone-950">
+                    {tr('황금', 'Golden')}
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1 rounded-lg border border-[#a88246]/50 bg-[#f5e7c6] px-2.5 py-1 text-[10.5px] font-extrabold text-[#4a2b0f]">
+                <span>
+                  {card.rarity === 'FREE'
+                    ? tr('기본 무료 지급 카드 (추출 불가)', 'Free Basic Card (Uncraftable)')
+                    : tr(
+                        `${getRarityLabel(card.rarity)}${isGolden ? ' (황금)' : ''} · ${card.rarity === 'LEGENDARY' ? '덱 1장 제한' : '덱 최대 2장'}`,
+                        `${getRarityLabel(card.rarity)}${isGolden ? ' (Golden)' : ''} · ${card.rarity === 'LEGENDARY' ? 'Max 1 in deck' : 'Max 2 in deck'}`,
+                      )}
+                </span>
+                {craftDust !== null && disenchantDust !== null && (
+                  <span className="text-[#7c2d12]">
+                    {tr(
+                      `제작 ${craftDust.toLocaleString()} / 추출 +${disenchantDust.toLocaleString()}`,
+                      `Craft ${craftDust.toLocaleString()} / Dust +${disenchantDust.toLocaleString()}`,
+                    )}
+                  </span>
+                )}
+              </div>
+
+              {cardDisplayFlavor && (
+                <p className="mt-1.5 text-center text-[11px] font-bold leading-snug text-[#5c3d1e]">
+                  “{cardDisplayFlavor.replace(/<[^>]+>/g, '')}”
+                </p>
+              )}
+
+              {/* MKT-052: Game-to-Novel Reverse Lore Bridge */}
+              {(() => {
+                const lore = getCardNovelLoreBridge(card, isKo);
+                return (
+                  <div
+                    data-testid="card-novel-lore-bridge"
+                    className="mt-2 rounded-xl border border-[#8c6432]/70 bg-[#2b1a0c] p-2.5 text-left text-amber-100 shadow-inner"
+                  >
+                    <div className="flex items-center justify-between gap-2 text-[10.5px] font-extrabold text-amber-300">
+                      <span>{tr('📖 영웅 원작 웹소설 비하인드 로어', '📖 Official Novel Lore')}</span>
+                      <span className="rounded-full border border-amber-400/45 bg-amber-950/90 px-2 py-0.5 text-[10px] text-amber-200">
+                        {lore.epTitle}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[11px] font-bold leading-snug text-amber-100/90">
+                      {lore.hook}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <a
+                        href={`/book.html?ep=${lore.ep}&utm_source=card_lore`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-testid="card-lore-book-link"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex min-h-[40px] flex-1 items-center justify-center rounded-lg border border-amber-300/70 bg-gradient-to-b from-amber-500 to-amber-700 px-2.5 py-1.5 text-[11px] font-extrabold text-stone-950 shadow transition hover:brightness-110"
+                      >
+                        {tr(`📖 제${lore.ep}화 원작 읽기 →`, `📖 Read EP.${lore.ep} Novel →`)}
+                      </a>
+                      <a
+                        href={`/game.html?mode=story&ep=${lore.ep}&utm_source=card_lore_story`}
+                        data-testid="card-lore-story-link"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex min-h-[40px] flex-1 items-center justify-center rounded-lg border border-sky-400/65 bg-sky-950/90 px-2.5 py-1.5 text-[11px] font-extrabold text-sky-100 shadow transition hover:border-sky-300 hover:bg-sky-900"
+                      >
+                        {tr(`⚔ 제${lore.ep}화 스토리 출격`, `⚔ Battle EP.${lore.ep}`)}
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div className="mt-2 flex w-full items-center justify-center">
+                <button
+                  type="button"
+                  data-testid="card-zoom-share-3x-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const shareUrl = `https://snshero.com/game?mode=collection&card=${encodeURIComponent(card.id)}&awakened=3x`;
+                    if (navigator.clipboard?.writeText) {
+                      navigator.clipboard.writeText(shareUrl).catch(() => {});
+                    }
+                    hsAudio.playSfx('ui_click', 0.7);
+                    const btn = e.currentTarget;
+                    const prev = btn.textContent;
+                    btn.textContent = tr('✅ 3배 각성 카드 링크 복사 완료!', '✅ 3x Card Share Link Copied!');
+                    window.setTimeout(() => {
+                      if (prev) btn.textContent = prev;
+                    }, 1600);
+                  }}
+                  className="inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl border border-[#8c6432]/70 bg-[#2b1a0c] px-3 py-1.5 text-xs font-extrabold text-amber-200 transition hover:border-amber-300 hover:bg-[#3b2512]"
+                >
+                  🔗 {tr('이 카드 3배 각성 링크 복사하기', 'Copy 3x Awakened Card Share Link')}
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
-        <div className="mt-1 w-full rounded-2xl border-2 border-[#a88246] bg-gradient-to-b from-[#fdf6e4] to-[#ecdab5] px-3.5 py-2.5 text-[#221409] shadow-[inset_0_2px_8px_rgba(68,40,14,0.22)]">
-          <div className="flex items-center justify-between gap-2 border-b border-[#9a743a]/35 pb-1.5">
-            <div className="flex min-w-0 items-center gap-1.5">
-              <img
-                src={CLASS_CREST_URL[card.cardClass] || CLASS_CREST_URL.NEUTRAL}
-                alt=""
-                className="h-5 w-5 shrink-0 rounded-full border border-[#6e4c23] object-cover"
-              />
-              <h3 className="truncate text-base font-extrabold tracking-tight text-[#1c1007] sm:text-lg">
-                {cardDisplayName}
-              </h3>
-            </div>
+        {/* Pinned Bottom Action Bar (Always visible on mobile without scrolling) */}
+        <div className="mt-2 flex w-full shrink-0 flex-col gap-1.5 border-t border-amber-500/25 pt-2">
+          {primaryAction && (
+            <button
+              type="button"
+              data-testid="card-zoom-primary-action"
+              disabled={primaryAction.disabled}
+              onClick={primaryAction.onClick}
+              className={`flex min-h-[48px] w-full items-center justify-center rounded-2xl px-4 py-2.5 text-base font-extrabold tracking-wide transition ${renderBtnClass(
+                primaryAction.variant,
+                primaryAction.disabled,
+              )}`}
+            >
+              {primaryAction.label}
+            </button>
+          )}
 
-            <div className="flex shrink-0 items-center gap-1">
-              <HsManaGem value={shownCost} state={costState} size={25} active />
-              {(card.type === 'MINION' || card.type === 'WEAPON') &&
-                shownAttack !== undefined &&
-                shownAttack !== null && (
-                  <HsAttackBadge
-                    value={shownAttack}
-                    buffed={
-                      liveStats
-                        ? liveStats.attack > (card.attack ?? 0)
-                        : multActive && (card.attack ?? 0) > 0
-                    }
-                    isWeapon={card.type === 'WEAPON'}
-                    size={25}
-                  />
-                )}
-              {(card.type === 'MINION' || card.type === 'WEAPON') &&
-                shownHealth !== undefined &&
-                shownHealth !== null && (
-                  <HsHealthBadge
-                    value={shownHealth}
-                    isWeaponDurability={card.type === 'WEAPON'}
-                    state={
-                      liveStats
-                        ? liveStats.health < liveStats.maxHealth
-                          ? 'damaged'
-                          : liveStats.maxHealth > (card.health ?? 1)
-                            ? 'buffed'
-                            : 'normal'
-                        : multActive
-                          ? 'buffed'
-                          : 'normal'
-                    }
-                    size={24}
-                  />
-                )}
-            </div>
-          </div>
-
-          <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px] font-bold text-[#5a3b1c]">
-            <span className="rounded bg-[#422813] px-1.5 py-0.5 text-[10.5px] font-extrabold text-amber-100">
-              {getClassLabel(card.cardClass)}
-            </span>
-            {cardCharLabel && cardCharLabel !== cardDisplayName && (
-              <span className="rounded border border-[#8c6432]/60 bg-[#f6e7c5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#4a2b0f]">
-                {cardCharLabel}
-                {cardFactionLabel && card.cardClass === 'NEUTRAL' ? ` · ${cardFactionLabel}` : ''}
-              </span>
-            )}
-            {(!cardCharLabel || cardCharLabel === cardDisplayName) &&
-              cardFactionLabel &&
-              card.cardClass === 'NEUTRAL' && (
-                <span className="rounded border border-[#8c6432]/60 bg-[#f6e7c5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#4a2b0f]">
-                  {cardFactionLabel}
-                </span>
-              )}
-            <span>·</span>
-            <span>{isKo ? TYPE_LABEL_KO[card.type] : TYPE_LABEL_EN[card.type]}</span>
-            <span>·</span>
-            <span>{tr(`${getRarityLabel(card.rarity)} 등급`, getRarityLabel(card.rarity))}</span>
-            {card.race && getRaceLabel(card.race) && (
-              <>
-                <span>·</span>
-                <span className="font-extrabold text-[#7c2d12]">{getRaceLabel(card.race)}</span>
-              </>
-            )}
-            {isGolden && (
-              <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-extrabold text-stone-950">
-                {tr('황금', 'Golden')}
-              </span>
-            )}
-          </div>
-
-          <div
-            className={`mt-1.5 rounded-lg border px-2.5 py-1 text-[11.5px] font-extrabold ${
-              card.type === 'WEAPON'
-                ? 'border-slate-600 bg-slate-900 text-slate-100'
-                : card.type === 'SPELL'
-                  ? 'border-sky-700/60 bg-sky-950/90 text-sky-100'
-                  : 'border-[#9a743a]/55 bg-[#f3e2bc] text-[#3a220d]'
-            }`}
-          >
-            {card.type === 'WEAPON'
-              ? tr(
-                  `⚔ 영웅 장착 무기 · 내 영웅이 장착하여 직접 공격 (공격력 ${shownAttack ?? 0} / 내구도 ${shownHealth ?? baseWeaponDur}, 공격 시 내구도 -1)`,
-                  `⚔ Hero Weapon · Equips on your hero to attack (Attack ${shownAttack ?? 0} / Durability ${shownHealth ?? baseWeaponDur})`,
-                )
-              : card.type === 'SPELL'
-                ? card.mechanics?.includes('SECRET')
-                  ? tr(
-                      '✦ 비밀 주문 · 장착 후 상대 턴에 조건이 충족되면 자동 발동합니다.',
-                      '✦ Secret Spell · Hidden until triggered during your opponent’s turn.',
-                    )
-                  : tr(
-                      '✦ 주문 카드 · 사용 즉시 마법 효과가 발동하고 소모됩니다.',
-                      '✦ Spell · Casts an immediate magical effect when played.',
-                    )
-                : card.rarity === 'LEGENDARY'
-                  ? tr(
-                      '★ 전설 하수인 · 덱에 단 1장만 편성 가능한 고유 결전 능력 보유',
-                      '★ Legendary Minion · Limit 1 per deck with a unique iconic effect',
-                    )
-                  : tr(
-                      '🛡 전장 하수인 · 전장에 소환되어 적 하수인·영웅과 교전합니다.',
-                      '🛡 Battlefield Minion · Summoned to the board to battle enemies.',
-                    )}
-          </div>
-
-          <div className="mt-1.5 rounded-xl border border-[#b9965b]/55 bg-[#fffbf0] px-3 py-2 text-center text-[14px] leading-relaxed text-[#1a0f06] sm:text-[15px]">
-            {cleanHtml ? (
-              <div className="hs-card-ability-text" dangerouslySetInnerHTML={{ __html: cleanHtml }} />
-            ) : card.type === 'WEAPON' ? (
-              <span className="text-xs font-extrabold text-slate-800">
-                {tr(
-                  `특수 부가 효과 없음 — 영웅에게 공격력 +${shownAttack ?? 0} (내구도 ${shownHealth ?? baseWeaponDur}회)을 부여하는 순수 전투 무기입니다.`,
-                  `Pure combat weapon — grants +${shownAttack ?? 0} Attack (${shownHealth ?? baseWeaponDur} Durability) to your hero.`,
-                )}
-              </span>
-            ) : (
-              <span className="text-xs font-bold text-[#6e5032]">
-                {tr('특수 능력 없음 (기본 공격력·생명력 전투 하수인)', 'No special text (pure combat minion)')}
-              </span>
-            )}
-          </div>
-
-          <div className="mt-1.5 flex items-center justify-between rounded-lg border border-[#a88246]/50 bg-[#f5e7c6] px-2.5 py-1 text-[10.5px] font-extrabold text-[#4a2b0f]">
-            <span>
-              {card.rarity === 'FREE'
-                ? tr('기본 무료 지급 카드 (팩 미등장 · 추출 불가)', 'Free Basic Card (Uncraftable / Cannot Disenchant)')
-                : tr(
-                    `${getRarityLabel(card.rarity)}${isGolden ? ' (황금)' : ''} · ${card.rarity === 'LEGENDARY' ? '덱 1장 제한' : '덱 최대 2장'}`,
-                    `${getRarityLabel(card.rarity)}${isGolden ? ' (Golden)' : ''} · ${card.rarity === 'LEGENDARY' ? 'Max 1 in deck' : 'Max 2 in deck'}`,
-                  )}
-            </span>
-            {craftDust !== null && disenchantDust !== null && (
-              <span className="text-[#7c2d12]">
-                {tr(
-                  `제작 ${craftDust.toLocaleString()} / 추출 +${disenchantDust.toLocaleString()} 가루`,
-                  `Craft ${craftDust.toLocaleString()} / Dust +${disenchantDust.toLocaleString()}`,
-                )}
-              </span>
-            )}
-          </div>
-
-          {liveStats?.statuses && liveStats.statuses.length > 0 && (
-            <div className="mt-1.5 flex flex-wrap justify-center gap-1">
-              {liveStats.statuses.map((st, idx) => (
-                <span
+          {secondaryActions.length > 0 && (
+            <div className="flex w-full flex-wrap gap-1.5">
+              {secondaryActions.map((act, idx) => (
+                <button
                   key={idx}
-                  className="rounded-full border border-[#8b6532] bg-[#36200f] px-2 py-0.5 text-[10.5px] font-extrabold text-amber-200"
+                  type="button"
+                  disabled={act.disabled}
+                  onClick={act.onClick}
+                  className={`flex min-h-[44px] flex-1 items-center justify-center rounded-xl px-2.5 py-1.5 text-xs font-extrabold transition ${renderBtnClass(
+                    act.variant || 'brass',
+                    act.disabled,
+                  )}`}
                 >
-                  {st}
-                </span>
+                  {act.label}
+                </button>
               ))}
             </div>
           )}
 
-          {showFlavor && cardDisplayFlavor && (
-            <p className="mt-1.5 text-center text-[11px] font-bold leading-snug text-[#5c3d1e]">
-              “{cardDisplayFlavor.replace(/<[^>]+>/g, '')}”
-            </p>
-          )}
-
-          {/* MKT-052: Game-to-Novel Reverse Lore Bridge */}
-          {showFlavor && (() => {
-            const lore = getCardNovelLoreBridge(card, isKo);
-            return (
-              <div
-                data-testid="card-novel-lore-bridge"
-                className="mt-2 rounded-xl border border-[#8c6432]/70 bg-[#2b1a0c] p-2.5 text-left text-amber-100 shadow-inner"
-              >
-                <div className="flex items-center justify-between gap-2 text-[10.5px] font-extrabold text-amber-300">
-                  <span>{tr('📖 영웅 원작 웹소설 비하인드 로어', '📖 Official Novel Lore')}</span>
-                  <span className="rounded-full border border-amber-400/45 bg-amber-950/90 px-2 py-0.5 text-[10px] text-amber-200">
-                    {lore.epTitle}
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] font-bold leading-snug text-amber-100/90">
-                  {lore.hook}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <a
-                    href={`/book.html?ep=${lore.ep}&utm_source=card_lore`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-testid="card-lore-book-link"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex min-h-[38px] flex-1 items-center justify-center rounded-lg border border-amber-300/70 bg-gradient-to-b from-amber-500 to-amber-700 px-2.5 py-1.5 text-[11px] font-extrabold text-stone-950 shadow transition hover:brightness-110"
-                  >
-                    {tr(`📖 제${lore.ep}화 원작 읽기 →`, `📖 Read EP.${lore.ep} Novel →`)}
-                  </a>
-                  <a
-                    href={`/game.html?mode=story&ep=${lore.ep}&utm_source=card_lore_story`}
-                    data-testid="card-lore-story-link"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex min-h-[38px] flex-1 items-center justify-center rounded-lg border border-sky-400/65 bg-sky-950/90 px-2.5 py-1.5 text-[11px] font-extrabold text-sky-100 shadow transition hover:border-sky-300 hover:bg-sky-900"
-                  >
-                    {tr(`⚔ 제${lore.ep}화 스토리 출격`, `⚔ Battle EP.${lore.ep}`)}
-                  </a>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-
-        {primaryAction && (
-          <button
-            type="button"
-            disabled={primaryAction.disabled}
-            onClick={primaryAction.onClick}
-            className={`mt-2.5 flex min-h-[48px] w-full items-center justify-center rounded-2xl px-4 py-2.5 text-base font-extrabold tracking-wide transition ${renderBtnClass(
-              primaryAction.variant,
-              primaryAction.disabled,
-            )}`}
-          >
-            {primaryAction.label}
-          </button>
-        )}
-
-        {secondaryActions.length > 0 && (
-          <div className="mt-2 flex w-full flex-wrap gap-1.5">
-            {secondaryActions.map((act, idx) => (
-              <button
-                key={idx}
-                type="button"
-                disabled={act.disabled}
-                onClick={act.onClick}
-                className={`flex min-h-[42px] flex-1 items-center justify-center rounded-xl px-2.5 py-1.5 text-xs font-extrabold transition ${renderBtnClass(
-                  act.variant || 'brass',
-                  act.disabled,
-                )}`}
-              >
-                {act.label}
-              </button>
-            ))}
+          <div className="text-center text-[10.5px] font-bold text-amber-200/75">
+            {hasNav
+              ? tr(
+                  '좌우 스와이프 · ‹ › 버튼으로 옆 카드 이동 · 바깥 터치 시 닫기',
+                  'Swipe or tap ‹ › to browse · Tap outside to close',
+                )
+              : tr('바깥 영역을 터치하면 닫힙니다', 'Tap outside to close')}
           </div>
-        )}
-
-        <div className="mt-2 flex w-full items-center justify-center">
-          <button
-            type="button"
-            data-testid="card-zoom-share-3x-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              const shareUrl = `https://snshero.com/game?mode=collection&card=${encodeURIComponent(card.id)}&awakened=3x`;
-              if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(shareUrl).catch(() => {});
-              }
-              hsAudio.playSfx('ui_click', 0.7);
-              const btn = e.currentTarget;
-              const prev = btn.textContent;
-              btn.textContent = tr('✅ 3배 각성 카드 링크 복사 완료!', '✅ 3x Card Share Link Copied!');
-              window.setTimeout(() => {
-                if (prev) btn.textContent = prev;
-              }, 1600);
-            }}
-            className="inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl border border-amber-400/45 bg-amber-950/55 px-3 py-1.5 text-xs font-extrabold text-amber-200 transition hover:border-amber-300 hover:bg-amber-900/70"
-          >
-            🔗 {tr('이 카드 3배 각성 링크 복사하기', 'Copy 3x Awakened Card Share Link')}
-          </button>
-        </div>
-
-        <div className="mt-2 text-center text-[11px] font-bold text-amber-200/80">
-          {hasNav
-            ? tr(
-                '좌우 스와이프 · ‹ › 버튼 · 방향키로 옆 카드 이동 · 바깥 터치 시 닫기',
-                'Swipe left/right, use ‹ › or arrow keys · Tap outside to close',
-              )
-            : tr('바깥 영역을 터치하면 카드 선택이 취소됩니다', 'Tap outside to close')}
         </div>
       </div>
     </div>
