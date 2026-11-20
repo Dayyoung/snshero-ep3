@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { hsAudio } from '../audio';
 import { useRegisterNarrationOverlay } from '../services/narrationVisibility';
+import { snsheroLiveNetwork } from '../services/snsheroLiveNetwork';
 import { useModalDismiss } from '../useModalDismiss';
 import {
   CLASSIC_RANK_NAMES,
@@ -19,9 +20,6 @@ import { useAnimaleseTypewriter } from '../components/StoryEncounterOverlays';
 import { tr, useHeroLanguage } from '../../i18n/heroLang';
 import { getDeckDisplayName, getLocalizedHeroInfo, getRankTitle } from '../i18nData';
 import {
-  BOGART_MAX_STAKE,
-  BOGART_MIN_STAKE,
-  BOGART_STAKE_TIERS,
   getModeRewardGuide,
   hsStorage,
 } from '../storage';
@@ -45,9 +43,88 @@ export interface HeroDeckSelectScreenProps {
     preferredOpponentClass?: HeroClass;
     boardTheme?: BoardThemeId;
     bogartStakeGold?: number;
+    bogartDifficulty?: 'NORMAL' | 'EXPERT';
     challengerMeta?: ChallengerMeta;
   }) => void;
 }
+
+const RANKED_STAKE_OPTIONS = [0, 10, 50, 100, 300, 500] as const;
+
+function splitDiceTotal1To12(total: number): [number, number] {
+  const clamped = Math.max(1, Math.min(12, Math.floor(total)));
+  if (clamped === 1) return [0, 1];
+  const minD1 = Math.max(1, clamped - 6);
+  const maxD1 = Math.min(6, clamped - 1);
+  const d1 = minD1 + Math.floor(Math.random() * (maxD1 - minD1 + 1));
+  return [d1, clamped - d1];
+}
+
+const DICE_PIP_POSITIONS: Record<number, [number, number][]> = {
+  0: [],
+  1: [[50, 50]],
+  2: [
+    [26, 26],
+    [74, 74],
+  ],
+  3: [
+    [26, 26],
+    [50, 50],
+    [74, 74],
+  ],
+  4: [
+    [26, 26],
+    [74, 26],
+    [26, 74],
+    [74, 74],
+  ],
+  5: [
+    [26, 26],
+    [74, 26],
+    [50, 50],
+    [26, 74],
+    [74, 74],
+  ],
+  6: [
+    [26, 22],
+    [74, 22],
+    [26, 50],
+    [74, 50],
+    [26, 78],
+    [74, 78],
+  ],
+};
+
+const BogartDieFace: React.FC<{ value: number; rolling: boolean; locked: boolean }> = ({
+  value,
+  rolling,
+  locked,
+}) => {
+  const safe = Math.max(0, Math.min(6, Math.floor(value)));
+  const pips = DICE_PIP_POSITIONS[safe] || [];
+  return (
+    <div
+      className={`relative flex h-20 w-20 items-center justify-center rounded-2xl border-[3px] border-amber-300 bg-gradient-to-br from-[#fffbeb] via-[#fef3c7] to-[#d97706] shadow-[0_12px_28px_rgba(0,0,0,0.85),inset_0_2px_6px_rgba(255,255,255,0.8)] sm:h-24 sm:w-24 ${
+        rolling ? 'hs-dice-tumble' : locked ? 'hs-dice-lock-pop' : ''
+      }`}
+    >
+      {safe === 0 ? (
+        <span className="hs-title text-2xl font-black text-amber-800/80 sm:text-3xl">★</span>
+      ) : (
+        <svg viewBox="0 0 100 100" className="h-full w-full">
+          {pips.map(([cx, cy], idx) => (
+            <circle
+              key={idx}
+              cx={cx}
+              cy={cy}
+              r={safe === 1 ? 13 : 9.5}
+              fill={safe === 1 ? '#dc2626' : '#1c1917'}
+            />
+          ))}
+        </svg>
+      )}
+    </div>
+  );
+};
 
 const ONLINE_CHALLENGER_POOL: {
   nickname: string;
@@ -175,12 +252,12 @@ const SNS_SPINNER_TITLES_EN = [
 
 const BOGART_NARRATION_LINES = [
   {
-    ko: '키히힉! 어서 와라, 여긴 엘윈 지하 『보가트의 도박장』이다! 명심해라—이곳은 진짜 골드가 오가는 도박장이라 패배하면 베팅한 골드를 잃는 손실 위험이 있다!',
-    en: "Heh-heh! Welcome to Bogart's Underground Gambling Hall! Fair warning—real Gold is on the line here, so losing carries the risk of forfeiting your wagered Gold!",
+    ko: '키히힉! 어서 와라, 여긴 9종족 수련과 합쳐진 『보가트의 도박장』이다! 일반(100~1,200G)과 숙련(×10배 · 1,000~12,000G) 난이도 중 골라 승부하고, 패배 시 판돈을 잃는 위험을 명심해라!',
+    en: "Heh-heh! Welcome to Bogart's Hall — now merged with the 9-Faction Trial! Choose Normal (100–1,200G) or Expert (×10 · 1,000–12,000G), and remember losing forfeits your wager!",
   },
   {
-    ko: '대신 양측 모두 예측불허 『100% 랜덤 30장 덱』으로 붙고, 이기면 판돈의 2배를 즉시 챙긴다! 1~1,000G 슬라이드로 감당할 만큼만 걸고 옆의 [베팅 시작]을 눌러라!',
-    en: 'Both sides clash with unpredictable 100% Random 30-Card Decks, and winning pays 2x your stake! Adjust the 1–1,000G slider within your limits and hit [Start Bet]!',
+    ko: '판돈은 네가 고르는 게 아니다! [대전 시작]을 누르면 주사위 2개가 굴러 1~12 눈금으로 배팅액이 자동 결정되고, 랜덤 9종족 대표와 즉시 격돌한다! 이기면 판돈 2배 + 종족 최초 제압 보상까지 챙겨라!',
+    en: 'No manual betting here! Hit [Start Duel] to roll 2 dice (1–12) that auto-set your wager and launch straight into a random 9-Faction champion duel! Win for 2x Gold + First-Clear bonuses!',
   },
 ] as const;
 
@@ -342,8 +419,8 @@ const BogartNarrationOverlay: React.FC<{
             <div className="text-[11px] font-extrabold text-rose-800 sm:text-xs">
               {safeIdx + 1} / {totalLines} ·{' '}
               {tr(
-                `현재 보유 ${ownedGold.toLocaleString()}G · 1~1,000G 슬라이드 · 100% 랜덤덱`,
-                `Owned ${ownedGold.toLocaleString()}G · 1–1,000G Slider · 100% Random Deck`,
+                `현재 보유 ${ownedGold.toLocaleString()}G · 주사위 2개 자동배팅 (일반 100~1,200G / 숙련 1,000~12,000G)`,
+                `Owned ${ownedGold.toLocaleString()}G · 2-Dice Auto-Bet (Normal 100–1,200G / Expert 1K–12K G)`,
               )}
             </div>
 
@@ -387,38 +464,39 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     return () => window.removeEventListener('snshero:state-changed', sync);
   }, []);
 
-  const [mode, setMode] = useState<GameMode>(initialMode);
+  const [mode] = useState<GameMode>(initialMode);
   const [selectedDeckId, setSelectedDeckId] = useState<string>(decks[0]?.id || 'preset_priest');
   const [practiceOpponentClass, setPracticeOpponentClass] = useState<HeroClass>('WARRIOR');
   const [boardTheme, setBoardTheme] = useState<BoardThemeId | 'RANDOM'>('RANDOM');
-  const [bogartStake, setBogartStake] = useState<number>(() => {
-    const initialGold = hsStorage.getProfile().gold;
-    let requestedStake: number | null = null;
-    try {
-      const fromSession = sessionStorage.getItem('snshero_bogart_stake');
-      if (fromSession && !Number.isNaN(Number(fromSession))) {
-        requestedStake = Math.floor(Number(fromSession));
-        sessionStorage.removeItem('snshero_bogart_stake');
-      } else if (typeof window !== 'undefined') {
-        const qp = new URLSearchParams(window.location.search);
-        const rawStake = qp.get('stake') || qp.get('bet');
-        if (rawStake && !Number.isNaN(Number(rawStake))) {
-          requestedStake = Math.floor(Number(rawStake));
-        }
-      }
-    } catch {
-      // ignore sessionStorage error
-    }
-    if (requestedStake !== null) {
-      return Math.max(BOGART_MIN_STAKE, Math.min(BOGART_MAX_STAKE, requestedStake));
-    }
-    const defaultStake = initialGold >= 250 ? 250 : initialGold >= 100 ? 100 : Math.max(1, initialGold);
-    return Math.max(BOGART_MIN_STAKE, Math.min(BOGART_MAX_STAKE, defaultStake));
-  });
+
+  // Ranked Realtime Matchmaking state
+  const [rankedStakeGold, setRankedStakeGold] = useState<number>(0);
+  const [rankedSearchElapsed, setRankedSearchElapsed] = useState<number>(0);
+  const [rankedTimeoutPopupOpen, setRankedTimeoutPopupOpen] = useState<boolean>(false);
+  const [rankedToast, setRankedToast] = useState<string | null>(null);
+  const activeRankedRoomIdRef = useRef<string | null>(null);
+  const rankedMatchTimeoutSec = useMemo(() => {
+    if (typeof window === 'undefined') return 60;
+    const raw = new URLSearchParams(window.location.search).get('matchTimeoutSec');
+    const parsed = raw ? Number(raw) : NaN;
+    if (!Number.isNaN(parsed) && parsed >= 2 && parsed <= 120) return Math.floor(parsed);
+    return 60;
+  }, []);
+
+  // Bogart + 9-Faction Trial merged state
+  const [bogartTier, setBogartTier] = useState<'NORMAL' | 'EXPERT'>('NORMAL');
   const [bogartNarrationOpen, setBogartNarrationOpen] = useState<boolean>(
     () => initialMode === 'BOGART_GAMBLE',
   );
   const [bogartToast, setBogartToast] = useState<string | null>(null);
+  const [bogartRollPhase, setBogartRollPhase] = useState<'IDLE' | 'ROLLING' | 'LOCKED' | 'VORTEX'>('IDLE');
+  const [bogartDicePair, setBogartDicePair] = useState<[number, number]>([3, 4]);
+  const [bogartRolledTotal, setBogartRolledTotal] = useState<number>(7);
+  const [bogartRolledStake, setBogartRolledStake] = useState<number>(700);
+  const [bogartRolledAllIn, setBogartRolledAllIn] = useState<boolean>(false);
+  const [bogartRolledOpponent, setBogartRolledOpponent] = useState<HeroClass>('WARRIOR');
+  const bogartTimersRef = useRef<number[]>([]);
+
   const [matchedChallenger, setMatchedChallenger] = useState<{
     opponentClass: HeroClass;
     meta: ChallengerMeta;
@@ -427,11 +505,6 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const [matching, setMatching] = useState(false);
   const [wheelIndex, setWheelIndex] = useState(0);
   const [wheelLocked, setWheelLocked] = useState(false);
-
-  useModalDismiss(matching && !wheelLocked, () => {
-    hsAudio.playSfx('box_close');
-    setMatching(false);
-  });
 
   const selectedDeck = useMemo(
     () => decks.find((d) => d.id === selectedDeckId) || decks[0],
@@ -443,6 +516,46 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const rewardGuide = getModeRewardGuide(mode, isKo);
   const isPractice = mode === 'PRACTICE_NORMAL' || mode === 'PRACTICE_EXPERT';
   const isBogart = mode === 'BOGART_GAMBLE';
+  const isRanked = mode === 'RANKED';
+  const bogartUnitGold = bogartTier === 'EXPERT' ? 1000 : 100;
+  const bogartMinRequiredGold = bogartUnitGold;
+  const bogartMaxPossibleGold = bogartUnitGold * 12;
+
+  const cancelActiveRankedRoom = useCallback(() => {
+    const rid = activeRankedRoomIdRef.current;
+    if (rid) {
+      activeRankedRoomIdRef.current = null;
+      snsheroLiveNetwork.cancelDuelRoom(rid);
+      setProfile(hsStorage.getProfile());
+    }
+  }, []);
+
+  const handleCancelMatchmaking = useCallback(() => {
+    if (wheelLocked) return;
+    if (isRanked) {
+      cancelActiveRankedRoom();
+    }
+    hsAudio.playSfx('gem_b_back');
+    setMatching(false);
+    setRankedSearchElapsed(0);
+  }, [wheelLocked, isRanked, cancelActiveRankedRoom]);
+
+  useModalDismiss(matching && !wheelLocked, handleCancelMatchmaking);
+
+  // Clean up hosted Ranked matchmaking room or Bogart dice timers on unmount
+  useEffect(() => {
+    return () => {
+      if (activeRankedRoomIdRef.current) {
+        snsheroLiveNetwork.cancelDuelRoom(activeRankedRoomIdRef.current);
+        activeRankedRoomIdRef.current = null;
+      }
+      for (const t of bogartTimersRef.current) {
+        window.clearTimeout(t);
+        window.clearInterval(t);
+      }
+      bogartTimersRef.current = [];
+    };
+  }, []);
 
   const selectedDeckStats = useMemo(() => {
     const curve = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -460,8 +573,79 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     return { curve, minions, spells, weapons };
   }, [selectedDeck]);
 
+  // Realtime Ranked Matchmaking Wheel + 60s Timeout + Simultaneous Room Tie-Breaker
   useEffect(() => {
-    if (!matching) return;
+    if (!matching || !isRanked) return;
+
+    setRankedSearchElapsed(0);
+
+    // Wheel spin ticker
+    const wheelTimer = window.setInterval(() => {
+      setWheelIndex((prev) => (prev + 1) % spinnerTitles.length);
+    }, 150);
+
+    // 1-second elapsed countdown to 60s timeout
+    const startTs = Date.now();
+    const timeoutInterval = window.setInterval(() => {
+      const elapsedSec = Math.floor((Date.now() - startTs) / 1000);
+      setRankedSearchElapsed(elapsedSec);
+      if (elapsedSec >= rankedMatchTimeoutSec) {
+        window.clearInterval(timeoutInterval);
+        window.clearInterval(wheelTimer);
+        cancelActiveRankedRoom();
+        hsAudio.playSfx('gem_b_back', 0.85);
+        setMatching(false);
+        setRankedSearchElapsed(0);
+        setRankedTimeoutPopupOpen(true);
+      }
+    }, 500);
+
+    // Listen for live opponent Ranked room appearing while searching (auto-join tie-breaker)
+    let joinedOther = false;
+    const tryAutoJoin = () => {
+      if (joinedOther) return;
+      const candidate = snsheroLiveNetwork.findMatchingRankedRoom(rankedStakeGold);
+      if (!candidate) return;
+      const myPeerId = snsheroLiveNetwork.getSnapshot().peerId;
+      // If both players created rooms simultaneously, lexicographically larger peerId cancels & joins the other
+      if (!activeRankedRoomIdRef.current || myPeerId > candidate.hostPeerId) {
+        joinedOther = true;
+        cancelActiveRankedRoom();
+        const joinRes = snsheroLiveNetwork.joinDuelRoom(candidate, selectedDeck);
+        if (!joinRes.ok) {
+          joinedOther = false;
+        }
+      }
+    };
+
+    tryAutoJoin();
+    const unsubNet = snsheroLiveNetwork.subscribe(tryAutoJoin);
+
+    // When match starts, clear ref so unmount cleanup does NOT cancel the active room!
+    const unsubStart = snsheroLiveNetwork.onMatchStart(() => {
+      activeRankedRoomIdRef.current = null;
+      setMatching(false);
+    });
+
+    return () => {
+      window.clearInterval(wheelTimer);
+      window.clearInterval(timeoutInterval);
+      unsubNet();
+      unsubStart();
+    };
+  }, [
+    matching,
+    isRanked,
+    rankedStakeGold,
+    rankedMatchTimeoutSec,
+    selectedDeck,
+    spinnerTitles.length,
+    cancelActiveRankedRoom,
+  ]);
+
+  // Legacy AI Matchmaking Wheel (for PRACTICE / TUTORIAL modes if ever opened directly)
+  useEffect(() => {
+    if (!matching || isRanked || isBogart) return;
     let tick = 0;
     const maxTicks = 15;
     let timer: number;
@@ -479,7 +663,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
         timer = window.setTimeout(() => {
           const challenger =
             matchedChallenger ||
-            rollOnlineChallenger(isPractice ? practiceOpponentClass : undefined, isBogart);
+            rollOnlineChallenger(isPractice ? practiceOpponentClass : undefined, false);
           onLaunchBattle({
             mode,
             deck: selectedDeck,
@@ -487,8 +671,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               ? practiceOpponentClass
               : challenger.opponentClass,
             boardTheme: boardTheme === 'RANDOM' ? undefined : boardTheme,
-            bogartStakeGold: isBogart ? bogartStake : undefined,
-            challengerMeta: mode === 'RANKED' || isBogart ? challenger.meta : undefined,
+            challengerMeta: undefined,
           });
         }, 880);
       }
@@ -498,11 +681,11 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     return () => clearTimeout(timer);
   }, [
     matching,
+    isRanked,
+    isBogart,
     mode,
     selectedDeck,
     isPractice,
-    isBogart,
-    bogartStake,
     matchedChallenger,
     practiceOpponentClass,
     boardTheme,
@@ -510,49 +693,170 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     spinnerTitles.length,
   ]);
 
-  const handleCancelMatchmaking = () => {
-    if (wheelLocked) return;
-    if (isBogart) {
-      // Refund staked Gold if cancelled before lock-in!
-      const p = hsStorage.getProfile();
-      p.gold += bogartStake;
-      hsStorage.saveProfile(p);
-      setProfile(hsStorage.getProfile());
+  const startBogartDiceSequence = () => {
+    if (bogartRollPhase !== 'IDLE') return;
+    const currentProfile = hsStorage.getProfile();
+    if (currentProfile.gold < bogartMinRequiredGold) {
+      hsAudio.playSfx('gem_b_back', 0.85);
+      setBogartToast(
+        tr(
+          `${bogartTier === 'EXPERT' ? '숙련' : '일반'} 입장 최소 골드(${bogartMinRequiredGold.toLocaleString()}G)가 부족합니다! (보유 ${currentProfile.gold.toLocaleString()}G)`,
+          `Need at least ${bogartMinRequiredGold.toLocaleString()}G for ${bogartTier === 'EXPERT' ? 'Expert' : 'Normal'}! (Owned ${currentProfile.gold.toLocaleString()}G)`,
+        ),
+      );
+      window.setTimeout(() => setBogartToast(null), 3200);
+      return;
     }
-    hsAudio.playSfx('gem_b_back');
-    setMatching(false);
+
+    // Roll 2 dice total 1..12 + random 9-faction opponent
+    const finalTotal = 1 + Math.floor(Math.random() * 12);
+    const finalPair = splitDiceTotal1To12(finalTotal);
+    const rawStake = finalTotal * bogartUnitGold;
+    const actualStake = Math.min(rawStake, currentProfile.gold);
+    const wasAllIn = actualStake < rawStake;
+    const randomOpp = HERO_CLASS_ORDER[Math.floor(Math.random() * HERO_CLASS_ORDER.length)];
+
+    hsAudio.playSfx('bogart_wager', 0.95);
+    setBogartRollPhase('ROLLING');
+    setBogartRolledAllIn(wasAllIn);
+
+    // Rapid visual dice + faction shuffle during ROLLING
+    const rollInterval = window.setInterval(() => {
+      setBogartDicePair([
+        1 + Math.floor(Math.random() * 6),
+        1 + Math.floor(Math.random() * 6),
+      ]);
+      setBogartRolledOpponent(
+        HERO_CLASS_ORDER[Math.floor(Math.random() * HERO_CLASS_ORDER.length)],
+      );
+      hsAudio.playSfx('ui_hover', 0.35);
+    }, 95);
+    bogartTimersRef.current.push(rollInterval);
+
+    // Phase 2: LOCKED (show final 2 dice 1~12, auto-bet gold, random opponent)
+    const lockTimer = window.setTimeout(() => {
+      window.clearInterval(rollInterval);
+      const wagerRes = hsStorage.placeBogartWager(actualStake);
+      if (!wagerRes.ok) {
+        setBogartRollPhase('IDLE');
+        setBogartToast(tr('골드 예치에 실패했습니다.', 'Failed to escrow wager Gold.'));
+        window.setTimeout(() => setBogartToast(null), 2800);
+        return;
+      }
+      setProfile(hsStorage.getProfile());
+      setBogartDicePair(finalPair);
+      setBogartRolledTotal(finalTotal);
+      setBogartRolledStake(actualStake);
+      setBogartRolledOpponent(randomOpp);
+      setBogartRollPhase('LOCKED');
+      hsAudio.playSfx('rank_radar_lock', 0.95);
+      hsAudio.playSfx('mario_coin', 0.8);
+
+      // Phase 3: VORTEX (screen spins & sucks in!)
+      const vortexTimer = window.setTimeout(() => {
+        setBogartRollPhase('VORTEX');
+        hsAudio.playSfx('box_disk_flip', 0.95);
+
+        // Phase 4: Launch Battle against the random 9-faction champion
+        const launchTimer = window.setTimeout(() => {
+          const oppLoc = getLocalizedHeroInfo(randomOpp, lang);
+          onLaunchBattle({
+            mode: 'BOGART_GAMBLE',
+            deck: selectedDeck,
+            preferredOpponentClass: randomOpp,
+            boardTheme: boardTheme === 'RANDOM' ? undefined : boardTheme,
+            bogartStakeGold: actualStake,
+            bogartDifficulty: bogartTier,
+            challengerMeta: {
+              nickname:
+                bogartTier === 'EXPERT'
+                  ? tr(`숙련 수련 · ${oppLoc.name}`, `Expert Trial · ${oppLoc.name}`)
+                  : tr(`일반 수련 · ${oppLoc.name}`, `Normal Trial · ${oppLoc.name}`),
+              titleKo: `${oppLoc.className} 9종족 수련 대표`,
+              titleEn: `${oppLoc.className} 9-Faction Champion`,
+              badgeIcon: bogartTier === 'EXPERT' ? '🔥' : '🎲',
+              tierLabelKo: bogartTier === 'EXPERT' ? '숙련 ×10배' : '일반 수련',
+              tierLabelEn: bogartTier === 'EXPERT' ? 'Expert ×10' : 'Normal Trial',
+              rating: bogartTier === 'EXPERT' ? 2100 : 1650,
+              equippedFrameId: bogartTier === 'EXPERT' ? 'frame_royal_24k' : 'frame_zelda_brass',
+              equippedCardBack: 'bogart_vip',
+              frameNameKo: '보가트 황금 프레임',
+              frameNameEn: 'Bogart Gold Frame',
+              cardBackNameKo: '보가트 VIP 황금주화',
+              cardBackNameEn: 'Bogart VIP Gold',
+            },
+          });
+        }, 850);
+        bogartTimersRef.current.push(launchTimer);
+      }, 1150);
+      bogartTimersRef.current.push(vortexTimer);
+    }, 1250);
+    bogartTimersRef.current.push(lockTimer);
   };
 
   const handleStartClick = () => {
     if (!isBogart && selectedDeck.cards.length < 30) return;
+
     if (isBogart) {
-      const clampedStake = Math.max(
-        BOGART_MIN_STAKE,
-        Math.min(BOGART_MAX_STAKE, Math.floor(bogartStake || BOGART_MIN_STAKE)),
-      );
-      const wagerRes = hsStorage.placeBogartWager(clampedStake);
-      if (!wagerRes.ok) {
-        hsAudio.playSfx('gem_b_back', 0.8);
-        setBogartToast(
+      startBogartDiceSequence();
+      return;
+    }
+
+    if (isRanked) {
+      const currentProf = hsStorage.getProfile();
+      if (rankedStakeGold > 0 && currentProf.gold < rankedStakeGold) {
+        hsAudio.playSfx('gem_b_back', 0.85);
+        setRankedToast(
           tr(
-            `골드가 부족합니다! (선택 판돈 ${clampedStake.toLocaleString()}G / 보유 ${profile.gold.toLocaleString()}G)`,
-            `Not enough Gold! (Stake ${clampedStake.toLocaleString()}G / Owned ${profile.gold.toLocaleString()}G)`,
+            `골드가 부족합니다! (선택 판돈 ${rankedStakeGold.toLocaleString()}G / 보유 ${currentProf.gold.toLocaleString()}G)`,
+            `Not enough Gold! (Stake ${rankedStakeGold.toLocaleString()}G / Owned ${currentProf.gold.toLocaleString()}G)`,
           ),
         );
-        window.setTimeout(() => setBogartToast(null), 2800);
+        window.setTimeout(() => setRankedToast(null), 2800);
         return;
       }
-      setBogartStake(clampedStake);
-      setProfile(hsStorage.getProfile());
-      hsAudio.playSfx('bogart_wager', 0.95);
-    } else {
+
+      snsheroLiveNetwork.init();
       hsAudio.playSfx('gem_a_confirm', 0.95);
+      setRankedTimeoutPopupOpen(false);
+      setWheelLocked(false);
+
+      // Check if another player already opened a matching Ranked room with the exact same stake
+      const existing = snsheroLiveNetwork.findMatchingRankedRoom(rankedStakeGold);
+      if (existing) {
+        const joinRes = snsheroLiveNetwork.joinDuelRoom(existing, selectedDeck);
+        if (joinRes.ok) {
+          activeRankedRoomIdRef.current = null;
+          setMatching(true);
+          return;
+        }
+      }
+
+      // Otherwise create a live Ranked Duel Room & enter Wheel Loading screen
+      const created = snsheroLiveNetwork.createDuelRoom({
+        deck: selectedDeck,
+        stakeGold: rankedStakeGold,
+        scope: 'GLOBAL',
+        isRankedMatchmaking: true,
+      });
+      if (!created.ok || !created.room) {
+        hsAudio.playSfx('gem_b_back', 0.85);
+        setRankedToast(
+          created.error || tr('실시간 대전방 생성에 실패했습니다.', 'Failed to create live Duel Room.'),
+        );
+        window.setTimeout(() => setRankedToast(null), 2800);
+        return;
+      }
+
+      activeRankedRoomIdRef.current = created.room.roomId;
+      setProfile(hsStorage.getProfile());
+      setMatching(true);
+      return;
     }
+
+    hsAudio.playSfx('gem_a_confirm', 0.95);
     setMatchedChallenger(
-      rollOnlineChallenger(
-        isPractice ? practiceOpponentClass : undefined,
-        isBogart,
-      ),
+      rollOnlineChallenger(isPractice ? practiceOpponentClass : undefined, false),
     );
     setWheelLocked(false);
     setMatching(true);
@@ -565,11 +869,19 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
     >
       <div className="pointer-events-none absolute inset-0 bg-black/65" />
 
-      {/* Top Brass Bar */}
+      {/* Main Deck Select Wrapper (Spins & Sucks In during Bogart VORTEX transition) */}
+      <div
+        data-testid={bogartRollPhase === 'VORTEX' ? 'bogart-vortex-transition' : undefined}
+        className={`relative z-20 flex min-h-0 flex-1 flex-col justify-between ${
+          bogartRollPhase === 'VORTEX' ? 'hs-vortex-suck-in' : ''
+        }`}
+      >
+      {/* Top Brass Bar (No 3-mode switcher tabs in Ranked / Bogart) */}
       <header className="relative z-20 mx-auto flex w-full max-w-6xl shrink-0 flex-wrap items-center justify-between gap-1.5 sm:gap-2">
         <button
           type="button"
           onClick={() => {
+            cancelActiveRankedRoom();
             hsAudio.playSfx('box_close');
             onBack();
           }}
@@ -578,74 +890,30 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           ← {isKo ? <><span className="hidden sm:inline">엘윈마을 </span>로비로</> : <><span className="hidden sm:inline">Elwin </span>Hub</>}
         </button>
 
-        {/* Mode Switcher Tabs (DEV-027 Bogart's Gambling Hall + DEV-028 Online Ranked Arena + 9-Faction Sweep) */}
-        <div className="flex flex-wrap items-center gap-1 rounded-2xl border-2 border-[#c39c54] bg-stone-950/90 p-1 shadow-xl sm:gap-1.5">
-          {mode !== 'TUTORIAL' ? (
+        {/* Focused Mode Title Pill (Mode Switcher Tabs Removed per Spec) */}
+        <div
+          data-testid="deck-select-mode-title"
+          className="flex items-center gap-2 rounded-2xl border-2 border-[#c39c54] bg-stone-950/90 px-3.5 py-1.5 shadow-xl sm:px-4"
+        >
+          {isRanked ? (
             <>
-              <button
-                type="button"
-                data-testid="mode-tab-gamble"
-                onClick={() => {
-                  hsAudio.playSfx('gem_c_select');
-                  setMode('BOGART_GAMBLE');
-                  setBogartNarrationOpen(true);
-                }}
-                className={`hs-mario-spring flex min-h-[38px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:gap-1.5 sm:px-3.5 sm:text-xs ${
-                  mode === 'BOGART_GAMBLE'
-                    ? 'bg-gradient-to-b from-yellow-400 to-amber-700 text-stone-950 shadow'
-                    : 'text-amber-200/75 hover:text-white'
-                }`}
-              >
-                <span>🎲</span>
-                <span>{tr('보가트 도박장', "Bogart's Hall")}</span>
-              </button>
-              <button
-                type="button"
-                data-testid="mode-tab-ranked"
-                onClick={() => {
-                  hsAudio.playSfx('gem_a_confirm');
-                  setMode('RANKED');
-                }}
-                className={`hs-mario-spring flex min-h-[38px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:gap-1.5 sm:px-3.5 sm:text-xs ${
-                  mode === 'RANKED'
-                    ? 'bg-gradient-to-b from-sky-500 to-blue-800 text-white shadow'
-                    : 'text-amber-200/75 hover:text-white'
-                }`}
-              >
-                <SnsRankMedallion rank={profile.rank} size={15} />
-                <span>{tr('랭킹대전 (공식 전적)', 'Ranked Arena')}</span>
-              </button>
-              <button
-                type="button"
-                data-testid="mode-tab-practice"
-                onClick={() => {
-                  hsAudio.playSfx('gem_c_select');
-                  setMode(mode === 'PRACTICE_EXPERT' ? 'PRACTICE_EXPERT' : 'PRACTICE_NORMAL');
-                }}
-                className={`hs-mario-spring flex min-h-[38px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-extrabold transition sm:px-3 sm:text-xs ${
-                  isPractice
-                    ? 'bg-gradient-to-b from-emerald-500 to-emerald-800 text-white shadow'
-                    : 'text-amber-200/75 hover:text-white'
-                }`}
-              >
-                <span>🎯</span>
-                <span>{tr('9종족 수련 (+2팩)', '9-Faction Trial')}</span>
-              </button>
-              {isPractice && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    hsAudio.playSfx('gem_c_select');
-                    setMode(mode === 'PRACTICE_EXPERT' ? 'PRACTICE_NORMAL' : 'PRACTICE_EXPERT');
-                  }}
-                  className="rounded-lg border border-red-400/50 bg-red-950/80 px-2 py-1 text-[10.5px] font-extrabold text-red-200"
-                >
-                  {mode === 'PRACTICE_EXPERT' ? tr('숙련 ★', 'Expert ★') : tr('일반→숙련', 'Normal→Expert')}
-                </button>
-              )}
+              <SnsRankMedallion rank={profile.rank} size={18} />
+              <span className="hs-title text-xs font-extrabold text-sky-200 sm:text-sm">
+                🏆 {tr('실시간 랭킹대전', 'Live Ranked Arena')}
+              </span>
+              <span className="rounded-full border border-emerald-200 bg-gradient-to-b from-emerald-400 to-teal-700 px-2 py-0.5 text-[9.5px] font-black text-stone-950">
+                Realtime!
+              </span>
+            </>
+          ) : isBogart ? (
+            <>
+              <span className="text-sm">🎲</span>
+              <span className="hs-title text-xs font-extrabold text-yellow-200 sm:text-sm">
+                {tr('보가트 도박장 · 9종족 수련', "Bogart's Hall · 9-Faction Trial")}
+              </span>
             </>
           ) : (
-            <span className="px-3 py-1 text-xs font-extrabold text-emerald-300">
+            <span className="text-xs font-extrabold text-emerald-300 sm:text-sm">
               {tr('스토리모드 · 카단의 여정', "Story Mode · Kadan's Journey")}
             </span>
           )}
@@ -899,24 +1167,10 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 <div className="flex items-center gap-1.5">
                   <span className="text-base">🎲</span>
                   <span className="hs-title text-sm font-extrabold text-yellow-300 sm:text-base">
-                    {tr('보가트 도박장 · 1~1,000G 슬라이드 베팅', "Bogart's Hall · 1–1,000G Slider Bet")}
+                    {tr('보가트 도박장 · 9종족 수련', "Bogart's Hall · 9-Faction Trial")}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <a
-                    href={
-                      isKo
-                        ? 'https://www.youtube.com/shorts/uEXB-kGnfPk'
-                        : 'https://www.youtube.com/shorts/4w-h1EEC2sc'
-                    }
-                    target="_blank"
-                    rel="noreferrer"
-                    data-testid="bogart-origin-shorts-link"
-                    onClick={() => hsAudio.playSfx('ui_click', 0.7)}
-                    className="rounded-full border border-amber-300/65 bg-amber-950/80 px-2 py-0.5 text-[10.5px] font-extrabold text-amber-200 hover:border-yellow-200 hover:text-white"
-                  >
-                    🎬 {tr('31화 원작 쇼츠 ↗', 'EP.31 Origin ↗')}
-                  </a>
                   <button
                     type="button"
                     data-testid="bogart-replay-narration-btn"
@@ -935,29 +1189,131 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 </div>
               </div>
 
-              {/* Live Stake & Risk Summary Strip */}
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-1 rounded-xl border border-amber-400/45 bg-stone-950/90 px-3 py-1.5 text-xs">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-[11px] font-bold text-amber-200">{tr('베팅액:', 'Stake:')}</span>
+              {/* Normal (100~1,200G) vs Expert (x10: 1,000~12,000G) Difficulty Toggle */}
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  data-testid="bogart-tier-normal"
+                  onClick={() => {
+                    hsAudio.playSfx('gem_c_select');
+                    setBogartTier('NORMAL');
+                  }}
+                  className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl border-2 px-2.5 py-1.5 text-center transition ${
+                    bogartTier === 'NORMAL'
+                      ? 'border-yellow-300 bg-gradient-to-b from-amber-500 to-amber-800 text-stone-950 shadow-[0_0_16px_rgba(250,204,21,0.55)]'
+                      : 'border-amber-400/35 bg-stone-950/85 text-amber-100 hover:border-yellow-300/70'
+                  }`}
+                >
+                  <span className="text-xs font-black sm:text-sm">
+                    🎯 {tr('일반 수련', 'Normal Trial')}
+                  </span>
                   <span
-                    data-testid="bogart-stake-value"
-                    className="hs-num text-base font-black text-yellow-300 sm:text-lg"
+                    className={`mt-0.5 text-[10.5px] font-extrabold ${
+                      bogartTier === 'NORMAL' ? 'text-stone-950/90' : 'text-amber-300'
+                    }`}
                   >
-                    {bogartStake.toLocaleString()}G
+                    {tr('주사위 ×100G (100~1,200G)', 'Dice ×100G (100–1,200G)')}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="bogart-tier-expert"
+                  onClick={() => {
+                    hsAudio.playSfx('gem_c_select');
+                    setBogartTier('EXPERT');
+                  }}
+                  className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl border-2 px-2.5 py-1.5 text-center transition ${
+                    bogartTier === 'EXPERT'
+                      ? 'border-rose-300 bg-gradient-to-b from-rose-500 to-red-900 text-white shadow-[0_0_16px_rgba(244,63,94,0.55)]'
+                      : 'border-rose-400/35 bg-stone-950/85 text-rose-100 hover:border-rose-300/70'
+                  }`}
+                >
+                  <span className="text-xs font-black sm:text-sm">
+                    🔥 {tr('숙련 수련 (×10배)', 'Expert Trial (×10)')}
+                  </span>
+                  <span
+                    className={`mt-0.5 text-[10.5px] font-extrabold ${
+                      bogartTier === 'EXPERT' ? 'text-yellow-200' : 'text-rose-300'
+                    }`}
+                  >
+                    {tr('주사위 ×1,000G (1,000~12,000G)', 'Dice ×1,000G (1K–12K G)')}
+                  </span>
+                </button>
+              </div>
+
+              {/* Auto-Bet 2-Dice Info Strip (Manual betting removed!) */}
+              <div
+                data-testid="bogart-autobet-rule-strip"
+                className="mt-2 rounded-xl border border-amber-400/45 bg-stone-950/90 px-3 py-2 text-[11px]"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-1 font-extrabold">
+                  <span className="text-yellow-300">
+                    🎲 {tr('주사위 2개(1~12) 자동 배팅 · 수동 베팅 불가', '2-Dice (1–12) Auto-Bet · No Manual Stake')}
+                  </span>
+                  <span className="text-emerald-300">
+                    {tr(
+                      `${bogartMinRequiredGold.toLocaleString()}~${bogartMaxPossibleGold.toLocaleString()}G`,
+                      `${bogartMinRequiredGold.toLocaleString()}–${bogartMaxPossibleGold.toLocaleString()}G`,
+                    )}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] font-extrabold">
-                  <span className="text-emerald-300">
-                    {tr(`승리 +${(bogartStake * 2).toLocaleString()}G`, `Win +${(bogartStake * 2).toLocaleString()}G`)}
+                <p className="mt-1 text-[10.5px] font-semibold text-amber-100/90">
+                  {tr(
+                    '[대전 시작]을 누르면 주사위 2개가 굴러 1~12 눈금으로 배팅액이 자동 설정되고, 랜덤 9종족 대표와 승부합니다! (승리 시 2배 + 최초 제압 보너스)',
+                    'Press [Start Duel] to roll 2 dice (1–12) for an automatic stake and face a random 9-Faction champion! (Win 2x + First-Clear bonus)',
+                  )}
+                </p>
+              </div>
+
+              {/* 9-Faction Trial Progress Grid (Merged into Bogart's Hall) */}
+              <div
+                data-testid="bogart-9faction-progress"
+                className="mt-2 rounded-xl border border-emerald-400/35 bg-black/45 px-2.5 py-2"
+              >
+                <div className="mb-1.5 flex items-center justify-between gap-1 text-[10.5px] font-extrabold">
+                  <span className="text-emerald-200">
+                    🛡️{' '}
+                    {bogartTier === 'EXPERT'
+                      ? tr('9종족 숙련 수련 격파 현황 (9/9 올클리어 시 +2팩!)', '9-Faction Expert Cleared (9/9 = +2 Packs!)')
+                      : tr('9종족 일반 수련 격파 현황 (최초 제압 +25G)', '9-Faction Normal Cleared (+25G First Clear)')}
                   </span>
-                  <span className="text-stone-600">|</span>
-                  <span className="text-rose-300">
-                    ⚠️ {tr(`패배 시 -${bogartStake.toLocaleString()}G`, `Lose -${bogartStake.toLocaleString()}G`)}
+                  <span className="text-yellow-300">
+                    {bogartTier === 'EXPERT'
+                      ? profile.practiceExpertCleared.length
+                      : profile.practiceNormalCleared.length}
+                    /9
                   </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1">
+                  {HERO_CLASS_ORDER.map((hc) => {
+                    const chLoc = getLocalizedHeroInfo(hc, lang);
+                    const cleared =
+                      bogartTier === 'EXPERT'
+                        ? profile.practiceExpertCleared.includes(hc)
+                        : profile.practiceNormalCleared.includes(hc);
+                    return (
+                      <div
+                        key={hc}
+                        className={`flex items-center gap-1 rounded-lg border px-1.5 py-1 text-[10px] font-extrabold ${
+                          cleared
+                            ? 'border-emerald-400/70 bg-emerald-950/75 text-emerald-100'
+                            : 'border-stone-700/80 bg-stone-900/75 text-amber-100/70'
+                        }`}
+                      >
+                        <img
+                          src={CLASS_CREST_URL[hc]}
+                          alt=""
+                          className="h-3.5 w-3.5 shrink-0 rounded-full object-cover"
+                        />
+                        <span className="min-w-0 flex-1 truncate">{chLoc.className}</span>
+                        {cleared && <span className="text-emerald-300">✓</span>}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* MKT-060: Bogart Daily Emergency Bailout (+100G Free Rescue when Gold < 100G) */}
+              {/* Emergency Bailout when Gold < 100G */}
               {profile.gold < 100 && (
                 <div
                   data-testid="bogart-bailout-strip"
@@ -966,164 +1322,50 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                   <span>
                     🔥{' '}
                     {tr(
-                      '시드머니가 부족하십니까? 보가트의 일일 긴급 구제금 +100G로 즉시 재도전하세요!',
-                      "Running low on Gold? Claim Bogart's Daily Emergency Bailout (+100G) to jump back in!",
+                      '입장 골드(100G)가 부족합니다! 일일 무료 구제 +100G 또는 요정 샘 +150G로 재도전하세요!',
+                      'Need 100G to enter! Claim Daily Bailout (+100G) or Fairy Relief (+150G)!',
                     )}
                   </span>
-                  {hsStorage.canClaimBogartDailyBailout() ? (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {hsStorage.canClaimBogartDailyBailout() && (
+                      <button
+                        type="button"
+                        data-testid="bogart-bailout-btn"
+                        onClick={() => {
+                          const res = hsStorage.claimBogartDailyBailout();
+                          if (res.granted) {
+                            hsAudio.playSfx('mario_coin', 0.95);
+                            setProfile(hsStorage.getProfile());
+                          }
+                        }}
+                        className="hs-zelda-b-btn min-h-[38px] rounded-xl px-3 py-1 text-xs font-black text-white shadow"
+                      >
+                        {tr('🪙 무료 구제 +100G', '🪙 Bailout +100G')}
+                      </button>
+                    )}
                     <button
                       type="button"
-                      data-testid="bogart-bailout-btn"
+                      data-testid="bogart-relief-chip-btn"
                       onClick={() => {
-                        const res = hsStorage.claimBogartDailyBailout();
+                        const res = hsStorage.claimBogartReliefChip();
                         if (res.granted) {
+                          hsAudio.playSfx('ocarina_chime', 0.9);
                           hsAudio.playSfx('mario_coin', 0.95);
                           setProfile(hsStorage.getProfile());
-                          setBogartStake(100);
+                          setBogartToast(
+                            tr(
+                              `🧚 요정 샘 +150G 수령 완료! (오늘 잔여 ${res.remainingToday}회)`,
+                              `🧚 +150G Fairy Relief claimed! (${res.remainingToday} left today)`,
+                            ),
+                          );
+                          window.setTimeout(() => setBogartToast(null), 3200);
                         }
                       }}
-                      className="hs-zelda-b-btn min-h-[38px] rounded-xl px-3 py-1 text-xs font-black text-white shadow"
+                      className="min-h-[38px] rounded-xl border border-cyan-300/70 bg-cyan-950/90 px-3 py-1 text-xs font-black text-cyan-100"
                     >
-                      {tr('🪙 오늘의 무료 구제 +100G 받기', '🪙 Claim Daily +100G Bailout')}
+                      🧚 {tr('요정 샘 +150G', 'Fairy +150G')}
                     </button>
-                  ) : (
-                    <span className="text-[11px] text-emerald-300/85">
-                      {tr('✓ 오늘 구제금 수령 완료 (내일 초기화)', '✓ Claimed today (resets tomorrow)')}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* 1 ~ 1,000G Range Slider + Side-by-Side [베팅 시작] Button */}
-              <div className="mt-2.5 flex items-center gap-2.5">
-                <div className="min-w-0 flex-1 rounded-xl border border-amber-400/45 bg-black/55 px-3 py-2">
-                  <input
-                    type="range"
-                    data-testid="bogart-bet-slider"
-                    min={BOGART_MIN_STAKE}
-                    max={BOGART_MAX_STAKE}
-                    step={1}
-                    value={bogartStake}
-                    aria-label={tr('1~1,000 골드 베팅 슬라이더', '1 to 1,000 Gold Bet Slider')}
-                    onChange={(e) => {
-                      const nextVal = Math.max(
-                        BOGART_MIN_STAKE,
-                        Math.min(BOGART_MAX_STAKE, Number(e.target.value) || BOGART_MIN_STAKE),
-                      );
-                      setBogartStake(nextVal);
-                    }}
-                    className="h-2.5 w-full cursor-pointer accent-amber-400"
-                  />
-                  <div className="mt-1 flex items-center justify-between text-[10px] font-extrabold text-amber-200/85">
-                    <span>1G</span>
-                    <span>250G</span>
-                    <span>500G</span>
-                    <span>750G</span>
-                    <span>1,000G</span>
                   </div>
-                </div>
-
-                <button
-                  type="button"
-                  data-testid="bogart-slider-bet-btn"
-                  onClick={handleStartClick}
-                  className="hs-mario-spring flex min-h-[54px] shrink-0 flex-col items-center justify-center rounded-xl border-2 border-yellow-100 bg-gradient-to-b from-yellow-300 via-amber-400 to-amber-600 px-3.5 py-2 text-center shadow-[0_4px_18px_rgba(250,204,21,0.5)] sm:px-4"
-                >
-                  <span className="text-xs font-black tracking-tight text-stone-950 sm:text-sm">
-                    🎲 {tr('베팅 시작', 'Start Bet')}
-                  </span>
-                  <span className="mt-0.5 text-[11px] font-black text-amber-950">
-                    {bogartStake.toLocaleString()}G
-                  </span>
-                </button>
-              </div>
-
-              {/* Quick Fine-Tune Chips (1G / 100G / 500G / 1,000G / Max Affordable) */}
-              <div className="mt-2 grid grid-cols-5 gap-1">
-                {BOGART_STAKE_TIERS.map((tier) => {
-                  const active = bogartStake === tier;
-                  return (
-                    <button
-                      key={tier}
-                      type="button"
-                      data-testid={`bogart-stake-${tier}`}
-                      onClick={() => {
-                        hsAudio.playSfx('gem_c_select');
-                        setBogartStake(tier);
-                      }}
-                      className={`min-h-[34px] rounded-lg border px-1 text-[10.5px] font-extrabold transition ${
-                        active
-                          ? 'border-yellow-200 bg-amber-500 text-stone-950 shadow'
-                          : 'border-amber-400/35 bg-stone-950/80 text-amber-100 hover:border-yellow-300'
-                      }`}
-                    >
-                      {tier.toLocaleString()}G
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  data-testid="bogart-stake-max-affordable"
-                  onClick={() => {
-                    hsAudio.playSfx('gem_c_select');
-                    setBogartStake(
-                      Math.max(BOGART_MIN_STAKE, Math.min(BOGART_MAX_STAKE, Math.floor(profile.gold || 1))),
-                    );
-                  }}
-                  className="min-h-[34px] rounded-lg border border-emerald-400/50 bg-emerald-950/75 px-1 text-[10px] font-extrabold text-emerald-200 hover:border-emerald-300"
-                >
-                  {tr('보유최대', 'MAX')}
-                </button>
-              </div>
-
-              {profile.gold < 100 && (
-                <div
-                  data-testid="fairy-fountain-relief-card"
-                  className="mt-2 rounded-2xl border-2 border-cyan-300/80 bg-gradient-to-r from-sky-950/95 via-indigo-950/95 to-emerald-950/95 p-2.5 text-center shadow-[0_0_20px_rgba(56,189,248,0.4)]"
-                >
-                  <div className="text-[11px] font-extrabold text-cyan-200">
-                    🧚 {tr('엘윈 성소 요정 샘 재기 지원금 (일 3회)', 'Elwin Fairy Fountain Relief (3x/Day)')}
-                  </div>
-                  <p className="mt-0.5 text-[10.5px] font-semibold text-emerald-200">
-                    {tr(
-                      '즉시 +150G 수혈 + 다음 공식 랭킹대전 1승 시 +200G 재기 보너스 부여!',
-                      'Instant +150G + +200G Comeback Bonus on your next Ranked win!',
-                    )}
-                  </p>
-                  <button
-                    type="button"
-                    data-testid="bogart-relief-chip-btn"
-                    onClick={() => {
-                      const res = hsStorage.claimBogartReliefChip();
-                      if (res.granted) {
-                        hsAudio.playSfx('ocarina_chime', 0.9);
-                        hsAudio.playSfx('mario_coin', 0.95);
-                        setProfile(hsStorage.getProfile());
-                        setBogartStake(100);
-                        setBogartToast(
-                          tr(
-                            `🧚 요정 샘 재기 지원금 +150G 수령 완료! (오늘 잔여 ${res.remainingToday}회 · 랭킹 1승 +200G 버프 활성)`,
-                            `🧚 +150G Fairy Relief claimed! (${res.remainingToday} left today · +200G Ranked buff active)`,
-                          ),
-                        );
-                        window.setTimeout(() => setBogartToast(null), 3200);
-                      } else {
-                        setBogartToast(
-                          tr('오늘의 무료 재기 지원금(3회)을 모두 사용했습니다. 스토리/랭킹전으로 골드를 모아보세요!', 'Used all 3 daily Fairy Reliefs today. Earn Gold in Story or Ranked!'),
-                        );
-                        window.setTimeout(() => setBogartToast(null), 3200);
-                      }
-                    }}
-                    className="hs-zelda-b-btn mt-1.5 min-h-[42px] w-full rounded-xl py-1.5 text-xs font-extrabold"
-                  >
-                    🧚 {tr('요정 샘 +150G 즉시 수혈 받기', 'Claim +150G Fairy Relief')}
-                  </button>
-                  <p className="mt-1.5 text-[10px] font-bold text-amber-200/90">
-                    {tr(
-                      '💡 구제받은 150G는 도박장·명예 칭호(300~3,500G)에 아껴두고, 정식 랭킹 아레나 주력 덱은 로비 보급소 [5팩 특가 5,600원($4) · 광고영구제거 4,000원($2.99)]로 빠르게 보강하세요!',
-                      '💡 Save your +150G Relief for Bogart & Prestige Titles (300–3,500G), and power up your Official Ranked deck in the Shop [5 Packs $4 · Ad-Free VIP $2.99]!',
-                    )}
-                  </p>
                 </div>
               )}
 
@@ -1132,69 +1374,94 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                   {bogartToast}
                 </div>
               )}
-
-              <div className="mt-2 flex items-center justify-between rounded-xl border border-sky-300/35 bg-black/45 px-2.5 py-1.5 text-[10.5px] font-bold text-sky-200">
-                <span>🎲 {tr('양측 예측불허 100% 랜덤 30장 덱 결투', '100% Random 30-Card Deck Showdown')}</span>
-                <span className="text-yellow-300">
-                  {tr(`누적 순수익 ${profile.bogartStats?.netGoldProfit >= 0 ? '+' : ''}${profile.bogartStats?.netGoldProfit || 0}G`, `Net ${profile.bogartStats?.netGoldProfit >= 0 ? '+' : ''}${profile.bogartStats?.netGoldProfit || 0}G`)}
-                </span>
-              </div>
             </div>
           ) : (
-            <div className="hs-ocarina-dialog relative z-10 my-2 flex items-center justify-between rounded-2xl p-2.5 sm:my-2.5 sm:p-3">
-              <div>
-                <div className="text-[10.5px] font-bold text-sky-300 sm:text-[11px]">
-                  🏆 {tr('공식 랭킹대전 단독 전적 · 현재 등급', 'Official Ranked Record · Current Tier')}
+            <div className="hs-ocarina-dialog relative z-10 my-2 rounded-2xl p-2.5 sm:my-2.5 sm:p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-sky-300 sm:text-[11px]">
+                    <span>🏆 {tr('공식 실시간 랭킹대전 · 현재 등급', 'Official Live Ranked · Current Tier')}</span>
+                    <span className="rounded-full bg-emerald-500/90 px-1.5 py-0.5 text-[9px] font-black text-stone-950">
+                      Realtime!
+                    </span>
+                  </div>
+                  <div className="hs-title text-base font-extrabold text-white sm:text-lg">
+                    {profile.rank === 0
+                      ? tr('전설의 눈히어로 (LEGEND)', 'SNSHero Legend')
+                      : tr(
+                          `${profile.rank}등급 · ${getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang)}`,
+                          `Rank ${profile.rank} · ${getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang)}`,
+                        )}
+                  </div>
+                  <div className="mt-0.5 text-[10.5px] text-amber-200/90 sm:text-[11px]">
+                    {tr(
+                      `공식 전적: ${profile.rankedWins || 0}승 ${Math.max(0, (profile.rankedGames || 0) - (profile.rankedWins || 0))}패 · 연승 ${profile.rankedWinStreak || 0} · 3승 보너스 ${profile.threeWinCounter}/3`,
+                      `Official: ${profile.rankedWins || 0}W ${Math.max(0, (profile.rankedGames || 0) - (profile.rankedWins || 0))}L · Streak ${profile.rankedWinStreak || 0} · 3-Win ${profile.threeWinCounter}/3`,
+                    )}
+                  </div>
                 </div>
-                <div className="hs-title text-base font-extrabold text-white sm:text-lg">
-                  {profile.rank === 0
-                    ? tr('전설의 눈히어로 (LEGEND)', 'SNSHero Legend')
-                    : tr(
-                        `${profile.rank}등급 · ${getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang)}`,
-                        `Rank ${profile.rank} · ${getRankTitle(profile.rank, CLASSIC_RANK_NAMES, lang)}`,
-                      )}
+                <SnsRankMedallion rank={profile.rank} size={48} className="shrink-0 drop-shadow" />
+              </div>
+
+              {/* Ranked Friendly (0G) / Gold Stake Selector */}
+              <div
+                data-testid="ranked-stake-selector"
+                className="mt-2.5 rounded-xl border border-sky-400/40 bg-stone-950/90 p-2"
+              >
+                <div className="mb-1.5 flex items-center justify-between gap-1 text-[11px] font-extrabold">
+                  <span className="text-sky-200">
+                    ⚔ {tr('실시간 대전 방식 선택 (친선 / 골드)', 'Select Live Match Stake (Friendly / Gold)')}
+                  </span>
+                  <span className="flex items-center gap-1 text-yellow-300">
+                    <HsGoldCoinIcon size={13} />
+                    {profile.gold.toLocaleString()}G
+                  </span>
                 </div>
-                <div className="mt-0.5 text-[10.5px] text-amber-200/90 sm:text-[11px]">
-                  {tr(
-                    `공식 전적: ${profile.rankedWins || 0}승 ${Math.max(0, (profile.rankedGames || 0) - (profile.rankedWins || 0))}패 · 연승 ${profile.rankedWinStreak || 0} · 3승 보너스 ${profile.threeWinCounter}/3`,
-                    `Official: ${profile.rankedWins || 0}W ${Math.max(0, (profile.rankedGames || 0) - (profile.rankedWins || 0))}L · Streak ${profile.rankedWinStreak || 0} · 3-Win ${profile.threeWinCounter}/3`,
-                  )}
-                </div>
-                <div
-                  data-testid="ranked-3win-stamp-bar"
-                  className="mt-1.5 flex flex-wrap items-center gap-1 text-[10px] font-extrabold"
-                >
-                  {[
-                    { step: 1, label: tr('1승 +25G', '1W +25G') },
-                    { step: 2, label: tr('2승 +50G', '2W +50G') },
-                    { step: 3, label: tr('3승 +105G=1팩!', '3W +105G=1 Pack!') },
-                  ].map((s) => {
-                    const filled = (profile.threeWinCounter || 0) >= s.step;
+                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+                  {RANKED_STAKE_OPTIONS.map((amt) => {
+                    const active = rankedStakeGold === amt;
+                    const cantAfford = amt > 0 && profile.gold < amt;
                     return (
-                      <span
-                        key={s.step}
-                        className={`rounded-md border px-1.5 py-0.5 ${
-                          filled
-                            ? 'border-amber-300 bg-amber-500/30 text-amber-100'
-                            : 'border-white/15 bg-black/40 text-stone-400'
+                      <button
+                        key={amt}
+                        type="button"
+                        data-testid={`ranked-stake-${amt}`}
+                        disabled={cantAfford}
+                        onClick={() => {
+                          hsAudio.playSfx('gem_c_select');
+                          setRankedStakeGold(amt);
+                        }}
+                        className={`min-h-[38px] rounded-lg border px-1.5 py-1 text-[11px] font-black transition disabled:cursor-not-allowed disabled:opacity-35 ${
+                          active
+                            ? amt === 0
+                              ? 'border-emerald-200 bg-gradient-to-b from-emerald-400 to-teal-700 text-stone-950 shadow'
+                              : 'border-yellow-200 bg-gradient-to-b from-yellow-300 to-amber-600 text-stone-950 shadow'
+                            : 'border-amber-400/30 bg-stone-900 text-amber-100 hover:border-sky-300'
                         }`}
                       >
-                        {filled ? '★ ' : '○ '}
-                        {s.label}
-                      </span>
+                        {amt === 0 ? tr('친선 0G', 'Friendly') : `${amt}G`}
+                      </button>
                     );
                   })}
-                  {(mode === 'PRACTICE_NORMAL' || mode === 'PRACTICE_EXPERT') && (
-                    <span
-                      data-testid="ai-9faction-stamp-badge"
-                      className="rounded-md border border-emerald-400/50 bg-emerald-950/70 px-1.5 py-0.5 text-emerald-200"
-                    >
-                      🛡️ {tr(`9종족 숙련 AI ${profile.practiceExpertCleared?.length || 0}/9 (+2팩)`, `9-Faction AI ${profile.practiceExpertCleared?.length || 0}/9 (+2 Packs)`)}
-                    </span>
-                  )}
                 </div>
+                <p className="mt-1.5 text-[10px] font-bold text-amber-200/85">
+                  {rankedStakeGold === 0
+                    ? tr(
+                        '• 친선 실시간 랭킹전: 판돈 부담 없이 다른 유저와 실시간 1:1 매칭 (최대 1분 대기)',
+                        '• Friendly Live Ranked: 0G wager real-time 1v1 matchmaking (up to 60s wait)',
+                      )
+                    : tr(
+                        `• 골드 실시간 랭킹전 (${rankedStakeGold}G): 승리 시 상대 판돈 포함 +${rankedStakeGold * 2}G 획득!`,
+                        `• Gold Live Ranked (${rankedStakeGold}G): Win +${rankedStakeGold * 2}G total pot!`,
+                      )}
+                </p>
               </div>
-              <SnsRankMedallion rank={profile.rank} size={50} className="shrink-0 drop-shadow" />
+
+              {rankedToast && (
+                <div className="mt-1.5 rounded-lg border border-rose-400/70 bg-rose-950/90 px-2.5 py-1 text-center text-[11px] font-extrabold text-rose-100">
+                  {rankedToast}
+                </div>
+              )}
             </div>
           )}
 
@@ -1255,7 +1522,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             <button
               type="button"
               data-testid="deck-select-play-btn"
-              disabled={!isBogart && selectedDeck.cards.length < 30}
+              disabled={(!isBogart && selectedDeck.cards.length < 30) || bogartRollPhase !== 'IDLE'}
               onClick={handleStartClick}
               className={`${
                 isBogart ? 'hs-zelda-c-btn' : 'hs-zelda-a-btn'
@@ -1267,9 +1534,17 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               />
               <span className="hs-title hs-outline text-xl font-extrabold tracking-wider text-white sm:text-2xl">
                 {isBogart
-                  ? tr(`🎲 ${bogartStake.toLocaleString()}G 베팅 · 랜덤덱 승부`, `🎲 Bet ${bogartStake.toLocaleString()}G · Random Duel`)
-                  : mode === 'RANKED'
-                    ? tr('🏆 실시간 도전자 랭킹 매칭', '🏆 Find Ranked Challenger')
+                  ? tr(
+                      `🎲 대전 시작 (${bogartTier === 'EXPERT' ? '숙련 주사위 ×10' : '일반 주사위'})`,
+                      `🎲 Start Duel (${bogartTier === 'EXPERT' ? 'Expert Dice ×10' : 'Normal Dice'})`,
+                    )
+                  : isRanked
+                    ? rankedStakeGold === 0
+                      ? tr('🏆 실시간 매칭 시작 (친선전)', '🏆 Start Live Match (Friendly)')
+                      : tr(
+                          `🏆 실시간 매칭 시작 (${rankedStakeGold}G)`,
+                          `🏆 Start Live Match (${rankedStakeGold}G)`,
+                        )
                     : tr('대전 시작', 'PLAY')}
               </span>
             </button>
@@ -1282,7 +1557,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
         <button
           type="button"
           data-testid="deck-select-play-mobile-btn"
-          disabled={!isBogart && selectedDeck.cards.length < 30}
+          disabled={(!isBogart && selectedDeck.cards.length < 30) || bogartRollPhase !== 'IDLE'}
           onClick={handleStartClick}
           className={`${
             isBogart ? 'hs-zelda-c-btn' : 'hs-zelda-a-btn'
@@ -1294,16 +1569,22 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           />
           <span className="hs-title hs-outline text-base font-extrabold tracking-wide text-white sm:text-lg">
             {isBogart
-              ? tr(`🎲 ${bogartStake.toLocaleString()}G 베팅 · 랜덤덱 시작`, `🎲 Bet ${bogartStake.toLocaleString()}G · Random Duel`)
-              : isKo
-                ? `🏆 도전자 매칭 (${selectedDeckLabel})`
-                : `🏆 Match Challenger (${selectedDeckLabel})`}
+              ? tr(
+                  `🎲 대전 시작 · 주사위 자동배팅 (${bogartTier === 'EXPERT' ? '숙련' : '일반'})`,
+                  `🎲 Start Duel · Auto-Dice (${bogartTier === 'EXPERT' ? 'Expert' : 'Normal'})`,
+                )
+              : isRanked
+                ? rankedStakeGold === 0
+                  ? tr('🏆 실시간 매칭 (친선전)', '🏆 Live Match (Friendly)')
+                  : tr(`🏆 실시간 매칭 (${rankedStakeGold}G)`, `🏆 Live Match (${rankedStakeGold}G)`)
+                : tr('대전 시작', 'PLAY')}
           </span>
         </button>
       </div>
+      </div>{/* End Main Deck Select Wrapper */}
 
-      {/* ISS-004: Bogart Upper-Body Loss-Risk Narration Scene on Entry to Bogart's Gambling Hall */}
-      {isBogart && bogartNarrationOpen && !matching && (
+      {/* Bogart Upper-Body Loss-Risk Narration Scene on Entry to Bogart's Gambling Hall */}
+      {isBogart && bogartNarrationOpen && !matching && bogartRollPhase === 'IDLE' && (
         <BogartNarrationOverlay
           isKo={isKo}
           ownedGold={profile.gold}
@@ -1311,9 +1592,125 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
         />
       )}
 
-      {/* Matchmaking Wheel Modal + Challenger Portrait Reveal (DEV-028) */}
+      {/* Bogart 2-Dice Auto-Bet & Vortex Suck-In Overlay */}
+      {isBogart && bogartRollPhase !== 'IDLE' && (
+        <div
+          data-testid="bogart-dice-overlay"
+          data-phase={bogartRollPhase}
+          className="fixed inset-0 z-[110] flex items-center justify-center overflow-hidden bg-black/82 p-4 backdrop-blur-sm"
+        >
+          {bogartRollPhase === 'VORTEX' && (
+            <div className="hs-vortex-ring-spin pointer-events-none absolute h-[520px] w-[520px] rounded-full border-[10px] border-dashed border-amber-300/75 shadow-[0_0_90px_rgba(251,191,36,0.75)]" />
+          )}
+
+          <div
+            className={`hs-ocarina-dialog relative flex w-full max-w-md flex-col items-center rounded-3xl border-2 border-amber-300/90 p-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.95)] sm:p-7 ${
+              bogartRollPhase === 'VORTEX' ? 'hs-vortex-suck-in' : ''
+            }`}
+          >
+            <div className="mb-1 inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-950/85 px-3 py-0.5 text-[11px] font-black text-yellow-200">
+              <span>{bogartTier === 'EXPERT' ? '🔥' : '🎲'}</span>
+              <span>
+                {bogartTier === 'EXPERT'
+                  ? tr('숙련 수련 (×10배 · 1,000~12,000G)', 'Expert Trial (×10 · 1K–12K G)')
+                  : tr('일반 수련 (100~1,200G)', 'Normal Trial (100–1,200G)')}
+              </span>
+            </div>
+
+            <h3 className="hs-title hs-outline-sm text-lg font-extrabold text-yellow-200 sm:text-xl">
+              {bogartRollPhase === 'ROLLING'
+                ? tr('주사위 2개 굴리는 중...', 'Rolling 2 Dice...')
+                : bogartRollPhase === 'LOCKED'
+                  ? tr('배팅 금액 & 상대 종족 확정!', 'Wager & Opponent Locked!')
+                  : tr('결투장으로 빨려들어갑니다!', 'Entering the Arena!')}
+            </h3>
+
+            {/* 2 Physical Dice Faces */}
+            <div className="my-5 flex items-center justify-center gap-5">
+              <BogartDieFace
+                value={bogartDicePair[0]}
+                rolling={bogartRollPhase === 'ROLLING'}
+                locked={bogartRollPhase !== 'ROLLING'}
+              />
+              <span className="hs-title text-2xl font-black text-amber-300">+</span>
+              <BogartDieFace
+                value={bogartDicePair[1]}
+                rolling={bogartRollPhase === 'ROLLING'}
+                locked={bogartRollPhase !== 'ROLLING'}
+              />
+            </div>
+
+            {/* Auto-Bet Amount Banner */}
+            <div
+              data-testid="bogart-rolled-stake-text"
+              className="w-full rounded-2xl border-2 border-yellow-300/80 bg-stone-950/95 px-4 py-3 shadow-inner"
+            >
+              {bogartRollPhase === 'ROLLING' ? (
+                <div className="text-sm font-extrabold text-amber-200">
+                  {tr('1 ~ 12 눈금 자동 배팅 결정 중...', 'Determining 1–12 Auto-Bet...')}
+                </div>
+              ) : (
+                <>
+                  <div className="text-xs font-extrabold text-amber-300">
+                    {tr(
+                      `주사위 눈금 합계 ${bogartRolledTotal} × ${bogartUnitGold.toLocaleString()}G`,
+                      `Dice Total ${bogartRolledTotal} × ${bogartUnitGold.toLocaleString()}G`,
+                    )}
+                    {bogartRolledAllIn && (
+                      <span className="ml-1.5 rounded bg-rose-600 px-1.5 py-0.5 text-[10px] text-white">
+                        {tr('올인 조정', 'ALL-IN CAP')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="hs-num mt-1 flex items-center justify-center gap-1.5 text-2xl font-black text-yellow-300 sm:text-3xl">
+                    <HsGoldCoinIcon size={24} />
+                    <span>{bogartRolledStake.toLocaleString()}G</span>
+                    <span className="text-sm font-extrabold text-emerald-300">
+                      ({tr(`승리 +${(bogartRolledStake * 2).toLocaleString()}G`, `Win +${(bogartRolledStake * 2).toLocaleString()}G`)})
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Random 9-Faction Opponent Reveal */}
+            {(() => {
+              const oppHero = CLASSIC_HEROES[bogartRolledOpponent];
+              const oppLoc = getLocalizedHeroInfo(bogartRolledOpponent, lang);
+              return (
+                <div
+                  data-testid="bogart-rolled-opponent"
+                  className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-amber-400/45 bg-black/60 px-3.5 py-2.5 text-left"
+                >
+                  <img
+                    src={getHeroArtUrl(oppHero.heroId)}
+                    alt={oppLoc.name}
+                    className="h-12 w-12 shrink-0 rounded-xl border-2 border-amber-300 object-cover object-top"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10.5px] font-bold text-amber-300">
+                      {tr('랜덤 선택 9종족 상대', 'Random 9-Faction Opponent')}
+                    </div>
+                    <div className="truncate text-sm font-black text-white">
+                      {oppLoc.className} · {oppLoc.name}
+                    </div>
+                  </div>
+                  <img
+                    src={CLASS_CREST_URL[bogartRolledOpponent]}
+                    alt=""
+                    className="h-7 w-7 shrink-0 rounded-full border border-amber-200/80"
+                  />
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Realtime Matchmaking Wheel Modal (Ranked Live Matchmaking + 60s Timer) */}
       {matching && (
         <div
+          data-testid="matchmaking-wheel-modal"
           onClick={handleCancelMatchmaking}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm"
         >
@@ -1338,18 +1735,33 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               className="mb-2 drop-shadow"
             />
             <div
-              className={`hs-title hs-outline-sm mb-2 text-lg font-extrabold tracking-widest ${
+              className={`hs-title hs-outline-sm mb-1.5 text-lg font-extrabold tracking-widest ${
                 wheelLocked ? 'text-[#fef08a]' : 'text-[#fffbeb]'
               }`}
             >
-              {wheelLocked
-                ? isBogart
-                  ? tr(`🎲 ${bogartStake.toLocaleString()}G 랜덤덱 테이블 성사!`, `🎲 ${bogartStake.toLocaleString()}G Random Table Ready!`)
-                  : tr('⚔ 실시간 도전자를 찾았습니다!', '⚔ Ranked Challenger Locked In!')
-                : isBogart
-                  ? tr('양측 30장 랜덤덱 즉석 편성 & 상대 배정 중...', 'Drafting Fresh 30-Card Random Decks...')
-                  : tr('온라인 도전자 실시간 탐색 중...', 'Searching for Live Challenger...')}
+              {isRanked
+                ? tr('⚔ 실시간 랭킹 상대 탐색 중...', '⚔ Searching Live Ranked Opponent...')
+                : wheelLocked
+                  ? tr('⚔ 대결 상대를 찾았습니다!', '⚔ Opponent Locked In!')
+                  : tr('대결 상대 탐색 중...', 'Searching for Opponent...')}
             </div>
+
+            {isRanked && (
+              <div className="mb-2 flex flex-wrap items-center justify-center gap-2 text-xs font-extrabold">
+                <span className="rounded-full border border-emerald-300/70 bg-emerald-950/85 px-2.5 py-0.5 text-emerald-200">
+                  ● Realtime! {rankedStakeGold === 0 ? tr('친선 0G', 'Friendly 0G') : `${rankedStakeGold}G`}
+                </span>
+                <span
+                  data-testid="ranked-search-timer"
+                  className="hs-num rounded-full border border-amber-300/60 bg-stone-950/90 px-2.5 py-0.5 text-yellow-200"
+                >
+                  {String(Math.floor(rankedSearchElapsed / 60)).padStart(2, '0')}:
+                  {String(rankedSearchElapsed % 60).padStart(2, '0')} /{' '}
+                  {String(Math.floor(rankedMatchTimeoutSec / 60)).padStart(2, '0')}:
+                  {String(rankedMatchTimeoutSec % 60).padStart(2, '0')}
+                </span>
+              </div>
+            )}
 
             {wheelLocked && matchedChallenger ? (
               <div
@@ -1415,26 +1827,86 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             )}
 
             <p className="hs-outline-sm mt-2 text-xs font-bold text-amber-50/95">
-              {isBogart
+              {isRanked
                 ? tr(
-                    '양 플레이어에게 매 판 완전히 새로운 30장 랜덤덱을 배분합니다...',
-                    'Dealing independent, unpredictable 30-card Random Decks to both sides...',
+                    '실시간 랭킹 대전방이 생성되었습니다. 상대가 입장하면 즉시 전투가 시작됩니다! (1분 초과 시 자동 종료)',
+                    'Live Ranked Duel Room created! Battle starts immediately when an opponent joins (auto-cancels after 60s).',
                   )
                 : tr(
-                    '엘윈마을 대결 광장에서 비슷한 MMR의 실시간 도전자를 연결합니다...',
-                    'Matching a live challenger of similar MMR in Elwin Arena...',
+                    '엘윈마을 대결 광장에서 상대를 연결합니다...',
+                    'Connecting opponent in Elwin Arena...',
                   )}
             </p>
 
             {!wheelLocked && (
               <button
                 type="button"
+                data-testid="matchmaking-cancel-btn"
                 onClick={handleCancelMatchmaking}
                 className="hs-brass-btn mt-4 min-h-[44px] rounded-xl px-6 py-2 text-xs font-extrabold text-white"
               >
                 {tr('탐색 취소', 'Cancel')}
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Ranked 60s Timeout Popup */}
+      {rankedTimeoutPopupOpen && (
+        <div
+          data-testid="ranked-timeout-popup"
+          onClick={() => setRankedTimeoutPopupOpen(false)}
+          className="fixed inset-0 z-[115] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="hs-ocarina-dialog flex w-full max-w-sm flex-col items-center rounded-3xl border-2 border-amber-300/85 p-6 text-center shadow-2xl"
+          >
+            <div className="mb-2 text-3xl">⌛</div>
+            <h3 className="hs-title text-base font-extrabold text-yellow-200 sm:text-lg">
+              {tr('실시간 매칭 시간 초과', 'Live Matchmaking Timeout')}
+            </h3>
+            <p
+              data-testid="ranked-timeout-message"
+              className="mt-2.5 text-sm font-extrabold leading-relaxed text-white"
+            >
+              {tr(
+                '실시간 대전상대를 찾을 수 없습니다. 대전방에서 대기 합니다.',
+                'Could not find a live opponent. Waiting in the Duel Room.',
+              )}
+            </p>
+            <p className="mt-1.5 text-[11px] font-bold text-amber-200/85">
+              {tr(
+                '생성되었던 임시 매칭방은 자동 삭제되었으며 예치된 골드는 전액 반환되었습니다.',
+                'The temporary matchmaking room has been removed and any escrowed Gold refunded.',
+              )}
+            </p>
+            <div className="mt-5 flex w-full gap-2">
+              <button
+                type="button"
+                data-testid="ranked-timeout-open-duel-room-btn"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click');
+                  setRankedTimeoutPopupOpen(false);
+                  snsheroLiveNetwork.setDrawerOpen(true);
+                }}
+                className="hs-brass-btn min-h-[44px] flex-1 rounded-xl px-3 py-2 text-xs font-extrabold text-amber-100"
+              >
+                ⚔ {tr('대전방 열기', 'Open Duel Room')}
+              </button>
+              <button
+                type="button"
+                data-testid="ranked-timeout-confirm-btn"
+                onClick={() => {
+                  hsAudio.playSfx('gem_a_confirm');
+                  setRankedTimeoutPopupOpen(false);
+                }}
+                className="hs-zelda-a-btn min-h-[44px] flex-1 rounded-xl px-3 py-2 text-xs font-extrabold text-white"
+              >
+                {tr('확인', 'OK')}
+              </button>
+            </div>
           </div>
         </div>
       )}

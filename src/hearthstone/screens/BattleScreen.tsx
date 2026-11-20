@@ -612,6 +612,7 @@ export interface BattleScreenProps {
   initialPresetId?: ArchetypePresetId;
   openPresetModalOnStart?: boolean;
   bogartStakeGold?: number;
+  bogartDifficulty?: 'NORMAL' | 'EXPERT';
   challengerMeta?: ChallengerMeta;
   restoredMatchState?: BattleMatchState;
 }
@@ -933,9 +934,12 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   initialPresetId,
   openPresetModalOnStart = false,
   bogartStakeGold,
+  bogartDifficulty: bogartDifficultyProp = 'NORMAL',
   challengerMeta,
   restoredMatchState,
 }) => {
+  const bogartDifficulty: 'NORMAL' | 'EXPERT' =
+    bogartDifficultyProp === 'EXPERT' ? 'EXPERT' : 'NORMAL';
   const { lang } = useHeroLanguage();
   const isKo = lang === 'ko';
   useEffect(() => {
@@ -2138,6 +2142,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               livePvpMeta.stakeGold,
               matchState.player.heroClass,
               isPvpHost ? livePvpMeta.guestName : livePvpMeta.hostName,
+              Boolean(livePvpMeta.isRanked),
             )
           : hsStorage.recordMatchOutcome(
               matchState.player.heroClass,
@@ -2145,6 +2150,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               mode,
               matchState.opponent.heroClass,
               bogartStakeGold || 0,
+              bogartDifficulty,
             );
       // DEV-043: Competitive Fairness 2-Track — Ranked & Bogart have 0% stat change; Ocarina Rhythm Fever awards bonus Gold!
       if ((mode === 'RANKED' || mode === 'BOGART_GAMBLE') && rhythmFeverPct >= 25) {
@@ -3115,9 +3121,11 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             cur.journeyMeta?.episode ?? 1,
             cur.journeyMeta?.reincarnation || 0,
           ).aiDifficulty
-        : mode === 'PRACTICE_NORMAL'
-          ? 'NORMAL'
-          : 'EXPERT';
+        : mode === 'BOGART_GAMBLE'
+          ? bogartDifficulty
+          : mode === 'PRACTICE_NORMAL'
+            ? 'NORMAL'
+            : 'EXPERT';
 
     const plannedOppRaw = computeNextAiAction(cur, difficulty, 'OPPONENT');
     let plannedOpp = plannedOppRaw;

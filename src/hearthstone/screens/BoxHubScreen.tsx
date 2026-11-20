@@ -621,9 +621,40 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               />
             </svg>
 
-            {/* 3 Identical-Height Beveled Ivory/Parchment Menu Plates (DEV-027/028/030) */}
+            {/* 3 Identical-Height Beveled Ivory/Parchment Menu Plates */}
             <div className="relative z-10 flex w-full max-w-[218px] flex-col gap-2 sm:max-w-[248px] sm:gap-2.5">
-              {/* 1. 보가트의 도박장 (Bogart's Gambling Hall — Former Ranked Slot, 100% Mirror Deck + Gold Stake) */}
+              {/* 1. 실시간 랭킹대전 (1st Slot + Realtime! Badge) */}
+              <button
+                type="button"
+                data-testid="hub-mode-ranked"
+                disabled={isFirstVisitGuide}
+                onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.55)}
+                onClick={() => {
+                  if (!isStage3Unlocked) {
+                    hsStorage.setVeteranUnlockAll(true);
+                  }
+                  triggerModeTransition('RANKED');
+                }}
+                className={`hs-ivory-plate hs-mario-spring group relative flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-2.5 sm:h-[60px] sm:px-3.5 ${lockedBtnStyle} ${
+                  !isFirstVisitGuide && !isStage3Unlocked ? 'opacity-85' : ''
+                }`}
+              >
+                <span
+                  data-testid="hub-ranked-realtime-badge"
+                  className="pointer-events-none absolute -right-2 -top-2.5 z-20 flex items-center gap-1 rounded-full border border-emerald-200 bg-gradient-to-b from-emerald-400 via-emerald-500 to-teal-700 px-2 py-0.5 text-[9px] font-black tracking-wide text-stone-950 shadow-[0_3px_10px_rgba(16,185,129,0.65)] sm:text-[10px]"
+                >
+                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-stone-950" />
+                  Realtime!
+                </span>
+                <span className="hs-title whitespace-nowrap text-[14.5px] font-extrabold leading-tight tracking-normal text-[#0c4a6e] group-hover:text-[#1d4ed8] sm:text-[17px] sm:tracking-wide">
+                  🏆 {tr('랭킹대전', 'Ranked Arena')}
+                </span>
+                <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#475569] sm:text-[10.5px]">
+                  {tr('실시간 매칭 · 친선/골드 · 공식 전적', 'Live Matchmaking · Friendly/Gold · Ranked')}
+                </span>
+              </button>
+
+              {/* 2. 보가트 도박장 + 9종족 수련 통합 (2nd Slot) */}
               <button
                 type="button"
                 data-testid="hub-mode-gamble"
@@ -641,43 +672,14 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               >
                 {!isFirstVisitGuide && !isStage4Unlocked && (
                   <span className="pointer-events-none absolute -right-2 -top-2 rounded-full border border-amber-200 bg-amber-900 px-1.5 py-0.5 text-[8.5px] font-black text-yellow-200 shadow">
-                    {tr('Stage 4 · 500G 추천', 'Stage 4 · 500G+')}
+                    {tr('일반 100G~ / 숙련 1,000G~', 'Normal 100G+ / Expert 1K+')}
                   </span>
                 )}
                 <span className="hs-title whitespace-nowrap text-[14.5px] font-extrabold leading-tight tracking-normal text-[#78350f] group-hover:text-[#b45309] sm:text-[17px] sm:tracking-wide">
                   🎲 {tr('보가트 도박장', "Bogart's Hall")}
                 </span>
                 <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#6b4826] sm:text-[10.5px]">
-                  {tr('1~1,000G 슬라이드 베팅 · 100% 랜덤덱', '1–1,000G Slider Bet · 100% Random Deck')}
-                </span>
-              </button>
-
-              {/* 2. 온라인형 랭킹대전 (Promoted from Former AI Battle — Anonymous Challenger + Emotes + Sole Official Stats) */}
-              <button
-                type="button"
-                data-testid="hub-mode-ranked"
-                disabled={isFirstVisitGuide}
-                onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.55)}
-                onClick={() => {
-                  if (!isStage3Unlocked) {
-                    hsStorage.setVeteranUnlockAll(true);
-                  }
-                  triggerModeTransition('RANKED');
-                }}
-                className={`hs-ivory-plate hs-mario-spring group relative flex h-[52px] w-full flex-col items-center justify-center rounded-2xl px-2.5 sm:h-[60px] sm:px-3.5 ${lockedBtnStyle} ${
-                  !isFirstVisitGuide && !isStage3Unlocked ? 'opacity-85' : ''
-                }`}
-              >
-                {!isFirstVisitGuide && !isStage3Unlocked && (
-                  <span className="pointer-events-none absolute -right-2 -top-2 rounded-full border border-sky-200 bg-sky-900 px-1.5 py-0.5 text-[8.5px] font-black text-sky-100 shadow">
-                    Stage 3
-                  </span>
-                )}
-                <span className="hs-title whitespace-nowrap text-[14.5px] font-extrabold leading-tight tracking-normal text-[#0c4a6e] group-hover:text-[#1d4ed8] sm:text-[17px] sm:tracking-wide">
-                  🏆 {tr('랭킹대전', 'Ranked Arena')}
-                </span>
-                <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-[#475569] sm:text-[10.5px]">
-                  {tr('실시간 도전자 매칭 · 도발 · 공식 전적', 'Challenger Match · Emotes · Official Stats')}
+                  {tr('9종족 수련 · 주사위 자동배팅 100~12,000G', '9-Faction Trial · 2-Dice Auto-Bet 100–12K G')}
                 </span>
               </button>
 

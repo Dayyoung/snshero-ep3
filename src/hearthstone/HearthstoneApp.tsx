@@ -129,6 +129,7 @@ export const HearthstoneApp: React.FC = () => {
     initialPresetId?: ArchetypePresetId;
     openPresetModalOnStart?: boolean;
     bogartStakeGold?: number;
+    bogartDifficulty?: 'NORMAL' | 'EXPERT';
     challengerMeta?: ChallengerMeta;
     restoredMatchState?: BattleMatchState;
   } | null>(null);
@@ -176,7 +177,7 @@ export const HearthstoneApp: React.FC = () => {
       };
       setBattleSessionKey((k) => k + 1);
       setActiveBattleParams({
-        mode: 'CASUAL',
+        mode: initialMatchState.livePvpMeta?.isRanked ? 'RANKED' : 'CASUAL',
         deck: pvpDeck,
         restoredMatchState: initialMatchState,
       });
@@ -977,6 +978,7 @@ export const HearthstoneApp: React.FC = () => {
             initialPresetId={activeBattleParams.initialPresetId}
             openPresetModalOnStart={activeBattleParams.openPresetModalOnStart}
             bogartStakeGold={activeBattleParams.bogartStakeGold}
+            bogartDifficulty={activeBattleParams.bogartDifficulty}
             challengerMeta={activeBattleParams.challengerMeta}
             restoredMatchState={activeBattleParams.restoredMatchState}
             externalAutoPlay={globalAutoPlay}

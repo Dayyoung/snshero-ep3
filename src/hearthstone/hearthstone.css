@@ -783,4 +783,82 @@
   }
 }
 
+/* Bogart 2-Dice Auto-Bet & Vortex Suck-In Battle Transition */
+@keyframes hsDiceTumble {
+  0% {
+    transform: rotate(0deg) translateY(0px) scale(1);
+  }
+  20% {
+    transform: rotate(95deg) translateY(-16px) scale(1.12);
+  }
+  45% {
+    transform: rotate(210deg) translateY(4px) scale(0.94);
+  }
+  70% {
+    transform: rotate(305deg) translateY(-12px) scale(1.08);
+  }
+  100% {
+    transform: rotate(360deg) translateY(0px) scale(1);
+  }
+}
+
+@keyframes hsDiceLockPop {
+  0% {
+    transform: scale(1.38) rotate(-10deg);
+  }
+  55% {
+    transform: scale(0.92) rotate(4deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes hsVortexSuckIn {
+  0% {
+    transform: perspective(900px) rotate(0deg) scale(1);
+    opacity: 1;
+    filter: brightness(1) blur(0px);
+  }
+  45% {
+    transform: perspective(900px) rotate(220deg) scale(0.62);
+    opacity: 0.95;
+    filter: brightness(1.35) blur(1px);
+  }
+  100% {
+    transform: perspective(900px) rotate(680deg) scale(0.04);
+    opacity: 0.08;
+    filter: brightness(2.2) blur(4px);
+  }
+}
+
+@keyframes hsVortexRingSpin {
+  0% {
+    transform: rotate(0deg) scale(1.35);
+    opacity: 0.85;
+  }
+  100% {
+    transform: rotate(-540deg) scale(0.1);
+    opacity: 0.2;
+  }
+}
+
+.hs-dice-tumble {
+  animation: hsDiceTumble 0.42s linear infinite;
+}
+
+.hs-dice-lock-pop {
+  animation: hsDiceLockPop 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hs-vortex-suck-in {
+  animation: hsVortexSuckIn 0.85s cubic-bezier(0.55, 0.05, 0.78, 0.12) forwards;
+  transform-origin: center center;
+}
+
+.hs-vortex-ring-spin {
+  animation: hsVortexRingSpin 0.85s ease-in forwards;
+}
+
+
 

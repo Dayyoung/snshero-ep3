@@ -79,6 +79,7 @@ export interface LiveDuelRoom {
   guildTag?: string;
   targetPeerId?: string;
   targetPeerName?: string;
+  isRankedMatchmaking?: boolean;
   status: 'WAITING' | 'IN_PROGRESS' | 'CLOSED';
   guestPeerId?: string;
   guestName?: string;
@@ -1451,6 +1452,21 @@ class SnsheroLiveNetworkService {
 
   // ==================== LIVE 1v1 CARD DECK DUEL ROOMS ====================
 
+  findMatchingRankedRoom(stakeGold: number): LiveDuelRoom | null {
+    this.init();
+    const stake = Math.max(0, Math.min(1000, Math.floor(Number(stakeGold) || 0)));
+    const candidates = Array.from(this.rooms.values())
+      .filter(
+        (r) =>
+          r.status === 'WAITING' &&
+          r.isRankedMatchmaking === true &&
+          r.hostPeerId !== this.peerId &&
+          r.stakeGold === stake,
+      )
+      .sort((a, b) => a.createdAt - b.createdAt);
+    return candidates[0] || null;
+  }
+
   createDuelRoom(opts: {
     title?: string;
     deck: CustomDeck;
@@ -1458,6 +1474,7 @@ class SnsheroLiveNetworkService {
     scope?: LiveChatScope;
     targetPeerId?: string;
     targetPeerName?: string;
+    isRankedMatchmaking?: boolean;
   }): { ok: boolean; room?: LiveDuelRoom; error?: string } {
     this.init();
     if (!opts.deck || opts.deck.cards.length < 30) {
@@ -1496,9 +1513,14 @@ class SnsheroLiveNetworkService {
     const self = this.buildSelfPresence();
     const scope: LiveChatScope =
       opts.scope === 'GUILD' && this.currentGuild ? 'GUILD' : 'GLOBAL';
-    const defaultTitle = opts.targetPeerName
-      ? tr(`${opts.targetPeerName}님 1:1 덱 결투장!`, `1v1 Deck Duel vs ${opts.targetPeerName}!`)
-      : tr(`${this.nickname}의 30장 카드덱 진검승부!`, `${this.nickname}'s 30-Card Deck Duel!`);
+    const defaultTitle = opts.isRankedMatchmaking
+      ? tr(
+          `🏆 [실시간 랭킹] ${this.nickname} 대전 매칭`,
+          `🏆 [Live Ranked] ${this.nickname} Matchmaking`,
+        )
+      : opts.targetPeerName
+        ? tr(`${opts.targetPeerName}님 1:1 덱 결투장!`, `1v1 Deck Duel vs ${opts.targetPeerName}!`)
+        : tr(`${this.nickname}의 30장 카드덱 진검승부!`, `${this.nickname}'s 30-Card Deck Duel!`);
 
     const room: LiveDuelRoom = {
       roomId,
@@ -1516,6 +1538,7 @@ class SnsheroLiveNetworkService {
       guildTag: this.currentGuild?.tag,
       targetPeerId: opts.targetPeerId,
       targetPeerName: opts.targetPeerName,
+      isRankedMatchmaking: Boolean(opts.isRankedMatchmaking),
       status: 'WAITING',
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -1715,10 +1738,11 @@ class SnsheroLiveNetworkService {
       stakeGold: room.stakeGold,
       guildId: room.guildId,
       guildTag: room.guildTag,
+      isRanked: Boolean(room.isRankedMatchmaking),
     };
 
     const hostInitialState = createBattleMatch({
-      mode: 'CASUAL',
+      mode: room.isRankedMatchmaking ? 'RANKED' : 'CASUAL',
       playerName: `${room.hostBadge} ${this.nickname}`,
       playerClass: hosted.deck.heroClass,
       playerDeck: hosted.deck.cards.slice(0, 30),

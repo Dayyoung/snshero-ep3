@@ -628,6 +628,7 @@ export interface LivePvpMeta {
   guestPeerId: string;
   guestName: string;
   stakeGold: number;
+  isRanked?: boolean;
   guildId?: string;
   guildTag?: string;
 }

@@ -161,19 +161,19 @@ export const MODE_REWARD_GUIDES: Record<GameMode, ModeRewardGuide> = {
   },
   RANKED: {
     mode: 'RANKED',
-    modeNameKo: '온라인형 랭킹대전 (공식 전적)',
-    playStyleBadge: '실시간 도전자 매칭 · 도발 심리전 · 정통 1배 룰 · 공식 전적 단독 반영',
-    baseWinRewardText: '1승당 +25 골드 + 등급 별 ★+1 획득',
-    specialBonusText: '3승 달성마다 +30G 추가 · 3연승 시 별 ★+2 상승 · 공식 전적 단독 집계',
-    summaryOneLine: '승리 시 +25G · 3승마다 +30G · 공식 승률·연승·등급 반영',
+    modeNameKo: '실시간 랭킹대전 (Realtime!)',
+    playStyleBadge: '실시간 1:1 유저 매칭 · 친선/골드 내기 · 공식 전적 단독 반영',
+    baseWinRewardText: '1승당 +25 골드 + 등급 별 ★+1 (내기 시 판돈 × 2배)',
+    specialBonusText: '3승 달성마다 +30G 추가 · 3연승 시 별 ★+2 상승 · 실시간 대전방 자동 매칭',
+    summaryOneLine: '실시간 1:1 매칭 · 친선/골드 선택 · 공식 승률·연승·등급 반영',
   },
   BOGART_GAMBLE: {
     mode: 'BOGART_GAMBLE',
-    modeNameKo: '보가트 도박장 (랜덤덱 판돈전)',
-    playStyleBadge: '1G~1,000G 슬라이드 베팅 · 양측 100% 랜덤 30장 덱 진검승부',
-    baseWinRewardText: '승리 시 베팅 판돈 2배 즉시 지급 (최대 +2,000G 상금! · 패배 시 판돈 손실)',
-    specialBonusText: '공식 전적 무관 · 획득 골드로 황금 주화 교환소 4대 명예 치장 수집',
-    summaryOneLine: '1~1,000G 자유 슬라이드 베팅 · 승리 시 2배 상금 · 양측 100% 랜덤덱',
+    modeNameKo: '보가트 도박장 · 9종족 수련',
+    playStyleBadge: '주사위 2개(1~12) 자동 배팅 · 일반 100~1,200G / 숙련 1,000~12,000G',
+    baseWinRewardText: '승리 시 주사위 판돈 2배 즉시 지급 (최대 +24,000G 상금! · 패배 시 판돈 손실)',
+    specialBonusText: '랜덤 9종족 수련 상대 매칭 · 종족 최초 제압 +25G/+50G · 숙련 9종족 올클리어 +2팩!',
+    summaryOneLine: '9종족 일반·숙련 통합 · 주사위 자동 배팅 · 승리 시 2배 상금 + 올클리어 +2팩',
   },
   CASUAL: {
     mode: 'CASUAL',
@@ -212,19 +212,19 @@ export const MODE_REWARD_GUIDES_EN: Record<GameMode, ModeRewardGuide> = {
   },
   RANKED: {
     mode: 'RANKED',
-    modeNameKo: 'Ranked Arena (Official Record)',
-    playStyleBadge: 'Live Challenger Match · Taunt Emotes · Fair 1x Rules · Exclusive Official Stats',
-    baseWinRewardText: '+25 Gold + 1 Rank Star per win',
-    specialBonusText: '+30G every 3 wins · +2 Win-Streak Stars · Sole Official Record Mode',
-    summaryOneLine: '+25G per win · +30G per 3 wins · Official Win Rate & Rank',
+    modeNameKo: 'Ranked Arena (Realtime!)',
+    playStyleBadge: 'Real-Time 1v1 Player Match · Friendly/Gold Stake · Official Stats',
+    baseWinRewardText: '+25 Gold + 1 Rank Star per win (or 2x Gold Wager Pot)',
+    specialBonusText: '+30G every 3 wins · +2 Win-Streak Stars · Live Auto-Matchmaking',
+    summaryOneLine: 'Real-Time 1v1 · Friendly/Gold · Official Win Rate & Rank',
   },
   BOGART_GAMBLE: {
     mode: 'BOGART_GAMBLE',
-    modeNameKo: "Bogart's Gambling Hall (Random Deck)",
-    playStyleBadge: '1G–1,000G Slider Wager · 100% Random 30-Card Deck Showdown',
-    baseWinRewardText: 'Win 2x Stake Payout instantly (up to 2,000G pot! · Losing forfeits stake)',
-    specialBonusText: 'Separate from Official Ranked Record · Unlock 4 Gold Prestige Cosmetics',
-    summaryOneLine: '1–1,000G Slider Bet · 2x Payout · 100% Random 30-Card Decks',
+    modeNameKo: "Bogart's Hall · 9-Faction Trial",
+    playStyleBadge: '2-Dice (1–12) Auto-Bet · Normal 100–1,200G / Expert 1,000–12,000G',
+    baseWinRewardText: 'Win 2x Dice Stake instantly (up to 24,000G pot! · Loss forfeits stake)',
+    specialBonusText: 'Random 9-Faction Trial opponent · First-clear +25G/+50G · Expert 9/9 Sweep +2 Packs!',
+    summaryOneLine: 'Merged 9-Faction Trial · 2-Dice Auto-Bet · 2x Payout + 9/9 Sweep Packs',
   },
   CASUAL: {
     mode: 'CASUAL',
@@ -272,8 +272,8 @@ export interface OverallStandingSummary {
 }
 
 export const BOGART_MIN_STAKE = 1;
-export const BOGART_MAX_STAKE = 1000;
-export const BOGART_STAKE_TIERS = [1, 100, 500, 1000] as const;
+export const BOGART_MAX_STAKE = 12000;
+export const BOGART_STAKE_TIERS = [100, 500, 1000, 12000] as const;
 export type BogartStakeTier = number;
 
 export interface PrestigeCategoryShowcase {
@@ -2265,6 +2265,7 @@ class HearthstoneStorage {
     mode: GameMode,
     opponentClass?: HeroClass,
     bogartStakeGold = 0,
+    bogartDifficulty: 'NORMAL' | 'EXPERT' = 'NORMAL',
   ): MatchRewardBreakdown {
     const p = this.getProfile();
     const prevRank = p.rank;
@@ -2313,6 +2314,25 @@ class HearthstoneStorage {
         p.bogartStats.wins += 1;
         p.bogartStats.netGoldProfit += stake;
         p.bogartStats.biggestPotWon = Math.max(p.bogartStats.biggestPotWon || 0, bogartPayoutGold);
+        // Merged 9-Faction Trial first-clear bonus & Expert all-9 sweep (+2 Packs)!
+        if (opponentClass) {
+          if (bogartDifficulty === 'EXPERT') {
+            if (!p.practiceExpertCleared.includes(opponentClass)) {
+              p.practiceExpertCleared = [...p.practiceExpertCleared, opponentClass];
+              bonusGold += 50;
+              if (p.practiceExpertCleared.length === HERO_CLASS_ORDER.length) {
+                packsEarned += 2;
+                packReason = tr(
+                  '보가트 도박장 · 9종족 숙련 전원 제압 마스터 보상 (눈히어로 팩 +2)',
+                  "Bogart's Hall · All 9 Expert Factions Swept (+2 Packs)",
+                );
+              }
+            }
+          } else if (!p.practiceNormalCleared.includes(opponentClass)) {
+            p.practiceNormalCleared = [...p.practiceNormalCleared, opponentClass];
+            bonusGold += 25;
+          }
+        }
       } else if (mode === 'TUTORIAL') {
         const curReinc = p.journeyReincarnation || 0;
         const rawEp = Number.isFinite(p.journeyEpisode) ? p.journeyEpisode : curReinc > 0 ? 1 : 0;
@@ -3095,6 +3115,7 @@ class HearthstoneStorage {
     rawStakeGold: number,
     heroClass: HeroClass,
     opponentName: string,
+    isRanked = false,
   ): MatchRewardBreakdown {
     const p = this.getProfile();
     const prevRank = p.rank;
@@ -3111,21 +3132,54 @@ class HearthstoneStorage {
     }
 
     p.totalGames += 1;
+    if (isRanked) {
+      p.rankedGames = (p.rankedGames || 0) + 1;
+    }
     let baseWinGold = 0;
     let bonusGold = 0;
     let bonusLabel: string | null = null;
     let questGold = 0;
+    let streakBonus = false;
 
     if (didWin) {
       p.totalWins += 1;
       p.classWins[heroClass] = (p.classWins[heroClass] || 0) + 1;
+      if (isRanked) {
+        p.rankedWins = (p.rankedWins || 0) + 1;
+        p.rankedWinStreak = (p.rankedWinStreak || 0) + 1;
+        p.rankedBestStreak = Math.max(p.rankedBestStreak || 0, p.rankedWinStreak);
+        p.winStreak = p.rankedWinStreak;
+        p.threeWinCounter += 1;
+        if (p.threeWinCounter >= 3) {
+          p.threeWinCounter = 0;
+          bonusGold += 30;
+        }
+        if (p.rank > 0) {
+          const starGain = p.rankedWinStreak >= 3 && p.rank > 5 ? 2 : 1;
+          streakBonus = starGain === 2;
+          p.stars += starGain;
+          while (p.rank > 0 && p.stars >= getStarsNeededForRank(p.rank)) {
+            p.stars -= getStarsNeededForRank(p.rank);
+            p.rank -= 1;
+            if (p.rank === 0) {
+              p.stars = 1;
+              break;
+            }
+          }
+        }
+      }
       if (stake > 0) {
         baseWinGold = stake;
-        bonusGold = stake;
-        bonusLabel = tr(
-          `⚔ 실시간 대전방 승리 상금 (vs ${opponentName} · 판돈 ${stake}G × 2배!)`,
-          `⚔ Live Duel Room Victory Pot (vs ${opponentName} · ${stake}G × 2x!)`,
-        );
+        bonusGold += stake;
+        bonusLabel = isRanked
+          ? tr(
+              `🏆 실시간 랭킹대전 승리 상금 (vs ${opponentName} · 판돈 ${stake}G × 2배!)`,
+              `🏆 Real-Time Ranked Victory Pot (vs ${opponentName} · ${stake}G × 2x!)`,
+            )
+          : tr(
+              `⚔ 실시간 대전방 승리 상금 (vs ${opponentName} · 판돈 ${stake}G × 2배!)`,
+              `⚔ Live Duel Room Victory Pot (vs ${opponentName} · ${stake}G × 2x!)`,
+            );
       } else {
         const today = new Date().toISOString().slice(0, 10);
         let usedFriendlyWins = 0;
@@ -3136,21 +3190,37 @@ class HearthstoneStorage {
             usedFriendlyWins = Number(parsedDaily.count) || 0;
           }
           if (usedFriendlyWins < 5) {
-            baseWinGold = 15;
-            bonusLabel = tr(
-              `⚔ 실시간 유저 카드덱 친선전 승리 (vs ${opponentName})`,
-              `⚔ Live Deck Friendly Duel Victory (vs ${opponentName})`,
-            );
+            baseWinGold = isRanked ? 25 : 15;
+            bonusLabel = isRanked
+              ? tr(
+                  `🏆 실시간 랭킹대전 친선전 승리 (vs ${opponentName})`,
+                  `🏆 Real-Time Ranked Friendly Victory (vs ${opponentName})`,
+                )
+              : tr(
+                  `⚔ 실시간 유저 카드덱 친선전 승리 (vs ${opponentName})`,
+                  `⚔ Live Deck Friendly Duel Victory (vs ${opponentName})`,
+                );
             localStorage.setItem(
               'hero_hs_pvp_friendly_daily',
               JSON.stringify({ date: today, count: usedFriendlyWins + 1 }),
             );
           }
         } catch {
-          baseWinGold = 15;
+          baseWinGold = isRanked ? 25 : 15;
         }
       }
       p.gold += baseWinGold + bonusGold;
+    } else if (isRanked) {
+      p.rankedWinStreak = 0;
+      p.winStreak = 0;
+      if (p.rank > 0 && p.rank <= 20) {
+        if (p.stars > 0) {
+          p.stars -= 1;
+        } else if (p.rank < 20) {
+          p.rank += 1;
+          p.stars = getStarsNeededForRank(p.rank) - 1;
+        }
+      }
     }
 
     this.saveProfile(p);
@@ -3160,7 +3230,7 @@ class HearthstoneStorage {
     const updatedProfile = this.getProfile();
     const totalEarned = baseWinGold + bonusGold + questGold;
     return {
-      mode: 'CASUAL',
+      mode: isRanked ? 'RANKED' : 'CASUAL',
       didWin,
       goldEarned: totalEarned,
       goldDelta: stake > 0 ? (didWin ? stake + questGold : -stake) : totalEarned,
@@ -3173,11 +3243,11 @@ class HearthstoneStorage {
       prevRank,
       newRank: updatedProfile.rank,
       newStars: updatedProfile.stars,
-      streakBonus: false,
+      streakBonus,
       threeWinProgress: updatedProfile.threeWinCounter,
       bogartStakeGold: stake > 0 ? stake : undefined,
       bogartPayoutGold: stake > 0 ? (didWin ? stake * 2 : 0) : undefined,
-      isOfficialRanked: false,
+      isOfficialRanked: isRanked,
     };
   }
 }
