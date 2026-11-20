@@ -1655,3 +1655,10 @@
 - **작업 개요**:
   - [`CardZoomModal.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/CardZoomModal.tsx): 모달 최대 너비를 `max-w-[380px] sm:max-w-[464px]`로 확장하고, 전투 확대 카드 스케일을 `scale-[1.08] sm:scale-[1.18]`(컬렉션/팩 `scale-[1.0] sm:scale-[1.1]`)으로 약 25% 확대하여 가독성과 박력을 강화.
   - `npx tsc --noEmit && npm run build` 및 Playwright 모바일(`390×844`)·데스크톱(`1280×800`) 검증 통과(사용 버튼 `inViewport: true`, 48px 터치 타깃 유지). 로컬 커밋 후 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.
+
+## [2026-11-21 08:08 KST] [랭킹대전 Realtime! 표시 → CNN 뉴스 스타일 LIVE 브로드캐스트 배지 전면 교체]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`BoxHubScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BoxHubScreen.tsx), [`HeroDeckSelectScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/HeroDeckSelectScreen.tsx), [`storage.ts`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/storage.ts): 기존 초록색 원형 `Realtime!` 배지 및 문구를 CNN 뉴스 생방송 스타일의 선명한 크림슨 레드(`#cc0000`) 각진 브로드캐스트 배지(`rounded-[4px]`, 흰색 테두리, 확산 펄스 화이트 도트 `animate-ping`, 굵은 대문자 `LIVE`, 레드 글로우 강조)로 전면 교체.
+  - 로비 랭킹대전 버튼, 랭킹대전 덱 선택 상단 타이틀·현재 등급 카드·매칭 탐색 모달 및 한·영 모드 안내 텍스트(`(LIVE)`)까지 전수 통일.
+  - `npx tsc --noEmit && npm run build` 0에러 통과 및 Playwright 모바일(`390×844` KO/EN)·데스크톱(`1280×800`)에서 `#cc0000` `LIVE` 배지 정상 노출 확인. 로컬 `git commit` 완료 (`git push` 보류).

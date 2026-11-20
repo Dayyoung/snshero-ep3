@@ -161,7 +161,7 @@ export const MODE_REWARD_GUIDES: Record<GameMode, ModeRewardGuide> = {
   },
   RANKED: {
     mode: 'RANKED',
-    modeNameKo: '실시간 랭킹대전 (Realtime!)',
+    modeNameKo: '실시간 랭킹대전 (LIVE)',
     playStyleBadge: '실시간 1:1 유저 매칭 · 친선/골드 내기 · 공식 전적 단독 반영',
     baseWinRewardText: '1승당 +25 골드 + 등급 별 ★+1 (내기 시 판돈 × 2배)',
     specialBonusText: '3승 달성마다 +30G 추가 · 3연승 시 별 ★+2 상승 · 실시간 대전방 자동 매칭',
@@ -212,7 +212,7 @@ export const MODE_REWARD_GUIDES_EN: Record<GameMode, ModeRewardGuide> = {
   },
   RANKED: {
     mode: 'RANKED',
-    modeNameKo: 'Ranked Arena (Realtime!)',
+    modeNameKo: 'Ranked Arena (LIVE)',
     playStyleBadge: 'Real-Time 1v1 Player Match · Friendly/Gold Stake · Official Stats',
     baseWinRewardText: '+25 Gold + 1 Rank Star per win (or 2x Gold Wager Pot)',
     specialBonusText: '+30G every 3 wins · +2 Win-Streak Stars · Live Auto-Matchmaking',

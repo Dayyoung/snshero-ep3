@@ -901,8 +901,12 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               <span className="hs-title text-xs font-extrabold text-sky-200 sm:text-sm">
                 🏆 {tr('실시간 랭킹대전', 'Live Ranked Arena')}
               </span>
-              <span className="rounded-full border border-emerald-200 bg-gradient-to-b from-emerald-400 to-teal-700 px-2 py-0.5 text-[9.5px] font-black text-stone-950">
-                Realtime!
+              <span className="inline-flex items-center gap-1 rounded-[4px] border border-white/80 bg-[#cc0000] px-2 py-0.5 text-[10px] font-black uppercase leading-none tracking-[0.14em] text-white shadow-[0_0_12px_rgba(220,38,38,0.9)]">
+                <span className="relative flex h-1.5 w-1.5 shrink-0 items-center justify-center">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-90" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                </span>
+                LIVE
               </span>
             </>
           ) : isBogart ? (
@@ -1381,8 +1385,12 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 <div>
                   <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-sky-300 sm:text-[11px]">
                     <span>🏆 {tr('공식 실시간 랭킹대전 · 현재 등급', 'Official Live Ranked · Current Tier')}</span>
-                    <span className="rounded-full bg-emerald-500/90 px-1.5 py-0.5 text-[9px] font-black text-stone-950">
-                      Realtime!
+                    <span className="inline-flex items-center gap-1 rounded-[4px] border border-white/80 bg-[#cc0000] px-1.5 py-0.5 text-[9.5px] font-black uppercase leading-none tracking-[0.14em] text-white shadow-[0_0_10px_rgba(220,38,38,0.85)]">
+                      <span className="relative flex h-1.5 w-1.5 shrink-0 items-center justify-center">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-90" />
+                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                      </span>
+                      LIVE
                     </span>
                   </div>
                   <div className="hs-title text-base font-extrabold text-white sm:text-lg">
@@ -1748,8 +1756,12 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
 
             {isRanked && (
               <div className="mb-2 flex flex-wrap items-center justify-center gap-2 text-xs font-extrabold">
-                <span className="rounded-full border border-emerald-300/70 bg-emerald-950/85 px-2.5 py-0.5 text-emerald-200">
-                  ● Realtime! {rankedStakeGold === 0 ? tr('친선 0G', 'Friendly 0G') : `${rankedStakeGold}G`}
+                <span className="inline-flex items-center gap-1.5 rounded-[4px] border border-white/85 bg-[#cc0000] px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.12em] text-white shadow-[0_0_14px_rgba(220,38,38,0.9)]">
+                  <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-90" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                  </span>
+                  LIVE · {rankedStakeGold === 0 ? tr('친선 0G', 'Friendly 0G') : `${rankedStakeGold}G`}
                 </span>
                 <span
                   data-testid="ranked-search-timer"

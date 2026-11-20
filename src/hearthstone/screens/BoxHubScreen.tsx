@@ -623,7 +623,7 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
             {/* 3 Identical-Height Beveled Ivory/Parchment Menu Plates */}
             <div className="relative z-10 flex w-full max-w-[218px] flex-col gap-2 sm:max-w-[248px] sm:gap-2.5">
-              {/* 1. 실시간 랭킹대전 (1st Slot + Realtime! Badge) */}
+              {/* 1. 실시간 랭킹대전 (1st Slot + CNN-Style LIVE Broadcast Badge) */}
               <button
                 type="button"
                 data-testid="hub-mode-ranked"
@@ -641,10 +641,13 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
               >
                 <span
                   data-testid="hub-ranked-realtime-badge"
-                  className="pointer-events-none absolute -right-2 -top-2.5 z-20 flex items-center gap-1 rounded-full border border-emerald-200 bg-gradient-to-b from-emerald-400 via-emerald-500 to-teal-700 px-2 py-0.5 text-[9px] font-black tracking-wide text-stone-950 shadow-[0_3px_10px_rgba(16,185,129,0.65)] sm:text-[10px]"
+                  className="pointer-events-none absolute -right-2 -top-2.5 z-20 inline-flex items-center gap-1.5 rounded-[4px] border border-white/85 bg-[#cc0000] px-2 py-0.5 text-[10px] font-black uppercase leading-none tracking-[0.15em] text-white shadow-[0_0_16px_rgba(220,38,38,0.95),0_3px_8px_rgba(0,0,0,0.8)] sm:px-2.5 sm:py-1 sm:text-[11px]"
                 >
-                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-stone-950" />
-                  Realtime!
+                  <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-90" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                  </span>
+                  LIVE
                 </span>
                 <span className="hs-title whitespace-nowrap text-[14.5px] font-extrabold leading-tight tracking-normal text-[#0c4a6e] group-hover:text-[#1d4ed8] sm:text-[17px] sm:tracking-wide">
                   🏆 {tr('랭킹대전', 'Ranked Arena')}
