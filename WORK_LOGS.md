@@ -2,6 +2,12 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-20 17:38 KST] [AGENTS.md 최상단에 작업 전 `git pull` 최신 소스 동기화 필수 원칙 추가]
+- **요청 및 개선 내역**:
+  - `AGENTS.md` 최상단에 **작업 시작 전 최신 소스 동기화 필수 원칙 (Always `git pull` Before Starting Work)** 섹션을 추가하여, 모든 작업 착수 전 `git pull --rebase --autostash origin main`으로 원격 최신 소스를 먼저 동기화하도록 의무화.
+  - 작업 전 `git pull --rebase --autostash origin main`으로 원격 최신 커밋(`c8cb0ac`)까지 즉시 동기화 완료.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-20 10:42 KST] [카드플레이 배틀 화면 상단 3줄 HUD 슬림화·불필요 라벨 제거 및 내 초상화 상단 균형 재배치 + 원격 푸시]
 - **요청 및 개선 내역**:
   - 카드플레이(`BattleScreen.tsx`) 상대 초상화 하단을 가리던 3줄 HUD를 전면 정리:

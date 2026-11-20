@@ -1,5 +1,11 @@
 # SNS히어로 에이전트 지침서 (AGENTS.md)
 
+## 작업 시작 전 최신 소스 동기화 필수 원칙 (Always `git pull` Before Starting Work)
+1. **모든 작업 착수 전 `git pull` 의무 실행**:
+   - 코드 수정, 문서 편집, 빌드, 스킬 실행 등 **어떠한 작업을 시작하기 전에도 반드시 먼저 원격 저장소에서 최신 소스를 받아와(`git pull --rebase --autostash origin main` 또는 `git pull origin main`) 로컬 작업 트리를 최신 상태로 유지**한다.
+   - 충돌(conflict)이 발생하면 임의로 덮어쓰지 않고 최신 원격 변경사항을 보존한 상태로 안전하게 병합·해결한 뒤 작업을 진행한다.
+   - 작업 완료 후에는 기존 커밋/푸시 정책에 따라 로컬 `git commit`만 수행하고, 원격 푸시(`git push`)는 사용자가 `/git-push` 또는 명시적으로 푸시를 요청할 때만 실행한다.
+
 ## 영문 버전 고려사항 및 한·영/다국어 언어팩 작업 필수 원칙 (i18n & English Mode Governance)
 1. **기본 영어·한국어 이중 언어(`heroLang.ts`) 100% 의무 준수**:
    - 모든 UI 텍스트·모달·버튼·배지·알림·오류 메시지·SEO/OG 메타는 반드시 `src/i18n/heroLang.ts`(`tr(ko, en)`, `useHeroLanguage()`)를 통해 한국어(`ko`)와 영어(`en`) 모두 누락 없이 제공합니다. (`?lang=en|ko`, `localStorage['hero_language']`, 브라우저 로케일 기반 한국어 외 전 세계 기본값 `'en'` 지원)
