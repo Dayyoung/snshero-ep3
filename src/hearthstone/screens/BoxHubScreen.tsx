@@ -56,23 +56,12 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   const [quickRulesOpen, setQuickRulesOpen] = useState(false);
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [inAppDismissed, setInAppDismissed] = useState(false);
-  const [saveBannerDismissed, setSaveBannerDismissed] = useState(false);
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [, setPwaTick] = useState(0);
   const unlockInfo = hsStorage.getHubUnlockStage(profile);
   const isFirstVisitGuide = !profile.journeyGuideDone && !unlockInfo.veteranUnlockedAll;
   const isStage3Unlocked = unlockInfo.stage >= 3 || unlockInfo.veteranUnlockedAll;
   const isStage4Unlocked = unlockInfo.stage >= 4 || unlockInfo.veteranUnlockedAll;
-  const qualifiesForSanctuarySave =
-    !isFirstVisitGuide &&
-    !saveBannerDismissed &&
-    !hsStorage.isSafeguardBonusClaimed() &&
-    (profile.gold >= 1000 ||
-      profile.rankedWins >= 3 ||
-      profile.totalWins >= 3 ||
-      (profile.prestige?.ownedTitles?.length || 1) > 1 ||
-      (profile.prestige?.ownedBadges?.length || 1) > 1 ||
-      (profile.prestige?.ownedFrames?.length || 1) > 1);
   const quests = hsStorage.getQuests();
   const incompleteQuestsCount = quests.filter((q) => !q.completed).length;
   const remainingExpertAiCount = Math.max(0, 9 - (profile.practiceExpertCleared?.length || 0));
@@ -471,62 +460,6 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
             className="mb-2 w-full rounded-2xl border border-emerald-300/80 bg-emerald-950/95 px-3.5 py-2 text-center text-xs font-extrabold text-emerald-100 shadow-lg"
           >
             {saveToast}
-          </div>
-        )}
-
-        {/* DEV-034: Guest Sanctuary Save Engraving Banner (1,000G / 3 Ranked Wins / Prestige Unlock) */}
-        {qualifiesForSanctuarySave && (
-          <div
-            data-testid="hub-sanctuary-save-banner"
-            className="hs-ocarina-dialog mb-2 flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl px-3.5 py-2 text-xs font-extrabold text-amber-100 shadow-xl"
-          >
-            <span className="min-w-0 flex-1">
-              📜{' '}
-              {tr(
-                '엘윈 성소 기록 각인: 보유 골드·치장품·전적을 백업 코드로 1초 복사하고 +100G 시드머니를 받으세요!',
-                'Sanctuary Record Seal: Copy your encrypted save backup code in 1 tap & claim +100G bonus!',
-              )}
-            </span>
-            <div className="flex shrink-0 items-center gap-1.5">
-              <button
-                type="button"
-                data-testid="hub-sanctuary-save-copy-btn"
-                onClick={async () => {
-                  hsAudio.playSfx('mario_coin', 0.9);
-                  const { jsonString } = hsStorage.exportGameBackupData();
-                  try {
-                    await navigator.clipboard.writeText(jsonString);
-                  } catch {
-                    hsStorage.downloadGameBackupFile();
-                  }
-                  const bonus = hsStorage.claimSafeguardBackupBonus();
-                  setSaveBannerDismissed(true);
-                  setSaveToast(
-                    bonus.granted
-                      ? tr(
-                          '📜 성소 백업 코드 복사 완료! 보호 보너스 +100G가 즉시 지급되었습니다.',
-                          '📜 Sanctuary backup code copied! +100G safeguard bonus granted.',
-                        )
-                      : tr(
-                          '📜 성소 백업 코드가 클립보드에 복사되었습니다.',
-                          '📜 Sanctuary backup code copied to clipboard.',
-                        ),
-                  );
-                  window.setTimeout(() => setSaveToast(null), 4000);
-                }}
-                className="hs-zelda-a-btn min-h-[38px] rounded-xl px-3 py-1 text-[11px] font-extrabold text-white"
-              >
-                {tr('📜 백업 복사 (+100G)', '📜 Copy Save (+100G)')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSaveBannerDismissed(true)}
-                aria-label={tr('닫기', 'Dismiss')}
-                className="min-h-[38px] min-w-[38px] rounded-xl border border-amber-400/40 bg-black/45 px-2 text-[11px] text-amber-200"
-              >
-                ✕
-              </button>
-            </div>
           </div>
         )}
 

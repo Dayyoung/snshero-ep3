@@ -792,7 +792,6 @@ export const TavernShopModal: React.FC<{
     return 'CHEST';
   });
   const [pulledLegendaries, setPulledLegendaries] = useState<ClassicCardDef[]>([]);
-  const [prestigeBackupPromptOpen, setPrestigeBackupPromptOpen] = useState<boolean>(false);
   const [step, setStep] = useState<ShopCheckoutStep>('quantity');
   const [selectedPkg, setSelectedPkg] = useState<GameShopPackage>(GAME_SHOP_PACKAGES[0]);
   const [countryCode, setCountryCode] = useState<string>(() => (isKo ? 'ko' : 'en'));
@@ -1521,9 +1520,6 @@ export const TavernShopModal: React.FC<{
                                     `🎉 Unlocked & Equipped [${item.nameEn}]! (-${item.costGold.toLocaleString()}G)`,
                                   ),
                                 );
-                                if (!hsStorage.isSafeguardBonusClaimed()) {
-                                  setPrestigeBackupPromptOpen(true);
-                                }
                                 refresh();
                               }}
                               className={`flex min-h-[44px] items-center justify-center gap-1 rounded-xl px-2 text-xs font-extrabold transition ${
@@ -1628,9 +1624,6 @@ export const TavernShopModal: React.FC<{
                               ),
                             );
                           }
-                          if (!hsStorage.isSafeguardBonusClaimed()) {
-                            setPrestigeBackupPromptOpen(true);
-                          }
                           refresh();
                         }}
                         className={`hs-mario-spring mt-3 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl text-xs font-extrabold transition ${
@@ -1661,61 +1654,6 @@ export const TavernShopModal: React.FC<{
                     </div>
                   );
                 })}
-              </div>
-            )}
-
-            {/* Prestige Collection Backup & PWA Lock-in Prompt (+100G) */}
-            {prestigeBackupPromptOpen && (
-              <div
-                data-testid="prestige-backup-lockin-banner"
-                className="hs-ocarina-dialog flex flex-wrap items-center justify-between gap-2 rounded-2xl p-3 text-xs font-extrabold text-amber-100 shadow-lg"
-              >
-                <span className="min-w-0 flex-1">
-                  👑{' '}
-                  {tr(
-                    '신규 컬렉션 장착 완료! 브라우저 캐시 삭제 시 사라지지 않도록 백업 코드를 1초 복사하고 시드머니 +100G를 받으세요!',
-                    'Item equipped! Copy your backup code in 1 tap to protect your unlocks & claim +100G!',
-                  )}
-                </span>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <button
-                    type="button"
-                    data-testid="prestige-backup-copy-btn"
-                    onClick={async () => {
-                      hsAudio.playSfx('mario_coin', 0.9);
-                      const { jsonString } = hsStorage.exportGameBackupData();
-                      try {
-                        await navigator.clipboard.writeText(jsonString);
-                      } catch {
-                        hsStorage.downloadGameBackupFile();
-                      }
-                      const bonus = hsStorage.claimSafeguardBackupBonus();
-                      setPrestigeBackupPromptOpen(false);
-                      refresh();
-                      showToast(
-                        bonus.granted
-                          ? tr(
-                              '👑 백업 코드 복사 완료! 시드머니 +100G가 지급되었습니다.',
-                              '👑 Backup copied! +100G seed Gold granted.',
-                            )
-                          : tr(
-                              '👑 백업 코드가 복사되었습니다.',
-                              '👑 Backup code copied.',
-                            ),
-                      );
-                    }}
-                    className="hs-zelda-a-btn min-h-[40px] rounded-xl px-3 py-1.5 text-xs font-extrabold text-white"
-                  >
-                    {tr('📲 백업 코드 복사 (+100G)', '📲 Copy Backup (+100G)')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPrestigeBackupPromptOpen(false)}
-                    className="min-h-[40px] rounded-xl border border-amber-400/40 bg-black/50 px-2.5 text-xs text-amber-200"
-                  >
-                    ✕
-                  </button>
-                </div>
               </div>
             )}
           </div>
@@ -2617,8 +2555,8 @@ export const PaymentSuccessModal: React.FC<{
           </div>
           <p className="mt-0.5 text-[10.5px] font-semibold text-amber-100/85">
             {tr(
-              '캐시가 삭제되어도 100% 복원되도록 지금 백업하세요! (최초 백업 시 +100 골드)',
-              'Back up your purchase & decks locally now! (+100 Gold on first backup)',
+              '캐시가 삭제되어도 100% 복원되도록 지금 백업하세요!',
+              'Back up your purchase & decks locally now!',
             )}
           </p>
           {backupNotice && (
@@ -2629,12 +2567,7 @@ export const PaymentSuccessModal: React.FC<{
               type="button"
               onClick={() => {
                 hsStorage.downloadGameBackupFile();
-                const bonus = hsStorage.claimSafeguardBackupBonus();
-                setBackupNotice(
-                  bonus.granted
-                    ? tr('✓ 백업 저장 완료! +100 골드 지급!', '✓ Backup saved! +100 Gold granted!')
-                    : tr('✓ 백업 파일 저장 완료!', '✓ Backup file saved!'),
-                );
+                setBackupNotice(tr('✓ 백업 파일 저장 완료!', '✓ Backup file saved!'));
               }}
               className="hs-gold-btn flex-1 rounded-lg py-1.5 text-[11px] font-extrabold"
             >
@@ -2646,12 +2579,7 @@ export const PaymentSuccessModal: React.FC<{
                 const { jsonString } = hsStorage.exportGameBackupData();
                 try {
                   await navigator.clipboard.writeText(jsonString);
-                  const bonus = hsStorage.claimSafeguardBackupBonus();
-                  setBackupNotice(
-                    bonus.granted
-                      ? tr('✓ 코드 복사 완료! +100 골드 지급!', '✓ Copied! +100 Gold granted!')
-                      : tr('✓ 백업 코드 복사 완료!', '✓ Backup code copied!'),
-                  );
+                  setBackupNotice(tr('✓ 백업 코드 복사 완료!', '✓ Backup code copied!'));
                 } catch {
                   hsStorage.downloadGameBackupFile();
                 }
@@ -3498,15 +3426,6 @@ export const GameOptionsModal: React.FC<{
                   const restoreUrl = `${origin}/game?restore=${compressed}`;
                   setMobileQrUrl(restoreUrl);
                   setMobileQrSvg(renderQrCodeSvg(restoreUrl, 160));
-                  const bonus = hsStorage.claimSafeguardBackupBonus();
-                  if (bonus.granted) {
-                    setDataNotice(
-                      tr(
-                        'QR 연동 생성 완료! 최초 보호 보상 +100 골드가 지급되었습니다.',
-                        'QR Sync Ready! +100 Gold safeguard bonus granted.',
-                      ),
-                    );
-                  }
                 }}
                 className="hs-zelda-a-btn flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold text-white"
               >

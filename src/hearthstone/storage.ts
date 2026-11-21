@@ -2649,29 +2649,6 @@ class HearthstoneStorage {
     emitStateChanged();
   }
 
-  isSafeguardBonusClaimed(): boolean {
-    try {
-      return localStorage.getItem('hero_hs_safeguard_bonus_claimed') === '1';
-    } catch {
-      return false;
-    }
-  }
-
-  claimSafeguardBackupBonus(): { granted: boolean; goldAdded: number } {
-    try {
-      if (localStorage.getItem('hero_hs_safeguard_bonus_claimed') === '1') {
-        return { granted: false, goldAdded: 0 };
-      }
-      localStorage.setItem('hero_hs_safeguard_bonus_claimed', '1');
-      const p = this.getProfile();
-      p.gold += 100;
-      this.saveProfile(p);
-      return { granted: true, goldAdded: 100 };
-    } catch {
-      return { granted: false, goldAdded: 0 };
-    }
-  }
-
   claimPromoPrePack(): { claimed: boolean; cards: OpenedPackCard[] } {
     try {
       const showcaseRaw = localStorage.getItem('snshero_showcase_drawn_cards');

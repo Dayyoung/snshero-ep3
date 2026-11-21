@@ -7823,30 +7823,6 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                         </div>
                       );
                     })()}
-                    {didWin && !hsStorage.isSafeguardBonusClaimed() && (
-                      <button
-                        type="button"
-                        data-testid="ranked-first-win-backup-btn"
-                        onClick={async () => {
-                          const { jsonString } = hsStorage.exportGameBackupData();
-                          try {
-                            await navigator.clipboard.writeText(jsonString);
-                          } catch {
-                            hsStorage.downloadGameBackupFile();
-                          }
-                          const bonus = hsStorage.claimSafeguardBackupBonus();
-                          setLiveProfile(hsStorage.getProfile());
-                          if (bonus.granted) hsAudio.playSfx('purchase');
-                          setChallengeCopiedMsg(
-                            tr('🏆 공식 랭킹 전적 백업 복사 완료 (+100G 지급)!', '🏆 Official Ranked Backup Copied (+100G)!'),
-                          );
-                          window.setTimeout(() => setChallengeCopiedMsg(null), 2800);
-                        }}
-                        className="flex min-h-[36px] w-full items-center justify-center rounded-xl border border-emerald-300/75 bg-emerald-950/90 px-2.5 py-1 text-[10.5px] font-extrabold text-emerald-100 hover:bg-emerald-900"
-                      >
-                        📲 {tr('공식 랭킹 승리 전적 1초 백업 코드 복사 (+100G)', '1s Backup Official Ranked Record (+100G)')}
-                      </button>
-                    )}
                   </div>
                 )}
 

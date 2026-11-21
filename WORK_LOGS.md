@@ -1669,3 +1669,13 @@
   - [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx): 기존에는 카단의 기세 100% 해방 시 카단과 실리아 필살기를 동시에 합동 발동(`useKadanMomentumUltimate` + `useSiliaChainUltimate`)하던 구조를 **1단계 카단 필살기 선행 발동(단독 컷인 1000ms)** → **2단계 1050ms 후 실리아 필살기 순차 발동(실리아 연속 바람풍 컷인 1400ms)**으로 분리.
   - 카단 필살기로 전투가 이미 종료된 경우(`afterKadan.phase !== 'PLAYING'`)에는 불필요한 후속 실리아 발동을 생략하도록 안전 처리.
   - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 커밋 및 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.
+
+## [2026-11-21 15:26 KST] [백업 코드 +100G 보상 기능 및 유도 배너 전면 제거]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`storage.ts`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/storage.ts): `isSafeguardBonusClaimed()`, `claimSafeguardBackupBonus()` (+100G 지급 로직) 제거.
+  - [`BoxHubScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BoxHubScreen.tsx): 엘윈 성소 백업 코드 복사 +100G 보상 배너(`hub-sanctuary-save-banner`) 제거.
+  - [`PackOpeningScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/PackOpeningScreen.tsx): 전설 카드 획득 후 1초 백업 저장(+100G) 배너 제거.
+  - [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx): 승리 화면의 랭킹 전적 백업 복사(+100G) 버튼(`ranked-first-win-backup-btn`) 제거.
+  - [`Modals.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/Modals.tsx): 치장품 장착 후 백업 코드 복사(+100G) 배너 제거 및 결제 영수증/QR 연동 모달의 +100G 보상 지급 로직·문구 제거(백업 저장/복사·QR 연동 기능 자체는 유지).
+  - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 커밋 및 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.

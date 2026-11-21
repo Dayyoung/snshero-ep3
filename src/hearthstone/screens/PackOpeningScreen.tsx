@@ -913,39 +913,6 @@ export const PackOpeningScreen: React.FC<{
                 </div>
               )}
 
-              {/* MKT-006 / MKT-012 / MKT-024: Post-Legendary 1-Second Vault Backup & PWA Safeguard */}
-              {allRevealed &&
-                openedCards.some((c) => c.card.rarity === 'LEGENDARY') &&
-                !hsStorage.isSafeguardBonusClaimed() && (
-                  <div className="relative z-50 mt-2 flex flex-wrap items-center justify-center gap-2 rounded-2xl border-2 border-emerald-300/75 bg-emerald-950/90 px-3.5 py-2 text-center shadow-xl">
-                    <span className="text-[11px] font-extrabold text-emerald-100">
-                      {tr(
-                        '🛡️ 전설 카드 획득! 캐시 삭제 보호를 위해 백업 저장 시 [+100 골드] 즉시 지급:',
-                        '🛡️ Legendary Pulled! Save backup now to protect your deck & earn [+100 Gold]:',
-                      )}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const { jsonString } = hsStorage.exportGameBackupData();
-                        try {
-                          await navigator.clipboard.writeText(jsonString);
-                        } catch {
-                          hsStorage.downloadGameBackupFile();
-                        }
-                        const bonus = hsStorage.claimSafeguardBackupBonus();
-                        sync();
-                        if (bonus.granted) {
-                          hsAudio.playSfx('purchase');
-                        }
-                      }}
-                      className="hs-gold-btn rounded-xl px-3 py-1 text-[11px] font-extrabold"
-                    >
-                      💾 {tr('1초 백업 저장 (+100G)', '1s Backup (+100G)')}
-                    </button>
-                  </div>
-                )}
-
               {/* 5-Point Radial Floating Stage (Mobile Constellation < md, Pentagon >= md) */}
               <div className="relative my-auto flex min-h-[440px] w-full flex-1 items-center justify-center md:min-h-[470px]">
                 <div className="relative h-[440px] w-full max-w-[360px] md:h-[470px] md:max-w-[760px]">
