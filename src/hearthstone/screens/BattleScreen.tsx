@@ -2153,6 +2153,64 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
               bogartStakeGold || 0,
               bogartDifficulty,
             );
+      if (isLivePvp && livePvpMeta) {
+        const hostWon = isPvpHost ? didWin : !didWin;
+        const winnerSide: 'HOST' | 'GUEST' | 'DRAW' =
+          matchState.winner === 'DRAW' ? 'DRAW' : hostWon ? 'HOST' : 'GUEST';
+        const hostHp = Math.max(
+          0,
+          isPvpHost ? matchState.player.health : matchState.opponent.health,
+        );
+        const guestHp = Math.max(
+          0,
+          isPvpHost ? matchState.opponent.health : matchState.player.health,
+        );
+        const hostHeroClass = isPvpHost
+          ? matchState.player.heroClass
+          : matchState.opponent.heroClass;
+        const guestHeroClass = isPvpHost
+          ? matchState.opponent.heroClass
+          : matchState.player.heroClass;
+        const reason: 'NORMAL' | 'CONCEDE' | 'LEAVE' | 'DISCONNECT' =
+          pvpOpponentLeftNotice
+            ? 'LEAVE'
+            : matchState.history.some((h) => /항복|concede/i.test(h.detail || ''))
+              ? 'CONCEDE'
+              : 'NORMAL';
+        if (isPvpHost || Boolean(pvpOpponentLeftNotice)) {
+          snsheroLiveNetwork.reportMatchResult({
+            roomId: livePvpMeta.roomId,
+            title: livePvpMeta.isRanked
+              ? tr('실시간 랭킹대전', 'Live Ranked Arena')
+              : `${livePvpMeta.hostName} vs ${livePvpMeta.guestName}`,
+            hostPeerId: livePvpMeta.hostPeerId,
+            hostName: livePvpMeta.hostName,
+            hostHeroClass,
+            guestPeerId: livePvpMeta.guestPeerId,
+            guestName: livePvpMeta.guestName,
+            guestHeroClass,
+            winnerSide,
+            winnerName:
+              winnerSide === 'HOST'
+                ? livePvpMeta.hostName
+                : winnerSide === 'GUEST'
+                  ? livePvpMeta.guestName
+                  : tr('무승부', 'Draw'),
+            loserName:
+              winnerSide === 'HOST'
+                ? livePvpMeta.guestName
+                : winnerSide === 'GUEST'
+                  ? livePvpMeta.hostName
+                  : '',
+            hostHp,
+            guestHp,
+            turnCount: matchState.turnNumber,
+            stakeGold: livePvpMeta.stakeGold,
+            reason,
+            finishedAt: Date.now(),
+          });
+        }
+      }
       // DEV-043: Competitive Fairness 2-Track — Ranked & Bogart have 0% stat change; Ocarina Rhythm Fever awards bonus Gold!
       if ((mode === 'RANKED' || mode === 'BOGART_GAMBLE') && rhythmFeverPct >= 25) {
         const feverGold = Math.min(30, Math.max(5, Math.round((rhythmFeverPct / 100) * 30)));
@@ -3393,6 +3451,20 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPvpHost, livePvpMeta?.roomId, livePvpMeta?.guestPeerId, pvpSyncDigest]);
+
+  // Host -> Spectators instant state snapshot reply when a spectator joins mid-battle
+  useEffect(() => {
+    if (!isPvpHost || !livePvpMeta) return;
+    return snsheroLiveNetwork.onSpectateRequest((roomId) => {
+      if (roomId !== livePvpMeta.roomId) return;
+      const cur = matchStateRef.current;
+      snsheroLiveNetwork.sendPvpStateSync(
+        livePvpMeta.roomId,
+        livePvpMeta.guestPeerId,
+        mirrorMatchStateForGuest(cur),
+      );
+    });
+  }, [isPvpHost, livePvpMeta?.roomId, livePvpMeta?.guestPeerId]);
 
   // Guest <- Host state sync listener
   useEffect(() => {

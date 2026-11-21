@@ -1685,3 +1685,20 @@
 - **작업 개요**:
   - [`BoxHubScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BoxHubScreen.tsx): 홈 화면 상단 툴바의 `전체 메뉴 열기 (Unlock All)` 버튼(`hub-unlock-all-btn`) 및 전용 토스트 배너(`saveToast`) 제거.
   - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 커밋 및 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.
+
+## [2026-11-22 08:26 KST] [채팅창 대전방 클릭 시 진행 중 '실시간 관전 모드' & 종료 방 '경기 결과 보기' 구현]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`snsheroLiveNetwork.ts`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/services/snsheroLiveNetwork.ts):
+    - `LiveDuelMatchResult` 타입, `PVP_SPECTATE_REQUEST` / `PVP_MATCH_RESULT` 패킷 및 `localStorage` 경기 결과 영구 저장(`hero_hs_live_match_results_v1`)·`HISTORY_SYNC` 동기화 추가.
+    - `startSpectating()`, `onSpectateState()`, `onSpectateRequest()`, `reportMatchResult()` API 구현 및 `PVP_STATE_SYNC` 관전자 포워딩 추가.
+  - [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx):
+    - 호스트가 `onSpectateRequest` 수신 시 최신 전장 상태를 즉시 중계(`sendPvpStateSync`)하고, 실시간 PvP 종료 시 `reportMatchResult()`로 승자·잔여 HP·턴 수·상금·종료 사유를 브로드캐스트.
+  - [`LiveSpectatorModal.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/LiveSpectatorModal.tsx) (신규):
+    - **실시간 관전 모드**: CNN 스타일 `LIVE` 배지, 호스트 vs 게스트 영웅 체력·방어도·마나·손패/덱 수·현재 공격 턴 표시, 양 진영 전장 하수인 실시간 렌더링, 중계 로그, 경기 종료 시 결과 화면 자동 전환.
+    - **경기 결과 모달**: 승자 배너, 종료 사유, 총 턴 수, 상금, 양측 영웅 잔여 HP 스코어보드 표시 (미기록/취소 방 폴백 안내 포함). 한·영 100% `tr()` 및 모바일 `44px+` 터치 타깃 준수.
+  - [`LiveCommunityChatWidget.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/LiveCommunityChatWidget.tsx):
+    - 채팅창 `DUEL_ROOM` 카드에서 `진행 중` 방 클릭/버튼 시 관전 모드로 즉시 진입, `종료된 방` 클릭/버튼 시 경기 결과 모달 표시. 대전 탭 하단에도 `진행 중인 대전 (관전 가능)` 목록 추가.
+  - **검증 및 로컬 커밋**:
+    - `npx tsc --noEmit && npm run build` 0에러 통과.
+    - Playwright 실측 검증(모바일 `390×844` KO/EN, 데스크톱 `1280×800` KO): 진행 중 방 관전 진입 및 `PVP_STATE_SYNC` 실시간 전장 반영(`liveBoardSynced: true`), 종료 방 경기 결과 모달 표시(`resultViewVisible: true`) 전수 통과. 로컬 `git commit` 완료 (`git push` 보류).

@@ -3,11 +3,13 @@ import {
   Coins,
   Copy,
   Edit3,
+  Eye,
   MessageCircleMore,
   Plus,
   Send,
   Shield,
   Swords,
+  Trophy,
   Users,
   X,
 } from 'lucide-react';
@@ -25,6 +27,7 @@ import {
 import { hsStorage } from '../storage';
 import { CLASSIC_HEROES, CustomDeck, PlayerProfile, ScreenName } from '../types';
 import { HsGoldCoinIcon } from './CardVisual';
+import { LiveSpectatorModal, SpectatorRoomTarget } from './LiveSpectatorModal';
 
 export interface LiveCommunityChatWidgetProps {
   screen: ScreenName;
@@ -107,6 +110,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     peerId: string;
     nickname: string;
   } | null>(null);
+  const [spectatorTarget, setSpectatorTarget] = useState<SpectatorRoomTarget | null>(null);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
@@ -394,18 +398,48 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     }
 
     if (msg.kind === 'DUEL_ROOM' && msg.duelRoom) {
-      const liveRoom = snap.openRooms.find((r) => r.roomId === msg.duelRoom?.roomId);
-      const isJoinable =
-        Boolean(liveRoom && liveRoom.status === 'WAITING') &&
-        msg.duelRoom.hostPeerId !== snap.peerId;
-      const heroInfo = getLocalizedHeroInfo(msg.duelRoom.hostHeroClass, lang);
-      const heroMeta = CLASSIC_HEROES[msg.duelRoom.hostHeroClass];
+      const duelMeta = msg.duelRoom;
+      const liveRoom = snap.openRooms.find((r) => r.roomId === duelMeta.roomId);
+      const matchResult = snap.matchResults[duelMeta.roomId];
+      const isWaiting = Boolean(liveRoom && liveRoom.status === 'WAITING');
+      const isInProgress = Boolean(liveRoom && liveRoom.status === 'IN_PROGRESS') && !matchResult;
+      const isJoinable = isWaiting && duelMeta.hostPeerId !== snap.peerId;
+      const isMyWaitingRoom = isWaiting && duelMeta.hostPeerId === snap.peerId;
+      const heroInfo = getLocalizedHeroInfo(duelMeta.hostHeroClass, lang);
+      const heroMeta = CLASSIC_HEROES[duelMeta.hostHeroClass];
+
+      const openSpectateOrResult = (mode: 'SPECTATE' | 'RESULT') => {
+        hsAudio.playSfx('ui_click', 0.65);
+        setSpectatorTarget({
+          roomId: duelMeta.roomId,
+          title: duelMeta.title,
+          hostPeerId: duelMeta.hostPeerId,
+          hostName: duelMeta.hostName,
+          hostHeroClass: duelMeta.hostHeroClass,
+          guestName: liveRoom?.guestName || matchResult?.guestName,
+          guestHeroClass: liveRoom?.guestHeroClass || matchResult?.guestHeroClass,
+          stakeGold: duelMeta.stakeGold,
+          initialMode: mode,
+          liveRoom,
+          matchResult,
+        });
+      };
 
       return (
         <div
           key={msg.id}
-          data-testid={`chat-duel-room-card-${msg.duelRoom.roomId}`}
-          className="my-1 rounded-xl border-2 border-rose-400/65 bg-gradient-to-b from-rose-950/85 via-stone-950/95 to-black p-2.5 text-amber-50 shadow-lg"
+          data-testid={`chat-duel-room-card-${duelMeta.roomId}`}
+          onClick={() => {
+            if (isInProgress) openSpectateOrResult('SPECTATE');
+            else if (!isWaiting) openSpectateOrResult('RESULT');
+          }}
+          className={`my-1 rounded-xl border-2 bg-gradient-to-b p-2.5 text-amber-50 shadow-lg transition ${
+            isInProgress
+              ? 'cursor-pointer border-red-500/80 from-red-950/80 via-stone-950/95 to-black hover:border-red-400'
+              : !isWaiting
+                ? 'cursor-pointer border-amber-400/55 from-stone-900/95 via-stone-950 to-black hover:border-amber-300'
+                : 'border-rose-400/65 from-rose-950/85 via-stone-950/95 to-black'
+          }`}
         >
           <div className="flex items-center gap-2">
             <img
@@ -414,19 +448,34 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
               className="h-9 w-9 shrink-0 rounded-lg border border-amber-300/60 object-cover object-top"
             />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 text-[10.5px] font-black text-rose-300">
-                <span>⚔️ {tr('1:1 카드덱 대전방', '1v1 Deck Duel Room')}</span>
+              <div className="flex flex-wrap items-center gap-1.5 text-[10.5px] font-black text-rose-300">
+                {isInProgress ? (
+                  <span className="inline-flex items-center gap-1 rounded-[4px] border border-white/80 bg-[#cc0000] px-1.5 py-0.5 text-[9.5px] font-black uppercase leading-none tracking-[0.12em] text-white shadow-[0_0_10px_rgba(220,38,38,0.85)]">
+                    <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-white" />
+                    LIVE
+                  </span>
+                ) : !isWaiting ? (
+                  <span className="rounded bg-amber-500/25 px-1.5 py-0.5 text-[9.5px] font-black text-amber-200">
+                    🏆 {tr('경기 종료', 'FINISHED')}
+                  </span>
+                ) : (
+                  <span>⚔️ {tr('1:1 카드덱 대전방', '1v1 Deck Duel Room')}</span>
+                )}
                 <span className="rounded bg-amber-500/25 px-1.5 py-0.5 text-yellow-200">
-                  {msg.duelRoom.stakeGold > 0
-                    ? tr(`내기 ${msg.duelRoom.stakeGold}G`, `${msg.duelRoom.stakeGold}G Wager`)
+                  {duelMeta.stakeGold > 0
+                    ? tr(`내기 ${duelMeta.stakeGold}G`, `${duelMeta.stakeGold}G Wager`)
                     : tr('친선 0G', 'Friendly')}
                 </span>
               </div>
               <div className="truncate text-xs font-extrabold text-white">
-                {msg.duelRoom.title}
+                {duelMeta.title}
               </div>
               <div className="truncate text-[10.5px] font-bold text-amber-200/80">
-                {msg.duelRoom.hostName} · {heroInfo.className}
+                {isInProgress && liveRoom?.guestName
+                  ? `${duelMeta.hostName} vs ${liveRoom.guestName}`
+                  : matchResult
+                    ? `${matchResult.hostName} vs ${matchResult.guestName || tr('도전자', 'Challenger')}`
+                    : `${duelMeta.hostName} · ${heroInfo.className}`}
               </div>
             </div>
           </div>
@@ -436,7 +485,10 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
               <button
                 type="button"
                 data-testid={`chat-join-duel-btn-${liveRoom.roomId}`}
-                onClick={() => handleJoinDuelRoom(liveRoom)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleJoinDuelRoom(liveRoom);
+                }}
                 className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-emerald-300/80 bg-emerald-700 px-3 py-1.5 text-xs font-extrabold text-white shadow hover:bg-emerald-600"
               >
                 <Swords className="h-3.5 w-3.5" />
@@ -444,18 +496,54 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('DUEL')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveTab('DUEL');
+                }}
                 className="min-h-[44px] rounded-lg border border-amber-300/40 bg-stone-900 px-2.5 text-[11px] font-extrabold text-amber-200 hover:bg-stone-800"
               >
                 {tr('덱 변경', 'Deck')}
               </button>
             </div>
-          ) : (
-            <div className="mt-1.5 text-[10.5px] font-bold text-stone-400">
-              {msg.duelRoom.hostPeerId === snap.peerId
-                ? tr('내가 개설한 대전방 · 도전자 대기 중', 'Your room · Waiting for challenger')
-                : tr('대결 진행 중 또는 종료된 방', 'Match in progress or closed')}
+          ) : isMyWaitingRoom ? (
+            <div className="mt-1.5 text-[10.5px] font-bold text-emerald-300">
+              {tr('내가 개설한 대전방 · 도전자 대기 중', 'Your room · Waiting for challenger')}
             </div>
+          ) : isInProgress ? (
+            <button
+              type="button"
+              data-testid={`chat-spectate-duel-btn-${duelMeta.roomId}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                openSpectateOrResult('SPECTATE');
+              }}
+              className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg border border-red-300/80 bg-gradient-to-r from-[#b91c1c] to-[#991b1b] px-3 py-1.5 text-xs font-extrabold text-white shadow hover:brightness-110"
+            >
+              <Eye className="h-4 w-4" />
+              <span>{tr('대전 진행 중 · 관전 모드로 보기', 'Match Live · Watch in Spectator Mode')}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              data-testid={`chat-result-duel-btn-${duelMeta.roomId}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                openSpectateOrResult('RESULT');
+              }}
+              className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg border border-amber-300/60 bg-stone-900/95 px-3 py-1.5 text-xs font-extrabold text-amber-200 shadow hover:bg-stone-800"
+            >
+              <Trophy className="h-3.5 w-3.5 text-yellow-300" />
+              <span>
+                {matchResult
+                  ? matchResult.winnerSide === 'DRAW'
+                    ? tr('경기 종료 (무승부) · 결과 보기', 'Match Ended (Draw) · View Result')
+                    : tr(
+                        `경기 종료 (${matchResult.winnerName} 승리) · 결과 보기`,
+                        `Ended (${matchResult.winnerName} Won) · View Result`,
+                      )
+                  : tr('종료된 방 · 경기 결과 보기', 'Closed Room · View Match Result')}
+              </span>
+            </button>
           )}
         </div>
       );
@@ -1315,6 +1403,72 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                     })
                 )}
               </div>
+
+              {/* Live In-Progress Matches (Spectatable) */}
+              {snap.openRooms.some((r) => r.status === 'IN_PROGRESS') && (
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-rose-200">
+                    <span className="inline-flex items-center gap-1 rounded-[4px] border border-white/80 bg-[#cc0000] px-1.5 py-0.5 text-[9.5px] font-black uppercase leading-none tracking-[0.12em] text-white">
+                      LIVE
+                    </span>
+                    <span>{tr('진행 중인 대전 (관전 가능)', 'Live Matches (Spectate)')}</span>
+                  </div>
+                  {snap.openRooms
+                    .filter((r) => r.status === 'IN_PROGRESS')
+                    .map((room) => {
+                      const heroMeta = CLASSIC_HEROES[room.hostHeroClass];
+                      const heroInfo = getLocalizedHeroInfo(room.hostHeroClass, lang);
+                      return (
+                        <div
+                          key={room.roomId}
+                          data-testid={`live-duel-room-${room.roomId}`}
+                          className="flex items-center justify-between gap-2 rounded-xl border border-red-400/55 bg-red-950/30 p-2.5"
+                        >
+                          <img
+                            src={heroMeta.heroPortraitUrl}
+                            alt={heroInfo.name}
+                            className="h-10 w-10 shrink-0 rounded-lg border border-red-300/60 object-cover object-top"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-xs font-extrabold text-white">
+                              {room.title}
+                            </div>
+                            <div className="truncate text-[10.5px] font-bold text-amber-200/85">
+                              {room.hostName} vs {room.guestName || tr('도전자', 'Challenger')} ·{' '}
+                              {room.stakeGold > 0
+                                ? tr(`내기 ${room.stakeGold}G`, `${room.stakeGold}G`)
+                                : tr('친선 0G', 'Free')}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            data-testid={`spectate-duel-room-btn-${room.roomId}`}
+                            onClick={() => {
+                              hsAudio.playSfx('ui_click', 0.65);
+                              setSpectatorTarget({
+                                roomId: room.roomId,
+                                title: room.title,
+                                hostPeerId: room.hostPeerId,
+                                hostName: room.hostName,
+                                hostHeroClass: room.hostHeroClass,
+                                guestName: room.guestName,
+                                guestHeroClass: room.guestHeroClass,
+                                stakeGold: room.stakeGold,
+                                initialMode: 'SPECTATE',
+                                liveRoom: room,
+                                matchResult: snap.matchResults[room.roomId],
+                              });
+                            }}
+                            className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-xl border border-red-300 bg-[#b91c1c] px-3 text-xs font-black text-white shadow hover:bg-red-600"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            <span>{tr('관전', 'Watch')}</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
             </div>
           )}
 
@@ -1535,6 +1689,14 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
           </span>
         </div>
       </button>
+
+      {spectatorTarget && (
+        <LiveSpectatorModal
+          target={spectatorTarget}
+          liveResult={snap.matchResults[spectatorTarget.roomId]}
+          onClose={() => setSpectatorTarget(null)}
+        />
+      )}
     </div>
   );
 };

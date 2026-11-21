@@ -63,6 +63,26 @@ export interface LiveChatMessage {
   };
 }
 
+export interface LiveDuelMatchResult {
+  roomId: string;
+  title: string;
+  hostPeerId: string;
+  hostName: string;
+  hostHeroClass: HeroClass;
+  guestPeerId?: string;
+  guestName?: string;
+  guestHeroClass?: HeroClass;
+  winnerSide: 'HOST' | 'GUEST' | 'DRAW';
+  winnerName: string;
+  loserName: string;
+  hostHp: number;
+  guestHp: number;
+  turnCount: number;
+  stakeGold: number;
+  reason: 'NORMAL' | 'CONCEDE' | 'LEAVE' | 'DISCONNECT';
+  finishedAt: number;
+}
+
 export interface LiveDuelRoom {
   roomId: string;
   title: string;
@@ -83,6 +103,8 @@ export interface LiveDuelRoom {
   status: 'WAITING' | 'IN_PROGRESS' | 'CLOSED';
   guestPeerId?: string;
   guestName?: string;
+  guestHeroClass?: HeroClass;
+  matchResult?: LiveDuelMatchResult;
   createdAt: number;
   updatedAt: number;
 }
@@ -116,6 +138,7 @@ type WirePacket =
       globalMessages: LiveChatMessage[];
       guilds: GuildInfo[];
       openRooms: LiveDuelRoom[];
+      matchResults?: LiveDuelMatchResult[];
     }
   | {
       pktId: string;
@@ -219,6 +242,18 @@ type WirePacket =
       senderId: string;
       roomId: string;
       targetPeerId: string;
+    }
+  | {
+      pktId: string;
+      type: 'PVP_SPECTATE_REQUEST';
+      senderId: string;
+      roomId: string;
+    }
+  | {
+      pktId: string;
+      type: 'PVP_MATCH_RESULT';
+      senderId: string;
+      result: LiveDuelMatchResult;
     };
 
 export const PRESET_GUILDS: GuildInfo[] = [
@@ -268,6 +303,7 @@ const STORAGE_KEYS = {
   CUSTOM_GUILDS: 'hero_hs_custom_guilds',
   GLOBAL_CHAT: 'hero_hs_global_chat_v2',
   GUILD_CHAT_PREFIX: 'hero_hs_guild_chat_v2_',
+  MATCH_RESULTS: 'hero_hs_live_match_results_v1',
 };
 
 const MQTT_BROKERS = [
@@ -361,6 +397,7 @@ export interface LiveNetworkSnapshot {
   globalMessages: LiveChatMessage[];
   guildMessages: LiveChatMessage[];
   openRooms: LiveDuelRoom[];
+  matchResults: Record<string, LiveDuelMatchResult>;
 }
 
 type MatchStartHandler = (params: {
@@ -369,6 +406,7 @@ type MatchStartHandler = (params: {
 }) => void;
 
 type PvpStateSyncHandler = (roomId: string, guestState: BattleMatchState, seq: number) => void;
+type PvpSpectateRequestHandler = (roomId: string, spectatorPeerId: string) => void;
 type PvpGuestActionHandler = (roomId: string, action: PvpGuestAction, seq: number) => void;
 type PvpEmoteHandler = (roomId: string, emoteKey: LiveEmoteKey) => void;
 type PvpOpponentLeftHandler = (
@@ -402,8 +440,10 @@ class SnsheroLiveNetworkService {
   private currentGuild: GuildInfo | null = null;
   private customGuilds = new Map<string, GuildInfo>();
   private rooms = new Map<string, LiveDuelRoom>();
+  private matchResults = new Map<string, LiveDuelMatchResult>();
   private hostedRoomDecks = new Map<string, { deck: CustomDeck; stakeEscrowed: boolean }>();
   private activeRoomTopic: string | null = null;
+  private spectatingRoomId: string | null = null;
   private pvpSeq = 1;
 
   private bc: BroadcastChannel | null = null;
@@ -414,6 +454,8 @@ class SnsheroLiveNetworkService {
   private listeners = new Set<() => void>();
   private matchStartHandlers = new Set<MatchStartHandler>();
   private pvpStateHandlers = new Set<PvpStateSyncHandler>();
+  private pvpSpectateStateHandlers = new Set<PvpStateSyncHandler>();
+  private pvpSpectateRequestHandlers = new Set<PvpSpectateRequestHandler>();
   private pvpActionHandlers = new Set<PvpGuestActionHandler>();
   private pvpEmoteHandlers = new Set<PvpEmoteHandler>();
   private pvpOpponentLeftHandlers = new Set<PvpOpponentLeftHandler>();
@@ -535,6 +577,26 @@ class SnsheroLiveNetworkService {
       if (this.currentGuild) {
         this.loadGuildMessagesFromStorage(this.currentGuild.id);
       }
+      const rawResults = localStorage.getItem(STORAGE_KEYS.MATCH_RESULTS);
+      if (rawResults) {
+        const list = JSON.parse(rawResults) as LiveDuelMatchResult[];
+        if (Array.isArray(list)) {
+          for (const res of list.slice(-40)) {
+            if (res && res.roomId) this.matchResults.set(res.roomId, res);
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  private saveMatchResults() {
+    try {
+      const sorted = Array.from(this.matchResults.values())
+        .sort((a, b) => b.finishedAt - a.finishedAt)
+        .slice(0, 40);
+      localStorage.setItem(STORAGE_KEYS.MATCH_RESULTS, JSON.stringify(sorted));
     } catch {
       // ignore
     }
@@ -760,9 +822,19 @@ class SnsheroLiveNetworkService {
   }
 
   private sendHistorySnapshot(targetPeerId?: string) {
-    const openRooms = Array.from(this.rooms.values()).filter((r) => r.status === 'WAITING');
+    const openRooms = Array.from(this.rooms.values()).filter(
+      (r) => r.status === 'WAITING' || r.status === 'IN_PROGRESS',
+    );
     const guilds = Array.from(this.customGuilds.values());
-    if (this.globalMessages.length === 0 && openRooms.length === 0 && guilds.length === 0) {
+    const recentResults = Array.from(this.matchResults.values())
+      .sort((a, b) => b.finishedAt - a.finishedAt)
+      .slice(0, 20);
+    if (
+      this.globalMessages.length === 0 &&
+      openRooms.length === 0 &&
+      guilds.length === 0 &&
+      recentResults.length === 0
+    ) {
       return;
     }
     this.sendPacket(
@@ -774,6 +846,7 @@ class SnsheroLiveNetworkService {
         globalMessages: this.globalMessages.slice(-25),
         guilds: guilds.slice(-15),
         openRooms,
+        matchResults: recentResults,
       },
       targetPeerId ? `${TOPIC_PREFIX}/direct/${targetPeerId}` : `${TOPIC_PREFIX}/global`,
     );
@@ -899,10 +972,27 @@ class SnsheroLiveNetworkService {
         if (dirty) this.saveCustomGuilds();
 
         for (const r of pkt.openRooms || []) {
-          if (r && r.roomId && r.status === 'WAITING' && !this.rooms.has(r.roomId)) {
+          if (
+            r &&
+            r.roomId &&
+            (r.status === 'WAITING' || r.status === 'IN_PROGRESS') &&
+            !this.rooms.has(r.roomId)
+          ) {
             this.rooms.set(r.roomId, r);
             dirty = true;
           }
+        }
+
+        let resultsAdded = false;
+        for (const res of pkt.matchResults || []) {
+          if (res && res.roomId && !this.matchResults.has(res.roomId)) {
+            this.matchResults.set(res.roomId, res);
+            resultsAdded = true;
+          }
+        }
+        if (resultsAdded) {
+          this.saveMatchResults();
+          dirty = true;
         }
 
         let msgAdded = false;
@@ -981,6 +1071,10 @@ class SnsheroLiveNetworkService {
         if (pkt.room.scope === 'GUILD' && pkt.room.guildId !== this.currentGuild?.id) {
           return;
         }
+        if (pkt.room.matchResult) {
+          this.matchResults.set(pkt.room.roomId, pkt.room.matchResult);
+          this.saveMatchResults();
+        }
         if (pkt.room.status === 'CLOSED') {
           this.rooms.delete(pkt.room.roomId);
         } else {
@@ -1012,12 +1106,18 @@ class SnsheroLiveNetworkService {
       }
 
       case 'PVP_STATE_SYNC': {
-        if (pkt.targetGuestId !== this.peerId) return;
-        for (const cb of this.pvpPingHandlers) {
-          cb(pkt.roomId, pkt.senderId);
+        if (pkt.targetGuestId === this.peerId) {
+          for (const cb of this.pvpPingHandlers) {
+            cb(pkt.roomId, pkt.senderId);
+          }
+          for (const cb of this.pvpStateHandlers) {
+            cb(pkt.roomId, pkt.guestState, pkt.seq);
+          }
         }
-        for (const cb of this.pvpStateHandlers) {
-          cb(pkt.roomId, pkt.guestState, pkt.seq);
+        if (this.spectatingRoomId === pkt.roomId) {
+          for (const cb of this.pvpSpectateStateHandlers) {
+            cb(pkt.roomId, pkt.guestState, pkt.seq);
+          }
         }
         break;
       }
@@ -1063,6 +1163,23 @@ class SnsheroLiveNetworkService {
         for (const cb of this.pvpPingHandlers) {
           cb(pkt.roomId, pkt.senderId);
         }
+        break;
+      }
+
+      case 'PVP_SPECTATE_REQUEST': {
+        if (pkt.senderId === this.peerId) return;
+        for (const cb of this.pvpSpectateRequestHandlers) {
+          cb(pkt.roomId, pkt.senderId);
+        }
+        break;
+      }
+
+      case 'PVP_MATCH_RESULT': {
+        if (!pkt.result || !pkt.result.roomId) return;
+        this.matchResults.set(pkt.result.roomId, pkt.result);
+        this.saveMatchResults();
+        this.rooms.delete(pkt.result.roomId);
+        this.emitChange();
         break;
       }
     }
@@ -1195,6 +1312,11 @@ class SnsheroLiveNetworkService {
     const recentMsgs = this.globalMessages.filter((m) => m.timestamp >= recentCutoff).length;
     const liveConversationCount = Math.max(onlinePeers.length, recentMsgs > 0 ? recentMsgs : onlinePeers.length);
 
+    const matchResults: Record<string, LiveDuelMatchResult> = {};
+    for (const [rid, res] of this.matchResults.entries()) {
+      matchResults[rid] = res;
+    }
+
     this.cachedSnapshot = {
       peerId: this.peerId,
       nickname: this.nickname,
@@ -1209,6 +1331,7 @@ class SnsheroLiveNetworkService {
       globalMessages: this.globalMessages,
       guildMessages,
       openRooms,
+      matchResults,
     };
     return this.cachedSnapshot;
   };
@@ -1809,6 +1932,7 @@ class SnsheroLiveNetworkService {
       status: 'IN_PROGRESS',
       guestPeerId: req.guestPeerId,
       guestName: req.guestName,
+      guestHeroClass: req.guestHeroClass,
       updatedAt: Date.now(),
     };
     this.rooms.set(room.roomId, updatedRoom);
@@ -1964,6 +2088,92 @@ class SnsheroLiveNetworkService {
       },
       `${TOPIC_PREFIX}/room/${roomId}`,
     );
+  }
+
+  onSpectateState(cb: PvpStateSyncHandler): () => void {
+    this.init();
+    this.pvpSpectateStateHandlers.add(cb);
+    return () => {
+      this.pvpSpectateStateHandlers.delete(cb);
+    };
+  }
+
+  onSpectateRequest(cb: PvpSpectateRequestHandler): () => void {
+    this.init();
+    this.pvpSpectateRequestHandlers.add(cb);
+    return () => {
+      this.pvpSpectateRequestHandlers.delete(cb);
+    };
+  }
+
+  startSpectating(roomId: string): () => void {
+    this.init();
+    this.spectatingRoomId = roomId;
+    this.subscribeRoomTopic(roomId);
+    const sendReq = () => {
+      this.sendPacket(
+        {
+          pktId: makeId('spec'),
+          type: 'PVP_SPECTATE_REQUEST',
+          senderId: this.peerId,
+          roomId,
+        },
+        `${TOPIC_PREFIX}/room/${roomId}`,
+      );
+    };
+    sendReq();
+    const retryTimer = window.setTimeout(sendReq, 1400);
+    return () => {
+      window.clearTimeout(retryTimer);
+      if (this.spectatingRoomId === roomId) {
+        this.spectatingRoomId = null;
+      }
+    };
+  }
+
+  reportMatchResult(result: LiveDuelMatchResult) {
+    this.init();
+    if (!result || !result.roomId) return;
+    this.matchResults.set(result.roomId, result);
+    this.saveMatchResults();
+
+    const existing = this.rooms.get(result.roomId);
+    const scope = existing?.scope || 'GLOBAL';
+    const guildId = existing?.guildId;
+    this.rooms.delete(result.roomId);
+
+    const pkt: WirePacket = {
+      pktId: makeId('mres'),
+      type: 'PVP_MATCH_RESULT',
+      senderId: this.peerId,
+      result,
+    };
+    const topic =
+      scope === 'GUILD' && guildId
+        ? `${TOPIC_PREFIX}/guild/${guildId}`
+        : `${TOPIC_PREFIX}/global`;
+    this.sendPacket(pkt, topic);
+    this.sendPacket(
+      { ...pkt, pktId: makeId('mresr') },
+      `${TOPIC_PREFIX}/room/${result.roomId}`,
+    );
+    if (existing) {
+      this.sendPacket(
+        {
+          pktId: makeId('rmend'),
+          type: 'DUEL_ROOM_UPSERT',
+          senderId: this.peerId,
+          room: {
+            ...existing,
+            status: 'CLOSED',
+            matchResult: result,
+            updatedAt: Date.now(),
+          },
+        },
+        topic,
+      );
+    }
+    this.emitChange();
   }
 }
 
