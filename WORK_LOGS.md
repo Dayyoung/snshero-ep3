@@ -1662,3 +1662,10 @@
   - [`BoxHubScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BoxHubScreen.tsx), [`HeroDeckSelectScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/HeroDeckSelectScreen.tsx), [`storage.ts`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/storage.ts): 기존 초록색 원형 `Realtime!` 배지 및 문구를 CNN 뉴스 생방송 스타일의 선명한 크림슨 레드(`#cc0000`) 각진 브로드캐스트 배지(`rounded-[4px]`, 흰색 테두리, 확산 펄스 화이트 도트 `animate-ping`, 굵은 대문자 `LIVE`, 레드 글로우 강조)로 전면 교체.
   - 로비 랭킹대전 버튼, 랭킹대전 덱 선택 상단 타이틀·현재 등급 카드·매칭 탐색 모달 및 한·영 모드 안내 텍스트(`(LIVE)`)까지 전수 통일.
   - `npx tsc --noEmit && npm run build` 0에러 통과 및 Playwright 모바일(`390×844` KO/EN)·데스크톱(`1280×800`)에서 `#cc0000` `LIVE` 배지 정상 노출 확인. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-21 15:08 KST] [카단의 기세 필살기 순차 발동 개선 (카단 선행 → 실리아 후속)]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx): 기존에는 카단의 기세 100% 해방 시 카단과 실리아 필살기를 동시에 합동 발동(`useKadanMomentumUltimate` + `useSiliaChainUltimate`)하던 구조를 **1단계 카단 필살기 선행 발동(단독 컷인 1000ms)** → **2단계 1050ms 후 실리아 필살기 순차 발동(실리아 연속 바람풍 컷인 1400ms)**으로 분리.
+  - 카단 필살기로 전투가 이미 종료된 경우(`afterKadan.phase !== 'PLAYING'`)에는 불필요한 후속 실리아 발동을 생략하도록 안전 처리.
+  - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 커밋 및 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.

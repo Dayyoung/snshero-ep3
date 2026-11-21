@@ -1145,7 +1145,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [kadanUltCutIn, setKadanUltCutIn] = useState<{
     stackTier: number;
     stackCount: number;
-    siliaSkill: SiliaSkillKind;
+    siliaSkill?: SiliaSkillKind;
     seq: number;
   } | null>(null);
   const [siliaChainCutIn, setSiliaChainCutIn] = useState<{
@@ -1173,7 +1173,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const lastGreenBeatCycleRef = useRef<number>(-999999);
   const triggerUltimateShakeRef = useRef<(tier?: number) => void>(() => {});
   const fireKadanUltimateRef = useRef<(stackTier: number) => void>(() => {});
-  const fireSiliaChainRef = useRef<(stackTier: number) => void>(() => {});
+  const fireSiliaChainRef = useRef<(stackTier: number, forcedSkill?: SiliaSkillKind) => void>(() => {});
 
   const battleBpm = 128;
 
@@ -2711,7 +2711,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const cur = latestMatchRef.current;
       if (cur.phase !== 'PLAYING') return;
 
-      // Smartly pick Silia's co-cast Windstorm skill to fire TOGETHER with Kadan's Blizzard!
+      // Smartly pick Silia's follow-up Windstorm skill to fire AFTER Kadan's Blizzard!
       const pickedSiliaSkill: SiliaSkillKind =
         cur.player.health <= 18
           ? 'HEAL'
@@ -2730,34 +2730,31 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         recordEntityStagePosition('SILIA_WIDGET', { x: pt.x + 36, y: pt.y });
       }
 
-      window.dispatchEvent(
-        new CustomEvent('snshero:dual-ultimate-cast', {
-          detail: { skillKind: pickedSiliaSkill },
-        }),
-      );
-
+      // 1) Kadan casts first!
       const seqId = Date.now() + stackTier;
       setKadanUltCutIn({
         stackTier,
         stackCount: 100,
-        siliaSkill: pickedSiliaSkill,
         seq: seqId,
       });
       window.setTimeout(() => {
         setKadanUltCutIn((prev) => (prev?.seq === seqId ? null : prev));
-      }, 1750);
+      }, 1000);
 
       const afterKadan = createEngine(cur).useKadanMomentumUltimate(stackTier);
-      const next =
-        afterKadan.phase === 'PLAYING'
-          ? createEngine(afterKadan).useSiliaChainUltimate(pickedSiliaSkill, stackTier)
-          : afterKadan;
-      setMatchState(next);
+      setMatchState(afterKadan);
+
+      // 2) Silia casts next after Kadan's strike finishes!
+      if (afterKadan.phase === 'PLAYING') {
+        window.setTimeout(() => {
+          fireSiliaChainRef.current(stackTier, pickedSiliaSkill);
+        }, 1050);
+      }
     };
     runBlast();
   };
 
-  fireSiliaChainRef.current = (stackTier: number) => {
+  fireSiliaChainRef.current = (stackTier: number, forcedSkill?: SiliaSkillKind) => {
     const runSiliaBlast = () => {
       if (attackLockRef.current) {
         window.setTimeout(runSiliaBlast, 60);
@@ -2766,7 +2763,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       const cur = latestMatchRef.current;
       if (cur.phase !== 'PLAYING') return;
       const pool: SiliaSkillKind[] = ['ATTACK', 'DEFENSE', 'HEAL'];
-      const picked = pool[Math.floor(Math.random() * pool.length)];
+      const picked = forcedSkill ?? pool[Math.floor(Math.random() * pool.length)];
 
       document.querySelectorAll('[data-hs-entity]').forEach((el) => {
         const id = el.getAttribute('data-hs-entity');
@@ -8273,11 +8270,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         />
       )}
 
-      {/* Kadan & Silia Simultaneous Dual Ultimate Cut-In (`카단이 필살기 쓸때 실리아도 같이 시전!`) */}
+      {/* Kadan Solo Ultimate Cut-In (Step 1: Kadan casts first, then Silia follows!) */}
       {kadanUltCutIn && (() => {
         const tier = Math.max(1, Math.min(8, kadanUltCutIn.stackTier));
         const stackNum = kadanUltCutIn.stackCount || 100;
-        const sk = kadanUltCutIn.siliaSkill || 'ATTACK';
         const aoeDmg = 5 * tier;
         const armorGain = 6 * tier;
         const buffStat = 2 * tier;
@@ -8287,38 +8283,30 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             : tier === 2
               ? tr('절대영도 빙하참', 'Absolute Zero Cleave')
               : tr('창성 대눈보라 심판', 'Genesis Blizzard');
-        const siliaSkillName =
-          sk === 'ATTACK'
-            ? tr('녹풍 대참격', 'Emerald Tempest')
-            : sk === 'DEFENSE'
-              ? tr('폭풍 결계진', 'Storm Barrier')
-              : tr('회오리 생명풍', 'Vital Cyclone');
-        const dualSpeech =
-          sk === 'ATTACK'
+        const kadanSpeech =
+          tier === 1
             ? tr(
-                `카단 & 실리아 합동 오의! 혹한 눈보라와 녹풍 대참격으로 적진을 동시에 휩쓸어라!!`,
-                `Kadan & Silia Dual Ultimate! Glacial Blizzard + Emerald Tempest—obliterate them together!!`,
+                '카단의 기세 해방! 혹한의 눈보라로 전장을 얼려버려라!!',
+                'Kadan’s Momentum Unleashed! Freeze the battlefield with Glacial Blizzard!!',
               )
-            : sk === 'DEFENSE'
+            : tier === 2
               ? tr(
-                  `우리 둘의 힘으로 동료를 지키고 심판한다! 눈보라 폭풍 & 폭풍 결계진 동시 발동!!`,
-                  `Together we shield and strike! Glacial Blizzard + Storm Barrier—UNLEASH!!`,
+                  '빙하를 가르는 일격! 절대영도의 폭풍이 몰아친다!!',
+                  'Absolute Zero Cleave! Let the freezing tempest sweep all foes!!',
                 )
               : tr(
-                  `얼음과 생명의 바람이 공명한다! 눈보라 심판 & 회오리 생명풍 합동 작렬!!`,
-                  `Frost and Vital Gale as one! Blizzard Judgment + Vital Cyclone—ERUPT!!`,
+                  '창성의 눈보라여, 모든 적을 심판하라! 실리아, 뒤를 부탁한다!!',
+                  'Genesis Blizzard, judge them all! Silia, follow my strike!!',
                 );
-        const totalWindDmg = sk === 'ATTACK' ? 2 * tier : tier;
         const effectTag = tr(
-          `❄️🌪 합동 적 전체 -${aoeDmg + totalWindDmg} · 방어 +${armorGain} · 아군 강화·보호막`,
-          `❄️🌪 Dual AoE -${aoeDmg + totalWindDmg} · +${armorGain} Armor · Ally Buff & Shield`,
+          `❄️ 적 전체 -${aoeDmg} · 방어 +${armorGain} · 아군 +${buffStat}/+${buffStat}`,
+          `❄️ Enemy AoE -${aoeDmg} · +${armorGain} Armor · Allies +${buffStat}/+${buffStat}`,
         );
         return (
           <div
             key={kadanUltCutIn.seq}
             data-testid="kadan-ultimate-cutin-overlay"
             data-kadan-ult-tier={kadanUltCutIn.stackTier}
-            data-silia-dual-skill={sk}
             className="pointer-events-none fixed inset-0 z-[96] select-none overflow-hidden"
           >
             <div
@@ -8329,38 +8317,28 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   '--hs-shake-dur': '400ms',
                 } as React.CSSProperties
               }
-              className="hs-damage-shake-a absolute inset-x-2.5 top-[48px] mx-auto flex max-w-lg items-center gap-2.5 rounded-2xl border-2 border-cyan-200 bg-gradient-to-r from-[#041528]/95 via-[#061f1e]/95 to-[#031c13]/95 p-2 shadow-[0_16px_40px_rgba(0,0,0,0.94),0_0_26px_rgba(16,185,129,0.65)] backdrop-blur-sm sm:top-[54px] sm:p-2.5"
+              className="hs-damage-shake-a absolute inset-x-2.5 top-[48px] mx-auto flex max-w-lg items-center gap-2.5 rounded-2xl border-2 border-cyan-200 bg-gradient-to-r from-[#041528]/95 via-[#07213a]/95 to-[#041528]/95 p-2 shadow-[0_16px_40px_rgba(0,0,0,0.94),0_0_26px_rgba(56,189,248,0.65)] backdrop-blur-sm sm:top-[54px] sm:p-2.5"
             >
-              <div className="flex shrink-0 items-center -space-x-2">
-                <img
-                  data-testid="kadan-cutin-portrait"
-                  src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
-                  alt={tr('카단', 'Kadan')}
-                  decoding="async"
-                  draggable={false}
-                  className="z-10 h-14 w-14 rounded-xl border-2 border-cyan-200 bg-sky-950/80 object-cover object-top shadow-lg sm:h-18 sm:w-18"
-                />
-                <img
-                  data-testid="silia-cutin-dual-portrait"
-                  src="/hs-assets/upper-hd/062_Celia.webp?v=hd20"
-                  alt={tr('실리아', 'Silia')}
-                  decoding="async"
-                  draggable={false}
-                  className="h-14 w-14 rounded-xl border-2 border-emerald-300 bg-emerald-950/80 object-cover object-top shadow-lg sm:h-18 sm:w-18"
-                />
-              </div>
+              <img
+                data-testid="kadan-cutin-portrait"
+                src="/hs-assets/bosses/kadan_upper.webp?v=hd20"
+                alt={tr('카단', 'Kadan')}
+                decoding="async"
+                draggable={false}
+                className="h-14 w-14 shrink-0 rounded-xl border-2 border-cyan-200 bg-sky-950/80 object-cover object-top shadow-lg sm:h-18 sm:w-18"
+              />
               <div className="min-w-0 flex-1 text-left">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-md border border-cyan-100 bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-700 px-2 py-0.5 text-[10px] font-black text-white shadow sm:text-[10.5px]">
-                    ❄️🌪 {tr(`카단·실리아 합동 필살기 X${stackNum}`, `Kadan & Silia Dual Ult X${stackNum}`)} · {kadanSkillName} + {siliaSkillName}
+                  <span className="rounded-md border border-cyan-100 bg-gradient-to-r from-sky-600 to-cyan-700 px-2 py-0.5 text-[10px] font-black text-white shadow sm:text-[10.5px]">
+                    ❄️ {tr(`카단 필살기 X${stackNum}`, `Kadan Ultimate X${stackNum}`)} · {kadanSkillName}
                   </span>
-                  <span className="text-[10px] font-extrabold text-emerald-200 sm:text-[10.5px]">{effectTag}</span>
+                  <span className="text-[10px] font-extrabold text-cyan-200 sm:text-[10.5px]">{effectTag}</span>
                 </div>
                 <p
                   data-testid="kadan-cutin-dialogue-text"
                   className="mt-1 text-xs font-extrabold leading-snug text-white sm:text-sm"
                 >
-                  “{dualSpeech}”
+                  “{kadanSpeech}”
                 </p>
               </div>
             </div>
