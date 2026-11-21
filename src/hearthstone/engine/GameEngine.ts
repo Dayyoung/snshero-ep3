@@ -2736,15 +2736,15 @@ export function createEngine(rawState: BattleMatchState) {
     const enemyTargets = [...state.opponent.board];
 
     if (skillKind === 'ATTACK') {
-      const windDmg = 2 * tier;
+      const windDmg = Math.min(6, 1 + tier);
       pushVfx(
         'SILIA_WIND_ATTACK',
         'OPPONENT_HERO',
         'SILIA_WIDGET',
-        tier + 1,
+        tier,
         ko
-          ? `🌪 실리아 연속 바람풍 [녹풍 대참격] · 적 전체 -${windDmg}!`
-          : `🌪 Silia Chain Gale [Emerald Tempest] · Enemies -${windDmg}!`,
+          ? `⚔️ [공격] 실리아 · 녹풍 대참격 (적 전체 -${windDmg})`
+          : `⚔️ [ATTACK] Silia · Emerald Tempest (All Enemies -${windDmg})`,
       );
       for (const em of enemyTargets) {
         pushVfx('SILIA_WIND_ATTACK', em.uid, 'SILIA_WIDGET', windDmg);
@@ -2754,75 +2754,69 @@ export function createEngine(rawState: BattleMatchState) {
       pushHistory({
         actorSide: 'PLAYER',
         cardId: 'HERO_08bp',
-        title: ko ? '실리아 연계 · 녹풍 대참격' : 'Silia Chain · Emerald Tempest',
+        title: ko ? '실리아 [공격] · 녹풍 대참격' : 'Silia [Attack] · Emerald Tempest',
         detail: ko
-          ? `카단 연계 바람풍 공격으로 적 전체·영웅에 -${windDmg} 피해`
-          : `Chained Windstorm dealt ${windDmg} damage to all enemies & Hero`,
+          ? `실리아 공격 필살기로 적 하수인·영웅 전체에 -${windDmg} 피해`
+          : `Silia Attack Ultimate dealt ${windDmg} damage to all enemies & Hero`,
         kind: 'HERO_POWER',
       });
     } else if (skillKind === 'DEFENSE') {
-      const windDmg = tier;
+      const armorAmt = Math.min(6, 2 + tier);
+      const buffAmt = Math.min(2, tier);
+      addArmor('PLAYER', armorAmt);
       pushVfx(
-        'SILIA_WIND_ATTACK',
-        'OPPONENT_HERO',
+        'SILIA_WIND_DEFENSE',
+        'PLAYER_HERO',
         'SILIA_WIDGET',
         tier,
         ko
-          ? `🌪🛡 실리아 연속 바람풍 [폭풍 결계진] · 아군 보호막 & 적 -${windDmg}!`
-          : `🌪🛡 Silia Chain Gale [Storm Barrier] · Ally Shield & Enemies -${windDmg}!`,
+          ? `🛡️ [방어] 실리아 · 폭풍 결계진 (방어 +${armorAmt} · 아군 보호막)`
+          : `🛡️ [DEFENSE] Silia · Storm Barrier (+${armorAmt} Armor · Ally Shield)`,
       );
       for (const fm of state.player.board) {
         fm.divineShield = true;
-        fm.permAttack += tier;
-        fm.maxHealth += tier;
-        fm.health += tier;
-        pushVfx('SILIA_WIND_DEFENSE', fm.uid, 'SILIA_WIDGET', tier);
+        fm.permAttack += buffAmt;
+        fm.maxHealth += buffAmt;
+        fm.health += buffAmt;
+        pushVfx('SILIA_WIND_DEFENSE', fm.uid, 'SILIA_WIDGET', buffAmt);
       }
       if (state.player.board.length > 0) {
         recalculateAuras();
       }
-      for (const em of enemyTargets) {
-        pushVfx('SILIA_WIND_ATTACK', em.uid, 'SILIA_WIDGET', windDmg);
-        dealDamage(em.uid, windDmg, 'PLAYER', undefined, 'SILIA');
-      }
-      dealDamage('OPPONENT_HERO', windDmg, 'PLAYER', undefined, 'SILIA');
       pushHistory({
         actorSide: 'PLAYER',
         cardId: 'HERO_09bp',
-        title: ko ? '실리아 연계 · 폭풍 결계진' : 'Silia Chain · Storm Barrier',
+        title: ko ? '실리아 [방어] · 폭풍 결계진' : 'Silia [Defense] · Storm Barrier',
         detail: ko
-          ? `아군 전체 보호막·+${tier}/+${tier} 부여 및 적 전체 바람칼날 -${windDmg} 피해`
-          : `Granted Shield & +${tier}/+${tier} to allies and dealt ${windDmg} Windstorm damage`,
+          ? `영웅 방어도 +${armorAmt} 및 아군 전체 보호막·+${buffAmt}/+${buffAmt} 부여`
+          : `Granted +${armorAmt} Hero Armor and Divine Shield & +${buffAmt}/+${buffAmt} to allies`,
         kind: 'HERO_POWER',
       });
     } else {
-      const windDmg = tier;
-      const healAmt = 3 * tier;
-      const armorAmt = 2 * tier;
+      const healAmt = Math.min(10, 2 + tier * 2);
+      const minionHeal = Math.min(4, 1 + tier);
       healTarget('PLAYER_HERO', healAmt, 'PLAYER');
-      addArmor('PLAYER', armorAmt);
-      pushVfx(
-        'SILIA_WIND_ATTACK',
-        'OPPONENT_HERO',
-        'SILIA_WIDGET',
-        tier,
-        ko
-          ? `🌪💚 실리아 연속 바람풍 [회오리 생명풍] · 회복 +${healAmt} & 적 -${windDmg}!`
-          : `🌪💚 Silia Chain Gale [Vital Cyclone] · +${healAmt} HP & Enemies -${windDmg}!`,
-      );
-      pushVfx('SILIA_WIND_HEAL', 'PLAYER_HERO', 'SILIA_WIDGET', healAmt);
-      for (const em of enemyTargets) {
-        pushVfx('SILIA_WIND_ATTACK', em.uid, 'SILIA_WIDGET', windDmg);
-        dealDamage(em.uid, windDmg, 'PLAYER', undefined, 'SILIA');
+      for (const fm of state.player.board) {
+        if (fm.health < fm.maxHealth) {
+          healTarget(fm.uid, minionHeal, 'PLAYER');
+        }
       }
-      dealDamage('OPPONENT_HERO', windDmg, 'PLAYER', undefined, 'SILIA');
+      pushVfx(
+        'SILIA_WIND_HEAL',
+        'PLAYER_HERO',
+        'SILIA_WIDGET',
+        healAmt,
+        ko
+          ? `💚 [치유] 실리아 · 회오리 생명풍 (체력 +${healAmt} 회복)`
+          : `💚 [HEAL] Silia · Vital Cyclone (+${healAmt} HP Restored)`,
+      );
       pushHistory({
         actorSide: 'PLAYER',
         cardId: 'HERO_09bp',
-        title: ko ? '실리아 연계 · 회오리 생명풍' : 'Silia Chain · Vital Cyclone',
+        title: ko ? '실리아 [치유] · 회오리 생명풍' : 'Silia [Heal] · Vital Cyclone',
         detail: ko
-          ? `영웅 체력 +${healAmt}·방어도 +${armorAmt} 회복 및 적 전체 바람풍 -${windDmg} 피해`
-          : `Restored +${healAmt} HP & +${armorAmt} Armor and dealt ${windDmg} Windstorm damage`,
+          ? `영웅 체력 +${healAmt} 및 부상 아군 +${minionHeal} 치유`
+          : `Restored +${healAmt} Hero HP and +${minionHeal} HP to injured allies`,
         kind: 'HERO_POWER',
       });
     }

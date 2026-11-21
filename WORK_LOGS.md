@@ -1702,3 +1702,13 @@
   - **검증 및 로컬 커밋**:
     - `npx tsc --noEmit && npm run build` 0에러 통과.
     - Playwright 실측 검증(모바일 `390×844` KO/EN, 데스크톱 `1280×800` KO): 진행 중 방 관전 진입 및 `PVP_STATE_SYNC` 실시간 전장 반영(`liveBoardSynced: true`), 종료 방 경기 결과 모달 표시(`resultViewVisible: true`) 전수 통과. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-22 08:45 KST] [실리아 필살기 3종 단일 효과 분리·밸런싱 및 3색 전용 VFX/컷인 차별화]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **원인**: 기존 `useSiliaChainUltimate`는 `DEFENSE`/`HEAL`이 선택되어도 모두 `SILIA_WIND_ATTACK` 광역 피해를 동시에 발동하고, `BoardVfxCanvas.tsx`에서도 3종이 동일한 초록색 토네이도로 그려져 3개가 한꺼번에 나가는 것처럼 보이고 지나치게 강력했음.
+  - **수정 내용**:
+    - [`GameEngine.ts`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/engine/GameEngine.ts): `ATTACK` / `DEFENSE` / `HEAL` 중 1종의 순수 효과만 발동하도록 분리하고 수치 밸런싱(공격: 적 전체 `-min(6, 1+tier)`만, 방어: 영웅 방어 `+min(6, 2+tier)` + 아군 보호막·`+min(2, tier)`만, 치유: 영웅 `+min(10, 2+tier*2)` + 부상 아군 `+min(4, 1+tier)`만, 방어/치유 시 적 피해 0).
+    - [`BoardVfxCanvas.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/vfx/BoardVfxCanvas.tsx): `st.subVariant`별로 캔버스 연출 완전 차별화 — **공격(붉은·주황 회오리 + 바람 칼날)**, **방어(청빛·황금 보호 결계 링)**, **치유(에메랄드·벚꽃빛 상승 치유 오브)**.
+    - [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx): 실리아 컷인 배너도 `[공격]`(레드)·`[방어]`(스카이/골드)·`[치유]`(에메랄드) 3색 테마 및 단일 효과 안내로 통일.
+  - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 `git commit` 완료 (`git push` 보류).

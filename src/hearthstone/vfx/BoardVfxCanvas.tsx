@@ -1507,38 +1507,91 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
             ctx.restore();
           }
         } else {
-          // ==================== SILIA_WINDSTORM (`실리아 바람풍 대폭풍`) ====================
-          // 1) Tempest Storm-Jade Atmospheric Contrast Veil
+          // ==================== SILIA_WINDSTORM (`실리아 3종 속성별 전용 필살기 연출`) ====================
+          const siliaVariant = st.subVariant || 'ATTACK';
+          const palette =
+            siliaVariant === 'ATTACK'
+              ? {
+                  sky0: [69, 10, 10],
+                  sky1: [153, 27, 27],
+                  sky2: [67, 20, 7],
+                  flash: [254, 215, 170],
+                  jetOuter: [239, 68, 68],
+                  jetMid: [251, 146, 60],
+                  jetCore: [254, 249, 195],
+                  mistCore: [254, 202, 202],
+                  mistOuter: [220, 38, 38],
+                  ringMain: '#fca5a5',
+                  ringSub: '#f97316',
+                  bladeLight: '#fed7aa',
+                  bladeMid: '#fb7185',
+                  bladeDark: '#dc2626',
+                }
+              : siliaVariant === 'DEFENSE'
+                ? {
+                    sky0: [12, 34, 68],
+                    sky1: [7, 89, 133],
+                    sky2: [30, 58, 138],
+                    flash: [254, 240, 138],
+                    jetOuter: [56, 189, 248],
+                    jetMid: [250, 204, 21],
+                    jetCore: [224, 242, 254],
+                    mistCore: [254, 240, 138],
+                    mistOuter: [56, 189, 248],
+                    ringMain: '#fde047',
+                    ringSub: '#38bdf8',
+                    bladeLight: '#fef08a',
+                    bladeMid: '#38bdf8',
+                    bladeDark: '#0284c7',
+                  }
+                : {
+                    sky0: [2, 44, 34],
+                    sky1: [6, 95, 70],
+                    sky2: [6, 78, 59],
+                    flash: [209, 250, 229],
+                    jetOuter: [16, 185, 129],
+                    jetMid: [74, 222, 128],
+                    jetCore: [236, 253, 245],
+                    mistCore: [251, 207, 232],
+                    mistOuter: [16, 185, 129],
+                    ringMain: '#86efac',
+                    ringSub: '#34d399',
+                    bladeLight: '#bbf7d0',
+                    bladeMid: '#4ade80',
+                    bladeDark: '#10b981',
+                  };
+
+          // 1) Variant-Specific Atmospheric Contrast Veil
           const windSky = ctx.createLinearGradient(0, 0, 0, height);
-          windSky.addColorStop(0, `rgba(2, 34, 27, ${(0.44 * envAlpha).toFixed(3)})`);
-          windSky.addColorStop(0.5, `rgba(6, 78, 59, ${(0.24 * envAlpha).toFixed(3)})`);
-          windSky.addColorStop(1, `rgba(2, 44, 34, ${(0.34 * envAlpha).toFixed(3)})`);
+          windSky.addColorStop(0, `rgba(${palette.sky0.join(',')}, ${(0.42 * envAlpha).toFixed(3)})`);
+          windSky.addColorStop(0.5, `rgba(${palette.sky1.join(',')}, ${(0.24 * envAlpha).toFixed(3)})`);
+          windSky.addColorStop(1, `rgba(${palette.sky2.join(',')}, ${(0.34 * envAlpha).toFixed(3)})`);
           ctx.fillStyle = windSky;
           ctx.fillRect(0, 0, width, height);
 
           if (st.life <= 7) {
-            ctx.fillStyle = `rgba(209, 250, 229, ${((1 - st.life / 7) * 0.34).toFixed(3)})`;
+            ctx.fillStyle = `rgba(${palette.flash.join(',')}, ${((1 - st.life / 7) * 0.34).toFixed(3)})`;
             ctx.fillRect(0, 0, width, height);
           }
 
-          // 2) Full-Width Flowing S-Curve Aerodynamic Jetstream Ribbons (`전장 관통 제트기류`)
+          // 2) Flowing S-Curve Aerodynamic Jetstream Ribbons (Color-Coded by Skill)
           ctx.lineCap = 'round';
-          for (let j = 0; j < 8; j++) {
-            const baseY = height * (0.12 + j * 0.095);
+          for (let j = 0; j < 7; j++) {
+            const baseY = height * (0.14 + j * 0.105);
             const phaseShift = st.life * 0.28 + j * 1.15;
-            const amp = 20 + (j % 3) * 14;
-            const streamOffset = ((st.life * (34 + j * 5) + j * 180) % (width * 1.6)) - width * 0.45;
+            const amp = 18 + (j % 3) * 12;
+            const streamOffset = ((st.life * (32 + j * 5) + j * 180) % (width * 1.6)) - width * 0.45;
             const xStart = streamOffset - width * 0.42;
             const xEnd = streamOffset + width * 0.42;
 
             const jetGrad = ctx.createLinearGradient(xStart, baseY, xEnd, baseY);
-            jetGrad.addColorStop(0, 'rgba(16, 185, 129, 0)');
-            jetGrad.addColorStop(0.35, `rgba(52, 211, 153, ${(0.42 * envAlpha).toFixed(3)})`);
-            jetGrad.addColorStop(0.65, `rgba(236, 253, 245, ${(0.82 * envAlpha).toFixed(3)})`);
-            jetGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            jetGrad.addColorStop(0, `rgba(${palette.jetOuter.join(',')}, 0)`);
+            jetGrad.addColorStop(0.35, `rgba(${palette.jetMid.join(',')}, ${(0.45 * envAlpha).toFixed(3)})`);
+            jetGrad.addColorStop(0.65, `rgba(${palette.jetCore.join(',')}, ${(0.85 * envAlpha).toFixed(3)})`);
+            jetGrad.addColorStop(1, `rgba(${palette.jetOuter.join(',')}, 0)`);
 
-            ctx.strokeStyle = `rgba(16, 185, 129, ${(0.18 * envAlpha).toFixed(3)})`;
-            ctx.lineWidth = 12 - (j % 3) * 2.5;
+            ctx.strokeStyle = `rgba(${palette.jetOuter.join(',')}, ${(0.18 * envAlpha).toFixed(3)})`;
+            ctx.lineWidth = 11 - (j % 3) * 2;
             ctx.beginPath();
             for (let s = 0; s <= 16; s++) {
               const u = s / 16;
@@ -1562,95 +1615,132 @@ export const BoardVfxCanvas: React.FC<BoardVfxCanvasProps> = React.memo(({ event
             ctx.stroke();
           }
 
-          // 3) 3 Organic Swirling Vortex Hurricane Cyclones (`부드러운 소용돌이 기류 링 토네이도` — 직선 원뿔 없음!)
-          for (const td of st.tornadoes) {
-            const tx = td.x0 + (td.x1 - td.x0) * prog;
-            const ringCount = 26;
+          // 3) Variant-Specific Core Signature Effect:
+          // - ATTACK: Crimson-Orange Swirling Vortexes + Razor Wind Scythe Blades
+          // - DEFENSE: Expanding Golden-Azure Aegis Barrier Domes around Friendly Field
+          // - HEAL: Rising Emerald-Blossom Vital Orbs & Gentle Healing Halo
+          if (siliaVariant === 'DEFENSE') {
             ctx.save();
-            for (let c = 0; c < ringCount; c++) {
-              const frac = c / (ringCount - 1);
-              const cy = td.baseY - frac * td.height;
-              const sway = Math.sin(st.life * 0.28 + frac * 4.6 + td.phase) * (10 + frac * 24);
-              const cx = tx + sway;
-              const rx = td.footRadius + Math.pow(frac, 1.35) * (td.mouthRadius - td.footRadius);
-              const ry = rx * 0.28;
-
-              // Soft emerald mist glow inside the funnel core (every 3rd slice)
-              if (c % 3 === 0) {
-                const mist = ctx.createRadialGradient(cx, cy, 0, cx, cy, rx * 1.15);
-                mist.addColorStop(0, `rgba(167, 243, 208, ${(0.22 * envAlpha).toFixed(3)})`);
-                mist.addColorStop(0.6, `rgba(16, 185, 129, ${(0.12 * envAlpha).toFixed(3)})`);
-                mist.addColorStop(1, 'rgba(16, 185, 129, 0)');
-                ctx.fillStyle = mist;
-                ctx.beginPath();
-                ctx.ellipse(cx, cy, rx * 1.15, ry * 1.6, -0.08, 0, Math.PI * 2);
-                ctx.fill();
-              }
-
-              // Fast-orbiting curved vortex wind-ribbon arcs (2 opposing arcs per level)
-              const spinBase = -st.life * (0.42 - frac * 0.1) + c * 0.72 + td.phase;
-              for (let arcIdx = 0; arcIdx < 2; arcIdx++) {
-                const a0 = spinBase + arcIdx * Math.PI;
-                const a1 = a0 + Math.PI * 0.72;
-                ctx.globalAlpha = envAlpha * (arcIdx === 0 ? 0.86 : 0.48) * (1 - frac * 0.18);
-                ctx.strokeStyle =
-                  c % 3 === 0 ? '#ffffff' : arcIdx === 0 ? '#a7f3d0' : '#34d399';
-                ctx.lineWidth = (arcIdx === 0 ? 3.4 : 2.1) * (1 - frac * 0.2);
-                ctx.beginPath();
-                ctx.ellipse(cx, cy, rx, ry, -0.08, a0, a1);
-                ctx.stroke();
-              }
+            const shieldCx = width * 0.5;
+            const shieldCy = height * 0.68;
+            for (let rIdx = 0; rIdx < 3; rIdx++) {
+              const rProg = Math.min(1, Math.max(0, prog * 1.25 - rIdx * 0.14));
+              const radX = width * (0.18 + rProg * 0.34);
+              const radY = height * (0.09 + rProg * 0.16);
+              ctx.globalAlpha = envAlpha * (1 - rProg * 0.45) * 0.85;
+              ctx.strokeStyle = rIdx % 2 === 0 ? '#fde047' : '#38bdf8';
+              ctx.lineWidth = 4 - rIdx * 0.8;
+              ctx.beginPath();
+              ctx.ellipse(shieldCx, shieldCy, radX, radY, 0, 0, Math.PI * 2);
+              ctx.stroke();
             }
             ctx.restore();
-          }
-
-          // 4) Razor-Thin Hollow Crescent Sonic Wind Scythes (`두 원 교차 기반 예리한 초승달 진공 칼날!`)
-          for (const bl of st.blades) {
-            bl.x += bl.vx;
-            bl.y += bl.vy;
-            if (bl.x > width + 110) bl.x -= width * 1.5;
-
+          } else if (siliaVariant === 'HEAL') {
             ctx.save();
-            ctx.translate(bl.x, bl.y);
-            ctx.rotate(bl.tilt);
-            ctx.globalAlpha = envAlpha * 0.96;
-
-            const r = bl.radius;
-            const span = Math.PI * 0.44;
-            const outerColor =
-              bl.hue === 'WHITE' ? '#a7f3d0' : bl.hue === 'MINT' ? '#34d399' : '#10b981';
-
-            // Twin Aerodynamic Wingtip Slipstream Trails
-            const tipX = Math.cos(span) * r;
-            const tipY = Math.sin(span) * r;
-            const trailGrad = ctx.createLinearGradient(tipX - 95, 0, tipX, 0);
-            trailGrad.addColorStop(0, 'rgba(52, 211, 153, 0)');
-            trailGrad.addColorStop(1, `rgba(167, 243, 208, ${(0.65 * envAlpha).toFixed(3)})`);
-            ctx.strokeStyle = trailGrad;
-            ctx.lineWidth = 2.2;
-            ctx.beginPath();
-            ctx.moveTo(tipX, -tipY);
-            ctx.lineTo(tipX - 90, -tipY - 5);
-            ctx.moveTo(tipX, tipY);
-            ctx.lineTo(tipX - 90, tipY + 5);
-            ctx.stroke();
-
-            // True Hollow Razor Crescent (Outer circle minus shifted inner circle => needle-sharp tips!)
-            ctx.fillStyle = outerColor;
-            ctx.beginPath();
-            ctx.arc(0, 0, r, -span, span, false);
-            ctx.arc(-r * 0.24, 0, r * 0.98, span * 0.88, -span * 0.88, true);
-            ctx.closePath();
-            ctx.fill();
-
-            // Blazing White Razor Vacuum Leading Edge
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(1.5, 0, r * 0.98, -span * 0.86, span * 0.86, false);
-            ctx.arc(-r * 0.13, 0, r * 0.95, span * 0.78, -span * 0.78, true);
-            ctx.closePath();
-            ctx.fill();
+            for (let orb = 0; orb < 18; orb++) {
+              const ox = width * (0.12 + ((orb * 19) % 76) / 100) + Math.sin(st.life * 0.14 + orb) * 18;
+              const oy = height * 0.92 - ((st.life * (4.2 + (orb % 4) * 1.1) + orb * 32) % (height * 0.78));
+              const rad = 5 + (orb % 3) * 3.5;
+              const orbGrad = ctx.createRadialGradient(ox, oy, 0, ox, oy, rad * 2.2);
+              orbGrad.addColorStop(0, `rgba(255, 255, 255, ${(0.9 * envAlpha).toFixed(3)})`);
+              orbGrad.addColorStop(0.45, orb % 3 === 0 ? `rgba(249, 168, 212, ${(0.65 * envAlpha).toFixed(3)})` : `rgba(74, 222, 128, ${(0.75 * envAlpha).toFixed(3)})`);
+              orbGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+              ctx.fillStyle = orbGrad;
+              ctx.beginPath();
+              ctx.arc(ox, oy, rad * 2.2, 0, Math.PI * 2);
+              ctx.fill();
+            }
             ctx.restore();
+          } else {
+            // ATTACK: Crimson-Orange Tornado Vortexes
+            for (const td of st.tornadoes) {
+              const tx = td.x0 + (td.x1 - td.x0) * prog;
+              const ringCount = 22;
+              ctx.save();
+              for (let c = 0; c < ringCount; c++) {
+                const frac = c / (ringCount - 1);
+                const cy = td.baseY - frac * td.height;
+                const sway = Math.sin(st.life * 0.28 + frac * 4.6 + td.phase) * (10 + frac * 22);
+                const cx = tx + sway;
+                const rx = td.footRadius + Math.pow(frac, 1.35) * (td.mouthRadius - td.footRadius);
+                const ry = rx * 0.28;
+
+                if (c % 3 === 0) {
+                  const mist = ctx.createRadialGradient(cx, cy, 0, cx, cy, rx * 1.15);
+                  mist.addColorStop(0, `rgba(${palette.mistCore.join(',')}, ${(0.24 * envAlpha).toFixed(3)})`);
+                  mist.addColorStop(0.6, `rgba(${palette.mistOuter.join(',')}, ${(0.14 * envAlpha).toFixed(3)})`);
+                  mist.addColorStop(1, `rgba(${palette.mistOuter.join(',')}, 0)`);
+                  ctx.fillStyle = mist;
+                  ctx.beginPath();
+                  ctx.ellipse(cx, cy, rx * 1.15, ry * 1.6, -0.08, 0, Math.PI * 2);
+                  ctx.fill();
+                }
+
+                const spinBase = -st.life * (0.42 - frac * 0.1) + c * 0.72 + td.phase;
+                for (let arcIdx = 0; arcIdx < 2; arcIdx++) {
+                  const a0 = spinBase + arcIdx * Math.PI;
+                  const a1 = a0 + Math.PI * 0.72;
+                  ctx.globalAlpha = envAlpha * (arcIdx === 0 ? 0.86 : 0.48) * (1 - frac * 0.18);
+                  ctx.strokeStyle =
+                    c % 3 === 0 ? '#ffffff' : arcIdx === 0 ? palette.ringMain : palette.ringSub;
+                  ctx.lineWidth = (arcIdx === 0 ? 3.4 : 2.1) * (1 - frac * 0.2);
+                  ctx.beginPath();
+                  ctx.ellipse(cx, cy, rx, ry, -0.08, a0, a1);
+                  ctx.stroke();
+                }
+              }
+              ctx.restore();
+            }
+
+            // 4) Razor-Thin Hollow Crescent Sonic Wind Scythes (ATTACK only!)
+            for (const bl of st.blades) {
+              bl.x += bl.vx;
+              bl.y += bl.vy;
+              if (bl.x > width + 110) bl.x -= width * 1.5;
+
+              ctx.save();
+              ctx.translate(bl.x, bl.y);
+              ctx.rotate(bl.tilt);
+              ctx.globalAlpha = envAlpha * 0.96;
+
+              const r = bl.radius;
+              const span = Math.PI * 0.44;
+              const outerColor =
+                bl.hue === 'WHITE'
+                  ? palette.bladeLight
+                  : bl.hue === 'MINT'
+                    ? palette.bladeMid
+                    : palette.bladeDark;
+
+              const tipX = Math.cos(span) * r;
+              const tipY = Math.sin(span) * r;
+              const trailGrad = ctx.createLinearGradient(tipX - 95, 0, tipX, 0);
+              trailGrad.addColorStop(0, `rgba(${palette.jetOuter.join(',')}, 0)`);
+              trailGrad.addColorStop(1, `rgba(${palette.mistCore.join(',')}, ${(0.65 * envAlpha).toFixed(3)})`);
+              ctx.strokeStyle = trailGrad;
+              ctx.lineWidth = 2.2;
+              ctx.beginPath();
+              ctx.moveTo(tipX, -tipY);
+              ctx.lineTo(tipX - 90, -tipY - 5);
+              ctx.moveTo(tipX, tipY);
+              ctx.lineTo(tipX - 90, tipY + 5);
+              ctx.stroke();
+
+              ctx.fillStyle = outerColor;
+              ctx.beginPath();
+              ctx.arc(0, 0, r, -span, span, false);
+              ctx.arc(-r * 0.24, 0, r * 0.98, span * 0.88, -span * 0.88, true);
+              ctx.closePath();
+              ctx.fill();
+
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              ctx.arc(1.5, 0, r * 0.98, -span * 0.86, span * 0.86, false);
+              ctx.arc(-r * 0.13, 0, r * 0.95, span * 0.78, -span * 0.78, true);
+              ctx.closePath();
+              ctx.fill();
+              ctx.restore();
+            }
           }
 
           // 5) 3D-Tumbling Botanical Emerald Wind-Leaves (`폭풍 기류를 타고 휘날리는 신록의 나뭇잎`)

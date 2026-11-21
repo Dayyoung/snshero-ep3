@@ -8394,37 +8394,72 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         );
       })()}
 
-      {/* Silia Chained Random Windstorm Cut-In (`카단 공격 직후 실리아 연속 바람풍 무작위 필살기!`) */}
+      {/* Silia Follow-Up Ultimate Cut-In (1 of 3 Distinct Roles: ATTACK Red / DEFENSE Blue-Gold / HEAL Emerald) */}
       {siliaChainCutIn && (() => {
         const tier = Math.max(1, Math.min(8, siliaChainCutIn.stackTier));
         const sk = siliaChainCutIn.skillKind;
+        const atkDmg = Math.min(6, 1 + tier);
+        const armorAmt = Math.min(6, 2 + tier);
+        const buffAmt = Math.min(2, tier);
+        const healAmt = Math.min(10, 2 + tier * 2);
+        const minionHeal = Math.min(4, 1 + tier);
         const skillName =
           sk === 'ATTACK'
             ? tr('녹풍 대참격', 'Emerald Tempest')
             : sk === 'DEFENSE'
               ? tr('폭풍 결계진', 'Storm Barrier')
               : tr('회오리 생명풍', 'Vital Cyclone');
+        const roleBadge =
+          sk === 'ATTACK'
+            ? tr('⚔️ [공격] 실리아', '⚔️ [ATTACK] Silia')
+            : sk === 'DEFENSE'
+              ? tr('🛡️ [방어] 실리아', '🛡️ [DEFENSE] Silia')
+              : tr('💚 [치유] 실리아', '💚 [HEAL] Silia');
         const siliaSpeech =
           sk === 'ATTACK'
             ? tr(
-                '카단에 이어 제가 마무리할게요! 휘몰아쳐라, 녹풍 대참격 바람폭풍!!',
-                "Following Kadan's lead! Roar, Emerald Tempest Windstorm!!",
+                '카단에 이어 제가 베어버릴게요! 붉은 폭풍, 녹풍 대참격!!',
+                "Following Kadan's lead! Strike them down, Emerald Tempest!!",
               )
             : sk === 'DEFENSE'
               ? tr(
-                  '카단의 뒤는 제 회오리가 지켜요! 폭풍 결계진, 적들을 베어 넘겨라!!',
-                  "My gale backs Kadan up! Storm Barrier—slice them apart!!",
+                  '모두를 폭풍의 방패로 지켜낼게요! 황금 폭풍 결계진 전개!!',
+                  'Shielding all allies with the gale! Deploy Storm Barrier!!',
                 )
               : tr(
-                  '회오리 바람이여, 우리를 치유하고 적진을 찢어라! 회오리 생명풍 작렬!!',
-                  'Whirlwind of life, heal us and tear through our foes!!',
+                  '생명의 바람이여, 상처를 치유해 주세요! 회오리 생명풍!!',
+                  'Winds of life, mend our wounds! Vital Cyclone!!',
                 );
         const effectTag =
           sk === 'ATTACK'
-            ? tr(`🌪 적 전체·영웅 -${2 * tier} 바람풍 피해`, `🌪 Windstorm -${2 * tier} All Enemies`)
+            ? tr(`⚔️ 적 전체·영웅 -${atkDmg} 피해`, `⚔️ All Enemies -${atkDmg} DMG`)
             : sk === 'DEFENSE'
-              ? tr(`🌪 아군 보호막·+${tier}/+${tier} & 적 전체 -${tier}`, `🌪 Ally Shield·+${tier}/+${tier} & Enemies -${tier}`)
-              : tr(`🌪 영웅 +${3 * tier} 회복·방어 +${2 * tier} & 적 전체 -${tier}`, `🌪 +${3 * tier} HP·+${2 * tier} Armor & Enemies -${tier}`);
+              ? tr(`🛡️ 방어 +${armorAmt} · 아군 보호막 +${buffAmt}/+${buffAmt}`, `🛡️ +${armorAmt} Armor · Ally Shield +${buffAmt}/+${buffAmt}`)
+              : tr(`💚 영웅 +${healAmt} · 부상 아군 +${minionHeal} 치유`, `💚 +${healAmt} Hero HP · +${minionHeal} Ally Heal`);
+        const frameTheme =
+          sk === 'ATTACK'
+            ? 'border-red-400 bg-gradient-to-r from-[#2b090b]/95 via-[#3b1109]/95 to-[#24090c]/95 shadow-[0_14px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(239,68,68,0.75)]'
+            : sk === 'DEFENSE'
+              ? 'border-sky-300 bg-gradient-to-r from-[#071a33]/95 via-[#0c294d]/95 to-[#1c1a08]/95 shadow-[0_14px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(56,189,248,0.75)]'
+              : 'border-emerald-300 bg-gradient-to-r from-[#031c13]/95 via-[#062e1f]/95 to-[#052117]/95 shadow-[0_14px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(16,185,129,0.75)]';
+        const portraitBorder =
+          sk === 'ATTACK'
+            ? 'border-red-300 bg-red-950/80'
+            : sk === 'DEFENSE'
+              ? 'border-sky-300 bg-sky-950/80'
+              : 'border-emerald-300 bg-emerald-950/80';
+        const badgeTheme =
+          sk === 'ATTACK'
+            ? 'border-red-200 bg-gradient-to-r from-red-600 to-orange-600'
+            : sk === 'DEFENSE'
+              ? 'border-sky-200 bg-gradient-to-r from-sky-600 to-amber-600'
+              : 'border-emerald-200 bg-gradient-to-r from-emerald-600 to-teal-600';
+        const tagTextTheme =
+          sk === 'ATTACK'
+            ? 'text-orange-200'
+            : sk === 'DEFENSE'
+              ? 'text-sky-200'
+              : 'text-emerald-200';
         return (
           <div
             key={siliaChainCutIn.seq}
@@ -8440,7 +8475,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                   '--hs-shake-dur': '380ms',
                 } as React.CSSProperties
               }
-              className="hs-damage-shake-b absolute inset-x-2.5 top-[48px] mx-auto flex max-w-md items-center gap-2.5 rounded-2xl border-2 border-emerald-300 bg-[#031c13]/92 p-2 shadow-[0_14px_36px_rgba(0,0,0,0.92),0_0_24px_rgba(16,185,129,0.7)] backdrop-blur-sm sm:top-[54px] sm:p-2.5"
+              className={`hs-damage-shake-b absolute inset-x-2.5 top-[48px] mx-auto flex max-w-md items-center gap-2.5 rounded-2xl border-2 p-2 backdrop-blur-sm sm:top-[54px] sm:p-2.5 ${frameTheme}`}
             >
               <img
                 data-testid="silia-chain-portrait"
@@ -8448,14 +8483,14 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
                 alt={tr('실리아', 'Silia')}
                 decoding="async"
                 draggable={false}
-                className="h-16 w-16 shrink-0 rounded-xl border-2 border-emerald-300 bg-emerald-950/75 object-cover object-top sm:h-20 sm:w-20"
+                className={`h-16 w-16 shrink-0 rounded-xl border-2 object-cover object-top sm:h-20 sm:w-20 ${portraitBorder}`}
               />
               <div className="min-w-0 flex-1 text-left">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-md border border-emerald-100 bg-gradient-to-r from-emerald-600 to-teal-800 px-2 py-0.5 text-[10.5px] font-black text-white shadow">
-                    🌪 {tr('실리아 연속 바람풍 필살기', 'Silia Chain Windstorm')} · {skillName}
+                  <span className={`rounded-md border px-2 py-0.5 text-[10.5px] font-black text-white shadow ${badgeTheme}`}>
+                    {roleBadge} · {skillName}
                   </span>
-                  <span className="text-[10.5px] font-extrabold text-emerald-200">{effectTag}</span>
+                  <span className={`text-[10.5px] font-extrabold ${tagTextTheme}`}>{effectTag}</span>
                 </div>
                 <p
                   data-testid="silia-chain-dialogue-text"
