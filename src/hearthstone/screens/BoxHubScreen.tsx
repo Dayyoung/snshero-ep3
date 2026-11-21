@@ -56,7 +56,6 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   const [quickRulesOpen, setQuickRulesOpen] = useState(false);
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [inAppDismissed, setInAppDismissed] = useState(false);
-  const [saveToast, setSaveToast] = useState<string | null>(null);
   const [, setPwaTick] = useState(0);
   const unlockInfo = hsStorage.getHubUnlockStage(profile);
   const isFirstVisitGuide = !profile.journeyGuideDone && !unlockInfo.veteranUnlockedAll;
@@ -275,32 +274,6 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
             </button>
           )}
 
-          {!isStage4Unlocked && (
-            <button
-              type="button"
-              data-testid="hub-unlock-all-btn"
-              onClick={() => {
-                hsAudio.playSfx('zelda_secret', 0.85);
-                hsStorage.setVeteranUnlockAll(true);
-                setSaveToast(
-                  tr(
-                    '🔓 숙련자 모드 활성화: 모든 플레이 모드와 메뉴가 즉시 개방되었습니다!',
-                    '🔓 Veteran Mode Active: All play modes & menus unlocked!',
-                  ),
-                );
-                window.setTimeout(() => setSaveToast(null), 3600);
-              }}
-              className="hs-zelda-c-btn hs-mario-spring flex min-h-[42px] items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-stone-950 shadow sm:px-3 sm:py-2"
-              title={tr(
-                `현재 진행 ${unlockInfo.stage}/4단계 · 클릭하여 전체 메뉴 즉시 열기`,
-                `Stage ${unlockInfo.stage}/4 · Click to unlock all modes immediately`,
-              )}
-            >
-              <span>🔓</span>
-              <span>{tr('전체 메뉴 열기', 'Unlock All')}</span>
-            </button>
-          )}
-
           <button
             type="button"
             data-testid="hub-rules-btn"
@@ -451,15 +424,6 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
             >
               {tr('의뢰 확인 →', 'View Quests →')}
             </button>
-          </div>
-        )}
-
-        {saveToast && (
-          <div
-            data-testid="hub-toast-banner"
-            className="mb-2 w-full rounded-2xl border border-emerald-300/80 bg-emerald-950/95 px-3.5 py-2 text-center text-xs font-extrabold text-emerald-100 shadow-lg"
-          >
-            {saveToast}
           </div>
         )}
 

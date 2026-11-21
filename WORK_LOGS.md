@@ -1679,3 +1679,9 @@
   - [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx): 승리 화면의 랭킹 전적 백업 복사(+100G) 버튼(`ranked-first-win-backup-btn`) 제거.
   - [`Modals.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/Modals.tsx): 치장품 장착 후 백업 코드 복사(+100G) 배너 제거 및 결제 영수증/QR 연동 모달의 +100G 보상 지급 로직·문구 제거(백업 저장/복사·QR 연동 기능 자체는 유지).
   - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 커밋 및 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.
+
+## [2026-11-22 07:44 KST] [홈 화면 상단 '전체 메뉴 열기' 버튼 제거]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`BoxHubScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BoxHubScreen.tsx): 홈 화면 상단 툴바의 `전체 메뉴 열기 (Unlock All)` 버튼(`hub-unlock-all-btn`) 및 전용 토스트 배너(`saveToast`) 제거.
+  - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 커밋 및 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.
