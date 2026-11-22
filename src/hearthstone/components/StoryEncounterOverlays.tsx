@@ -257,24 +257,6 @@ export const StoryDuelDialogueOverlay: React.FC<StoryDuelDialogueOverlayProps> =
           )}
           <button
             type="button"
-            data-testid="story-fast-intro-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              hsAudio.playSfx('gem_a_confirm', 0.8);
-              try {
-                const cur = localStorage.getItem('hero_hs_story_fast_intro') === '1';
-                localStorage.setItem('hero_hs_story_fast_intro', cur ? '0' : '1');
-              } catch {
-                // ignore
-              }
-              onComplete();
-            }}
-            className="hs-zelda-c-btn min-h-[44px] rounded-xl px-3 py-1.5 text-xs font-extrabold text-stone-950 shadow-lg"
-          >
-            ⚡ {tr('즉시 결투 진입', 'Quick Duel')}
-          </button>
-          <button
-            type="button"
             data-testid="story-dialogue-skip-btn"
             onClick={(e) => {
               e.stopPropagation();

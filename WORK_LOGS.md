@@ -1727,3 +1727,9 @@
   - **원인**: [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx)에서 `drawnCardToast`의 850ms 자동 소멸 타이머가 `[matchState.phase, matchState.player.hand]` 의존성 `useEffect`의 cleanup(`return () => clearTimeout(t)`)에 묶여 있어, 850ms 이내에 카드 사용 등 손패가 한 번이라도 변동되면 타이머가 취소되고 `drawnCardToast`가 영구 잔류하는 버그 발생.
   - **수정**: `drawnCardToast` 상태를 `{ cardId, seq }` 객체로 변경하고 `[drawnCardToast]` 전용 자동 소멸 `useEffect`로 분리(및 `phase !== 'PLAYING'` 시 즉시 초기화)하여, 이후 손패 변동과 무관하게 항상 850ms 뒤 정상 소멸하도록 수정. `newlyDrawnUids` 타이머도 손패 변동으로 취소되지 않도록 보강.
   - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-22 10:25 KST] [캐릭터 대사 화면 상단 '즉시 결투 진입' 버튼 제거]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - [`StoryEncounterOverlays.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/StoryEncounterOverlays.tsx): 캐릭터 대사 화면 상단 우측의 중복 버튼 `⚡ 즉시 결투 진입 (Quick Duel)` (`story-fast-intro-btn`) 제거 (기존 `건너뛰기 ▸▸ (SKIP ▸▸)` 버튼 유지).
+  - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 `git commit` 완료 (`git push` 보류).
