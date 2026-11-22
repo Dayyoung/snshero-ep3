@@ -231,11 +231,12 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
       role="dialog"
       aria-modal="true"
       data-testid="live-spectator-modal"
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         hsAudio.playSfx('ui_click', 0.45);
         onClose();
       }}
-      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/82 px-2.5 py-2.5 backdrop-blur-sm sm:px-6 sm:py-5"
+      className="pointer-events-auto fixed inset-0 z-[150] flex items-center justify-center bg-black/82 px-2.5 py-2.5 backdrop-blur-sm sm:px-6 sm:py-5"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -278,12 +279,13 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
           <button
             type="button"
             data-testid="live-spectator-close-btn"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               hsAudio.playSfx('ui_click', 0.45);
               onClose();
             }}
             aria-label={tr('관전 창 닫기', 'Close spectator view')}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-300/40 bg-black/50 text-amber-100 hover:bg-stone-800"
+            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-amber-300/40 bg-black/50 text-amber-100 hover:bg-stone-800"
           >
             <X className="h-5 w-5" />
           </button>
@@ -617,11 +619,13 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
         <div className="shrink-0 border-t border-amber-400/25 bg-black/45 px-3.5 py-2.5">
           <button
             type="button"
-            onClick={() => {
+            data-testid="live-spectator-footer-close-btn"
+            onClick={(e) => {
+              e.stopPropagation();
               hsAudio.playSfx('ui_click', 0.45);
               onClose();
             }}
-            className="hs-brass-btn flex min-h-[44px] w-full items-center justify-center rounded-xl text-xs font-black text-amber-100"
+            className="hs-brass-btn flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl text-xs font-black text-amber-100"
           >
             {isResultView ? tr('확인 (닫기)', 'OK (Close)') : tr('관전 종료', 'Leave Spectator Mode')}
           </button>

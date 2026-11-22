@@ -1733,3 +1733,10 @@
 - **작업 개요**:
   - [`StoryEncounterOverlays.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/StoryEncounterOverlays.tsx): 캐릭터 대사 화면 상단 우측의 중복 버튼 `⚡ 즉시 결투 진입 (Quick Duel)` (`story-fast-intro-btn`) 제거 (기존 `건너뛰기 ▸▸ (SKIP ▸▸)` 버튼 유지).
   - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-22 22:18 KST] [채팅창 경기결과·관전 모달 닫기 버튼 미동작 버그 수정]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **원인**: [`LiveSpectatorModal.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/LiveSpectatorModal.tsx)가 `LiveCommunityChatWidget`의 `pointer-events-none` 상위 래퍼 내부에 마운트되어 있어, 모달 배경·닫기(`✕`)·`확인 (닫기)` 버튼의 클릭/터치 이벤트가 모두 통과되던 문제.
+  - **수정**: `LiveSpectatorModal` 루트 백드롭에 `pointer-events-auto`를 명시하고, 상단 `✕` 및 하단 `확인 (닫기)` / `관전 종료` 버튼에 `e.stopPropagation()` 적용.
+  - `npx tsc --noEmit && npm run build` 0에러 통과 및 Playwright 모바일(`390×844` KO/EN)·데스크톱(`1280×800`)에서 실제 클릭(`force` 미사용)으로 상단 `✕` 및 하단 `확인 (닫기)` 정상 닫힘 전수 검증. 로컬 커밋 및 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.
