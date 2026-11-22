@@ -1712,3 +1712,11 @@
     - [`BoardVfxCanvas.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/vfx/BoardVfxCanvas.tsx): `st.subVariant`별로 캔버스 연출 완전 차별화 — **공격(붉은·주황 회오리 + 바람 칼날)**, **방어(청빛·황금 보호 결계 링)**, **치유(에메랄드·벚꽃빛 상승 치유 오브)**.
     - [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx): 실리아 컷인 배너도 `[공격]`(레드)·`[방어]`(스카이/골드)·`[치유]`(에메랄드) 3색 테마 및 단일 효과 안내로 통일.
   - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-22 09:45 KST] [전용 프리뷰 저장소(Dayyoung/snshero-preview) 구축 및 /git-push-pre · /git-merge-pre 스킬 등록]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - 신규 공개 GitHub 저장소 `Dayyoung/snshero-preview` 생성 및 `preview` 원격 저장소 등록, GitHub Pages(Actions 워크플로우 기반) 활성화.
+  - [`.github/workflows/deploy.yml`](file:///home/antigravity/Dayyoung/snshero-ep3/.github/workflows/deploy.yml): `Dayyoung/snshero-preview` 저장소에서 실행 시 `dist/CNAME` 자동 제거 및 `VITE_BASE_PATH=/snshero-preview/` + 루트 에셋 경로(`/hs-assets/`, `/game.html` 등) 자동 프리픽스 치환 로직 추가 (메인 `Dayyoung/snshero-ep3` 배포는 기존과 100% 동일 유지).
+  - 커스텀 스킬 `git-push-pre`(`/git-push-pre`) 및 `git-merge-pre`(`/git-merge-pre`) 등록 및 [`AGENTS.md`](file:///home/antigravity/Dayyoung/snshero-ep3/AGENTS.md) 문서화 완료.
+  - 로컬 커밋 및 `preview main` 최초 푸시 완료 (`origin main` 푸시는 보류).

@@ -109,6 +109,8 @@
 - **`/imp-mission`**: 3D 복셀 미션 게임들을 엄격한 기준으로 심사하여 모바일 적합도/재미/보상이 미달되는 게임을 즉시 폐기하고, 배틀/아케이드/퍼즐/캐주얼 등 다양한 장르의 고품질 신규 게임으로 새로 개발·대체하는 스킬 (매 10분 주기 수행)
 - **`/rsi`**: snshero.com 모바일 게임의 기획/디자인/개발을 전면 검토하고 12대 핵심 화면을 1회 1화면씩 순차 개선하며, 엑셀 대신 `docs/screen_audits/`에 신규 md 분석 문서를 생성하고 코드 구현/빌드를 자동 수행하는 스킬 (매 1시간 주기 수행)
 - **`/git-push`**: 모든 작업은 로컬 커밋(`git commit`)만 수행하며, 오직 사용자가 `/git-push`를 호출하거나 명시적으로 푸시를 요청할 때만 원격 저장소(`origin main`)로 푸시하는 스킬
+- **`/git-push-pre`**: 운영 저장소(`origin`)는 건드리지 않고 현재 로컬 커밋을 전용 프리뷰 저장소(`preview`, `Dayyoung/snshero-preview`)로 푸시하여 `https://dayyoung.github.io/snshero-preview/game.html`에서 외부(PC/모바일) 사전 확인이 가능하도록 배포하는 스킬
+- **`/git-merge-pre`**: 프리뷰 저장소(`preview/main`, `Dayyoung/snshero-preview`)에서 검증 완료된 소스를 메인 운영 저장소(`origin/main`, `Dayyoung/snshero-ep3`)로 병합 및 푸시하여 운영(`snshero.com`)에 반영하는 스킬
 - **`/start-server`**: 포트 3000에서 최신 프로덕션 정적 번들을 초고속으로 서빙(`vite preview`)하고, 소스 변경 시 백그라운드에서 실시간 자동 빌드 갱신(`watch-build`)을 수행하는 고속 프리뷰 및 라이브 워처 가동 스킬
 - **`/update-stone`**: `game.html`(`src/hearthstone/**`)의 최신 기술·엔진·성능·UI/UX 업데이트를 `stone.html`(`src/stone/**`)에 선택적으로 동기화하는 스킬. 원본 하스스톤 고유 리소스(`public/stone-assets/**`)·기능·단독 업데이트 가능 구조(`stone_hs_*`)를 100% 유지하며, 블리자드 IP 라이선스 보호를 위해 결제 기능은 절대 추가하지 않고 무료로 유지함.
 - **`/script-anime`**: `/script-anime 1회`와 같이 호출하면 해당 회차의 영문 소설과 7등신 캐릭터 컷아웃(`public/anime-character-sheets/cutouts/XXX_Name.png`), 배경장소 시트(`LOC-001`~`LOC-020`), 소품 시트(`PROP-001`~`PROP-020`)를 결합하여 6초 동영상 생성용 컷신 프롬프트 리스트(회차 전체 스토리 요약 + 배경 묘사 + 7등신 캐릭터 컷아웃 첨부 + 소품 및 소품 소지자 + 6초 이내 요약 대사 또는 전원 침묵 지침 + 글자 포함 금지 지침)를 생성하는 스킬

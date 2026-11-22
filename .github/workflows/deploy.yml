@@ -31,7 +31,35 @@ jobs:
         run: npm install
 
       - name: Build
+        env:
+          VITE_BASE_PATH: ${{ github.repository == 'Dayyoung/snshero-preview' && '/snshero-preview/' || './' }}
         run: npm run build
+
+      - name: Prepare GitHub Pages subpath for snshero-preview
+        if: github.repository == 'Dayyoung/snshero-preview'
+        run: |
+          rm -f dist/CNAME
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const base = "/snshero-preview";
+            const roots = ["hs-assets", "stone-assets", "images", "sounds", "data", "assets", "anime-character-sheets"];
+            const htmlFiles = ["game.html", "book.html", "webtoon.html", "sns.html", "stone.html", "version.json"];
+            const prefixRegex = new RegExp("([\"'\''`(])\\/((" + roots.join("|") + ")\\/|(" + htmlFiles.map(f => f.replace(".", "\\.")).join("|") + "))", "g");
+            function walk(dir) {
+              for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+                const full = path.join(dir, ent.name);
+                if (ent.isDirectory()) walk(full);
+                else if (/\.(html|js|css)$/.test(ent.name)) {
+                  const src = fs.readFileSync(full, "utf8");
+                  const out = src.replace(prefixRegex, (m, q, rest) => q + base + "/" + rest);
+                  if (out !== src) fs.writeFileSync(full, out, "utf8");
+                }
+              }
+            }
+            walk("dist");
+            console.log("[preview-rewrite] Rewrote root asset paths for " + base);
+          '
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
