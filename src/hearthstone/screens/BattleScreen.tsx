@@ -1493,7 +1493,7 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
   const [handDrag, setHandDrag] = useState<HandDragState | null>(null);
   const [hoveredHandCost, setHoveredHandCost] = useState<number | null>(null);
   const [newlyDrawnUids, setNewlyDrawnUids] = useState<Set<string>>(() => new Set());
-  const [drawnCardToast, setDrawnCardToast] = useState<string | null>(null);
+  const [drawnCardToast, setDrawnCardToast] = useState<{ cardId: string; seq: number } | null>(null);
   const [mulliganSwapping, setMulliganSwapping] = useState(false);
   const [coinGiftShowcase, setCoinGiftShowcase] = useState(false);
   const [playedCardShowcase, setPlayedCardShowcase] = useState<{
@@ -1568,11 +1568,21 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
     };
   }, []);
 
+  // Dedicated auto-dismiss for central Draw! card toast (never cancelled by subsequent hand mutations!)
+  useEffect(() => {
+    if (!drawnCardToast) return;
+    const t = window.setTimeout(() => {
+      setDrawnCardToast(null);
+    }, 850);
+    return () => window.clearTimeout(t);
+  }, [drawnCardToast]);
+
   // Track newly drawn cards in Player's hand for deck -> hand flight animation!
   useEffect(() => {
     const currentUids = matchState.player.hand.map((h) => h.uid);
     if (matchState.phase !== 'PLAYING') {
       knownHandUidsRef.current = new Set(currentUids);
+      setDrawnCardToast(null);
       return;
     }
     const fresh: string[] = [];
@@ -1592,17 +1602,17 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       // DEV-016: Show central 0.85s drawn card preview toast when drawing during own turn (e.g. Hero Power draw)
       if (matchState.activeSide === 'PLAYER' && matchState.history[0]?.kind === 'HERO_POWER') {
         const firstDrawn = matchState.player.hand.find((h) => h.uid === fresh[0]);
-        if (firstDrawn) setDrawnCardToast(firstDrawn.cardId);
+        if (firstDrawn) {
+          setDrawnCardToast({ cardId: firstDrawn.cardId, seq: Date.now() });
+        }
       }
-      const t = window.setTimeout(() => {
-        setDrawnCardToast(null);
+      window.setTimeout(() => {
         setNewlyDrawnUids((prev) => {
           const next = new Set(prev);
           fresh.forEach((u) => next.delete(u));
           return next;
         });
       }, 850);
-      return () => window.clearTimeout(t);
     }
   }, [matchState.phase, matchState.player.hand]);
 
@@ -5099,15 +5109,16 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       )}
 
       {/* Central 0.85s Hero Power / Effect Drawn Card Preview Toast (DEV-016) */}
-      {drawnCardToast && cardDb.getCard(drawnCardToast) && (
+      {drawnCardToast && cardDb.getCard(drawnCardToast.cardId) && (
         <div
+          key={drawnCardToast.seq}
           data-testid="hero-power-draw-toast"
           className="pointer-events-none absolute left-1/2 top-1/2 z-[87] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center animate-[hsCardPop_0.28s_ease-out]"
         >
           <div className="hs-title hs-outline mb-1.5 rounded-full border border-sky-300/60 bg-stone-950/90 px-3 py-0.5 text-sm font-extrabold text-sky-200 sm:text-base">
             {tr('🃏 드로우!', '🃏 Card Drawn!')}
           </div>
-          <HearthstoneCard card={cardDb.mustGetCard(drawnCardToast)} playableGlow="GREEN" size="SM" />
+          <HearthstoneCard card={cardDb.mustGetCard(drawnCardToast.cardId)} playableGlow="GREEN" size="SM" />
         </div>
       )}
 

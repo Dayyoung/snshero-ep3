@@ -1720,3 +1720,10 @@
   - [`.github/workflows/deploy.yml`](file:///home/antigravity/Dayyoung/snshero-ep3/.github/workflows/deploy.yml): `Dayyoung/snshero-preview` 저장소에서 실행 시 `dist/CNAME` 자동 제거 및 `VITE_BASE_PATH=/snshero-preview/` + 루트 에셋 경로(`/hs-assets/`, `/game.html` 등) 자동 프리픽스 치환 로직 추가 (메인 `Dayyoung/snshero-ep3` 배포는 기존과 100% 동일 유지).
   - 커스텀 스킬 `git-push-pre`(`/git-push-pre`) 및 `git-merge-pre`(`/git-merge-pre`) 등록 및 [`AGENTS.md`](file:///home/antigravity/Dayyoung/snshero-ep3/AGENTS.md) 문서화 완료.
   - 로컬 커밋 및 `preview main` 최초 푸시 완료 (`origin main` 푸시는 보류).
+
+## [2026-11-22 10:19 KST] [드로우! 카드 토스트 화면 고정(미소멸) 버그 수정]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **원인**: [`BattleScreen.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/screens/BattleScreen.tsx)에서 `drawnCardToast`의 850ms 자동 소멸 타이머가 `[matchState.phase, matchState.player.hand]` 의존성 `useEffect`의 cleanup(`return () => clearTimeout(t)`)에 묶여 있어, 850ms 이내에 카드 사용 등 손패가 한 번이라도 변동되면 타이머가 취소되고 `drawnCardToast`가 영구 잔류하는 버그 발생.
+  - **수정**: `drawnCardToast` 상태를 `{ cardId, seq }` 객체로 변경하고 `[drawnCardToast]` 전용 자동 소멸 `useEffect`로 분리(및 `phase !== 'PLAYING'` 시 즉시 초기화)하여, 이후 손패 변동과 무관하게 항상 850ms 뒤 정상 소멸하도록 수정. `newlyDrawnUids` 타이머도 손패 변동으로 취소되지 않도록 보강.
+  - `npx tsc --noEmit && npm run build` 0에러 통과. 로컬 `git commit` 완료 (`git push` 보류).
