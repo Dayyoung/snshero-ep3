@@ -1746,3 +1746,12 @@
   - **원인**: [`LiveSpectatorModal.tsx`](file:///home/antigravity/Dayyoung/snshero-ep3/src/hearthstone/components/LiveSpectatorModal.tsx)가 `LiveCommunityChatWidget`의 `pointer-events-none` 상위 래퍼 내부에 마운트되어 있어, 모달 배경·닫기(`✕`)·`확인 (닫기)` 버튼의 클릭/터치 이벤트가 모두 통과되던 문제.
   - **수정**: `LiveSpectatorModal` 루트 백드롭에 `pointer-events-auto`를 명시하고, 상단 `✕` 및 하단 `확인 (닫기)` / `관전 종료` 버튼에 `e.stopPropagation()` 적용.
   - `npx tsc --noEmit && npm run build` 0에러 통과 및 Playwright 모바일(`390×844` KO/EN)·데스크톱(`1280×800`)에서 실제 클릭(`force` 미사용)으로 상단 `✕` 및 하단 `확인 (닫기)` 정상 닫힘 전수 검증. 로컬 커밋 및 사용자 요청(`/git-push`)에 따라 `origin/main` 푸시 완료.
+
+## [2026-11-23 09:12 KST] [브랜드 로고 방패 문장 기반 앱 아이콘 및 파비콘 전면 재생성]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - 기존 화염 몬스터 앱 아이콘(`icon.png`, `pwa-icon-*.png`) 및 구형 흰 배경 파비콘(`favicon.png`)을 최신 브랜드 로고(`logo-ko.webp` / `logo-en.webp`)에 적용된 **황금 베벨·상단 설원 눈·사파이어 눈꽃 엠블럼 방패 문장**으로 전면 재생성.
+  - **투명 배경 파비콘·아이콘**: [`public/favicon.png`](file:///Users/dayyoung/project/snshero/public/favicon.png) (`512×512` RGBA, 외곽 화이트 프린지 제거 알파 매팅) 및 [`public/icon.png`](file:///Users/dayyoung/project/snshero/public/icon.png) (`512×512` RGBA) 교체.
+  - **PWA · Apple Touch 앱 아이콘**: [`public/hs-assets/brand/pwa-icon-512.png`](file:///Users/dayyoung/project/snshero/public/hs-assets/brand/pwa-icon-512.png) (`512×512`) 및 [`public/hs-assets/brand/pwa-icon-192.png`](file:///Users/dayyoung/project/snshero/public/hs-assets/brand/pwa-icon-192.png) (`192×192`) — 딥 사파이어 윈터 배경 + 마스커블 80% 안전 영역(70% 스케일) 방패 배치로 `any` / `maskable` / `apple-touch-icon` 동시 최적화.
+  - [`public/sw.js`](file:///Users/dayyoung/project/snshero/public/sw.js): `MEDIA_CACHE_NAME`을 `snshero-media-v24-20261123-shield-icon`으로 상향하고 브랜드/아이콘 경로를 Network-First로 전환해 기존 캐시 즉시 무효화.
+  - **검증**: `npx tsc --noEmit && npm run build` 0에러 통과 및 `dist/` 반영 확인, 다크/라이트 배경 및 16×16·32×32·원형 마스커블 크롭 시각 검증 완료. 로컬 `git commit` 완료 (`git push` 보류).
