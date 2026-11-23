@@ -49,6 +49,7 @@ function renderApp(): void {
 document.addEventListener('click', (event) => {
   const el = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-action]');
   if (!el) return;
+  if (el.tagName === 'SELECT' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') return;
   const action = el.getAttribute('data-action');
   if (!action) return;
 

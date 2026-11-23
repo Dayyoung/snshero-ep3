@@ -2,6 +2,17 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-23 16:30 KST] [웹소설·웹툰 회차 `<select>` 클릭 시 즉시 닫힘 버그 수정]
+- **원인**:
+  - `src/reader/bookMain.ts`와 `src/reader/webtoonMain.ts`의 전역 `document.addEventListener('click', ...)` 위임 핸들러가 `<select data-action="book-select-episode|webtoon-select-episode">` 클릭 시에도 `renderApp()`을 호출해 `root.innerHTML`을 덮어쓰면서 네이티브 드롭다운이 즉시 닫히는 현상 발생.
+  - 또한 `src/reader/bookMain.ts` 내부의 `click`/`change` 핸들러마다 중복 등록되던 `keydown` 리스너 4건 정리.
+- **수정 내역**:
+  - `src/reader/bookMain.ts`, `src/reader/webtoonMain.ts`의 `click` 핸들러에서 `SELECT` / `INPUT` / `TEXTAREA` 요소는 조기 `return` 처리해 `<select>`가 `change` 이벤트로만 동작하도록 수정.
+- **검증**:
+  - `npm run build` 오류 0건 통과.
+  - Playwright 검증(`book-ko-desktop`, `book-en-mobile`, `webtoon-ko-desktop`, `webtoon-en-mobile`): `<select>` 클릭 후 동일 DOM 노드 유지(`sameDOM=true`) 및 18화·5화 전환·페이지 타이틀 갱신·콘솔/페이지 에러 0건 확인.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-23 16:25 KST] [`/license` 페이지(저작권·유료 라이선스 재사용·전체 IP 양도 문의·Privacy) 신설 및 공통 푸터 연결]
 - **요청 및 개선 내역**:
   - `docs/intent/license-and-privacy-page.md` 의도 명세서에 따라 전용 `/license` MPA 엔트리(`license.html`, `src/license/main.tsx`, `src/license/license.css`, `src/license/LicenseApp.tsx`)를 신설.

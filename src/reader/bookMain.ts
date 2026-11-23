@@ -49,6 +49,7 @@ function renderApp(): void {
 document.addEventListener('click', (event) => {
   const el = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-action]');
   if (!el) return;
+  if (el.tagName === 'SELECT' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') return;
   const action = el.getAttribute('data-action');
   if (!action) return;
 
@@ -56,28 +57,14 @@ document.addEventListener('click', (event) => {
     const lang = el.getAttribute('data-lang') as SupportedLanguage | null;
     if (lang) {
       setLanguage(lang);
-      document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && isBookIndexOpen()) {
-    closeBookIndex();
-    renderApp();
-  }
-});
-
-renderApp();
+      renderApp();
     }
     return;
   }
 
   if (action === 'reader-toggle-menu') {
     toggleReaderMobileMenu();
-    document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && isBookIndexOpen()) {
-    closeBookIndex();
     renderApp();
-  }
-});
-
-renderApp();
     return;
   }
 
@@ -88,14 +75,7 @@ renderApp();
 
   if (action.startsWith('book-')) {
     handleBookAction(action, el);
-    document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && isBookIndexOpen()) {
-    closeBookIndex();
     renderApp();
-  }
-});
-
-renderApp();
   }
 });
 
@@ -105,14 +85,7 @@ document.addEventListener('change', (event) => {
   const action = el.getAttribute('data-action');
   if (action && action.startsWith('book-')) {
     handleBookAction(action, el);
-    document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && isBookIndexOpen()) {
-    closeBookIndex();
     renderApp();
-  }
-});
-
-renderApp();
   }
 });
 
