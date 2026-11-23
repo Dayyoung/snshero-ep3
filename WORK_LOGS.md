@@ -1755,3 +1755,19 @@
   - **PWA · Apple Touch 앱 아이콘**: [`public/hs-assets/brand/pwa-icon-512.png`](file:///Users/dayyoung/project/snshero/public/hs-assets/brand/pwa-icon-512.png) (`512×512`) 및 [`public/hs-assets/brand/pwa-icon-192.png`](file:///Users/dayyoung/project/snshero/public/hs-assets/brand/pwa-icon-192.png) (`192×192`) — 딥 사파이어 윈터 배경 + 마스커블 80% 안전 영역(70% 스케일) 방패 배치로 `any` / `maskable` / `apple-touch-icon` 동시 최적화.
   - [`public/sw.js`](file:///Users/dayyoung/project/snshero/public/sw.js): `MEDIA_CACHE_NAME`을 `snshero-media-v24-20261123-shield-icon`으로 상향하고 브랜드/아이콘 경로를 Network-First로 전환해 기존 캐시 즉시 무효화.
   - **검증**: `npx tsc --noEmit && npm run build` 0에러 통과 및 `dist/` 반영 확인, 다크/라이트 배경 및 16×16·32×32·원형 마스커블 크롭 시각 검증 완료. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-23 10:20 KST] [글로벌 영문 커뮤니티 배포 완료 및 마케팅 시트 최신화]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **글로벌 영문 채널 등록·게시 완료 (`?lang=en` 기준)**:
+    - **itch.io**: 신규 영문 프로젝트 개설(`https://snshero.itch.io/heroes-of-elwin`) 및 영문 런칭 데브로그 게시 (영문 스크린샷 3장 포함)
+    - **IndieDB**: 공식 영문 게임 페이지 등록(`https://www.indiedb.com/games/snshero-heroes-of-elwin-village/`)
+    - **AlternativeTo**: 영문 소개문·앱 아이콘·영문 스크린샷 4장 업로드 및 최종 제출 완료
+    - **Reddit (`r/playmygame`)**: `[PC] (Web)` 플레어 및 서브레딧 필수 템플릿(`Playable Link:` 등) 준수해 게시 완료 (`https://www.reddit.com/r/playmygame/comments/1y35cnm/snshero_heroes_of_elwin_village_free_382card/`)
+    - **Hacker News (`Show HN`)**: 신규/저카르마 계정 제한(`showlim`) 확인 후 보류
+  - **Google 마케팅 시트(`1bpYZA4x0n35jfVgch_lQV2F2y_gQ_0l4a74qgOXwKEU`, `'마케팅 분석 로그'`) 반영**:
+    - `MKT-049` (`J50`, AlternativeTo · IndieDB 등) → **`완료`**
+    - `MKT-037` (`J38`, Reddit 글로벌 TCG 시딩) → **`진행중`**
+    - `MKT-097` (`J98`, 글로벌 웹게임 서브레딧 시딩) → **`진행중`**
+    - `'요약 대시보드'`(`B9:H15`) 집계 확인: **완료 77건(77.0%) · 진행중 17건(17.0%) · 점검완료·실행대기 6건(6.0%) · 합계 100건**.
+  - 로컬 `git commit` 완료 (`git push` 보류).
