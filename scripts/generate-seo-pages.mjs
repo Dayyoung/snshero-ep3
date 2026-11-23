@@ -4,7 +4,19 @@ import path from 'path';
 const SITE_ORIGIN = 'https://snshero.com';
 const GA_MEASUREMENT_ID = 'G-MT60DTV1KJ';
 const GOOGLE_ADS_ID = 'AW-980426001';
-const TODAY_ISO = '2026-11-18';
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
+
+// Root-level static HTML files served at 200 OK without trailing slash on GitHub Pages.
+// All directory-based routes (written as <path>/index.html) MUST use trailing slashes
+// so GitHub Pages returns 200 OK directly instead of a 301 redirect loop.
+const EXTENSIONLESS_ROOT_PATHS = new Set(['/', '/game', '/book', '/webtoon', '/sns']);
+
+function toCanonicalPath(urlPath) {
+  if (!urlPath || urlPath === '/') return '/';
+  const cleaned = `/${String(urlPath).replace(/^\/+|\/+$/g, '')}`;
+  if (EXTENSIONLESS_ROOT_PATHS.has(cleaned)) return cleaned;
+  return `${cleaned}/`;
+}
 
 const GA_HEAD_SNIPPET = `  <!-- Google tag (gtag.js) - GA4 + Google Ads snshero.com -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
@@ -205,11 +217,13 @@ function writeHtmlFile(distDir, urlPath, html) {
 function injectHreflangIntoExistingHtml(htmlPath, koUrl, enUrl) {
   if (!fs.existsSync(htmlPath)) return;
   let html = fs.readFileSync(htmlPath, 'utf8');
-  if (html.includes('hreflang="ko"')) return;
+  const normKo = toCanonicalPath(koUrl);
+  const normEn = toCanonicalPath(enUrl);
+  html = html.replace(/\s*<link rel="alternate" hreflang="(?:ko|en|x-default)"[^>]*>\s*/gi, '\n  ');
   const tags = [
-    `<link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${koUrl}" />`,
-    `<link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${enUrl}" />`,
-    `<link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${koUrl}" />`,
+    `<link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${normKo}" />`,
+    `<link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${normEn}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${normKo}" />`,
   ].join('\n  ');
   html = html.replace(/(<link rel="canonical"[^>]*>)/i, `$1\n  ${tags}`);
   fs.writeFileSync(htmlPath, html, 'utf8');
@@ -283,7 +297,9 @@ ${GA_HEAD_SNIPPET}
 
 function renderWikiShell({ lang, title, description, koPath, enPath, ogImage, jsonLdObj, bodyHtml }) {
   const isKo = lang === 'ko';
-  const selfPath = isKo ? koPath : enPath;
+  const normKo = toCanonicalPath(koPath);
+  const normEn = toCanonicalPath(enPath);
+  const selfPath = isKo ? normKo : normEn;
   const canonicalUrl = `${SITE_ORIGIN}${selfPath}`;
   return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -296,9 +312,9 @@ ${GA_HEAD_SNIPPET}
   <meta name="description" content="${escHtml(description)}" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
   <link rel="canonical" href="${canonicalUrl}" />
-  <link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${koPath}" />
-  <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${enPath}" />
-  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${koPath}" />
+  <link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${normKo}" />
+  <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${normEn}" />
+  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${normKo}" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="${isKo ? '눈히어로 (SNSHero.com)' : 'SNSHero.com'}" />
@@ -338,13 +354,13 @@ ${GA_HEAD_SNIPPET}
   <div class="wrap">
     <nav class="topbar" aria-label="SNSHero Navigation">
       <div class="nav-links">
-        <a class="btn" href="${isKo ? '/' : '/en'}">${isKo ? '공식 소개' : 'Showcase'}</a>
-        <a class="btn btn-cta" href="${isKo ? '/game' : '/en/game'}">${isKo ? '⚡ 무료 3팩 + 250G 즉시 게임 시작' : '⚡ Play Free Now (+3 Packs & 250G)'}</a>
-        <a class="btn" href="${isKo ? '/wiki/cards' : '/en/wiki/cards'}">${isKo ? '382종 카드 도감' : '382-Card Codex'}</a>
-        <a class="btn" href="${isKo ? '/book' : '/en/book'}">${isKo ? '웹소설 40화' : 'Web Novel'}</a>
-        <a class="btn" href="${isKo ? '/webtoon' : '/en/webtoon'}">${isKo ? '보이스 웹툰' : 'Webtoon'}</a>
+        <a class="btn" href="${isKo ? '/' : '/en/'}">${isKo ? '공식 소개' : 'Showcase'}</a>
+        <a class="btn btn-cta" href="${isKo ? '/game' : '/en/game/'}">${isKo ? '⚡ 무료 3팩 + 250G 즉시 게임 시작' : '⚡ Play Free Now (+3 Packs & 250G)'}</a>
+        <a class="btn" href="${isKo ? '/wiki/cards/' : '/en/wiki/cards/'}">${isKo ? '382종 카드 도감' : '382-Card Codex'}</a>
+        <a class="btn" href="${isKo ? '/book' : '/en/book/'}">${isKo ? '웹소설 40화' : 'Web Novel'}</a>
+        <a class="btn" href="${isKo ? '/webtoon' : '/en/webtoon/'}">${isKo ? '보이스 웹툰' : 'Webtoon'}</a>
       </div>
-      <a class="btn" href="${isKo ? enPath : koPath}">${isKo ? '🌐 English' : '🌐 한국어'}</a>
+      <a class="btn" href="${isKo ? normEn : normKo}">${isKo ? '🌐 English' : '🌐 한국어'}</a>
     </nav>
     ${bodyHtml}
     <footer>
@@ -358,8 +374,10 @@ ${GA_HEAD_SNIPPET}
 export function generateAllSeoPages({ rootDir, distDir, publicDir }) {
   const sitemapEntries = [];
   const addSitemapPair = (koPath, enPath, priority = '0.8', changefreq = 'weekly') => {
-    sitemapEntries.push({ loc: koPath, koPath, enPath, priority, changefreq });
-    sitemapEntries.push({ loc: enPath, koPath, enPath, priority, changefreq });
+    const normKo = toCanonicalPath(koPath);
+    const normEn = toCanonicalPath(enPath);
+    sitemapEntries.push({ loc: normKo, koPath: normKo, enPath: normEn, priority, changefreq });
+    sitemapEntries.push({ loc: normEn, koPath: normKo, enPath: normEn, priority, changefreq });
   };
 
   // ── STEP 1: Recover 100% of Legacy Indexed Google URLs (Zero 404 Leaks) ──
@@ -419,14 +437,14 @@ ${GA_HEAD_SNIPPET}
   <title>SNSHero : Kadan's Journey — Free 382-Card Browser Strategy TCG (No Download) | Official Site</title>
   <meta name="description" content="Play SNSHero (Heroes of Elwin Village) instantly in your browser with zero download or sign-up! Claim 3 Free Card Packs + 250 Gold + 160 Dust on arrival, guaranteed Legendary in first 10 packs, 40-episode voiced Story Mode (3 copies = 3x Awakened stats), Ranked Arena, and Bogart's Den." />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-  <link rel="canonical" href="${SITE_ORIGIN}/en" />
+  <link rel="canonical" href="${SITE_ORIGIN}/en/" />
   <link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}/" />
-  <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}/en" />
+  <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}/en/" />
   <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="SNSHero.com" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:url" content="${SITE_ORIGIN}/en" />
+  <meta property="og:url" content="${SITE_ORIGIN}/en/" />
   <meta property="og:title" content="SNSHero : Kadan's Journey — Free 382-Card Browser TCG (+3 Free Packs)" />
   <meta property="og:description" content="9 Factions, 382 Collectible Cards, 40 Fully Voiced Story Chapters, and Instant Browser Play on Desktop & Mobile." />
   <meta property="og:image" content="${SITE_ORIGIN}/hs-assets/screenshots/ingame_pack_altar.png" />
@@ -438,7 +456,7 @@ ${GA_HEAD_SNIPPET}
     '@context': 'https://schema.org',
     '@type': 'VideoGame',
     name: "SNSHero : Kadan's Journey (Heroes of Elwin Village)",
-    url: `${SITE_ORIGIN}/en`,
+    url: `${SITE_ORIGIN}/en/`,
     genre: ['Collectible Card Game', 'Strategy', 'Browser Game'],
     gamePlatform: ['Web Browser', 'Mobile Web', 'Desktop Web'],
     applicationCategory: 'Game',
@@ -456,7 +474,7 @@ ${GA_HEAD_SNIPPET}
       <h1>SNSHero : Kadan's Journey — Free 382-Card Browser Strategy Card Game</h1>
       <p>Play directly in your desktop or mobile browser with zero installation and zero sign-up. New players receive 3 Free Card Packs, 250 Gold, and 160 Arcane Dust immediately, with a 100% guaranteed Legendary card within your first 10 packs.</p>
       <nav aria-label="English Quick Links">
-        <a href="/en/game">Play Game Now</a> · <a href="/en/wiki/cards">382-Card Codex</a> · <a href="/en/book">40-Episode Web Novel</a> · <a href="/en/webtoon">Full-Color Voice Webtoon</a> · <a href="/en/sns">AI 1,000-Match Benchmark (/sns)</a>
+        <a href="/en/game/">Play Game Now</a> · <a href="/en/wiki/tip/">Strategy Guide</a> · <a href="/en/wiki/cards/">382-Card Codex</a> · <a href="/en/book/">40-Episode Web Novel</a> · <a href="/en/webtoon/">Full-Color Voice Webtoon</a> · <a href="/en/sns/">AI 1,000-Match Benchmark (/sns)</a>
       </nav>
     </main>
   </div>
@@ -470,7 +488,7 @@ ${GA_HEAD_SNIPPET}
   const enGameHtml = gameDistHtml
     .replace(/<title>[\s\S]*?<\/title>/i, "<title>Play SNSHero Free — 382-Card Browser Strategy TCG (+3 Free Packs) | SNSHero.com</title>")
     .replace(/<meta name="description" content="[^"]*"\s*\/>/i, '<meta name="description" content="Launch SNSHero directly in your browser! Build 30-card decks across 9 fantasy factions (382 cards), conquer 40 voiced Story Bosses (3 copies = 3x stats), or battle in Ranked Arena." />')
-    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${SITE_ORIGIN}/en/game" />`);
+    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${SITE_ORIGIN}/en/game/" />`);
   writeHtmlFile(distDir, '/en/game', enGameHtml);
 
   // Build /en/sns from dist/sns/index.html
@@ -479,7 +497,7 @@ ${GA_HEAD_SNIPPET}
     .replace('<html lang="ko">', '<html lang="en">')
     .replace(/<title>[\s\S]*?<\/title>/i, '<title>SNSHero AI TCG Benchmark — Claude vs ChatGPT vs Gemini 1,000-Match Arena (/en/sns)</title>')
     .replace(/<meta name="description" content="[^"]*"\s*\/>/i, '<meta name="description" content="Live 1,000-match tactical card battle benchmark comparing SNSHero Native AI against Claude, ChatGPT, and Gemini via the open /mcp JSON-RPC Arena protocol." />')
-    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${SITE_ORIGIN}/en/sns" />`);
+    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${SITE_ORIGIN}/en/sns/" />`);
   writeHtmlFile(distDir, '/en/sns', enSnsHtml);
 
   // Build /en/wiki/tip English Strategy Guide
@@ -491,22 +509,22 @@ ${GA_HEAD_SNIPPET}
       title: "SNSHero Official Strategy Guide — Deck Building, 3x Awakening & Boss Tips | SNSHero.com",
       description:
         "Complete beginner-to-master strategy guide for SNSHero: 9 Factions, 382 Collectible Cards, 3-Copy = 3x Story Awakening rule, Kadan Spirit X10 Ultimate combos, and Bogart's Den.",
-      koPath: '/wiki/tip',
-      enPath: '/en/wiki/tip',
+      koPath: '/wiki/tip/',
+      enPath: '/en/wiki/tip/',
       ogImage: '/hs-assets/screenshots/ingame_pack_altar.png',
       jsonLdObj: {
         '@context': 'https://schema.org',
         '@type': 'Article',
         headline: 'SNSHero Official Strategy & Mechanics Guide (382 Cards · 9 Factions)',
         inLanguage: 'en',
-        url: `${SITE_ORIGIN}/en/wiki/tip`,
+        url: `${SITE_ORIGIN}/en/wiki/tip/`,
       },
       bodyHtml: `
       <span class="eyebrow">Official Tactical Manual · 382 Collectible Cards</span>
       <h1>SNSHero : Kadan's Journey — Complete Browser TCG Strategy Guide</h1>
       <div class="panel">
         <p><strong>Instant Free Start:</strong> Every new adventurer receives <strong>3 Free Card Packs + 250 Gold + 160 Dust</strong> with zero sign-up, plus a <strong>100% guaranteed Legendary card within your first 10 packs</strong>.</p>
-        <p><a class="btn btn-cta" href="/en/game">⚡ Launch Game &amp; Open 3 Free Packs</a></p>
+        <p><a class="btn btn-cta" href="/en/game/">⚡ Launch Game &amp; Open 3 Free Packs</a></p>
       </div>
       <h2>1. Core Combat &amp; 30-Card Deck Building</h2>
       <p>Choose 1 of the 9 Faction Guardians and construct a 30-card deck (up to 2 copies per card, 1 copy per Legendary). Maximum Mana grows by +1 each turn up to 10 Mana—curve out cleanly with 6–8 early 1–2 Mana minions, mid-game Taunt/Removal tools, and high-impact late-game finishers.</p>
@@ -518,7 +536,7 @@ ${GA_HEAD_SNIPPET}
       <p>Compete on fair 1x stats in Ranked Arena, or wager 1–1,000 Gold in Bogart's Den where both duelists battle with completely randomized 30-card decks for pure tactical mastery.</p>
       <h2>5. Explore All 9 Faction Deck Guides</h2>
       <div class="faction-nav">
-        ${FACTIONS.map((f) => `<a class="btn" href="/en/wiki/${f.slug}">${escHtml(f.nameEn)}</a>`).join('')}
+        ${FACTIONS.map((f) => `<a class="btn" href="/en/wiki/${f.slug}/">${escHtml(f.nameEn)}</a>`).join('')}
       </div>`,
     }),
   );
@@ -534,12 +552,13 @@ ${GA_HEAD_SNIPPET}
   const bookAssets = extractAssetTags(bookDistHtml);
   const webtoonAssets = extractAssetTags(webtoonDistHtml);
 
-  // Also generate /en/book and /en/webtoon hubs
+  // Also generate /en/book/ and /en/webtoon/ hubs
   const buildReaderHubEn = (kind) => {
     const isBook = kind === 'book';
     const assets = isBook ? bookAssets : webtoonAssets;
     const koPath = isBook ? '/book' : '/webtoon';
-    const enPath = isBook ? '/en/book' : '/en/webtoon';
+    const enPath = isBook ? '/en/book/' : '/en/webtoon/';
+    const enEpBase = isBook ? '/en/book' : '/en/webtoon';
     const title = isBook
       ? "Kadan's Journey — Free 40-Episode Dark Fantasy Web Novel | SNSHero.com"
       : "Kadan's Journey — Free 40-Episode Full-Color Voice Webtoon (840+ Panels) | SNSHero.com";
@@ -550,7 +569,7 @@ ${GA_HEAD_SNIPPET}
     const epLinks = episodes
       .map(
         (e) =>
-          `<li><a href="${enPath}/ep-${e.ep}" style="color:#fcd34d;">Episode ${e.ep}: ${escHtml(e.titleEn)}</a></li>`,
+          `<li><a href="${enEpBase}/ep-${e.ep}/" style="color:#fcd34d;">Episode ${e.ep}: ${escHtml(e.titleEn)}</a></li>`,
       )
       .join('');
     return `<!DOCTYPE html>
@@ -604,9 +623,9 @@ ${GA_HEAD_SNIPPET}
     const prevEp = ep > 1 ? ep - 1 : null;
     const nextEp = ep < 40 ? ep + 1 : null;
 
-    // 1) Web Novel KO & EN Episode Pages (/book/ep-N & /en/book/ep-N)
-    const koBookPath = `/book/ep-${ep}`;
-    const enBookPath = `/en/book/ep-${ep}`;
+    // 1) Web Novel KO & EN Episode Pages (/book/ep-N/ & /en/book/ep-N/)
+    const koBookPath = `/book/ep-${ep}/`;
+    const enBookPath = `/en/book/ep-${ep}/`;
     addSitemapPair(koBookPath, enBookPath, '0.8', 'monthly');
 
     for (const lang of ['ko', 'en']) {
@@ -621,9 +640,9 @@ ${GA_HEAD_SNIPPET}
       const desc = isKo
         ? `《카단의 여정》 제${ep}화 「${epTitle}」 무료 감상: ${snippetDesc}... 소설 속 영웅과 보스를 382종 무설치 웹 TCG에서 무료 3팩 받고 직접 플레이하세요!`
         : `Read Kadan's Journey Episode ${ep} "${epTitle}" free online: ${snippetDesc}... Battle this chapter's boss in the free 382-card browser TCG!`;
-      const prevHref = prevEp ? (isKo ? `/book/ep-${prevEp}` : `/en/book/ep-${prevEp}`) : null;
-      const nextHref = nextEp ? (isKo ? `/book/ep-${nextEp}` : `/en/book/ep-${nextEp}`) : null;
-      const gameBossHref = isKo ? `/game?mode=story&ep=${ep}` : `/en/game?mode=story&ep=${ep}`;
+      const prevHref = prevEp ? (isKo ? `/book/ep-${prevEp}/` : `/en/book/ep-${prevEp}/`) : null;
+      const nextHref = nextEp ? (isKo ? `/book/ep-${nextEp}/` : `/en/book/ep-${nextEp}/`) : null;
+      const gameBossHref = isKo ? `/game?mode=story&ep=${ep}` : `/en/game/?mode=story&ep=${ep}`;
 
       writeHtmlFile(
         distDir,
@@ -660,7 +679,7 @@ ${GA_HEAD_SNIPPET}
     isPartOf: {
       '@type': 'Book',
       name: isKo ? '눈히어로: 카단의 여정 (전 40화)' : "SNSHero: Kadan's Journey (40 Episodes)",
-      url: `${SITE_ORIGIN}${isKo ? '/book' : '/en/book'}`,
+      url: `${SITE_ORIGIN}${isKo ? '/book' : '/en/book/'}`,
     },
   })}</script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6937094123258335" crossorigin="anonymous"></script>
@@ -674,7 +693,7 @@ ${GA_HEAD_SNIPPET}
       <p><a href="${gameBossHref}" style="color:#fcd34d;font-weight:bold;">${isKo ? `⚔️ 제${ep}화 스토리 보스전 무설치 플레이 (무료 3팩 + 250G 지급)` : `⚔️ Battle Episode ${ep} Boss Now in Browser (+3 Free Card Packs)`}</a></p>
       <nav aria-label="Episode Navigation">
         ${prevHref ? `<a href="${prevHref}" style="color:#93c5fd;">← ${isKo ? `제${prevEp}화` : `Episode ${prevEp}`}</a> · ` : ''}
-        <a href="${isKo ? '/book' : '/en/book'}" style="color:#fcd34d;">${isKo ? '전 40화 목록' : 'All 40 Episodes'}</a>
+        <a href="${isKo ? '/book' : '/en/book/'}" style="color:#fcd34d;">${isKo ? '전 40화 목록' : 'All 40 Episodes'}</a>
         ${nextHref ? ` · <a href="${nextHref}" style="color:#93c5fd;">${isKo ? `제${nextEp}화` : `Episode ${nextEp}`} →</a>` : ''}
       </nav>
     </article>
@@ -685,9 +704,9 @@ ${GA_HEAD_SNIPPET}
       );
     }
 
-    // 2) Webtoon KO & EN Episode Pages (/webtoon/ep-N & /en/webtoon/ep-N)
-    const koToonPath = `/webtoon/ep-${ep}`;
-    const enToonPath = `/en/webtoon/ep-${ep}`;
+    // 2) Webtoon KO & EN Episode Pages (/webtoon/ep-N/ & /en/webtoon/ep-N/)
+    const koToonPath = `/webtoon/ep-${ep}/`;
+    const enToonPath = `/en/webtoon/ep-${ep}/`;
     addSitemapPair(koToonPath, enToonPath, '0.8', 'monthly');
 
     const manifestEp = webtoonManifest[String(ep)] || { totalImages: 21, images: [] };
@@ -715,9 +734,9 @@ ${GA_HEAD_SNIPPET}
       const desc = isKo
         ? `눈히어로 공식 풀컬러 보이스 웹툰 《카단의 여정》 제${ep}화 「${epTitle}」 (${panelCount}컷 무로그인 무료 공개). ${previewStr}... 웹툰 속 보스를 웹 TCG에서 직접 격파하세요!`
         : `Read SNSHero's full-color voiced fantasy webtoon Episode ${ep} "${epTitle}" (${panelCount} panels, free no sign-up). ${previewStr}... Fight the chapter boss in-game!`;
-      const prevHref = prevEp ? (isKo ? `/webtoon/ep-${prevEp}` : `/en/webtoon/ep-${prevEp}`) : null;
-      const nextHref = nextEp ? (isKo ? `/webtoon/ep-${nextEp}` : `/en/webtoon/ep-${nextEp}`) : null;
-      const gameBossHref = isKo ? `/game?mode=story&ep=${ep}` : `/en/game?mode=story&ep=${ep}`;
+      const prevHref = prevEp ? (isKo ? `/webtoon/ep-${prevEp}/` : `/en/webtoon/ep-${prevEp}/`) : null;
+      const nextHref = nextEp ? (isKo ? `/webtoon/ep-${nextEp}/` : `/en/webtoon/ep-${nextEp}/`) : null;
+      const gameBossHref = isKo ? `/game?mode=story&ep=${ep}` : `/en/game/?mode=story&ep=${ep}`;
       const coverImg = `/webtoon-assets/episode_${pad}/scene_00.webp`;
 
       writeHtmlFile(
@@ -757,7 +776,7 @@ ${GA_HEAD_SNIPPET}
     isPartOf: {
       '@type': 'ComicSeries',
       name: isKo ? '눈히어로 공식 웹툰 — 카단의 여정' : "SNSHero Official Webtoon — Kadan's Journey",
-      url: `${SITE_ORIGIN}${isKo ? '/webtoon' : '/en/webtoon'}`,
+      url: `${SITE_ORIGIN}${isKo ? '/webtoon' : '/en/webtoon/'}`,
     },
   })}</script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6937094123258335" crossorigin="anonymous"></script>
@@ -772,7 +791,7 @@ ${GA_HEAD_SNIPPET}
       <p><a href="${gameBossHref}" style="color:#fcd34d;font-weight:bold;">${isKo ? `⚔️ 제${ep}화 보스 직접 격파하러 가기 (무설치 · 무료 3팩 지급)` : `⚔️ Fight Episode ${ep} Boss in Browser TCG (+3 Free Packs)`}</a></p>
       <nav aria-label="Webtoon Episode Navigation">
         ${prevHref ? `<a href="${prevHref}" style="color:#93c5fd;">← ${isKo ? `제${prevEp}화` : `Episode ${prevEp}`}</a> · ` : ''}
-        <a href="${isKo ? '/webtoon' : '/en/webtoon'}" style="color:#fcd34d;">${isKo ? '전 40화 웹툰 목록' : 'All 40 Webtoon Episodes'}</a> ·
+        <a href="${isKo ? '/webtoon' : '/en/webtoon/'}" style="color:#fcd34d;">${isKo ? '전 40화 웹툰 목록' : 'All 40 Webtoon Episodes'}</a> ·
         <a href="${isKo ? koBookPath : enBookPath}" style="color:#a7f3d0;">${isKo ? `제${ep}화 원작 웹소설 읽기` : `Read Episode ${ep} Novel`}</a>
         ${nextHref ? ` · <a href="${nextHref}" style="color:#93c5fd;">${isKo ? `제${nextEp}화` : `Episode ${nextEp}`} →</a>` : ''}
       </nav>
@@ -792,8 +811,8 @@ ${GA_HEAD_SNIPPET}
   const allCards = (cardsData.cards || []).slice().sort((a, b) => (a.cost || 0) - (b.cost || 0));
   const neutralCards = allCards.filter((c) => c.cardClass === 'NEUTRAL');
 
-  // 1) /wiki/cards & /en/wiki/cards (382-Card Master Codex + 157 Neutral Cards)
-  addSitemapPair('/wiki/cards', '/en/wiki/cards', '0.88', 'weekly');
+  // 1) /wiki/cards/ & /en/wiki/cards/ (382-Card Master Codex + 157 Neutral Cards)
+  addSitemapPair('/wiki/cards/', '/en/wiki/cards/', '0.88', 'weekly');
   for (const lang of ['ko', 'en']) {
     const isKo = lang === 'ko';
     const factionCardsHtml = FACTIONS.map(
@@ -801,7 +820,7 @@ ${GA_HEAD_SNIPPET}
       <div class="card-box">
         <img src="${f.portrait}" alt="${escHtml(isKo ? f.heroKo : f.heroEn)}" loading="lazy" />
         <div>
-          <div><strong><a href="${isKo ? `/wiki/${f.slug}` : `/en/wiki/${f.slug}`}" style="color:#fcd34d;">${escHtml(isKo ? f.nameKo : f.nameEn)}</a></strong></div>
+          <div><strong><a href="${isKo ? `/wiki/${f.slug}/` : `/en/wiki/${f.slug}/`}" style="color:#fcd34d;">${escHtml(isKo ? f.nameKo : f.nameEn)}</a></strong></div>
           <div style="font-size:12px;color:#d6d3d1;">${escHtml(isKo ? `수호자: ${f.heroKo} · 고유 25장` : `Guardian: ${f.heroEn} · 25 Class Cards`)}</div>
           <div style="font-size:12px;color:#94a3b8;margin-top:4px;">${escHtml(isKo ? f.powerKo : f.powerEn)}</div>
         </div>
@@ -834,21 +853,21 @@ ${GA_HEAD_SNIPPET}
         description: isKo
           ? '눈히어로(SNSHero.com) 9대 종족 고유 카드 225종(종족별 25장) + 중립 카드 157종 총 382종 전체 카드 능력치·효과·일러스트 도감. 접속 즉시 무료 3팩 + 250G 지급!'
           : 'Browse all 382 collectible cards in SNSHero (225 Class Cards across 9 Factions + 157 Neutral Cards) with Mana costs, stats, effects, and deck building tips.',
-        koPath: '/wiki/cards',
-        enPath: '/en/wiki/cards',
+        koPath: '/wiki/cards/',
+        enPath: '/en/wiki/cards/',
         ogImage: '/hs-assets/screenshots/ingame_pack_altar.png',
         jsonLdObj: {
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
           name: isKo ? '눈히어로 382종 공식 카드 도감' : 'SNSHero 382-Card Official Encyclopedia',
-          url: `${SITE_ORIGIN}${isKo ? '/wiki/cards' : '/en/wiki/cards'}`,
+          url: `${SITE_ORIGIN}${isKo ? '/wiki/cards/' : '/en/wiki/cards/'}`,
         },
         bodyHtml: `
         <span class="eyebrow">${isKo ? '공식 아카이브 · 9대 종족 225장 + 중립 157장 = 382장' : 'Official Codex · 225 Faction Cards + 157 Neutral = 382 Cards'}</span>
         <h1>${isKo ? '눈히어로 (SNSHero) 382종 전체 카드 도감 & 종족별 덱 가이드' : 'SNSHero Complete 382-Card Encyclopedia & Faction Guides'}</h1>
         <div class="panel">
           <p>${isKo ? '설치·가입 없이 브라우저에서 바로 382종의 카드로 30장 전략 덱을 구성해 보세요. 첫 방문 시 무료 카드팩 3개 + 250골드 + 160가루가 즉시 지급되며 첫 10팩 내 전설 카드가 100% 확정 등장합니다!' : 'Build custom 30-card decks with 382 collectible cards right in your browser—no download or sign-up required. Claim 3 Free Packs + 250 Gold + 160 Dust immediately and get a guaranteed Legendary within your first 10 packs!'}</p>
-          <p><a class="btn btn-cta" href="${isKo ? '/game?open=collection' : '/en/game?open=collection'}">${isKo ? '🃏 인게임 도감 열기 & 무료 3팩 개봉하기' : '🃏 Open In-Game Collection & Claim 3 Free Packs'}</a></p>
+          <p><a class="btn btn-cta" href="${isKo ? '/game?open=collection' : '/en/game/?open=collection'}">${isKo ? '🃏 인게임 도감 열기 & 무료 3팩 개봉하기' : '🃏 Open In-Game Collection & Claim 3 Free Packs'}</a></p>
         </div>
         <h2>${isKo ? '9대 종족 수호자 도감 (종족별 25장 · 합계 225장)' : '9 Faction Guardians (25 Class Cards Each · 225 Total)'}</h2>
         <div class="grid">${factionCardsHtml}</div>
@@ -860,8 +879,8 @@ ${GA_HEAD_SNIPPET}
 
   // 2) 9 Individual Faction Strategy & 25-Card Codex Pages
   for (const faction of FACTIONS) {
-    const koPath = `/wiki/${faction.slug}`;
-    const enPath = `/en/wiki/${faction.slug}`;
+    const koPath = `/wiki/${faction.slug}/`;
+    const enPath = `/en/wiki/${faction.slug}/`;
     addSitemapPair(koPath, enPath, '0.84', 'weekly');
     const fCards = allCards.filter((c) => c.cardClass === faction.cardClass);
 
@@ -916,14 +935,14 @@ ${GA_HEAD_SNIPPET}
             <div style="flex:1;min-width:220px;">
               <div><strong>${escHtml(isKo ? `수호자 영웅: ${faction.heroKo}` : `Guardian Hero: ${faction.heroEn}`)}</strong> · <span style="color:#fcd34d;">${escHtml(isKo ? faction.powerKo : faction.powerEn)}</span></div>
               <p style="margin:8px 0 12px;color:#e2e8f0;font-size:14px;">${escHtml(isKo ? faction.strategyKo : faction.strategyEn)}</p>
-              <a class="btn btn-cta" href="${isKo ? '/game' : '/en/game'}">${isKo ? `⚔️ ${faction.heroKo} 덱으로 무료 3팩 받고 바로 플레이` : `⚔️ Play ${faction.heroEn} Free Now (+3 Packs)`}</a>
+              <a class="btn btn-cta" href="${isKo ? '/game' : '/en/game/'}">${isKo ? `⚔️ ${faction.heroKo} 덱으로 무료 3팩 받고 바로 플레이` : `⚔️ Play ${faction.heroEn} Free Now (+3 Packs)`}</a>
             </div>
           </div>
           <h2>${escHtml(isKo ? `${faction.nameKo} 전용 수집 카드 (${fCards.length}종 전수 목록)` : `${faction.nameEn} Collectible Class Cards (${fCards.length} Cards)`)}</h2>
           <div class="grid">${cardsGrid}</div>
           <h2>${isKo ? '다른 종족 도감 바로가기' : 'Explore Other Factions'}</h2>
           <div class="faction-nav">
-            ${FACTIONS.map((f) => `<a class="btn" href="${isKo ? `/wiki/${f.slug}` : `/en/wiki/${f.slug}`}">${escHtml(isKo ? f.nameKo : f.nameEn)}</a>`).join('')}
+            ${FACTIONS.map((f) => `<a class="btn" href="${isKo ? `/wiki/${f.slug}/` : `/en/wiki/${f.slug}/`}">${escHtml(isKo ? f.nameKo : f.nameEn)}</a>`).join('')}
           </div>`,
         }),
       );
