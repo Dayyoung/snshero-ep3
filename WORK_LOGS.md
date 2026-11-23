@@ -2,6 +2,13 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-23 13:10 KST] [40화 환생 완료 팝업 자동 진행 대기 시간 3초 → 5초 연장 및 원격 푸시]
+- **요청 및 개선 내역**:
+  - `src/hearthstone/components/StoryEndingCreditsOverlay.tsx`의 스토리모드 완료 & 환생 보상 효과 팝업 자동 진행 카운트다운을 `3000ms(3초)`에서 `5000ms(5초)`로 연장 (프로그레스 바 및 안내 문구 포함)하고 `src/hearthstone/consoleApi.ts` 안내 문구 동기화.
+- **검증**:
+  - `npx tsc --noEmit && npm run build` 에러 0건 통과.
+- **상태**: 로컬 커밋 및 `/git-push` 요청에 따른 `git push origin main` 완료.
+
 ## [2026-11-23 13:08 KST] [DevTools Console `snshero-end` (및 `snshero.end()`) 40화 엔딩·환생 재현 테스트 명령어 추가]
 - **요청 및 개선 내역**:
   - `src/hearthstone/consoleApi.ts`에 `snshero-end` 표현식(getter 페어링으로 `snshero - end` 평가 시 즉시 트리거 및 결과 `1` 반환)과 `snshero.end()`, `snshero_end()` 명령어 및 `snshero.help()` 안내를 등록.

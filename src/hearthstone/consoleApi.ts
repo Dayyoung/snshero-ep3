@@ -55,7 +55,7 @@ export function triggerStoryEndingPreview(): string {
     '%c[눈히어로 콘솔] 🎬 스토리모드 제40화 엔딩 크레딧(웹툰 컷신 + 음악 + 완료/환생 보상 팝업) 테스트를 시작합니다!',
     'color:#fde047;font-weight:bold;',
   );
-  return 'EP.40 엔딩 테스트 실행됨 (상단 [엔딩크레딧 스킵] 또는 완료 후 클릭/3초 대기)';
+  return 'EP.40 엔딩 테스트 실행됨 (상단 [엔딩크레딧 스킵] 또는 완료 후 클릭/5초 대기)';
 }
 
 export function initSnsHeroConsoleApi(): void {

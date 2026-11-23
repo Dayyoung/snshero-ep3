@@ -35,7 +35,7 @@ export const StoryEndingCreditsOverlay: React.FC<StoryEndingCreditsOverlayProps>
 
   const [phase, setPhase] = useState<'CREDITS' | 'COMPLETE_POPUP'>('CREDITS');
   const [slideIdx, setSlideIdx] = useState(0);
-  const [remainingMs, setRemainingMs] = useState(3000);
+  const [remainingMs, setRemainingMs] = useState(5000);
   const firedRef = useRef(false);
   const onContinueStoryRef = useRef(onContinueStory);
   onContinueStoryRef.current = onContinueStory;
@@ -103,7 +103,7 @@ export const StoryEndingCreditsOverlay: React.FC<StoryEndingCreditsOverlayProps>
         if (prev + 1 >= EP40_CUTSCENES.length) {
           window.clearInterval(id);
           hsAudio.playSfx('zelda_chest_open', 0.85);
-          setRemainingMs(3000);
+          setRemainingMs(5000);
           setPhase('COMPLETE_POPUP');
           return prev;
         }
@@ -120,7 +120,7 @@ export const StoryEndingCreditsOverlay: React.FC<StoryEndingCreditsOverlayProps>
       if (phase !== 'CREDITS') return;
       hsAudio.playSfx('ui_click', 0.8);
       hsAudio.playSfx('zelda_chest_open', 0.85);
-      setRemainingMs(3000);
+      setRemainingMs(5000);
       setPhase('COMPLETE_POPUP');
     },
     [phase],
@@ -134,13 +134,13 @@ export const StoryEndingCreditsOverlay: React.FC<StoryEndingCreditsOverlayProps>
     onContinueStoryRef.current();
   }, []);
 
-  // Phase 2: Auto-continue 3s countdown when COMPLETE_POPUP is active
+  // Phase 2: Auto-continue 5s countdown when COMPLETE_POPUP is active
   useEffect(() => {
     if (phase !== 'COMPLETE_POPUP') return;
     const startTs = Date.now();
     const id = window.setInterval(() => {
       const elapsed = Date.now() - startTs;
-      const next = Math.max(0, 3000 - elapsed);
+      const next = Math.max(0, 5000 - elapsed);
       setRemainingMs(next);
       if (next <= 0) {
         window.clearInterval(id);
@@ -268,11 +268,11 @@ export const StoryEndingCreditsOverlay: React.FC<StoryEndingCreditsOverlayProps>
             }}
             className="hs-wood-panel relative flex max-h-[92dvh] w-full max-w-md flex-col items-center overflow-y-auto rounded-3xl border-2 border-yellow-300/80 p-5 text-center text-amber-100 shadow-[0_24px_64px_rgba(0,0,0,0.95)] sm:p-6"
           >
-            {/* 3-Second Auto-Continue Progress Bar */}
+            {/* 5-Second Auto-Continue Progress Bar */}
             <div className="absolute left-0 right-0 top-0 h-1.5 bg-stone-900">
               <div
                 style={{
-                  width: `${Math.min(100, ((3000 - remainingMs) / 3000) * 100)}%`,
+                  width: `${Math.min(100, ((5000 - remainingMs) / 5000) * 100)}%`,
                 }}
                 className="h-full bg-gradient-to-r from-emerald-400 via-yellow-300 to-amber-400 transition-all duration-100"
               />
