@@ -2,6 +2,18 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-23 17:44 KST] [보가트 도박장 진입 설명 및 준비 화면 대폭 단순화 · 시작 버튼 상시 노출 개선]
+- **개선 내역 (`src/hearthstone/screens/HeroDeckSelectScreen.tsx`)**:
+  - **진입 나레이션 단순화 (`BogartNarrationOverlay`)**: 장황하던 2문단 경고 문구를 친근한 핵심 1줄(`랜덤 30장 덱 · 주사위 자동 배팅 · 승리 2배 · 무료 구제`)로 축약하고, 상단 경고 배지와 입장 버튼을 부담 없는 안내 톤(`🎲 도박장 입장`)으로 정리.
+  - **준비 화면 정보 과밀 해소**:
+    - 랜덤 30장 덱을 사용하는 보가트 모드에서는 무관한 `덱 마나 커브` 및 중복 `확정 승리 보상` 박스를 숨김 처리.
+    - 3줄에 달하던 자동 배팅 설명을 1줄 요약으로 압축하고, `9종족 격파 현황` 3×3 그리드를 기본 접힘 상태 아코디언(`bogart-9faction-toggle`)으로 전환.
+  - **시작 버튼 가시성 보장**: 우측 패널에 내부 스크롤 영역을 분리하고 데스크톱 `[대전 시작]` 버튼(`deck-select-play-btn`)을 하단에 `shrink-0` 고정 배치하여 스크롤 없이도 화면 내에 온전히 노출되도록 개선.
+- **검증**:
+  - `npm run build` 오류 0건 통과.
+  - Playwright E2E 검증(`bogart-ko-desktop`, `bogart-en-desktop`, `bogart-ko-mobile`, `bogart-en-mobile`): 입장 버튼 및 `[대전 시작]` 버튼이 데스크톱(`top=554, bottom=610 / 800`)과 모바일(`top=774, bottom=832 / 844`) 모두 스크롤 없이 뷰포트 내 완전 노출 확인, 아코디언 펼침/접기 및 가로 오버플로우 0건 확인.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-23 16:30 KST] [웹소설·웹툰 회차 `<select>` 클릭 시 즉시 닫힘 버그 수정]
 - **원인**:
   - `src/reader/bookMain.ts`와 `src/reader/webtoonMain.ts`의 전역 `document.addEventListener('click', ...)` 위임 핸들러가 `<select data-action="book-select-episode|webtoon-select-episode">` 클릭 시에도 `renderApp()`을 호출해 `root.innerHTML`을 덮어쓰면서 네이티브 드롭다운이 즉시 닫히는 현상 발생.

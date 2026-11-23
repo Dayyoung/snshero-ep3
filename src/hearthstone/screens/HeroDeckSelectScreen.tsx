@@ -252,12 +252,8 @@ const SNS_SPINNER_TITLES_EN = [
 
 const BOGART_NARRATION_LINES = [
   {
-    ko: '키히힉! 어서 와라, 여긴 9종족 수련과 합쳐진 『보가트의 도박장』이다! 일반(100~1,200G)과 숙련(×10배 · 1,000~12,000G) 난이도 중 골라 승부하고, 패배 시 판돈을 잃는 위험을 명심해라!',
-    en: "Heh-heh! Welcome to Bogart's Hall — now merged with the 9-Faction Trial! Choose Normal (100–1,200G) or Expert (×10 · 1,000–12,000G), and remember losing forfeits your wager!",
-  },
-  {
-    ko: '판돈은 네가 고르는 게 아니다! [대전 시작]을 누르면 주사위 2개가 굴러 1~12 눈금으로 배팅액이 자동 결정되고, 랜덤 9종족 대표와 즉시 격돌한다! 이기면 판돈 2배 + 종족 최초 제압 보상까지 챙겨라!',
-    en: 'No manual betting here! Hit [Start Duel] to roll 2 dice (1–12) that auto-set your wager and launch straight into a random 9-Faction champion duel! Win for 2x Gold + First-Clear bonuses!',
+    ko: '어서 와! 랜덤 30장 덱에 주사위로 판돈을 정해 한 판 붙는 곳이야. 이기면 2배 골드! 골드가 떨어져도 무료 구제가 있으니 가볍게 도전해 봐!',
+    en: 'Welcome! Roll 2 dice to auto-set your wager and duel with a fresh 30-card random deck. Win for 2x Gold — and free bailout Gold is always ready if you run low!',
   },
 ] as const;
 
@@ -339,17 +335,17 @@ const BogartNarrationOverlay: React.FC<{
         className="pointer-events-none absolute inset-0"
       />
 
-      {/* Top Risk Warning Banner + 1-Tap Skip Button */}
+      {/* Top Badge + 1-Tap Skip Button */}
       <div className="relative z-30 mx-auto flex w-full max-w-4xl items-center justify-between gap-2 px-3 pt-3 sm:px-6 sm:pt-5">
         <div
           data-testid="bogart-loss-risk-badge"
-          className="flex items-center gap-2 rounded-full border-2 border-rose-400/85 bg-rose-950/90 px-3.5 py-1.5 shadow-[0_6px_20px_rgba(0,0,0,0.85)]"
+          className="flex items-center gap-2 rounded-full border-2 border-amber-400/75 bg-stone-950/90 px-3.5 py-1.5 shadow-[0_6px_20px_rgba(0,0,0,0.85)]"
         >
-          <span className="text-sm sm:text-base">⚠️</span>
-          <span className="hs-title truncate text-xs font-extrabold tracking-wide text-rose-100 sm:text-sm">
+          <span className="text-sm sm:text-base">🎲</span>
+          <span className="hs-title truncate text-xs font-extrabold tracking-wide text-amber-200 sm:text-sm">
             {tr(
-              '도박장 주의 · 패배 시 베팅 골드 손실 위험!',
-              'Gambling Hall Warning · Risk of Losing Wagered Gold!',
+              '보가트 도박장 · 랜덤 30장 덱 승부',
+              "Bogart's Hall · Random 30-Card Duel",
             )}
           </span>
         </div>
@@ -416,11 +412,10 @@ const BogartNarrationOverlay: React.FC<{
           </p>
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-stone-300 pt-2.5">
-            <div className="text-[11px] font-extrabold text-rose-800 sm:text-xs">
-              {safeIdx + 1} / {totalLines} ·{' '}
+            <div className="text-[11px] font-extrabold text-amber-900 sm:text-xs">
               {tr(
-                `현재 보유 ${ownedGold.toLocaleString()}G · 주사위 2개 자동배팅 (일반 100~1,200G / 숙련 1,000~12,000G)`,
-                `Owned ${ownedGold.toLocaleString()}G · 2-Dice Auto-Bet (Normal 100–1,200G / Expert 1K–12K G)`,
+                `보유 ${ownedGold.toLocaleString()}G · 일반 100~1,200G / 숙련 ×10`,
+                `Owned ${ownedGold.toLocaleString()}G · Normal 100–1,200G / Expert ×10`,
               )}
             </div>
 
@@ -434,7 +429,7 @@ const BogartNarrationOverlay: React.FC<{
               }}
               className="hs-mario-spring min-h-[44px] rounded-xl border-2 border-amber-200 bg-gradient-to-b from-yellow-300 via-amber-400 to-amber-600 px-4 py-2 text-xs font-black text-stone-950 shadow-lg sm:text-sm"
             >
-              {tr('⚠️ 위험 확인 · 도박장 입장', '⚠️ Understand Risk · Enter Hall')}
+              {tr('🎲 도박장 입장', '🎲 Enter Hall')}
             </button>
           </div>
         </div>
@@ -485,6 +480,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
 
   // Bogart + 9-Faction Trial merged state
   const [bogartTier, setBogartTier] = useState<'NORMAL' | 'EXPERT'>('NORMAL');
+  const [bogartProgressOpen, setBogartProgressOpen] = useState<boolean>(false);
   const [bogartNarrationOpen, setBogartNarrationOpen] = useState<boolean>(
     () => initialMode === 'BOGART_GAMBLE',
   );
@@ -519,7 +515,6 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
   const isRanked = mode === 'RANKED';
   const bogartUnitGold = bogartTier === 'EXPERT' ? 1000 : 100;
   const bogartMinRequiredGold = bogartUnitGold;
-  const bogartMaxPossibleGold = bogartUnitGold * 12;
 
   const cancelActiveRankedRoom = useCallback(() => {
     const rid = activeRankedRoomIdRef.current;
@@ -947,12 +942,12 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           <div className="mb-2 flex items-center justify-between border-b border-amber-500/25 pb-1.5 sm:mb-3 sm:pb-2">
             <h2 className="hs-title text-sm font-extrabold text-amber-100 sm:text-lg">
               {isBogart
-                ? tr('출전 영웅 종족 선택 (매 판 30장 랜덤덱 자동 편성)', 'Choose Hero Faction (Fresh 30-Card Random Deck)')
+                ? tr('출전 영웅 선택', 'Choose Hero')
                 : tr('전투에 출전할 종족 덱 선택', 'Choose Your Faction Deck')}
             </h2>
             <span className="text-[11px] font-bold text-amber-300/85 sm:text-xs">
               {isBogart
-                ? tr('🎲 양측 100% 랜덤 30장 덱', '🎲 100% Random 30-Card Decks')
+                ? tr('🎲 랜덤 30장 덱', '🎲 Random 30-Card Deck')
                 : isKo
                   ? `보유 덱 ${decks.length}개 · 30장 완료 덱 출전`
                   : `${decks.length} Decks · 30 Cards Required`}
@@ -1017,7 +1012,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
         </section>
 
         {/* Right 5 Cols: Champion Showcase, Rank/Opponent & Carved Swirl PLAY Button */}
-        <section className="hs-wood-panel relative flex flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-amber-100 sm:rounded-3xl sm:p-5 lg:col-span-5">
+        <section className="hs-wood-panel relative flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-amber-100 sm:rounded-3xl sm:p-5 lg:col-span-5 lg:max-h-full">
           {/* Subtle Faction Glow Backdrop */}
           <div
             style={{
@@ -1026,6 +1021,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             className="pointer-events-none absolute inset-0"
           />
 
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-between overflow-y-auto pr-0.5">
           <div className="relative z-10 flex items-center gap-3 sm:gap-4">
             <div
               style={{ background: hero.frameGradient }}
@@ -1072,7 +1068,8 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             </div>
           </div>
 
-          {/* Selected Deck Mana Curve (0 ~ 7+) & Minion/Spell/Weapon Breakdown */}
+          {/* Selected Deck Mana Curve (0 ~ 7+) & Minion/Spell/Weapon Breakdown (Hidden in Bogart 100% Random Mode) */}
+          {!isBogart && (
           <div className="relative z-10 mt-2 rounded-2xl border border-[#c8a158]/40 bg-black/40 px-3 py-2">
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1 text-[10.5px] font-extrabold">
               <span className="text-amber-200">{tr('덱 마나 커브', 'Deck Mana Curve')}</span>
@@ -1107,6 +1104,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               })}
             </div>
           </div>
+          )}
 
           {/* Practice Opponent Picker OR Rank Medallion */}
           {isPractice ? (
@@ -1171,7 +1169,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                 <div className="flex items-center gap-1.5">
                   <span className="text-base">🎲</span>
                   <span className="hs-title text-sm font-extrabold text-yellow-300 sm:text-base">
-                    {tr('보가트 도박장 · 9종족 수련', "Bogart's Hall · 9-Faction Trial")}
+                    {tr('보가트 도박장', "Bogart's Hall")}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -1182,13 +1180,13 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                       hsAudio.playSfx('ui_click', 0.75);
                       setBogartNarrationOpen(true);
                     }}
-                    className="rounded-full border border-rose-400/60 bg-rose-950/80 px-2 py-0.5 text-[10.5px] font-extrabold text-rose-200 hover:border-rose-300"
+                    className="min-h-[34px] rounded-full border border-amber-400/50 bg-stone-900/85 px-2.5 py-0.5 text-[10.5px] font-extrabold text-amber-200 hover:border-amber-300"
                   >
-                    🎙 {tr('보가트 경고', 'Risk Warning')}
+                    ? {tr('안내', 'Rules')}
                   </button>
                   <span className="flex items-center gap-1 rounded-full border border-yellow-300/60 bg-black/55 px-2.5 py-0.5 text-xs font-extrabold text-yellow-200">
                     <HsGoldCoinIcon size={14} />
-                    <span>{tr(`보유 ${profile.gold.toLocaleString()}G`, `Owned ${profile.gold.toLocaleString()}G`)}</span>
+                    <span>{profile.gold.toLocaleString()}G</span>
                   </span>
                 </div>
               </div>
@@ -1202,21 +1200,21 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                     hsAudio.playSfx('gem_c_select');
                     setBogartTier('NORMAL');
                   }}
-                  className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl border-2 px-2.5 py-1.5 text-center transition ${
+                  className={`flex min-h-[48px] flex-col items-center justify-center rounded-xl border-2 px-2 py-1 text-center transition ${
                     bogartTier === 'NORMAL'
                       ? 'border-yellow-300 bg-gradient-to-b from-amber-500 to-amber-800 text-stone-950 shadow-[0_0_16px_rgba(250,204,21,0.55)]'
                       : 'border-amber-400/35 bg-stone-950/85 text-amber-100 hover:border-yellow-300/70'
                   }`}
                 >
                   <span className="text-xs font-black sm:text-sm">
-                    🎯 {tr('일반 수련', 'Normal Trial')}
+                    🎯 {tr('일반', 'Normal')}
                   </span>
                   <span
-                    className={`mt-0.5 text-[10.5px] font-extrabold ${
+                    className={`mt-0.5 text-[10px] font-extrabold ${
                       bogartTier === 'NORMAL' ? 'text-stone-950/90' : 'text-amber-300'
                     }`}
                   >
-                    {tr('주사위 ×100G (100~1,200G)', 'Dice ×100G (100–1,200G)')}
+                    100~1,200G
                   </span>
                 </button>
                 <button
@@ -1226,95 +1224,97 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                     hsAudio.playSfx('gem_c_select');
                     setBogartTier('EXPERT');
                   }}
-                  className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl border-2 px-2.5 py-1.5 text-center transition ${
+                  className={`flex min-h-[48px] flex-col items-center justify-center rounded-xl border-2 px-2 py-1 text-center transition ${
                     bogartTier === 'EXPERT'
                       ? 'border-rose-300 bg-gradient-to-b from-rose-500 to-red-900 text-white shadow-[0_0_16px_rgba(244,63,94,0.55)]'
                       : 'border-rose-400/35 bg-stone-950/85 text-rose-100 hover:border-rose-300/70'
                   }`}
                 >
                   <span className="text-xs font-black sm:text-sm">
-                    🔥 {tr('숙련 수련 (×10배)', 'Expert Trial (×10)')}
+                    🔥 {tr('숙련 (×10)', 'Expert (×10)')}
                   </span>
                   <span
-                    className={`mt-0.5 text-[10.5px] font-extrabold ${
+                    className={`mt-0.5 text-[10px] font-extrabold ${
                       bogartTier === 'EXPERT' ? 'text-yellow-200' : 'text-rose-300'
                     }`}
                   >
-                    {tr('주사위 ×1,000G (1,000~12,000G)', 'Dice ×1,000G (1K–12K G)')}
+                    1,000~12,000G
                   </span>
                 </button>
               </div>
 
-              {/* Auto-Bet 2-Dice Info Strip (Manual betting removed!) */}
+              {/* Concise 1-Line Rule Strip */}
               <div
                 data-testid="bogart-autobet-rule-strip"
-                className="mt-2 rounded-xl border border-amber-400/45 bg-stone-950/90 px-3 py-2 text-[11px]"
+                className="mt-2 rounded-xl border border-amber-400/35 bg-stone-950/85 px-2.5 py-1.5 text-center text-[11px] font-bold text-amber-100"
               >
-                <div className="flex flex-wrap items-center justify-between gap-1 font-extrabold">
-                  <span className="text-yellow-300">
-                    🎲 {tr('주사위 2개(1~12) 자동 배팅 · 수동 베팅 불가', '2-Dice (1–12) Auto-Bet · No Manual Stake')}
-                  </span>
-                  <span className="text-emerald-300">
-                    {tr(
-                      `${bogartMinRequiredGold.toLocaleString()}~${bogartMaxPossibleGold.toLocaleString()}G`,
-                      `${bogartMinRequiredGold.toLocaleString()}–${bogartMaxPossibleGold.toLocaleString()}G`,
-                    )}
-                  </span>
-                </div>
-                <p className="mt-1 text-[10.5px] font-semibold text-amber-100/90">
-                  {tr(
-                    '[대전 시작]을 누르면 주사위 2개가 굴러 1~12 눈금으로 배팅액이 자동 설정되고, 랜덤 9종족 대표와 승부합니다! (승리 시 2배 + 최초 제압 보너스)',
-                    'Press [Start Duel] to roll 2 dice (1–12) for an automatic stake and face a random 9-Faction champion! (Win 2x + First-Clear bonus)',
-                  )}
-                </p>
+                {tr(
+                  '🎲 랜덤 30장 덱 · 주사위 자동 배팅 · 승리 시 2배 골드',
+                  '🎲 Random 30-Card Deck · Auto-Dice Stake · Win 2× Gold',
+                )}
               </div>
 
-              {/* 9-Faction Trial Progress Grid (Merged into Bogart's Hall) */}
+              {/* Collapsible 9-Faction Trial Progress Accordion */}
               <div
                 data-testid="bogart-9faction-progress"
-                className="mt-2 rounded-xl border border-emerald-400/35 bg-black/45 px-2.5 py-2"
+                className="mt-2 rounded-xl border border-emerald-400/35 bg-black/45 px-2.5 py-1"
               >
-                <div className="mb-1.5 flex items-center justify-between gap-1 text-[10.5px] font-extrabold">
+                <button
+                  type="button"
+                  data-testid="bogart-9faction-toggle"
+                  onClick={() => {
+                    hsAudio.playSfx('ui_click', 0.6);
+                    setBogartProgressOpen((prev) => !prev);
+                  }}
+                  className="flex min-h-[44px] w-full items-center justify-between gap-2 text-[11px] font-extrabold"
+                >
                   <span className="text-emerald-200">
                     🛡️{' '}
                     {bogartTier === 'EXPERT'
-                      ? tr('9종족 숙련 수련 격파 현황 (9/9 올클리어 시 +2팩!)', '9-Faction Expert Cleared (9/9 = +2 Packs!)')
-                      : tr('9종족 일반 수련 격파 현황 (최초 제압 +25G)', '9-Faction Normal Cleared (+25G First Clear)')}
+                      ? tr('9종족 숙련 격파 현황', '9-Faction Expert Progress')
+                      : tr('9종족 일반 격파 현황', '9-Faction Normal Progress')}
                   </span>
-                  <span className="text-yellow-300">
-                    {bogartTier === 'EXPERT'
-                      ? profile.practiceExpertCleared.length
-                      : profile.practiceNormalCleared.length}
-                    /9
+                  <span className="flex items-center gap-1.5 text-yellow-300">
+                    <span>
+                      {bogartTier === 'EXPERT'
+                        ? profile.practiceExpertCleared.length
+                        : profile.practiceNormalCleared.length}
+                      /9
+                    </span>
+                    <span className="text-[10px] text-amber-200/80">
+                      {bogartProgressOpen ? tr('접기 ▴', 'Hide ▴') : tr('펼치기 ▾', 'View ▾')}
+                    </span>
                   </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1">
-                  {HERO_CLASS_ORDER.map((hc) => {
-                    const chLoc = getLocalizedHeroInfo(hc, lang);
-                    const cleared =
-                      bogartTier === 'EXPERT'
-                        ? profile.practiceExpertCleared.includes(hc)
-                        : profile.practiceNormalCleared.includes(hc);
-                    return (
-                      <div
-                        key={hc}
-                        className={`flex items-center gap-1 rounded-lg border px-1.5 py-1 text-[10px] font-extrabold ${
-                          cleared
-                            ? 'border-emerald-400/70 bg-emerald-950/75 text-emerald-100'
-                            : 'border-stone-700/80 bg-stone-900/75 text-amber-100/70'
-                        }`}
-                      >
-                        <img
-                          src={CLASS_CREST_URL[hc]}
-                          alt=""
-                          className="h-3.5 w-3.5 shrink-0 rounded-full object-cover"
-                        />
-                        <span className="min-w-0 flex-1 truncate">{chLoc.className}</span>
-                        {cleared && <span className="text-emerald-300">✓</span>}
-                      </div>
-                    );
-                  })}
-                </div>
+                </button>
+                {bogartProgressOpen && (
+                  <div className="grid grid-cols-3 gap-1 pb-1.5 pt-0.5">
+                    {HERO_CLASS_ORDER.map((hc) => {
+                      const chLoc = getLocalizedHeroInfo(hc, lang);
+                      const cleared =
+                        bogartTier === 'EXPERT'
+                          ? profile.practiceExpertCleared.includes(hc)
+                          : profile.practiceNormalCleared.includes(hc);
+                      return (
+                        <div
+                          key={hc}
+                          className={`flex items-center gap-1 rounded-lg border px-1.5 py-1 text-[10px] font-extrabold ${
+                            cleared
+                              ? 'border-emerald-400/70 bg-emerald-950/75 text-emerald-100'
+                              : 'border-stone-700/80 bg-stone-900/75 text-amber-100/70'
+                          }`}
+                        >
+                          <img
+                            src={CLASS_CREST_URL[hc]}
+                            alt=""
+                            className="h-3.5 w-3.5 shrink-0 rounded-full object-cover"
+                          />
+                          <span className="min-w-0 flex-1 truncate">{chLoc.className}</span>
+                          {cleared && <span className="text-emerald-300">✓</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Emergency Bailout when Gold < 100G */}
@@ -1324,10 +1324,10 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                   className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-400/65 bg-emerald-950/85 px-3 py-2 text-xs font-extrabold text-emerald-100"
                 >
                   <span>
-                    🔥{' '}
+                    🪙{' '}
                     {tr(
-                      '입장 골드(100G)가 부족합니다! 일일 무료 구제 +100G 또는 요정 샘 +150G로 재도전하세요!',
-                      'Need 100G to enter! Claim Daily Bailout (+100G) or Fairy Relief (+150G)!',
+                      '골드 부족! 무료 구제로 바로 도전하세요',
+                      'Low Gold! Claim free bailout Gold',
                     )}
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -1344,7 +1344,7 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                         }}
                         className="hs-zelda-b-btn min-h-[38px] rounded-xl px-3 py-1 text-xs font-black text-white shadow"
                       >
-                        {tr('🪙 무료 구제 +100G', '🪙 Bailout +100G')}
+                        {tr('🪙 무료 +100G', '🪙 Bailout +100G')}
                       </button>
                     )}
                     <button
@@ -1358,8 +1358,8 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
                           setProfile(hsStorage.getProfile());
                           setBogartToast(
                             tr(
-                              `🧚 요정 샘 +150G 수령 완료! (오늘 잔여 ${res.remainingToday}회)`,
-                              `🧚 +150G Fairy Relief claimed! (${res.remainingToday} left today)`,
+                              `🧚 요정 샘 +150G 수령! (잔여 ${res.remainingToday}회)`,
+                              `🧚 +150G Fairy Relief claimed! (${res.remainingToday} left)`,
                             ),
                           );
                           window.setTimeout(() => setBogartToast(null), 3200);
@@ -1473,7 +1473,8 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
             </div>
           )}
 
-          {/* Crystal-Clear Mode Victory Reward Guarantee Box */}
+          {/* Crystal-Clear Mode Victory Reward Guarantee Box (Hidden in Bogart mode for clean UX) */}
+          {!isBogart && (
           <div className="relative z-10 mb-2 rounded-2xl border border-amber-400/50 bg-gradient-to-r from-[#231509]/95 via-[#1a1007]/95 to-[#120b05]/95 px-3 py-2 text-[11px] shadow-inner sm:mb-2.5">
             <div className="flex flex-wrap items-center justify-between gap-1">
               <div className="flex items-center gap-1.5 font-extrabold text-yellow-300">
@@ -1496,9 +1497,10 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               • {tr('추가 특전:', 'Extra Bonus:')} {rewardGuide.specialBonusText}
             </div>
           </div>
+          )}
 
           {/* Battlefield Theme Selector */}
-          <div className="relative z-10 mb-2.5 flex flex-wrap items-center justify-between gap-1.5 rounded-xl border border-[#c8a158]/35 bg-black/35 px-2.5 py-2 text-xs sm:mb-3 sm:px-3">
+          <div className="relative z-10 mb-2 flex flex-wrap items-center justify-between gap-1.5 rounded-xl border border-[#c8a158]/35 bg-black/35 px-2.5 py-1.5 text-xs sm:mb-2.5 sm:px-3">
             <span className="font-bold text-amber-200">{tr('결투 전장', 'Battlefield')}</span>
             <div className="flex flex-wrap gap-1">
               {(
@@ -1524,9 +1526,10 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               ))}
             </div>
           </div>
+          </div>
 
           {/* Carved-Stone Snow-Seal PLAY Medallion Button (Desktop Inside Right Panel) */}
-          <div className="relative z-10 hidden flex-col items-center pt-1 lg:flex">
+          <div className="relative z-10 hidden shrink-0 flex-col items-center pt-1.5 lg:flex">
             <button
               type="button"
               data-testid="deck-select-play-btn"
@@ -1543,8 +1546,8 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
               <span className="hs-title hs-outline text-xl font-extrabold tracking-wider text-white sm:text-2xl">
                 {isBogart
                   ? tr(
-                      `🎲 대전 시작 (${bogartTier === 'EXPERT' ? '숙련 주사위 ×10' : '일반 주사위'})`,
-                      `🎲 Start Duel (${bogartTier === 'EXPERT' ? 'Expert Dice ×10' : 'Normal Dice'})`,
+                      `🎲 대전 시작 (${bogartTier === 'EXPERT' ? '숙련' : '일반'})`,
+                      `🎲 Start Duel (${bogartTier === 'EXPERT' ? 'Expert' : 'Normal'})`,
                     )
                   : isRanked
                     ? rankedStakeGold === 0
@@ -1578,8 +1581,8 @@ export const HeroDeckSelectScreen: React.FC<HeroDeckSelectScreenProps> = ({
           <span className="hs-title hs-outline text-base font-extrabold tracking-wide text-white sm:text-lg">
             {isBogart
               ? tr(
-                  `🎲 대전 시작 · 주사위 자동배팅 (${bogartTier === 'EXPERT' ? '숙련' : '일반'})`,
-                  `🎲 Start Duel · Auto-Dice (${bogartTier === 'EXPERT' ? 'Expert' : 'Normal'})`,
+                  `🎲 대전 시작 (${bogartTier === 'EXPERT' ? '숙련' : '일반'})`,
+                  `🎲 Start Duel (${bogartTier === 'EXPERT' ? 'Expert' : 'Normal'})`,
                 )
               : isRanked
                 ? rankedStakeGold === 0
