@@ -1808,3 +1808,13 @@
   - 적용 플레어: `Web` / 제목·본문 비중복 신규 영문 원고(SFW, 개발자 투명 공개, 웹 임베드·온보딩 피드백 요청).
   - 게시 URL: `https://www.reddit.com/r/itchio/comments/1y35gtv/i_just_published_my_free_382card_browser_tcg/`
   - 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-23 14:10 KST] [Addy Osmani `interview-me` 스킬 설치 및 지침서(`AGENTS.md`) 규칙 반영]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - 글로벌 스킬 디렉토리(`/Users/dayyoung/.gemini/config/skills/interview-me/SKILL.md`, 15,080 bytes)에 Addy Osmani의 `interview-me` 스킬 원본 설치 완료.
+  - 글로벌 지침([`/Users/dayyoung/.gemini/config/AGENTS.md`](file:///Users/dayyoung/.gemini/config/AGENTS.md)) 및 프로젝트 지침([`AGENTS.md`](file:///Users/dayyoung/project/snshero/AGENTS.md))에 **작업 착수 전 요구사항 인터뷰 원칙 (`interview-me`)** 섹션 추가:
+    - 오타 수정·단순 조회·명확한 지시는 질문 없이 즉시 실행
+    - 상위 목표(Why)·대상(Who)·완료 기준(Success)·제약 조건(Constraint) 중 누락이 있어 방향이 달라질 수 있는 요청은 계획·코드 작성 전 `interview-me` 선행 실행
+    - 인터뷰 확정 시 목표(Why)와 제외 범위(Out of scope)를 파일로 저장한 뒤 새 세션 구현을 위해 턴 종료
+  - `AGENTS.md`, `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 보류).
