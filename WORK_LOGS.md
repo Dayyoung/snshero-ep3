@@ -2,6 +2,15 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-23 13:08 KST] [DevTools Console `snshero-end` (및 `snshero.end()`) 40화 엔딩·환생 재현 테스트 명령어 추가]
+- **요청 및 개선 내역**:
+  - `src/hearthstone/consoleApi.ts`에 `snshero-end` 표현식(getter 페어링으로 `snshero - end` 평가 시 즉시 트리거 및 결과 `1` 반환)과 `snshero.end()`, `snshero_end()` 명령어 및 `snshero.help()` 안내를 등록.
+  - `src/hearthstone/HearthstoneApp.tsx`에서 `snshero:preview-story-ending` 커스텀 이벤트를 수신하여 어느 화면에서나 실제 저장 데이터를 손상시키지 않고 40화 웹툰 엔딩 크레딧 → 상단 스킵/완료 → 완료/환생 보상 효과 팝업 → 1화 스토리모드 진입 흐름을 즉시 테스트할 수 있도록 연동.
+- **검증**:
+  - `npx tsc --noEmit && npm run build` 에러 0건 통과.
+  - Playwright 검증(`page.evaluate('snshero-end')`): `snshero-end` 실행 → `story-ending-credits-overlay` 즉시 노출 → 상단 스킵 클릭 → `story-complete-reincarnation-popup` 노출 → 클릭 시 제1화 스토리모드 정상 전환 확인.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-23 13:01 KST] [스토리모드 40화 전체 클리어 시 40화 웹툰 컷신 엔딩 크레딧 + 서정적 엔딩 음악 + 완료/환생 보상 팝업(클릭 또는 3초 진행) 구현]
 - **요청 및 개선 내역**:
   - 스토리모드 제40화 전체 클리어 시 곧바로 환생 1화로 넘어가지 않고 감동적인 대단원 엔딩 시퀀스를 거치도록 구현.

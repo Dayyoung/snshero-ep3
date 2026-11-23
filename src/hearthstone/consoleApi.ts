@@ -33,6 +33,7 @@ export interface SnsHeroConsoleApi {
     presetDecks: string[];
   };
   engineInfo: () => Record<string, unknown>;
+  end: () => string;
   reset: () => string;
 }
 
@@ -40,10 +41,22 @@ declare global {
   interface Window {
     snshero?: SnsHeroConsoleApi;
     noonhero?: SnsHeroConsoleApi;
+    snshero_end?: () => string;
+    end?: unknown;
   }
 }
 
 let initialized = false;
+
+export function triggerStoryEndingPreview(): string {
+  if (typeof window === 'undefined') return '브라우저 환경이 아닙니다.';
+  window.dispatchEvent(new CustomEvent('snshero:preview-story-ending'));
+  console.info(
+    '%c[눈히어로 콘솔] 🎬 스토리모드 제40화 엔딩 크레딧(웹툰 컷신 + 음악 + 완료/환생 보상 팝업) 테스트를 시작합니다!',
+    'color:#fde047;font-weight:bold;',
+  );
+  return 'EP.40 엔딩 테스트 실행됨 (상단 [엔딩크레딧 스킵] 또는 완료 후 클릭/3초 대기)';
+}
 
 export function initSnsHeroConsoleApi(): void {
   if (typeof window === 'undefined' || initialized) return;
@@ -63,6 +76,7 @@ export function initSnsHeroConsoleApi(): void {
         '  snshero.completeQuests()         : 오늘의 의뢰 전체 완료 및 보상 지급',
         '  snshero.verifyRoster()           : 382종 카드 전수 고유 캐릭터·아트워크(종족별 25명 + 중립 157종) 무결성 검증',
         '  snshero.engineInfo()             : 전투 엔진 상수 및 로컬스토리지 상태 조회',
+        '  snshero-end / snshero.end()      : 스토리 40화 웹툰 엔딩 크레딧 + 음악 + 환생 팝업 즉시 재현',
         '  snshero.reset()                  : 프로필·도감·덱·의뢰 데이터 초기화 (초기 3팩 & 첫 방문 가이드 복원)',
         '=========================================================================================',
       ].join('\n');
@@ -242,6 +256,10 @@ export function initSnsHeroConsoleApi(): void {
       return info;
     },
 
+    end() {
+      return triggerStoryEndingPreview();
+    },
+
     reset() {
       hsStorage.resetAllData();
       console.info(
@@ -252,10 +270,37 @@ export function initSnsHeroConsoleApi(): void {
     },
   };
 
-  window.snshero = api;
+  (api as SnsHeroConsoleApi & { valueOf: () => number }).valueOf = () => 1;
+
+  let lastSnsheroReadAt = 0;
+  try {
+    Object.defineProperty(window, 'snshero', {
+      configurable: true,
+      get() {
+        lastSnsheroReadAt = Date.now();
+        return api;
+      },
+    });
+    Object.defineProperty(window, 'end', {
+      configurable: true,
+      get() {
+        if (Date.now() - lastSnsheroReadAt < 250) {
+          lastSnsheroReadAt = 0;
+          triggerStoryEndingPreview();
+          return 0;
+        }
+        return undefined;
+      },
+    });
+  } catch {
+    window.snshero = api;
+  }
+
   window.noonhero = api;
+  window.snshero_end = triggerStoryEndingPreview;
+  (window as unknown as Record<string, unknown>)['snshero-end'] = triggerStoryEndingPreview;
   console.info(
-    '%c[눈히어로: 카단의 여정] 개발자 테스트 콘솔이 활성화되었습니다. 콘솔에 snshero.help() 또는 snshero.unlockAll() 을 입력하세요.',
+    '%c[눈히어로: 카단의 여정] 개발자 테스트 콘솔이 활성화되었습니다. 콘솔에 snshero-end 또는 snshero.help() 를 입력하세요.',
     'color:#38bdf8;font-weight:bold;',
   );
 }

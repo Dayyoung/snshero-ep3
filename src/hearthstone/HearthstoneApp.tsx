@@ -19,6 +19,7 @@ import {
   TavernShopModal,
 } from './components/Modals';
 import { getSnsLogoUrl } from './components/SnsHeroArtKit';
+import { StoryEndingCreditsOverlay } from './components/StoryEndingCreditsOverlay';
 import { initSnsHeroConsoleApi } from './consoleApi';
 import {
   GamePaymentReturnResult,
@@ -77,6 +78,7 @@ import {
   GameMode,
   HeroClass,
   KadanTacticalStance,
+  MatchRewardBreakdown,
   PlayerProfile,
   ScreenName,
 } from './types';
@@ -151,6 +153,8 @@ export const HearthstoneApp: React.FC = () => {
   const [questLogOpen, setQuestLogOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [launchNotice, setLaunchNotice] = useState<string | null>(null);
+  const [endingPreviewOutcome, setEndingPreviewOutcome] =
+    useState<MatchRewardBreakdown | null>(null);
   const [paymentResult, setPaymentResult] = useState<GamePaymentReturnResult | null>(null);
   const [optionsState, setOptionsState] = useState<{
     open: boolean;
@@ -160,6 +164,40 @@ export const HearthstoneApp: React.FC = () => {
 
   const refreshProfile = useCallback(() => {
     setProfile(hsStorage.getProfile());
+  }, []);
+
+  useEffect(() => {
+    const onPreviewEnding = () => {
+      const prof = hsStorage.getProfile();
+      const nextReinc = (prof.journeyReincarnation || 0) + 1;
+      const baseWin = 40 + 40 * 5 + (prof.journeyReincarnation || 0) * 35;
+      const previewOutcome: MatchRewardBreakdown = {
+        mode: 'TUTORIAL',
+        didWin: true,
+        goldEarned: baseWin + 330,
+        baseWinGold: baseWin,
+        bonusGold: 330,
+        bonusLabel: tr('40화 대단원 완주 & 환생 개방 특전', 'Episode 40 Finale & Reincarnation Bonus'),
+        questGold: 0,
+        packsEarned: 3,
+        packReason: tr(
+          `제${nextReinc}차 여정 완주 보상 (눈히어로 팩 +3)`,
+          `Journey Run #${nextReinc} Clear Reward (+3 Packs)`,
+        ),
+        newRank: prof.rank,
+        newStars: prof.stars,
+        prevRank: prof.rank,
+        streakBonus: false,
+        threeWinProgress: prof.threeWinCounter || 0,
+        clearedEpisode: 40,
+        nextEpisode: 1,
+        nextReincarnation: nextReinc,
+        reincarnatedNow: true,
+      };
+      setEndingPreviewOutcome(previewOutcome);
+    };
+    window.addEventListener('snshero:preview-story-ending', onPreviewEnding);
+    return () => window.removeEventListener('snshero:preview-story-ending', onPreviewEnding);
   }, []);
 
   // Subscribe to Live 1v1 PvP Duel Room Match Start
@@ -863,6 +901,16 @@ export const HearthstoneApp: React.FC = () => {
               ✕
             </button>
           </div>
+        )}
+        {endingPreviewOutcome && (
+          <StoryEndingCreditsOverlay
+            outcomeSummary={endingPreviewOutcome}
+            onContinueStory={() => {
+              setEndingPreviewOutcome(null);
+              hsAudio.stopEndingCreditsMusic();
+              launchJourneyBattle(1, false, false);
+            }}
+          />
         )}
         {screen === 'BOX_HUB' && (
           <BoxHubScreen
