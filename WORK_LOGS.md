@@ -1771,3 +1771,11 @@
     - `MKT-097` (`J98`, 글로벌 웹게임 서브레딧 시딩) → **`진행중`**
     - `'요약 대시보드'`(`B9:H15`) 집계 확인: **완료 77건(77.0%) · 진행중 17건(17.0%) · 점검완료·실행대기 6건(6.0%) · 합계 100건**.
   - 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-23 10:23 KST] [Reddit r/itchio 영문 런칭·피드백 포스트 추가 게시]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - 도메인 중복·스팸 필터를 피하기 위해 `snshero.com` 대신 itch.io 공식 페이지(`https://snshero.itch.io/heroes-of-elwin`) 링크로 **`r/itchio`** 에 영문 포스트 게시 완료.
+  - 적용 플레어: `Web` / 제목·본문 비중복 신규 영문 원고(SFW, 개발자 투명 공개, 웹 임베드·온보딩 피드백 요청).
+  - 게시 URL: `https://www.reddit.com/r/itchio/comments/1y35gtv/i_just_published_my_free_382card_browser_tcg/`
+  - 로컬 `git commit` 완료 (`git push` 보류).
