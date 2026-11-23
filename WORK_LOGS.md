@@ -2,6 +2,19 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-23 13:01 KST] [스토리모드 40화 전체 클리어 시 40화 웹툰 컷신 엔딩 크레딧 + 서정적 엔딩 음악 + 완료/환생 보상 팝업(클릭 또는 3초 진행) 구현]
+- **요청 및 개선 내역**:
+  - 스토리모드 제40화 전체 클리어 시 곧바로 환생 1화로 넘어가지 않고 감동적인 대단원 엔딩 시퀀스를 거치도록 구현.
+  - **서정적 엔딩 음악 (`src/hearthstone/audio.ts`)**: `startEndingCreditsMusic()` / `stopEndingCreditsMusic()` 추가 (8마디 카논 진행 스트링 패드 + 하프 아르페지오 + 피아노/벨 멜로디 WebAudio 실시간 연주, 타 BGM 전환 시 자동 정지).
+  - **40화 웹툰 엔딩 크레딧 & 완료/환생 팝업 (`src/hearthstone/components/StoryEndingCreditsOverlay.tsx`)**:
+    - 40화 웹툰 컷신(`public/webtoon-assets/episode_40/scene_*.webp` 10장) 순환 슬라이드쇼 + 간단한 크레딧 + **상단 `[엔딩크레딧 스킵 ▸▸]` 버튼(`44px+`)** 제공 (`createPortal` 풀뷰포트 렌더링).
+    - 크레딧 완료 또는 스킵 시 **스토리모드 40화 완결 팝업 & 환생 보상 효과**(승리 골드 영구 보너스 `+{reincNum * 35}G`, 3장=3배 각성 컬렉션 100% 계승, 신규 환생 회차 개방) 표시 후 **클릭하거나 3초 경과 시** 다음 환생 1화 스토리모드로 자연스럽게 진행.
+  - **배틀 화면 연동 (`src/hearthstone/screens/BattleScreen.tsx`)**: 40화 승리(`isStoryEp40Clear`) 시 `<StoryEndingCreditsOverlay />`로 분기.
+- **검증**:
+  - `npx tsc --noEmit && npm run build` 에러 0건 통과.
+  - Playwright E2E 검증 (데스크톱 `1280×800` KO & 모바일 `390×844` EN): 40화 웹툰 컷신 이미지 로드·상단 스킵 버튼(`44px+`)·완료/환생 보상 팝업·3초 자동 진행 및 클릭 즉시 진행(환생 1회차 1화 진입)·모바일 오버플로우 0건·영문 100% 번역 통과.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-20 17:38 KST] [AGENTS.md 최상단에 작업 전 `git pull` 최신 소스 동기화 필수 원칙 추가]
 - **요청 및 개선 내역**:
   - `AGENTS.md` 최상단에 **작업 시작 전 최신 소스 동기화 필수 원칙 (Always `git pull` Before Starting Work)** 섹션을 추가하여, 모든 작업 착수 전 `git pull --rebase --autostash origin main`으로 원격 최신 소스를 먼저 동기화하도록 의무화.

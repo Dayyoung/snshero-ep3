@@ -21,6 +21,7 @@ import {
   HsManaGem,
 } from '../components/CardVisual';
 import { CardZoomAction, CardZoomModal } from '../components/CardZoomModal';
+import { StoryEndingCreditsOverlay } from '../components/StoryEndingCreditsOverlay';
 import { LiveBattleHelpSnapshot } from '../components/KadanChatbotWidget';
 import { SiliaSkillKind } from '../components/SiliaUltimateWidget';
 import { CARD_SCRIPTS } from '../engine/cardEffects';
@@ -3647,6 +3648,24 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
       snsheroLiveNetwork.setActiveBattleRoom(null, null);
     }
   }, [isLivePvp, matchState.phase]);
+
+  // Localhost-only E2E helper event to verify post-battle / Ep.40 ending flow deterministically
+  useEffect(() => {
+    if (
+      typeof window === 'undefined' ||
+      !['localhost', '127.0.0.1'].includes(window.location.hostname)
+    ) {
+      return;
+    }
+    const handler = () => {
+      const cur = matchStateRef.current;
+      if (cur.phase !== 'GAME_OVER') {
+        setMatchState(createEngine(cur).concede('OPPONENT'));
+      }
+    };
+    window.addEventListener('snshero:local-e2e-win', handler);
+    return () => window.removeEventListener('snshero:local-e2e-win', handler);
+  }, []);
 
   // Toggle Mulligan Card Selection (1-Click authentic Hearthstone stamp!)
   const toggleMulliganCard = (uid: string) => {
@@ -7304,33 +7323,67 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
         </div>
       )}
 
-      {/* 5A. Story Mode Victory Scene: Item Acquisition Showcase (`아이템 획득 장면.mp4`) or Character Victory Ment! */}
-      {mode === 'TUTORIAL' &&
-        matchState.phase === 'GAME_OVER' &&
-        matchState.winner === 'PLAYER' &&
-        storyEncounter && (
-          <StoryVictorySceneOverlay
-            encounter={storyEncounter}
-            outcomeSummary={outcomeSummary}
-            autoPlayActive={autoPlay}
-            onFinishEpisode={(act) => {
-              postGameFiredRef.current = true;
-              if (
-                act === 'NEXT_EPISODE' &&
-                onStartJourneyEpisode &&
-                outcomeSummary?.nextEpisode
-              ) {
-                onStartJourneyEpisode(outcomeSummary.nextEpisode, false, autoPlay);
-              } else {
-                onExitBattle();
-              }
-            }}
-          />
-        )}
+      {/* 5. Ep.40 Finale Ending Credits & Reincarnation Complete Popup vs Regular Story / Standard Post-Game */}
+      {(() => {
+        const isStoryEp40Clear =
+          mode === 'TUTORIAL' &&
+          matchState.phase === 'GAME_OVER' &&
+          matchState.winner === 'PLAYER' &&
+          Boolean(
+            outcomeSummary?.reincarnatedNow ||
+              outcomeSummary?.clearedEpisode === 40 ||
+              matchState.journeyMeta?.episode === 40,
+          );
+        const showRegularStoryVictory =
+          !isStoryEp40Clear &&
+          mode === 'TUTORIAL' &&
+          matchState.phase === 'GAME_OVER' &&
+          matchState.winner === 'PLAYER' &&
+          Boolean(storyEncounter);
 
-      {/* 5B. Victory / Defeat Heraldry Banner, 3s Auto-Advance & Defeat Pack Purchase -> 5-Card Open -> Auto-Retry Loop */}
-      {matchState.phase === 'GAME_OVER' &&
-        !(mode === 'TUTORIAL' && matchState.winner === 'PLAYER' && storyEncounter) && (
+        return (
+          <>
+            {isStoryEp40Clear && (
+              <StoryEndingCreditsOverlay
+                outcomeSummary={outcomeSummary}
+                onContinueStory={() => {
+                  postGameFiredRef.current = true;
+                  hsAudio.stopEndingCreditsMusic();
+                  hsAudio.playSfx('box_press');
+                  if (onStartJourneyEpisode) {
+                    onStartJourneyEpisode(outcomeSummary?.nextEpisode || 1, false, autoPlay);
+                  } else {
+                    onExitBattle();
+                  }
+                }}
+              />
+            )}
+
+            {/* 5A. Story Mode Victory Scene: Item Acquisition Showcase (`아이템 획득 장면.mp4`) or Character Victory Ment! */}
+            {showRegularStoryVictory && storyEncounter && (
+              <StoryVictorySceneOverlay
+                encounter={storyEncounter}
+                outcomeSummary={outcomeSummary}
+                autoPlayActive={autoPlay}
+                onFinishEpisode={(act) => {
+                  postGameFiredRef.current = true;
+                  if (
+                    act === 'NEXT_EPISODE' &&
+                    onStartJourneyEpisode &&
+                    outcomeSummary?.nextEpisode
+                  ) {
+                    onStartJourneyEpisode(outcomeSummary.nextEpisode, false, autoPlay);
+                  } else {
+                    onExitBattle();
+                  }
+                }}
+              />
+            )}
+
+            {/* 5B. Victory / Defeat Heraldry Banner, 3s Auto-Advance & Defeat Pack Purchase -> 5-Card Open -> Auto-Retry Loop */}
+            {matchState.phase === 'GAME_OVER' &&
+              !isStoryEp40Clear &&
+              !showRegularStoryVictory && (
         <div className="absolute inset-0 z-[94] flex items-center justify-center overflow-y-auto bg-black/88 p-3 sm:p-4">
           {defeatPackResult ? (
             <div
@@ -8270,7 +8323,10 @@ export const BattleScreen: React.FC<BattleScreenProps> = ({
             );
           })()}
         </div>
-      )}
+            )}
+          </>
+        );
+      })()}
 
       {/* Story Mode Compact Episode Selector & Dialogue Replay Modal */}
       {mode === 'TUTORIAL' && episodeSelectorOpen && matchState.journeyMeta && (

@@ -186,6 +186,8 @@ class SnsHeroCardAudioEngine {
   private heroNameVoMapPromise: Promise<Record<string, string>> | null = null;
   private activeSfx = new Set<HTMLAudioElement>();
   private ctx: AudioContext | null = null;
+  private endingCreditsTimer: number | null = null;
+  private endingMasterGain: GainNode | null = null;
   private activeSynthNodes = 0;
   private lastAnimaleseAt = 0;
   private unlocked = false;
@@ -540,6 +542,7 @@ class SnsHeroCardAudioEngine {
   }
 
   playBgm(track: 'tavern_hub' | 'collection' | 'mulligan' | 'duel_1' | 'duel_2') {
+    this.stopEndingCreditsMusic();
     this.pendingBgmTrack = track;
     if (!this.unlocked && !this.hasStickyUserActivation()) {
       if (this.currentBgm) {
@@ -2100,6 +2103,185 @@ class SnsHeroCardAudioEngine {
       }
     } catch {
       // ignore Web Audio errors
+    }
+  }
+
+  /**
+   * 40화 대단원 엔딩 크레딧 전용 아름다운 오케스트라 하프·피아노 선율 (WebAudio 실시간 합성)
+   * - C Major / G/B / Am7 / Em7 / Fmaj7 / C/E / Dm7 / G7 서정적 카논 진행
+   */
+  startEndingCreditsMusic() {
+    this.stopBgm();
+    this.stopEndingCreditsMusic();
+    if (this.settings.muted || this.settings.bgmVolume <= 0) return;
+    if (typeof window === 'undefined') return;
+    try {
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!this.ctx) {
+        this.ctx = new AudioCtx();
+      }
+      const ctx = this.ctx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+
+      const master = ctx.createGain();
+      const targetVol = Math.max(0.06, Math.min(0.28, this.settings.bgmVolume * 1.15));
+      master.gain.setValueAtTime(0.0001, ctx.currentTime);
+      master.gain.exponentialRampToValueAtTime(targetVol, ctx.currentTime + 1.2);
+      master.connect(ctx.destination);
+      this.endingMasterGain = master;
+
+      // 8-bar lyrical Canon-style progression (frequencies in Hz)
+      const bars: { pad: number[]; arp: number[]; melody: (number | null)[] }[] = [
+        {
+          // Cmaj7
+          pad: [130.81, 196.0, 246.94, 329.63],
+          arp: [261.63, 329.63, 392.0, 493.88, 523.25, 493.88, 392.0, 329.63],
+          melody: [659.25, null, 587.33, null, 523.25, null, 493.88, 523.25],
+        },
+        {
+          // G/B
+          pad: [123.47, 196.0, 293.66, 392.0],
+          arp: [246.94, 293.66, 392.0, 493.88, 587.33, 493.88, 392.0, 293.66],
+          melody: [587.33, null, 493.88, null, 392.0, null, 440.0, 493.88],
+        },
+        {
+          // Am7
+          pad: [110.0, 164.81, 220.0, 329.63],
+          arp: [220.0, 261.63, 329.63, 392.0, 440.0, 392.0, 329.63, 261.63],
+          melody: [523.25, null, 493.88, null, 440.0, null, 392.0, 440.0],
+        },
+        {
+          // Em7
+          pad: [164.81, 246.94, 293.66, 392.0],
+          arp: [196.0, 246.94, 293.66, 392.0, 493.88, 392.0, 293.66, 246.94],
+          melody: [493.88, null, 392.0, null, 329.63, null, 392.0, 493.88],
+        },
+        {
+          // Fmaj7
+          pad: [174.61, 220.0, 261.63, 329.63],
+          arp: [174.61, 220.0, 261.63, 329.63, 349.23, 329.63, 261.63, 220.0],
+          melody: [523.25, null, 587.33, null, 659.25, null, 587.33, 523.25],
+        },
+        {
+          // C/E
+          pad: [164.81, 196.0, 261.63, 329.63],
+          arp: [196.0, 261.63, 329.63, 392.0, 523.25, 392.0, 329.63, 261.63],
+          melody: [523.25, null, 493.88, null, 392.0, null, 440.0, 523.25],
+        },
+        {
+          // Dm7
+          pad: [146.83, 220.0, 261.63, 349.23],
+          arp: [220.0, 261.63, 293.66, 349.23, 440.0, 349.23, 293.66, 261.63],
+          melody: [587.33, null, 523.25, null, 440.0, null, 493.88, 523.25],
+        },
+        {
+          // Gsus4 -> G
+          pad: [196.0, 246.94, 293.66, 392.0],
+          arp: [196.0, 246.94, 293.66, 392.0, 493.88, 587.33, 493.88, 392.0],
+          melody: [587.33, null, 659.25, null, 587.33, null, 493.88, null],
+        },
+      ];
+
+      let barIdx = 0;
+      const stepSec = 0.42;
+      const barMs = stepSec * 8 * 1000;
+
+      const scheduleBar = () => {
+        if (!this.endingMasterGain || !this.ctx || this.settings.muted) return;
+        const now = this.ctx.currentTime + 0.04;
+        const bar = bars[barIdx % bars.length];
+        barIdx += 1;
+
+        // Warm string pad
+        for (const freq of bar.pad) {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.11, now + 0.55);
+          gain.gain.linearRampToValueAtTime(0.08, now + stepSec * 7.2);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + stepSec * 8.1);
+          osc.connect(gain);
+          gain.connect(this.endingMasterGain);
+          osc.start(now);
+          osc.stop(now + stepSec * 8.2);
+        }
+
+        // Gentle harp arpeggio & crystalline piano/bell melody
+        bar.arp.forEach((freq, i) => {
+          const t = now + i * stepSec;
+          const osc = this.ctx!.createOscillator();
+          const gain = this.ctx!.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.linearRampToValueAtTime(0.14, t + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.05);
+          osc.connect(gain);
+          gain.connect(this.endingMasterGain!);
+          osc.start(t);
+          osc.stop(t + 1.1);
+
+          const mel = bar.melody[i];
+          if (mel) {
+            const mOsc = this.ctx!.createOscillator();
+            const mOsc2 = this.ctx!.createOscillator();
+            const mGain = this.ctx!.createGain();
+            mOsc.type = 'sine';
+            mOsc2.type = 'triangle';
+            mOsc.frequency.setValueAtTime(mel, t);
+            mOsc2.frequency.setValueAtTime(mel * 2, t);
+            mGain.gain.setValueAtTime(0.0001, t);
+            mGain.gain.linearRampToValueAtTime(0.22, t + 0.025);
+            mGain.gain.exponentialRampToValueAtTime(0.0001, t + 1.45);
+            const hGain = this.ctx!.createGain();
+            hGain.gain.setValueAtTime(0.05, t);
+            mOsc.connect(mGain);
+            mOsc2.connect(hGain);
+            hGain.connect(mGain);
+            mGain.connect(this.endingMasterGain!);
+            mOsc.start(t);
+            mOsc2.start(t);
+            mOsc.stop(t + 1.5);
+            mOsc2.stop(t + 1.5);
+          }
+        });
+      };
+
+      scheduleBar();
+      this.endingCreditsTimer = window.setInterval(scheduleBar, barMs);
+    } catch {
+      // ignore WebAudio errors
+    }
+  }
+
+  stopEndingCreditsMusic() {
+    if (this.endingCreditsTimer !== null) {
+      window.clearInterval(this.endingCreditsTimer);
+      this.endingCreditsTimer = null;
+    }
+    if (this.endingMasterGain && this.ctx) {
+      try {
+        const g = this.endingMasterGain;
+        const now = this.ctx.currentTime;
+        g.gain.cancelScheduledValues(now);
+        g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), now);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        window.setTimeout(() => {
+          try {
+            g.disconnect();
+          } catch {}
+        }, 400);
+      } catch {
+        // ignore
+      }
+      this.endingMasterGain = null;
     }
   }
 }
