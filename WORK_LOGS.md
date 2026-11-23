@@ -2,6 +2,21 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-23 16:25 KST] [`/license` 페이지(저작권·유료 라이선스 재사용·전체 IP 양도 문의·Privacy) 신설 및 공통 푸터 연결]
+- **요청 및 개선 내역**:
+  - `docs/intent/license-and-privacy-page.md` 의도 명세서에 따라 전용 `/license` MPA 엔트리(`license.html`, `src/license/main.tsx`, `src/license/license.css`, `src/license/LicenseApp.tsx`)를 신설.
+  - 한·영 이중 언어(`useHeroLanguage()`, `?lang=ko|en`, `/en/license/`) 및 모바일 터치 타깃(`44px+`) 준수, 4대 핵심 섹션 구현:
+    1. 일반 저작권 및 라이선스 고지 (`#copyright`)
+    2. 유료 라이선스 구매 후 허가 범위 내 재사용 안내 (`#paid-license`)
+    3. 전체 카피라이트(IP) 권리 양도 및 라이선스 구매 문의 (`#ip-transfer` — `mailto:dryudryu@gmail.com` CTA 및 이메일 복사)
+    4. 일반 개인정보처리방침 (`#privacy` — LocalStorage 게스트 저장 구조, GA4/AdSense 쿠키, 문의 이메일 처리, 데이터 삭제 안내)
+  - `vite.config.ts`, `scripts/post-build.js`, `scripts/generate-seo-pages.mjs`에 `/license` 및 `/en/license/` 빌드·정적 미러·404 라우트·`sitemap.xml` 반영.
+  - 공통 푸터에 저작권/라이선스 안내 및 `자세히 보기`(`Learn More` → `/license`) 링크 추가: `src/promo/PromoApp.tsx` (`/`·`/promotion`), `src/reader/ReaderChrome.ts` (`/book.html`·`/webtoon.html`), `src/hearthstone/screens/BoxHubScreen.tsx` (`/game.html` 로비), `src/sns/SnsBenchmarkApp.tsx` (`/sns.html`). (`/stone.html` 및 `src/stone/**` 제외)
+- **검증**:
+  - `npm run build` 오류 0건 통과 (`dist/license.html`, `dist/license/index.html`, `dist/en/license/index.html` 생성 확인).
+  - Playwright E2E 검증(데스크톱 `1280×800` & 모바일 `390×844`, KO/EN 양방향): `/license?lang=ko|en`, `/en/license/` 4대 섹션·`mailto:dryudryu@gmail.com`·한/영 전환·모바일 오버플로우 0건 확인, `/`, `/promotion`, `/book.html`, `/webtoon.html`, `/sns.html`, `/game.html` 로비 푸터 링크 노출 및 `/license` 이동 확인.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-23 13:10 KST] [40화 환생 완료 팝업 자동 진행 대기 시간 3초 → 5초 연장 및 원격 푸시]
 - **요청 및 개선 내역**:
   - `src/hearthstone/components/StoryEndingCreditsOverlay.tsx`의 스토리모드 완료 & 환생 보상 효과 팝업 자동 진행 카운트다운을 `3000ms(3초)`에서 `5000ms(5초)`로 연장 (프로그레스 바 및 안내 문구 포함)하고 `src/hearthstone/consoleApi.ts` 안내 문구 동기화.

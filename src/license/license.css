@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --license-mono: 'JetBrains Mono', 'Nanum Gothic Coding', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html,
+body,
+#license-root {
+  margin: 0;
+  padding: 0;
+  min-height: 100dvh;
+  background-color: #090d16;
+  color: #fdfcfc;
+  font-family: var(--license-mono) !important;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+#license-root *,
+#license-root *::before,
+#license-root *::after {
+  box-sizing: border-box;
+  font-family: var(--license-mono) !important;
+}
+
+.license-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #fdfcfc;
+  color: #090d16;
+  border: 1px solid #fdfcfc;
+  border-radius: 4px;
+  min-height: 44px;
+  padding: 0 16px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.license-btn-primary:hover:not(:disabled) {
+  background-color: #e5e5e5;
+}
+
+.license-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #111726;
+  color: #fdfcfc;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  min-height: 44px;
+  padding: 0 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.license-btn-ghost:hover:not(:disabled) {
+  background-color: #1a2236;
+  border-color: rgba(255, 255, 255, 0.36);
+}

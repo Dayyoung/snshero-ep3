@@ -51,6 +51,8 @@ const MPA_REWRITES: Record<string, string> = {
   '/en/webtoon': '/en/webtoon/index.html',
   '/sns': '/sns.html',
   '/en/sns': '/en/sns/index.html',
+  '/license': '/license.html',
+  '/en/license': '/en/license/index.html',
   '/wiki/tip': '/wiki/tip/index.html',
   '/en/wiki/tip': '/en/wiki/tip/index.html',
   '/wiki/cards': '/wiki/cards/index.html',
@@ -157,6 +159,7 @@ function mpaRewriteMiddleware(req: any, res: any, next: any) {
         '/en/book': '/book.html',
         '/en/webtoon': '/webtoon.html',
         '/en/sns': '/sns.html',
+        '/en/license': '/license.html',
       };
       if (devMap[cleanNormalized]) {
         req.url = `${devMap[cleanNormalized]}${query}`;
@@ -895,6 +898,7 @@ export default defineConfig(({mode}) => {
           novel: path.resolve(process.cwd(), 'novel.html'),
           webtoon: path.resolve(process.cwd(), 'webtoon.html'),
           sns: path.resolve(process.cwd(), 'sns.html'),
+          license: path.resolve(process.cwd(), 'license.html'),
         },
         output: {
           entryFileNames: `assets/[name]-[hash]-v2.js`,

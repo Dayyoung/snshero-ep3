@@ -165,6 +165,7 @@ export function renderReaderFooter(): string {
           <a href="/stone.html" class="hover:text-amber-300 no-underline text-stone-300">${tr('오리지널 스톤', 'Classic Stone')}</a>
           <a href="/book" class="hover:text-amber-300 no-underline text-stone-300">${tr('공식 소설', 'Novel')}</a>
           <a href="/webtoon" class="hover:text-amber-300 no-underline text-stone-300">${tr('공식 웹툰', 'Webtoon')}</a>
+          <a href="${lang === 'ko' ? '/license' : `/license?lang=${encodeURIComponent(lang)}`}" class="hover:text-amber-300 no-underline text-stone-300">${tr('라이선스 · 개인정보', 'License & Privacy')}</a>
         </div>
         <div class="mt-5 flex justify-center">
           <div class="inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-black/35 p-0.5">
@@ -178,7 +179,22 @@ export function renderReaderFooter(): string {
             'Official media mix reader for the web card battle game <strong class="text-stone-300">SNSHero — Heroes of Elwin (/)</strong>.'
           )}
         </p>
-        <p class="mt-3 text-[11px] text-stone-600">
+        <p class="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] text-stone-400">
+          <span>
+            ${tr(
+              '본 게임·웹소설·웹툰은 저작권 및 라이선스가 적용된 눈히어로 독자 저작물입니다.',
+              'This game, web novel, and webtoon are original works protected by SNSHero copyright & license.'
+            )}
+          </span>
+          <a
+            href="${lang === 'ko' ? '/license' : `/license?lang=${encodeURIComponent(lang)}`}"
+            data-testid="footer-license-link"
+            class="inline-flex min-h-[44px] items-center font-bold text-amber-300 underline underline-offset-4 hover:text-amber-200"
+          >
+            ${tr('자세히 보기', 'Learn More')}
+          </a>
+        </p>
+        <p class="mt-2 text-[11px] text-stone-600">
           © 2026 눈히어로 (SNSHero.com) · 엘윈마을과 카단의 여정. All rights reserved.
         </p>
       </div>

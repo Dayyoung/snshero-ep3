@@ -789,11 +789,20 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
       </main>
 
       {/* Subtle Footer Plaque */}
-      <footer className="relative z-20 pt-1 text-center text-[10.5px] font-bold tracking-wide text-amber-200/80 sm:text-[11px]">
-        {tr(
-          '눈히어로 9대 종족 수호자 · 수집 카드 382종 완비 · 배경음 기본 15%',
-          'SNSHero · 9 Guardian Heroes · 382 Collectible Cards · Free-to-Play',
-        )}
+      <footer className="relative z-20 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-3 pt-1 text-center text-[10.5px] font-bold tracking-wide text-amber-200/80 sm:text-[11px]">
+        <span>
+          {tr(
+            '눈히어로 9대 종족 수호자 · 수집 카드 382종 완비 · 저작권 및 라이선스 보호 저작물',
+            'SNSHero · 9 Guardian Heroes · 382 Cards · Protected by Copyright & License',
+          )}
+        </span>
+        <a
+          href={lang === 'ko' ? '/license' : `/license?lang=${encodeURIComponent(lang)}`}
+          data-testid="footer-license-link"
+          className="inline-flex min-h-[44px] items-center px-1 text-amber-300 underline underline-offset-2 hover:text-amber-100"
+        >
+          {tr('자세히 보기', 'Learn More')}
+        </a>
       </footer>
 
       {quickRulesOpen && (

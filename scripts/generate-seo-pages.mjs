@@ -9,7 +9,7 @@ const TODAY_ISO = new Date().toISOString().slice(0, 10);
 // Root-level static HTML files served at 200 OK without trailing slash on GitHub Pages.
 // All directory-based routes (written as <path>/index.html) MUST use trailing slashes
 // so GitHub Pages returns 200 OK directly instead of a 301 redirect loop.
-const EXTENSIONLESS_ROOT_PATHS = new Set(['/', '/game', '/book', '/webtoon', '/sns']);
+const EXTENSIONLESS_ROOT_PATHS = new Set(['/', '/game', '/book', '/webtoon', '/sns', '/license']);
 
 function toCanonicalPath(urlPath) {
   if (!urlPath || urlPath === '/') return '/';
@@ -365,6 +365,7 @@ ${GA_HEAD_SNIPPET}
     ${bodyHtml}
     <footer>
       <p>${isKo ? '눈히어로 : 카단의 여정 (SNSHero.com) — 무설치 382종 판타지 전략 웹 TCG 공식 아카이브' : "SNSHero : Kadan's Journey (SNSHero.com) — Free 382-Card Browser Strategy TCG Archive"}</p>
+      <p>${isKo ? '본 게임·웹소설·웹툰은 저작권 및 라이선스가 적용된 눈히어로 독자 저작물입니다.' : 'This game, web novel, and webtoon are original works protected by SNSHero copyright & license.'} <a href="${isKo ? '/license' : '/en/license/'}" style="color:#fcd34d;">${isKo ? '자세히 보기' : 'Learn More'}</a></p>
     </footer>
   </div>
 </body>
@@ -408,6 +409,7 @@ export function generateAllSeoPages({ rootDir, distDir, publicDir }) {
     { file: 'book/index.html', koPath: '/book', enPath: '/en/book', priority: '0.9', changefreq: 'weekly' },
     { file: 'webtoon/index.html', koPath: '/webtoon', enPath: '/en/webtoon', priority: '0.9', changefreq: 'weekly' },
     { file: 'sns/index.html', koPath: '/sns', enPath: '/en/sns', priority: '0.9', changefreq: 'daily' },
+    { file: 'license/index.html', koPath: '/license', enPath: '/en/license', priority: '0.6', changefreq: 'monthly' },
     { file: 'wiki/tip/index.html', koPath: '/wiki/tip', enPath: '/en/wiki/tip', priority: '0.85', changefreq: 'weekly' },
   ];
   for (const p of corePairs) {
@@ -416,6 +418,7 @@ export function generateAllSeoPages({ rootDir, distDir, publicDir }) {
     if (p.koPath === '/book') injectHreflangIntoExistingHtml(path.join(distDir, 'book.html'), p.koPath, p.enPath);
     if (p.koPath === '/webtoon') injectHreflangIntoExistingHtml(path.join(distDir, 'webtoon.html'), p.koPath, p.enPath);
     if (p.koPath === '/sns') injectHreflangIntoExistingHtml(path.join(distDir, 'sns.html'), p.koPath, p.enPath);
+    if (p.koPath === '/license') injectHreflangIntoExistingHtml(path.join(distDir, 'license.html'), p.koPath, p.enPath);
     addSitemapPair(p.koPath, p.enPath, p.priority, p.changefreq);
   }
 
@@ -499,6 +502,15 @@ ${GA_HEAD_SNIPPET}
     .replace(/<meta name="description" content="[^"]*"\s*\/>/i, '<meta name="description" content="Live 1,000-match tactical card battle benchmark comparing SNSHero Native AI against Claude, ChatGPT, and Gemini via the open /mcp JSON-RPC Arena protocol." />')
     .replace(/<link rel="canonical" href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${SITE_ORIGIN}/en/sns/" />`);
   writeHtmlFile(distDir, '/en/sns', enSnsHtml);
+
+  // Build /en/license from dist/license/index.html
+  const licenseDistHtml = fs.readFileSync(path.join(distDir, 'license/index.html'), 'utf8');
+  const enLicenseHtml = licenseDistHtml
+    .replace('<html lang="ko">', '<html lang="en">')
+    .replace(/<title>[\s\S]*?<\/title>/i, '<title>SNSHero License, Copyright, IP Transfer &amp; Privacy Policy (/en/license)</title>')
+    .replace(/<meta name="description" content="[^"]*"\s*\/>/i, '<meta name="description" content="Official copyright notice, paid license reuse terms, full IP transfer inquiry (dryudryu@gmail.com), and Privacy Policy for SNSHero." />')
+    .replace(/<link rel="canonical" href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${SITE_ORIGIN}/en/license/" />`);
+  writeHtmlFile(distDir, '/en/license', enLicenseHtml);
 
   // Build /en/wiki/tip English Strategy Guide
   writeHtmlFile(

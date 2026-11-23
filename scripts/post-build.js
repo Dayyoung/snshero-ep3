@@ -62,7 +62,7 @@ const ensureAbsoluteAssetPaths = (html) =>
     .replace(/(src|href)=["']\.\/novel-assets\//g, '$1="/novel-assets/')
     .replace(/(src|href)=["']\.\/webtoon-assets\//g, '$1="/webtoon-assets/');
 
-for (const page of ['game', 'stone', 'promo', 'book', 'novel', 'webtoon', 'sns']) {
+for (const page of ['game', 'stone', 'promo', 'book', 'novel', 'webtoon', 'sns', 'license']) {
   const htmlPath = path.join(distDir, `${page}.html`);
   if (!fs.existsSync(htmlPath)) continue;
   const fixed = ensureAbsoluteAssetPaths(fs.readFileSync(htmlPath, 'utf8'));
@@ -155,7 +155,9 @@ fs.writeFileSync(
         '/book': '/book',
         '/novel': '/book',
         '/webtoon': '/webtoon',
-        '/game': '/game'
+        '/game': '/game',
+        '/license': '/license',
+        '/privacy': '/license'
       };
       if (routes[p] && routes[p] !== window.location.pathname) {
         var dest = routes[p];

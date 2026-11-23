@@ -1706,6 +1706,12 @@ export const PromoApp: React.FC = () => {
               <a href="/webtoon.html" className="hover:text-amber-300">
                 {tr('웹툰', 'Webtoon')}
               </a>
+              <a
+                href={lang === 'ko' ? '/license' : `/license?lang=${encodeURIComponent(lang)}`}
+                className="hover:text-amber-300"
+              >
+                {tr('라이선스 · 개인정보', 'License & Privacy')}
+              </a>
             </div>
 
             <div
@@ -1741,7 +1747,22 @@ export const PromoApp: React.FC = () => {
             >
               눈히어로 · 엘윈마을의 영웅들 · 카단의 여정 (SNSHero.com) — 9대 종족 382종 무설치 정통 전략 웹 TCG · 첫 방문 무료 3팩+250G+160가루 · 40화 성우 풀보이스 스토리 모드(3장=3배 각성) · 보가트의 도박장(1~1,000G 랜덤 30장 덱) · 실시간 랭크 아레나
             </p>
-            <p className="mt-2 text-[11px] text-stone-500">
+            <p className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] text-stone-400">
+              <span>
+                {tr(
+                  '본 게임·웹소설·웹툰은 저작권 및 라이선스가 적용된 눈히어로 독자 저작물입니다.',
+                  'This game, web novel, and webtoon are original works protected by SNSHero copyright & license.',
+                )}
+              </span>
+              <a
+                href={lang === 'ko' ? '/license' : `/license?lang=${encodeURIComponent(lang)}`}
+                data-testid="footer-license-link"
+                className="inline-flex min-h-[44px] items-center font-bold text-amber-300 underline underline-offset-4 hover:text-amber-200"
+              >
+                {tr('자세히 보기', 'Learn More')}
+              </a>
+            </p>
+            <p className="mt-1 text-[11px] text-stone-500">
               © 2026 SNSHero (SNSHero.com) · Heroes of Elwin Village &amp; Kadan&apos;s Journey.
             </p>
           </div>

@@ -92,6 +92,24 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://snshero.com/license</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://snshero.com/license" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://snshero.com/en/license/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://snshero.com/license" />
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://snshero.com/en/license/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://snshero.com/license" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://snshero.com/en/license/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://snshero.com/license" />
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://snshero.com/wiki/tip/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://snshero.com/wiki/tip/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://snshero.com/en/wiki/tip/" />

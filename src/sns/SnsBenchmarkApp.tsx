@@ -1789,24 +1789,47 @@ export const SnsBenchmarkApp: React.FC = () => {
       <footer className="border-t border-white/15 bg-[#070a12] mt-12">
         <div className="max-w-7xl mx-auto px-4 py-5 flex flex-wrap items-center justify-between gap-3 text-[11px] text-stone-400">
           <div>
-            SNSHero Revolution v2.1 · 382 Collectible Cards Frozen · /mcp JSON-RPC 2.0 Arena ·{' '}
-            {tr('최종 갱신:', 'Last Updated:')} {store.lastUpdated.slice(0, 19).replace('T', ' ')}
+            <div>
+              SNSHero Revolution v2.1 · 382 Collectible Cards Frozen · /mcp JSON-RPC 2.0 Arena ·{' '}
+              {tr('최종 갱신:', 'Last Updated:')} {store.lastUpdated.slice(0, 19).replace('T', ' ')}
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-stone-400">
+              <span>
+                {tr(
+                  '본 게임·웹소설·웹툰은 저작권 및 라이선스가 적용된 눈히어로 독자 저작물입니다.',
+                  'This game, web novel, and webtoon are original works protected by SNSHero copyright & license.',
+                )}
+              </span>
+              <a
+                href={isKo ? '/license' : `/license?lang=${encodeURIComponent(lang)}`}
+                data-testid="footer-license-link"
+                className="inline-flex min-h-[44px] items-center font-bold text-amber-300 underline underline-offset-4 hover:text-amber-200"
+              >
+                {tr('자세히 보기', 'Learn More')}
+              </a>
+            </div>
           </div>
-          <div className="flex gap-4">
-            <a href="/game" className="hover:text-white">
+          <div className="flex flex-wrap gap-4">
+            <a href="/game" className="inline-flex min-h-[44px] items-center hover:text-white">
               /game (Game)
             </a>
-            <a href="/" className="hover:text-white">
+            <a href="/" className="inline-flex min-h-[44px] items-center hover:text-white">
               / (Showcase)
             </a>
-            <a href="/book" className="hover:text-white">
+            <a href="/book" className="inline-flex min-h-[44px] items-center hover:text-white">
               /book
             </a>
-            <a href="/webtoon" className="hover:text-white">
+            <a href="/webtoon" className="inline-flex min-h-[44px] items-center hover:text-white">
               /webtoon
             </a>
-            <a href="/mcp" className="hover:text-white">
+            <a href="/mcp" className="inline-flex min-h-[44px] items-center hover:text-white">
               /mcp
+            </a>
+            <a
+              href={isKo ? '/license' : `/license?lang=${encodeURIComponent(lang)}`}
+              className="inline-flex min-h-[44px] items-center hover:text-white"
+            >
+              /license
             </a>
           </div>
         </div>
