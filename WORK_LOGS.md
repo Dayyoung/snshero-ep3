@@ -2,6 +2,16 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-24 12:04 KST] [카단 AI 챗봇 ChatGPT 디자인·멀티턴 UX 전면 개편 및 모바일 풀스크린 팝업 적용]
+- **요청 및 개선 내역**:
+  - 카단 챗봇(`src/hearthstone/components/KadanChatbotWidget.tsx`)을 게임 내 기존 우드/황동 스타일에서 독립적인 **ChatGPT(`chatgpt.com`) 다크 UI(`#212121` 서피스, `#2f2f2f` 말풍선/알약형 입력컴포저, 시스템 산세리프 서체)**와 멀티턴 대화 UX로 전면 개편.
+  - **모바일 전체화면 팝업**: `< 640px` 모바일 뷰포트에서 카단 챗봇을 열면 `createPortal(..., document.body)` 기반 `fixed inset-0 h-[100dvh] w-full` 풀스크린 팝업으로 표시되며, 데스크톱에서는 `420×620` 라운드 플로팅 대화창으로 표시.
+  - **ChatGPT 사용경험 구현**: 중앙 웰컴 인사 + 2열 추천 프롬프트 카드, 유저(우측 회색 필)/카단 AI(좌측 아바타+본문+복사 버튼) 멀티턴 대화 스레드, 3-도트 생각 중 인디케이터, 새 대화 초기화(`SquarePen`), 알약형 입력창 + 원형 화이트 전송(`ArrowUp`) 버튼, 16px 모바일 자동 확대 방지 및 전술 지휘 칩 유지.
+- **검증**:
+  - `npx tsc --noEmit && npm run build` 에러 0건 통과.
+  - Playwright E2E 검증: 모바일(`390×844`) 풀스크린(`390×844`) & 멀티턴 대화 누적 & 새 대화/닫기 & 오버플로우 0건, 데스크톱(`1280×800`) 플로팅 창(`420×620`) & 영문(`?lang=en`) 100% 번역 통과.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-24 10:50 KST] [GDevelop 네이티브 프로모션 데모(`SNSHero Card Duel Demo`) gd.games 공개 출시 완료]
 - **출시 정보 (`https://gd.games/snshero/snshero-card-duel-demo`)**:
   - GDevelop 5 클라우드(`editor.gdevelop.io`)에서 `SNSHero Card Duel Demo` 빌드 발행 후 공개 설정 완료 (`Gd.games에서 공개`).
