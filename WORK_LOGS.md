@@ -1988,3 +1988,25 @@
   - 기존 `collection.mp3` 대신 스토리모드 40화 엔딩 크레딧 전용 오케스트라 하프·피아노 선율([`src/hearthstone/audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts#L2109-L2262) `startEndingCreditsMusic()`의 8마디 서정적 카논 진행 `Cmaj7 → G/B → Am7 → Em7 → Fmaj7 → C/E → Dm7 → Gsus4→G`)을 `synthesize_story_ending_bgm()`으로 48kHz 스테레오 PCM 합성 후 `-14 LUFS` 2-pass 정규화하여 인트로와 엔딩에 적용.
   - 기존 영상 레이어를 재사용해 인트로·엔딩 오디오만 고속 교체하는 `--rebuild-intro-ending` 옵션 추가.
 - **검증**: `SNSHero_Full_Anime_EP01_EP40_EN_16x9.mp4` (`5655.84초 / 94.26분`, V=`5655.82s`, A=`5655.84s`), 인트로(`LUFS=-14.03`, `TruePeak=-2.84 dBTP`) 및 엔딩(`LUFS=-14.02`, `TruePeak=-2.84 dBTP`) 클리핑 없음 확인. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-24 15:41 KST] [SNSHero 풀버전 애니메이션(EP01–EP40) 10개 공식 언어 더빙 및 통합 자막 제작 완료]
+- **작업자**: `Antigravity Assistant`
+- **의도서**: [`docs/intent/full-anime-10lang-dubbing.md`](file:///Users/dayyoung/project/snshero/docs/intent/full-anime-10lang-dubbing.md)
+- **신규 스크립트**: [`scripts/studio_anime/build_full_anime_multilang_dub.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/build_full_anime_multilang_dub.py)
+- **구현 내역**:
+  1. **무손실 비디오 재사용 (`-c:v copy`)**: 영문 마스터(`SNSHero_Full_Anime_EP01_EP40_EN_16x9.mp4`, `1280×720`, `24fps`, `h264 High`, `5655.84초`) 비디오 스트림을 재인코딩 없이 그대로 유지하고, 나머지 공식 9개 언어(`ko`, `ja`, `zh-Hans`, `zh-Hant`, `es`, `fr`, `de`, `id`, `vi`)의 오디오 트랙 및 통합 `.srt` 자막을 제작해 영문 포함 총 10개 공식 언어별 독립 MP4 완성.
+  2. **화자 구분 다국어 더빙 (`edge-tts` Neural)**: `SNSHero_Full_Anime_EP01_EP40_EN.srt`(719개 큐)와 각 화 `storyboard_epXX_en.json`의 `speakerEn`·`audioMode`·`act`를 정렬해 54명 화자를 6개 보이스 아키타입(`narrator`, `male_lead`, `male_deep`, `elder_male`, `female_lead`, `female_mature`)으로 분류하고 언어별 Neural 성우·피치·슬롯 맞춤 `atempo` 적용 (`ko`는 기존 `SNSHero_StudioAnime_EPXX_KO.srt` 719/719 매칭 재사용, 나머지 8개 언어는 번역·고유명사 정규화·줄바꿈 포맷팅 적용).
+  3. **오디오 베드 재구성 & 2-pass `-14 LUFS` 마스터링**: 인트로(`0~43.21s`)·엔딩(마지막 `49.21s`) 스토리모드 엔딩 크레딧 BGM 및 비대사 액션 SFX 구간은 원본 유지, 대사 구간만 120ms 레이즈드 코사인 크로스페이드로 원어 음성을 완전히 제거하고 화·막(Act)별 오케스트라 BGM(`mulligan`, `duel_1`, `duel_2`, `collection`)을 `-20 dB`로 재구성한 뒤 2-pass `loudnorm=I=-14:TP=-1.5:LRA=11` 정규화 적용.
+  4. **임시 캐시 정리**: 언어별 생성·검증 즉시 TTS/WAV 캐시를 삭제하고 완료 후 `_full_anime_dub_build/` 전체 제거(디스크 여유 공간 `20Gi` 확보).
+- **10개 언어 최종 검증 (`ffprobe` + 4구간 라우드니스 실측, `SNSHero_Full_Anime_EP01_EP40_10LANG_verify.json`)**:
+  - `EN`: `4.050 GB` | `719` cues | V/A diff `0.0213s` | intro `-14.0`, main `-14.56/-14.67`, end `-13.91 LUFS` | TP `-1.27 dBTP` (PASS)
+  - `KO`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-14.01`, main `-14.8/-14.28`, end `-12.43 LUFS` | TP `-1.15 dBTP` (PASS)
+  - `JA`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.9`, main `-14.73/-14.38`, end `-12.22 LUFS` | TP `-1.22 dBTP` (PASS)
+  - `ZH-HANS`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.66`, main `-14.86/-14.49`, end `-11.47 LUFS` | TP `-0.77 dBTP` (PASS)
+  - `ZH-HANT`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.71`, main `-14.88/-14.5`, end `-11.6 LUFS` | TP `-0.97 dBTP` (PASS)
+  - `ES`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.95`, main `-14.86/-14.26`, end `-12.39 LUFS` | TP `-0.87 dBTP` (PASS)
+  - `FR`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.83`, main `-14.77/-14.58`, end `-12.06 LUFS` | TP `-1.16 dBTP` (PASS)
+  - `DE`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.89`, main `-14.87/-14.28`, end `-12.17 LUFS` | TP `-1.18 dBTP` (PASS)
+  - `ID`: `4.051 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.99`, main `-14.84/-14.26`, end `-12.38 LUFS` | TP `-1.22 dBTP` (PASS)
+  - `VI`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.96`, main `-14.84/-14.28`, end `-12.24 LUFS` | TP `-1.23 dBTP` (PASS)
+- **로컬 커밋**: `scripts/studio_anime/build_full_anime_multilang_dub.py`, `docs/intent/full-anime-10lang-dubbing.md`, `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 미실행).
