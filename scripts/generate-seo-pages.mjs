@@ -347,6 +347,16 @@ ${GA_HEAD_SNIPPET}
     .card-box img { width: 56px; height: 56px; object-fit: cover; border: 1px solid rgba(252,211,77,0.3); flex-shrink: 0; }
     .badge { display: inline-block; padding: 2px 6px; font-size: 11px; border-radius: 3px; background: #1e293b; color: #fcd34d; border: 1px solid rgba(252,211,77,0.3); margin-right: 4px; }
     .faction-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    .table-wrap { width: 100%; overflow-x: auto; margin: 14px 0; border: 1px solid rgba(255,255,255,0.12); background: #0d121d; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); vertical-align: top; }
+    th { background: #131824; color: #fcd34d; font-weight: 700; white-space: nowrap; }
+    .shot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+    .shot-box { background: #0d121d; border: 1px solid rgba(255,255,255,0.12); padding: 10px; }
+    .shot-box img { width: 100%; height: auto; display: block; border: 1px solid rgba(255,255,255,0.1); }
+    .faq-item { background: #131824; border: 1px solid rgba(255,255,255,0.12); padding: 14px 16px; margin: 10px 0; }
+    .faq-item h3 { margin: 0 0 6px; font-size: 15px; color: #fde68a; }
+    .faq-item p { margin: 0; font-size: 13px; color: #e2e8f0; }
     footer { margin-top: 44px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 12px; color: #a8a29e; }
   </style>
 </head>
@@ -364,6 +374,7 @@ ${GA_HEAD_SNIPPET}
     </nav>
     ${bodyHtml}
     <footer>
+      <p>${isKo ? '추천 검색 가이드: ' : 'Popular Non-Install Guides: '}<a href="${isKo ? '/free-browser-card-game/' : '/en/free-browser-card-game/'}" style="color:#fcd34d;">${isKo ? '무설치 웹 카드게임' : 'Free Browser Card Game'}</a> · <a href="${isKo ? '/games-like-hearthstone-browser/' : '/en/games-like-hearthstone-browser/'}" style="color:#fcd34d;">${isKo ? '하스스톤 같은 웹게임' : 'Games Like Hearthstone'}</a> · <a href="${isKo ? '/free-deckbuilder-game/' : '/en/free-deckbuilder-game/'}" style="color:#fcd34d;">${isKo ? '무료 덱빌딩 게임' : 'Free Deckbuilder Game'}</a></p>
       <p>${isKo ? '눈히어로 : 카단의 여정 (SNSHero.com) — 무설치 382종 판타지 전략 웹 TCG 공식 아카이브' : "SNSHero : Kadan's Journey (SNSHero.com) — Free 382-Card Browser Strategy TCG Archive"}</p>
       <p>${isKo ? '본 게임·웹소설·웹툰은 저작권 및 라이선스가 적용된 눈히어로 독자 저작물입니다.' : 'This game, web novel, and webtoon are original works protected by SNSHero copyright & license.'} <a href="${isKo ? '/license' : '/en/license/'}" style="color:#fcd34d;">${isKo ? '자세히 보기' : 'Learn More'}</a></p>
     </footer>
@@ -549,6 +560,12 @@ ${GA_HEAD_SNIPPET}
       <h2>5. Explore All 9 Faction Deck Guides</h2>
       <div class="faction-nav">
         ${FACTIONS.map((f) => `<a class="btn" href="/en/wiki/${f.slug}/">${escHtml(f.nameEn)}</a>`).join('')}
+      </div>
+      <h2>6. Browser TCG &amp; Deckbuilder Comparisons</h2>
+      <div class="faction-nav">
+        <a class="btn" href="/en/free-browser-card-game/">Free Browser Card Game (No Download)</a>
+        <a class="btn" href="/en/games-like-hearthstone-browser/">Free Games Like Hearthstone in Browser</a>
+        <a class="btn" href="/en/free-deckbuilder-game/">Free Online Deckbuilder Card Game</a>
       </div>`,
     }),
   );
@@ -961,7 +978,329 @@ ${GA_HEAD_SNIPPET}
     }
   }
 
-  // ── STEP 2D: Generate Complete Bilingual sitemap.xml (192 URLs with xhtml:link hreflang) ──
+  // ── STEP 2C-2: Non-Brand Search Intent SEO Landing Pages (KO & EN = 6 URLs) ──
+  const NON_BRAND_LANDINGS = [
+    {
+      koPath: '/free-browser-card-game/',
+      enPath: '/en/free-browser-card-game/',
+      eyebrowKo: '무설치 · 무가입 웹 카드게임 가이드',
+      eyebrowEn: 'Zero-Install Browser Card Game Guide',
+      titleKo: '무설치 웹 카드게임 무료 추천 — 가입·다운로드 0초 382종 정통 TCG',
+      titleEn: 'Free Browser Card Game (No Download, No Signup) — 382-Card Web TCG',
+      descKo:
+        '다운로드·회원가입 없이 PC와 모바일 브라우저에서 3초 만에 시작하는 무료 웹 카드게임 눈히어로(SNSHero). 382종 카드, 첫 방문 무료 3팩+250G, 10팩 내 전설 확정.',
+      descEn:
+        'Play a full 382-card tactical trading card game right in your desktop or mobile browser with zero download and zero sign-up. Claim 3 Free Packs + 250 Gold on first visit.',
+      leadKo:
+        '10GB 클라이언트 설치나 복잡한 이메일 회원가입 없이, 웹 브라우저 탭을 열자마자 3초 만에 무료 카드팩 3개(10팩 내 전설 확정)를 뜯고 30장 전략 덱 대결을 시작할 수 있습니다.',
+      leadEn:
+        'Skip 10GB installers and forced account registration. Launch SNSHero directly in Chrome, Safari, or mobile browsers to open 3 Free Card Packs immediately (Guaranteed Legendary within 10 packs) and duel with custom 30-card decks.',
+      h2CompareKo: '기존 설치형 카드게임 vs SNSHero 무설치 웹 TCG 비교',
+      h2CompareEn: 'Traditional Client Card Games vs SNSHero Zero-Install Web TCG',
+      rowsKo: [
+        ['설치 · 용량', '10GB 이상 클라이언트 설치 필요', '0MB — 클릭 즉시 브라우저 실행 (PWA 지원)'],
+        ['회원가입', '계정 생성 · 이메일 · 본인인증 필수', '가입 0초 — LocalStorage 자동 저장 및 백업 코드'],
+        ['카드 풀 규모', '초반 스타터 덱 제한', '9대 종족 225장 + 중립 157장 = 총 382종 카드'],
+        ['초기 무료 보상', '튜토리얼 완료 후 소량 지급', '첫 방문 무료 3팩 + 250골드 + 160가루 즉시 지급'],
+        ['모바일 최적화', '앱 별도 다운로드 필요', 'iOS / Android 모바일 웹 세로·원핸드 터치 최적화'],
+      ],
+      rowsEn: [
+        ['Install & Storage', '10GB+ desktop or mobile client', '0 MB — Instant play in any modern browser'],
+        ['Account & Login', 'Mandatory account & email verification', 'Zero signup — Instant local browser save & export code'],
+        ['Card Collection', 'Limited starter card pool', '382 Cards (225 across 9 Factions + 157 Neutral)'],
+        ['Day-1 Free Rewards', 'Gradual drip unlock', '3 Free Packs + 250 Gold + 160 Dust on entry (Legendary in 10)'],
+        ['Mobile Browser', 'Separate app store download', 'Responsive touch controls for mobile & desktop browsers'],
+      ],
+      faqsKo: [
+        [
+          '정말 회원가입이나 다운로드 없이 바로 카드게임이 실행되나요?',
+          '네. https://snshero.com/game 으로 접속하면 별도 앱 설치나 로그인 없이 바로 튜토리얼·카드팩 개봉·30장 덱 배틀을 플레이할 수 있으며 진행도는 브라우저 LocalStorage에 안전하게 저장됩니다.',
+        ],
+        [
+          '회사·학교 저사양 PC나 아이폰/안드로이드 사파리·크롬에서도 돌아가나요?',
+          '네. React + 경량 WebP 에셋 기반으로 제작되어 일반 노트북·태블릿·스마트폰 웹 브라우저에서 설치 없이 쾌적하게 실행됩니다.',
+        ],
+        [
+          '무과금으로도 전설 카드와 30장 덱을 맞출 수 있나요?',
+          '첫 방문 시 무료 3팩과 250골드(추가 2팩 상당)가 지급되며, 첫 10팩 이내 전설 카드가 100% 확정 등장합니다. 또한 9대 종족 숙련 AI 격파 및 스토리 보스 클리어로 추가 팩과 골드를 계속 얻을 수 있습니다.',
+        ],
+      ],
+      faqsEn: [
+        [
+          'Can I really play without downloading a launcher or creating an account?',
+          'Yes. Visiting /en/game/ drops you straight into the browser game with zero download and zero sign-up. Your cards, decks, and gold are saved locally in your browser with optional one-click backup codes.',
+        ],
+        [
+          'Does this browser card game work on mobile phones and Chromebooks?',
+          'Yes. SNSHero runs natively in desktop and mobile browsers (Chrome, Safari, Firefox, Edge) with 44px+ touch-friendly controls and lightweight WebP assets.',
+        ],
+        [
+          'How generous is the free-to-play progression?',
+          'New players receive 3 Free Packs + 250 Gold + 160 Arcane Dust immediately, a 100% guaranteed Legendary card within the first 10 packs, and bonus packs for defeating Expert AI across all 9 factions.',
+        ],
+      ],
+    },
+    {
+      koPath: '/games-like-hearthstone-browser/',
+      enPath: '/en/games-like-hearthstone-browser/',
+      eyebrowKo: '하스스톤 스타일 무설치 웹 TCG 비교 가이드',
+      eyebrowEn: 'Hearthstone-Like Browser TCG Guide',
+      titleKo: '하스스톤 같은 무설치 웹게임 — 10마나·30장 덱빌딩 무료 브라우저 TCG',
+      titleEn: 'Free Games Like Hearthstone in Browser (Zero Install, 382 Cards)',
+      descKo:
+        '하스스톤 같은 10마나 커브와 30장 덱빌딩, 영웅 능력의 전략성을 설치 없이 브라우저에서 무료로 즐기세요. 9대 종족 382장 카드와 스토리 3장=3배 각성 규칙 지원.',
+      descEn:
+        'Love the 10-Mana curve, 30-card decks, and Hero Powers of Hearthstone, but want a zero-install browser alternative? Discover SNSHero with 382 cards, 9 factions, and 3x Story Awakening.',
+      leadKo:
+        '익숙한 1~10마나 크리스탈 성장, 30장 덱 구축, 도발·속공·전투의 함성·비밀 메커니즘을 웹 브라우저에 그대로 구현하고, 여기에 스토리 전용 [3장=3배 각성]과 100% 랜덤 미러덱을 더했습니다.',
+      leadEn:
+        'Experience classic 1-to-10 Mana crystal progression, Hero Powers, Taunt, Charge, Secrets, and 30-card deckbuilding directly in your browser—enhanced by Story Mode 3x Awakening and 100% Fair Random-Deck duels.',
+      h2CompareKo: '하스스톤형 핵심 규칙 + SNSHero만의 독창적 차별점',
+      h2CompareEn: 'Familiar Tactical Rules + Unique SNSHero Innovations',
+      rowsKo: [
+        ['기본 마나 · 덱 규칙', '매 턴 +1 최대 마나(최대 10), 30장 덱', '동일한 1~10마나 곡선 & 영웅 30체력 정통 규칙'],
+        ['종족 · 영웅 능력', '9대 진영 수호자(2마나 고유 영웅 능력)', '인간(치유)·물(수압탄)·불(방어도)·바람(직격 2) 등 9대 종족'],
+        ['스토리 3장=3배 각성', '일반 카드 2장 제한', '스토리모드에서 3장 보유 시 공/체 3배~N배 폭발 각성'],
+        ['공정 랜덤 대결', '사전 제작 덱 위주', '보가트의 도박장: 양측 100% 랜덤 30장 미러/드래프트 대전'],
+        ['접근성 · 용량', '배틀넷 + 대용량 패치 필요', 'URL 클릭 즉시 실행(0MB), 40부작 성우 풀보이스 캠페인'],
+      ],
+      rowsEn: [
+        ['Core Mana & Deck', '+1 Max Mana per turn (up to 10), 30-card deck', 'Classic 1–10 Mana tempo curve & 30 Hero HP'],
+        ['Factions & Hero Powers', '9 distinct Guardians with 2-Mana Hero Powers', 'Human, Water, Fire, Wind, Earth, Undead, Elf, Dwarf, Beast'],
+        ['3x Awakening Twist', 'Standard 1x card stats', 'Collecting 3+ copies in Story Mode triples card stats (3x, 4x...)'],
+        ['Fair Random Arena', 'Constructed collection advantage', "Bogart's Den: wager 1–1,000 Gold with 100% random 30-card decks"],
+        ['Client Size', 'Heavy desktop/mobile launcher', '0 MB Instant Web Play + 40-Episode Voiced Campaign'],
+      ],
+      faqsKo: [
+        [
+          '하스스톤을 해봤다면 바로 적응할 수 있나요?',
+          '네. 1마나부터 시작해 매 턴 1씩 증가하는 마나, 도발·천상의 보호막·돌진·전투의 함성·죽음의 메아리 키워드 등 정통 규칙을 따르므로 첫 판부터 바로 전략을 펼칠 수 있습니다.',
+        ],
+        [
+          '무과금 유저가 과금 유저에게 무조건 밀리지 않나요?',
+          '보가트의 도박장 모드에서는 보유 카드와 무관하게 양측이 무작위 30장 덱으로 공정하게 승부하며, 랭킹전은 1배수 밸런스 기반으로 실력 중심 대결이 진행됩니다.',
+        ],
+        [
+          'AI 대전 연습 모드도 있나요?',
+          '네. 9대 종족 숙련 AI 대전과 카단 AI 자동전투·코치 모드를 통해 언제든 덱을 테스트하고 9종족 올클리어(+2팩) 보상을 획득할 수 있습니다.',
+        ],
+      ],
+      faqsEn: [
+        [
+          'If I already know Hearthstone, how fast can I learn SNSHero?',
+          'Immediately. Mana crystals, Hero Powers, 7-slot boards, Taunt, Divine Shield, Charge, Battlecry, and Deathrattle follow intuitive tactical TCG conventions—you can win your first match within 3 minutes.',
+        ],
+        [
+          'Is there a fair mode where new players are not out-geared by big collections?',
+          "Yes. Bogart's Den generates fresh, 100% randomized 30-card decks for both players on every match, testing pure drafting adaptation and tactical play.",
+        ],
+        [
+          'Can I test decks solo against AI before entering Ranked Arena?',
+          'Yes! Challenge Expert AI across all 9 factions (clearing all 9 grants +2 bonus packs) or battle through the 40-chapter voiced Story Boss Campaign.',
+        ],
+      ],
+    },
+    {
+      koPath: '/free-deckbuilder-game/',
+      enPath: '/en/free-deckbuilder-game/',
+      eyebrowKo: '무료 온라인 덱빌딩 · 스토리 보스 RPG 가이드',
+      eyebrowEn: 'Free Online Deckbuilder & Story Campaign Guide',
+      titleKo: '무료 덱빌딩 전략 카드게임 — 40화 풀보이스 스토리 & AI 대전 웹 TCG',
+      titleEn: 'Free Online Deckbuilder Card Game — 40-EP Voiced Story & AI Arena',
+      descKo:
+        '382종 카드로 나만의 30장 덱을 짜고 40화 성우 풀보이스 판타지 스토리 보스를 공략하세요. 같은 카드 3장 수집 시 3배 각성, 9대 종족 시너지 지원.',
+      descEn:
+        'Craft 30-card strategies from 382 collectible cards, trigger 3x Awakening synergies, and conquer a 40-episode fully voiced dark-fantasy boss campaign free in your browser.',
+      leadKo:
+        '단순한 1회성 카드 배틀을 넘어, 40부작 판타지 웹소설·840컷 보이스 웹툰과 직접 연결되는 덱빌딩 캠페인! 카드팩에서 같은 카드를 3장 모을수록 스토리 보스전에서 능력이 3배·4배로 각성합니다.',
+      leadEn:
+        'More than quick skirmishes: build 30-card synergy decks connected directly to a 40-chapter voiced web novel and 840+ panel webtoon. Duplicate pulls power up your Story Mode cards into 3x Awakened bosses-slayers.',
+      h2CompareKo: '덱빌더 핵심 재미 요소 & 모드별 공략 포인트',
+      h2CompareEn: 'Core Deckbuilding Depth & Game Modes',
+      rowsKo: [
+        ['카드 컬렉션 & 제작', '중복 카드 자동 각성 + 신비한 가루 제작', '382종 카드 중 원하는 전설/영웅 카드를 가루로 직접 제작 가능'],
+        ['40화 스토리 보스전', '카단의 여정 40개 에피소드 보스 기믹', '5화 단위 보스 격파 시 대량 골드 + 무료 카드팩 연속 보상'],
+        ['카단 스피릿 X10 필살기', '리듬 탭 연계 카단·실리아 합동 오의', '전투 중 타이밍 탭으로 10스택 도달 시 광역 폭풍 합동기 발동'],
+        ['다채로운 9대 종족 아키타입', '어그로 · 컨트롤 · 무기격노 · 비밀함정', '바람(토람) 어그로, 물(포세이돈) 빙결, 언데드(아르투스) 흑마법 등'],
+        ['유튜브·구글 AI 벤치마크 연동', '동일 엔진 기반 /sns 1,000판 AI 아레나', '종족별 승률 데이터를 참고해 최적 30장 마나 커브 설계'],
+      ],
+      rowsEn: [
+        ['Crafting & Upgrades', 'Arcane Dust crafting + duplicate power', 'Craft any missing Epic or Legendary card with Arcane Dust'],
+        ['40-EP Story Campaign', "40 voiced chapters of Kadan's Journey", 'Boss mechanics every chapter + bonus packs every 5th clear'],
+        ['Kadan Spirit X10 Combo', 'Interactive rhythm-ring ultimate chain', 'Tap on Green beats to stack X10 and unleash dual Ultimates'],
+        ['9 Distinct Archetypes', 'Aggro, Freeze Control, Weapon Enrage, Tokens', 'Swap freely between 9 Faction Guardians and 157 Neutral cards'],
+        ['Live Meta Telemetry', 'Backed by /en/sns/ 1,000-match AI data', 'Inspect live faction win rates to optimize your 30-card curve'],
+      ],
+      faqsKo: [
+        [
+          '덱빌딩 초보자도 쉽게 30장 덱을 짤 수 있나요?',
+          '네. 내 카드첩의 1클릭 추천 덱 자동 완성 기능과 카단 AI 코치 힌트 기능을 켜면 마나 커브에 맞춘 30장 덱을 즉시 완성할 수 있습니다.',
+        ],
+        [
+          '스토리 모드 [3장=3배 각성]은 정확히 어떻게 동작하나요?',
+          '인벤토리에 같은 카드를 3장 보유하면 스토리 보스전에서 해당 카드의 공격력과 체력이 3배로 강화됩니다(4장·5장은 N배 확장, 전설은 2장부터 2배 각성).',
+        ],
+        [
+          '40화 스토리 보스를 모두 깨면 그 다음엔 무엇을 할 수 있나요?',
+          '40화 클리어 후 무한 환생 모드(+300G & 3팩 보상), 보가트의 도박장, 랭킹 아레나, 24K 황금 호일 컬렉션 완성을 계속 즐길 수 있습니다.',
+        ],
+      ],
+      faqsEn: [
+        [
+          'I am new to deckbuilders—does the game help me build a 30-card deck?',
+          'Yes! Use the 1-click Auto-Fill Deck Builder inside your Collection or enable Kadan AI Coach during matches for mana-curve and trade recommendations.',
+        ],
+        [
+          'How does the 3-Card = 3x Awakening rule work in Story Mode?',
+          'Owning 3 copies of a regular minion or weapon triples its Attack and Health inside Story Mode boss encounters (scaling up with extra copies, and Legendaries awaken starting at 2 copies).',
+        ],
+        [
+          'What happens after clearing Episode 40?',
+          'Unlock Infinite Rebirth bonuses (+300 Gold & 3 Packs), climb the Ranked Arena ladder, chase 24K Golden Foils, or test your drafting in Bogart’s Den.',
+        ],
+      ],
+    },
+  ];
+
+  for (const item of NON_BRAND_LANDINGS) {
+    addSitemapPair(item.koPath, item.enPath, '0.92', 'weekly');
+    for (const lang of ['ko', 'en']) {
+      const isKo = lang === 'ko';
+      const pageTitle = `${isKo ? item.titleKo : item.titleEn} | SNSHero.com`;
+      const pageDesc = isKo ? item.descKo : item.descEn;
+      const selfPath = isKo ? item.koPath : item.enPath;
+      const gameCtaHref = isKo ? '/game?open=pack3&lang=ko' : '/en/game/?open=pack3&lang=en';
+      const shots = isKo
+        ? [
+            { src: '/hs-assets/guide/guide_01_hub.webp', alt: '눈히어로 무설치 웹 카드게임 메인 로비 화면' },
+            { src: '/hs-assets/guide/guide_03_battle_mana.webp', alt: '눈히어로 10마나 전술 카드 배틀 화면' },
+            { src: '/hs-assets/guide/guide_05_packs.webp', alt: '눈히어로 무료 3팩 카드 개봉 제단 화면' },
+          ]
+        : [
+            { src: '/hs-assets/guide/guide_en_01_hub.webp', alt: 'SNSHero free browser card game main sanctuary hub' },
+            { src: '/hs-assets/guide/guide_en_03_battle_mana.webp', alt: 'SNSHero 10-mana tactical card battle screen' },
+            { src: '/hs-assets/guide/guide_en_05_packs.webp', alt: 'SNSHero 3 free starter card packs opening altar' },
+          ];
+      const rows = isKo ? item.rowsKo : item.rowsEn;
+      const faqs = isKo ? item.faqsKo : item.faqsEn;
+
+      writeHtmlFile(
+        distDir,
+        selfPath,
+        renderWikiShell({
+          lang,
+          title: pageTitle,
+          description: pageDesc,
+          koPath: item.koPath,
+          enPath: item.enPath,
+          ogImage: shots[0].src,
+          jsonLdObj: {
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'VideoGame',
+                name: isKo ? '눈히어로 : 카단의 여정 (SNSHero)' : "SNSHero: Heroes of Elwin Village",
+                url: `${SITE_ORIGIN}${selfPath}`,
+                applicationCategory: 'Game',
+                operatingSystem: 'Web Browser (Desktop, iOS, Android)',
+                genre: ['Trading Card Game', 'Strategy', 'Deckbuilder'],
+                inLanguage: isKo ? 'ko' : 'en',
+                offers: {
+                  '@type': 'Offer',
+                  price: '0',
+                  priceCurrency: 'USD',
+                  availability: 'https://schema.org/InStock',
+                },
+              },
+              {
+                '@type': 'FAQPage',
+                mainEntity: faqs.map(([q, a]) => ({
+                  '@type': 'Question',
+                  name: q,
+                  acceptedAnswer: { '@type': 'Answer', text: a },
+                })),
+              },
+            ],
+          },
+          bodyHtml: `
+          <span class="eyebrow">${escHtml(isKo ? item.eyebrowKo : item.eyebrowEn)}</span>
+          <h1>${escHtml(isKo ? item.titleKo : item.titleEn)}</h1>
+          <div class="panel">
+            <p style="margin-top:0;font-size:15px;color:#f1f5f9;">${escHtml(isKo ? item.leadKo : item.leadEn)}</p>
+            <div class="nav-links" style="margin-top:14px;">
+              <a class="btn btn-cta" href="${gameCtaHref}">${isKo ? '⚡ 설치 없이 바로 플레이 (무료 3팩 + 250G)' : '⚡ Play Free in Browser Now (+3 Packs & 250G)'}</a>
+              <a class="btn" href="${isKo ? '/wiki/cards/' : '/en/wiki/cards/'}">${isKo ? '🃏 382종 카드 도감 보기' : '🃏 Browse All 382 Cards'}</a>
+            </div>
+          </div>
+
+          <h2>${escHtml(isKo ? item.h2CompareKo : item.h2CompareEn)}</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>${isKo ? '항목' : 'Feature'}</th>
+                  <th>${isKo ? '일반 클라이언트 게임' : 'Typical Client TCG'}</th>
+                  <th>SNSHero.com</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows
+                  .map(
+                    ([k, col1, col2]) => `<tr>
+                  <td><strong>${escHtml(k)}</strong></td>
+                  <td style="color:#cbd5e1;">${escHtml(col1)}</td>
+                  <td style="color:#fde68a;">${escHtml(col2)}</td>
+                </tr>`,
+                  )
+                  .join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <h2>${isKo ? '실제 인게임 플레이 화면 (무설치 웹 실행)' : 'Real In-Game Browser Screenshots (Zero Install)'}</h2>
+          <div class="shot-grid">
+            ${shots
+              .map(
+                (s) => `<div class="shot-box">
+              <img src="${s.src}" alt="${escHtml(s.alt)}" loading="lazy" />
+              <div style="font-size:12px;color:#cbd5e1;margin-top:6px;">${escHtml(s.alt)}</div>
+            </div>`,
+              )
+              .join('')}
+          </div>
+
+          <h2>${isKo ? '9대 종족 공략 및 관련 아카이브' : '9 Faction Guides & Official Portals'}</h2>
+          <div class="faction-nav">
+            ${FACTIONS.map((f) => `<a class="btn" href="${isKo ? `/wiki/${f.slug}/` : `/en/wiki/${f.slug}/`}">${escHtml(isKo ? f.nameKo : f.nameEn)}</a>`).join('')}
+          </div>
+          <div class="panel" style="font-size:13px;color:#cbd5e1;">
+            <strong>${isKo ? '공식 배포 포털 & 백링크:' : 'Official Web Portals & Community Pages:'}</strong>
+            <div class="nav-links" style="margin-top:10px;">
+              <a class="btn" href="https://snshero.itch.io/heroes-of-elwin" target="_blank" rel="noopener noreferrer">itch.io (Web Build)</a>
+              <a class="btn" href="https://www.indiedb.com/games/snshero-heroes-of-elwin-village/" target="_blank" rel="noopener noreferrer">IndieDB Official Page</a>
+              <a class="btn" href="https://github.com/Dayyoung/snshero" target="_blank" rel="noopener noreferrer">GitHub Showcase</a>
+            </div>
+          </div>
+
+          <h2>${isKo ? '자주 묻는 질문 (FAQ)' : 'Frequently Asked Questions (FAQ)'}</h2>
+          ${faqs
+            .map(
+              ([q, a]) => `<div class="faq-item">
+            <h3>${escHtml(q)}</h3>
+            <p>${escHtml(a)}</p>
+          </div>`,
+            )
+            .join('')}
+          <div class="panel" style="text-align:center;">
+            <p style="margin-top:0;">${isKo ? '지금 브라우저에서 바로 무료 3팩 + 250골드를 받고 첫 대전을 시작하세요.' : 'Ready to build your first 30-card deck? Jump straight in with 3 Free Packs & 250 Gold.'}</p>
+            <a class="btn btn-cta" href="${gameCtaHref}">${isKo ? '🎮 지금 바로 SNSHero 무료 시작하기' : '🎮 Launch SNSHero Free in Browser'}</a>
+          </div>`,
+        }),
+      );
+    }
+  }
+
+  // ── STEP 2D: Generate Complete Bilingual sitemap.xml (KO & EN with xhtml:link hreflang) ──
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">

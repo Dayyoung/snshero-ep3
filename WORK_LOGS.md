@@ -1867,3 +1867,17 @@
   - 9:16 풀스크린 쇼츠 MP4 (`1080x1920`, 무텍스트 + `eng`/`kor` 소프트 자막 내장): **40/40편 완료** (총 `6.35 GB`)
   - 한/영 자막 SRT (`EN.srt`, `KO.srt`): **80개 파일 완료** (편당 18큐)
   - `dist/studio-anime/` 외부 재생 심볼릭 링크 및 `/Users/dayyoung/Desktop/내문서/movie/` 복사 완료.
+
+## [2026-11-24 09:17 KST] [Google Ads 3일 정밀 테스트 계획서 및 비브랜드 검색(SEO) 전용 한·영 랜딩 6종 구축]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **④ Google Ads (`307-235-9722`) `0노출` 정밀 진단 & 3일 테스트 설계**:
+    - `google-ads-mcp` 실측 조회 결과: `SNSHero_Search_TCG_KR` (`24487212616`, `ENABLED`, 일 12,000원)이 광고그룹 기본 CPC `250원`/상한 `800원` + `무설치 카드게임` `RARELY_SERVED` 판정으로 6일간 `0노출/0클릭` 정체, `SNSHero_Search_TCG_EN` (`24475998192`)은 `PAUSED` 상태임을 확인.
+    - [`docs/ads/3day_precision_test_plan.md`](file:///Users/dayyoung/project/snshero/docs/ads/3day_precision_test_plan.md) 작성: KR/EN 각 일 10,000원 × 3일(상한 총 60,000원), 입찰 상한 현실화(`KR 1,500원` / `EN 1,200원`), 카지노/모바일앱/크립토 부정 키워드, `/game` vs 신규 SEO 랜딩 비교 URL, 72시간 Go/Fix/Stop 판정 기준 정리 (유료 광고 집행 자체는 사용자 확인 후 활성화).
+  - **⑤ 비브랜드 검색(SEO) 전용 한·영 랜딩 페이지 3종(6페이지) 구현**:
+    - [`scripts/generate-seo-pages.mjs`](file:///Users/dayyoung/project/snshero/scripts/generate-seo-pages.mjs) & [`vite.config.ts`](file:///Users/dayyoung/project/snshero/vite.config.ts):
+      - `/free-browser-card-game/` & `/en/free-browser-card-game/` (무설치 웹 카드게임)
+      - `/games-like-hearthstone-browser/` & `/en/games-like-hearthstone-browser/` (하스스톤 스타일 브라우저 TCG)
+      - `/free-deckbuilder-game/` & `/en/free-deckbuilder-game/` (무료 덱빌딩 스토리 RPG)
+    - `VideoGame` + `FAQPage` JSON-LD, 반응형 비교표, KO/EN 언어별 스크린샷 분기(`guide_0*.webp` vs `guide_en_0*.webp`), 공식 포털 백링크(`itch.io` · `IndieDB` · `GitHub`), 9대 종족 내부 링크 적용 및 [`public/sitemap.xml`](file:///Users/dayyoung/project/snshero/public/sitemap.xml) (총 200 URL) 반영.
+  - **검증**: `npx tsc --noEmit && npm run build` 0에러 통과 및 Python Playwright 데스크톱(`1280×800`)·모바일(`390×844`) 6종 전수 `200 OK` · 가로 스크롤 0 · 버튼 높이 `46px` · 콘솔/네트워크 에러 0건 확인. 로컬 `git commit` 완료 (`git push` 보류).

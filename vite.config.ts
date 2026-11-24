@@ -57,6 +57,12 @@ const MPA_REWRITES: Record<string, string> = {
   '/en/wiki/tip': '/en/wiki/tip/index.html',
   '/wiki/cards': '/wiki/cards/index.html',
   '/en/wiki/cards': '/en/wiki/cards/index.html',
+  '/free-browser-card-game': '/free-browser-card-game/index.html',
+  '/en/free-browser-card-game': '/en/free-browser-card-game/index.html',
+  '/games-like-hearthstone-browser': '/games-like-hearthstone-browser/index.html',
+  '/en/games-like-hearthstone-browser': '/en/games-like-hearthstone-browser/index.html',
+  '/free-deckbuilder-game': '/free-deckbuilder-game/index.html',
+  '/en/free-deckbuilder-game': '/en/free-deckbuilder-game/index.html',
 };
 
 const PROMO_REDIRECT_PATHS = new Set([
