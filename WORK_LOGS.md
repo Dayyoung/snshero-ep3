@@ -1898,3 +1898,15 @@
   - 열려 있는 `https://editor.gdevelop.io/` 클라우드 프로젝트 **`SNSHero Card Duel Demo`** (`1280×720` 가로 16:9 반응형)에 6개 오브젝트(`Bg`, `Logo`, `Unit`, `Card`, `UiElem`, `GameText`), 22종 이미지 리소스, 6종 BGM/SFX 오디오 프리로드 및 이벤트 스크립트 반영·저장 완료.
   - 플레이 루프: **엘윈 성소 무료 카드팩 오픈(이바르·포세이돈·새벽별 성광폭발) → 2턴 퀵 카드 듀얼(심연 기사 루시안·강철 허수아비·뇌신 vs 카단·펜릴 드로우·설원 치유) → 승리 모달 & `snshero.com/game.html` 본편 CTA + 한/영(`EN / 한국어`) 실시간 전환**.
 - **검증**: `node --check gdevelop/snshero-promo/snshero_events.js` 통과 및 `editor.gdevelop.io` GDevelop Preview(`browser_sw_preview`) 실플레이 E2E 검증 완료(팩 오픈 → 1턴/2턴 전투 → 승리/한·영 전환/CTA 렌더링 전 구간 정상 동작 확인). 로컬 `git commit` 완료 (`git push` 및 `gd.games` 공개 발행은 사용자 검수 후 수동 진행).
+
+## [2026-11-24 11:14 KST] [GSC 사이트맵 재제출 및 Google Ads KR/EN 3일 정밀 테스트 활성화]
+- **작업자**: `Antigravity Assistant`
+- **작업 개요**:
+  - **라이브 배포 확인**: 신규 비브랜드 SEO 6종 URL 전수 `HTTP 200 OK` 및 `https://snshero.com/sitemap.xml` `200개 <loc>` 반영 확인.
+  - **Google Search Console (`gsc-mcp`)**:
+    - `gsc_submit_sitemap`(`sc-domain:snshero.com`, `https://snshero.com/sitemap.xml`) 재제출 완료 (`submitted: true`).
+    - 참고: `gsc_request_indexing`은 서비스 계정(`ga4-mcp-reader@...`)에 소유자(Owner) 권한이 없어 `403` 반환(사이트맵 크롤링으로 자동 색인 진행, 즉시 수동 색인은 Search Console 웹에서 URL 검사 가능).
+  - **Google Ads (`307-235-9722`) 3일 소액 테스트 세팅 & 활성화 완료 (Google Ads API 실측 검증)**:
+    - `SNSHero_Search_TCG_KR` (`24487212616`): `ENABLED` (`ELIGIBLE`) · 일 예산 `₩10,000` · 최대 CPC 상한 `₩1,500` · 종료일 `2026-11-27 23:59:59`
+    - `SNSHero_Search_TCG_EN` (`24475998192`): `PAUSED` → `ENABLED` (`ELIGIBLE`) · 일 예산 `₩10,000` · 최대 CPC 상한 `₩1,200` · 종료일 `2026-11-27 23:59:59`
+  - `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 보류).
