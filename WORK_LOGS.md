@@ -1922,3 +1922,19 @@
     - 16:9 본편 재생목록 `PLTXFzLZKS4-4`: `SNSHero: Kadan's Journey | Official Studio Anime (EP01–EP40)` — **40 / 40편** (EP01→EP40 순서, 10개국어 로컬라이제이션 적용 완료)
     - 9:16 쇼츠 재생목록 `PLD2SN5QckvaE`: `SNSHero: Kadan's Journey | Official Studio Anime Shorts (EP01–EP40)` — **40 / 40편** (EP01→EP40 순서, 10개국어 로컬라이제이션 적용 완료)
 - **검증**: YouTube Data API v3 라이브 조회 결과 두 재생목록 모두 40개 항목 및 10개국어 로컬라이제이션 정상 반영 확인. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-24 11:52 KST] [SNSHero 스튜디오 애니메이션 EP01~EP40 영문 풀버전(94.26분) 통합 제작 완료]
+- **작업자**: `Antigravity Assistant`
+- **신규 스크립트**: [`scripts/studio_anime/build_full_anime_en.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/build_full_anime_en.py)
+- **주요 구현 내역**:
+  1. **인트로 (`00_intro_en.mp4`, 43.21초)**: `public/hs-assets/snshero-audio/bgm/collection.mp3` 크로스페이드 오케스트라 선율(`-14 LUFS` 정규화) + `logo-en.webp` 오프닝 타이틀 + 소설 주요 등장인물 12명(`KADAN`, `SILIA`, `IGNIS`, `RONDOL`, `GRIMLI`, `GAWAIN`, `AILA`, `ELIANA`, `BALIAN`, `HERCUL`, `LEONAR`, `LUCIAN`) Ken Burns 줌 및 영문 이름·역할 교차 소개 + 마지막 `PRODUCED BY SNSHERO.COM` 및 공식 라이선스(`© SNSHero.com. All Rights Reserved.`) 카드.
+  2. **에피소드 맥락 기반 전환 효과 (40개 지점 전수 매핑)**:
+     - 장소 이동 시: 순수 검은 배경 + 장소명/시간 경과 영문 타이틀 간지 (`3.2초`, 0.6초 페이드인/아웃).
+     - 동일 장소 + 시간 경과 시: `Moments later...`, `Later that night...`, `The following night...`, `At daybreak...` 이탤릭 간지 (`3.0초`, 0.6초 페이드인/아웃).
+     - 동일 장소 + 연속 장면 시(`EP08→09`, `EP13→14`, `EP16→17`, `EP19→20`, `EP23→24`, `EP32→33→34`, `EP37→38`): 간지 없이 `0.60초` 비디오 `xfade` + 오디오 `acrossfade` 직접 연결.
+  3. **엔딩 (`99_ending_en.mp4`, 49.21초)**: `collection.mp3` 오케스트라 선율 + `THE END` 에필로그 타이틀 + 주인공(`Kadan`, `Silia`) 및 주요 주변 인물(`Aleksandar`, `Elwin`, `Fenrir`, `Leonar`, `Rondol`, `Ignis`, `Six Masters` 등) 1화~40화 대표 컷신 14종 교차 몽타주 + 최종 `PRODUCED BY SNSHERO.COM` 및 공식 라이선스(`https://SNSHero.com`) 카드.
+  4. **통합 산출물**:
+     - 풀버전 마스터 영상: `output/studio_anime/SNSHero_Full_Anime_EP01_EP40_EN_16x9.mp4` (`4.05 GB`, `1280×720`, `24fps`, `5655.84초 / 94.26분`, V/A 동기화 편차 `0.07초`)
+     - 통합 영문 자막: `output/studio_anime/SNSHero_Full_Anime_EP01_EP40_EN.srt` (`719개` 큐, 인트로/간지/xfade 오프셋 정밀 반영)
+     - 챕터 타임스탬프: `output/studio_anime/SNSHero_Full_Anime_EP01_EP40_EN_chapters.json` (`42개` 챕터)
+- **검증**: `ffprobe` 스트림 규격(`h264 High 1280x720 24fps`, `aac 48000Hz stereo`) 및 최종 MP4에서 직접 추출한 13개 핵심 프레임(인트로·인물·라이선스·장소/시간 간지·엔딩 몽타주·엔딩 라이선스) 시각 검수 완료. 로컬 `git commit` 완료 (`git push` 보류).
