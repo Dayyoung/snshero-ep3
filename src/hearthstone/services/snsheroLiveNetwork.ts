@@ -901,9 +901,6 @@ class SnsheroLiveNetworkService {
         .slice(-80);
       this.guildMessagesMap.set(msg.guildId, next);
       this.saveGuildMessages(msg.guildId);
-      if (isIncomingRemote && !this.drawerOpen && this.currentGuild?.id === msg.guildId) {
-        this.unreadCount += 1;
-      }
       this.emitChange();
     }
   }
@@ -1039,9 +1036,6 @@ class SnsheroLiveNetworkService {
                 note: pkt.note,
                 newGold: res.newGold,
               });
-            }
-            if (!this.drawerOpen) {
-              this.unreadCount += 1;
             }
             this.sendPacket(
               {
@@ -1342,6 +1336,13 @@ class SnsheroLiveNetworkService {
     if (open) {
       this.unreadCount = 0;
     }
+    this.emitChange();
+  }
+
+  clearUnreadCount() {
+    this.init();
+    if (this.unreadCount === 0) return;
+    this.unreadCount = 0;
     this.emitChange();
   }
 

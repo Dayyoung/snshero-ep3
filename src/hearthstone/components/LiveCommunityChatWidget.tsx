@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import {
+  ArrowUp,
   Coins,
-  Copy,
   Edit3,
   Eye,
   MessageCircleMore,
   Plus,
-  Send,
-  Shield,
   Swords,
   Trophy,
   Users,
@@ -20,8 +19,8 @@ import { getLocalizedHeroInfo } from '../i18nData';
 import {
   LiveChatMessage,
   LiveChatScope,
+  LiveDuelMatchResult,
   LiveDuelRoom,
-  LivePeerPresence,
   snsheroLiveNetwork,
 } from '../services/snsheroLiveNetwork';
 import { hsStorage } from '../storage';
@@ -36,11 +35,22 @@ export interface LiveCommunityChatWidgetProps {
   onOpenCollection?: () => void;
 }
 
-type HubTab = 'GLOBAL' | 'GUILD' | 'DUEL' | 'GOLD';
+type ChatFilterTab = 'GLOBAL' | 'GUILD' | 'DUEL';
+
+interface SelectedChatUser {
+  peerId: string;
+  nickname: string;
+  badgeIcon?: string;
+  guildTag?: string;
+  scope?: LiveChatScope;
+}
 
 const GUILD_ICONS = ['🛡️', '❄️', '🌪️', '🔥', '⚔️', '🐉', '👑', '🌟'];
 const STAKE_OPTIONS = [0, 10, 50, 100, 300, 500];
 const GOLD_GIFT_PRESETS = [10, 50, 100, 300, 500];
+
+const FONT_STACK =
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif';
 
 function formatShortTime(ts: number): string {
   try {
@@ -67,7 +77,8 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     snsheroLiveNetwork.getSnapshot,
   );
 
-  const [activeTab, setActiveTab] = useState<HubTab>('GLOBAL');
+  const [activeFilter, setActiveFilter] = useState<ChatFilterTab>('GLOBAL');
+  const [onlinePanelOpen, setOnlinePanelOpen] = useState(false);
   const [globalInput, setGlobalInput] = useState('');
   const [guildInput, setGuildInput] = useState('');
   const [editingNick, setEditingNick] = useState(false);
@@ -83,6 +94,12 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     newGold: number;
   } | null>(null);
 
+  // User Click Action Sheet (Gold Gift or Direct Real-Time 1v1 Duel)
+  const [selectedUser, setSelectedUser] = useState<SelectedChatUser | null>(null);
+  const [userActionMode, setUserActionMode] = useState<'DUEL' | 'GOLD'>('DUEL');
+  const [goldAmount, setGoldAmount] = useState<number>(50);
+  const [goldNote, setGoldNote] = useState('');
+
   // Guild creation / code join state
   const [showCreateGuild, setShowCreateGuild] = useState(false);
   const [guildNameDraft, setGuildNameDraft] = useState('');
@@ -90,12 +107,6 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
   const [guildIconDraft, setGuildIconDraft] = useState('🛡️');
   const [guildDescDraft, setGuildDescDraft] = useState('');
   const [guildJoinCode, setGuildJoinCode] = useState('');
-
-  // Gold gifting state
-  const [goldTargetPeerId, setGoldTargetPeerId] = useState('');
-  const [goldTargetName, setGoldTargetName] = useState('');
-  const [goldAmount, setGoldAmount] = useState<number>(50);
-  const [goldNote, setGoldNote] = useState('');
 
   // Duel room state
   const [decks, setDecks] = useState<CustomDeck[]>(() => hsStorage.getDecks());
@@ -113,6 +124,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
   const [spectatorTarget, setSpectatorTarget] = useState<SpectatorRoomTarget | null>(null);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const guildScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -145,27 +157,42 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     return unsubGold;
   }, [onProfileChanged]);
 
+  // Always default to Global Chat + clear unread count whenever drawer opens
+  useEffect(() => {
+    if (snap.drawerOpen) {
+      snsheroLiveNetwork.clearUnreadCount();
+    }
+  }, [snap.drawerOpen, snap.unreadCount]);
+
   // Auto-scroll chat feed on new messages
   useEffect(() => {
     if (!snap.drawerOpen) return;
-    if (activeTab === 'GLOBAL' && chatScrollRef.current) {
+    if (activeFilter === 'GLOBAL' && chatScrollRef.current) {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    } else if (activeTab === 'GUILD' && guildScrollRef.current) {
+    } else if (activeFilter === 'GUILD' && guildScrollRef.current) {
       guildScrollRef.current.scrollTop = guildScrollRef.current.scrollHeight;
     }
-  }, [snap.drawerOpen, activeTab, snap.globalMessages.length, snap.guildMessages.length]);
+  }, [snap.drawerOpen, activeFilter, snap.globalMessages.length, snap.guildMessages.length]);
 
-  // Close drawer on Escape or outside click
+  // Close drawer on Escape or outside click (desktop)
   useEffect(() => {
     if (!snap.drawerOpen) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+      if (spectatorTarget) return;
+      const target = e.target as Node;
+      const inTrigger = rootRef.current?.contains(target);
+      const inDrawer = drawerRef.current?.contains(target);
+      if (!inTrigger && !inDrawer) {
         snsheroLiveNetwork.setDrawerOpen(false);
       }
     };
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        snsheroLiveNetwork.setDrawerOpen(false);
+        if (selectedUser) {
+          setSelectedUser(null);
+        } else {
+          snsheroLiveNetwork.setDrawerOpen(false);
+        }
       }
     };
     document.addEventListener('pointerdown', onPointerDown, true);
@@ -174,7 +201,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
       document.removeEventListener('pointerdown', onPointerDown, true);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [snap.drawerOpen]);
+  }, [snap.drawerOpen, selectedUser, spectatorTarget]);
 
   const flashStatus = (kind: 'ok' | 'err', text: string) => {
     setStatusBanner({ kind, text });
@@ -214,23 +241,16 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     return `${deck.name} (${heroInfo.className})`;
   };
 
-  const openGoldGiftForPeer = (peer: { peerId: string; nickname: string }) => {
-    if (peer.peerId === snap.peerId) return;
-    hsAudio.playSfx('ui_click', 0.7);
-    setGoldTargetPeerId(peer.peerId);
-    setGoldTargetName(peer.nickname);
-    setActiveTab('GOLD');
-  };
-
-  const openDuelInviteForPeer = (
-    peer: { peerId: string; nickname: string },
-    scope: LiveChatScope = 'GLOBAL',
+  const openUserActionSheet = (
+    user: SelectedChatUser,
+    initialMode: 'DUEL' | 'GOLD' = 'DUEL',
   ) => {
-    if (peer.peerId === snap.peerId) return;
+    if (!user.peerId || user.peerId === snap.peerId) return;
     hsAudio.playSfx('ui_click', 0.7);
-    setDuelTargetPeer(peer);
-    setDuelScope(scope);
-    setActiveTab('DUEL');
+    setSelectedUser(user);
+    setUserActionMode(initialMode);
+    setOnlinePanelOpen(false);
+    if (user.scope) setDuelScope(user.scope);
   };
 
   const handleGlobalSubmit = (e: React.FormEvent) => {
@@ -275,20 +295,13 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     );
   };
 
-  const handleSendGold = (e: React.FormEvent) => {
-    e.preventDefault();
-    const targetId = goldTargetPeerId.trim();
-    if (!targetId) {
-      flashStatus(
-        'err',
-        tr('골드를 받을 모험가를 선택하거나 ID를 입력해 주세요.', 'Select a recipient or enter their Player ID.'),
-      );
+  const handleSendGoldToUser = (targetId: string, targetName: string) => {
+    if (!targetId.trim()) {
+      flashStatus('err', tr('선물할 상대를 선택해 주세요.', 'Select a player first.'));
       return;
     }
     const resolvedPeer = snap.onlinePeers.find((p) => p.peerId === targetId);
-    const recipientName =
-      goldTargetName.trim() || resolvedPeer?.nickname || targetId;
-
+    const recipientName = targetName.trim() || resolvedPeer?.nickname || targetId;
     const res = snsheroLiveNetwork.sendGoldGift({
       toPeerId: targetId,
       toName: recipientName,
@@ -308,6 +321,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     hsAudio.playSfx('mario_coin', 0.85);
     onProfileChanged?.();
     setGoldNote('');
+    setSelectedUser(null);
     flashStatus(
       'ok',
       tr(
@@ -317,19 +331,20 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     );
   };
 
-  const handleCreateDuelRoom = () => {
+  const handleCreateDuelRoom = (overrideTarget?: { peerId: string; nickname: string } | null) => {
     if (!selectedDeck) {
       flashStatus('err', tr('출전할 30장 카드덱을 선택해 주세요.', 'Select a 30-card deck first.'));
       return;
     }
+    const target = overrideTarget !== undefined ? overrideTarget : duelTargetPeer;
     hsAudio.playSfx('box_press', 0.85);
     const res = snsheroLiveNetwork.createDuelRoom({
       title: duelTitleDraft,
       deck: selectedDeck,
       stakeGold: duelStakeGold,
       scope: duelScope === 'GUILD' && snap.currentGuild ? 'GUILD' : 'GLOBAL',
-      targetPeerId: duelTargetPeer?.peerId,
-      targetPeerName: duelTargetPeer?.nickname,
+      targetPeerId: target?.peerId,
+      targetPeerName: target?.nickname,
     });
     if (!res.ok) {
       flashStatus('err', res.error || tr('대전방 개설 실패', 'Could not create Duel Room.'));
@@ -338,12 +353,18 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     onProfileChanged?.();
     setDuelTitleDraft('');
     setDuelTargetPeer(null);
+    setSelectedUser(null);
     flashStatus(
       'ok',
-      tr(
-        '⚔️ 대전방이 개설되어 실시간 채팅에 공유되었습니다! 상대가 입장하면 즉시 시작됩니다.',
-        '⚔️ Duel Room is live! Battle begins automatically as soon as an opponent joins.',
-      ),
+      target
+        ? tr(
+            `⚔️ ${target.nickname}님에게 실시간 1:1 대전 신청을 보냈습니다!`,
+            `⚔️ Sent a live 1v1 Duel invite to ${target.nickname}!`,
+          )
+        : tr(
+            '⚔️ 대전방이 개설되어 전체채팅에 공유되었습니다! 상대가 입장하면 즉시 시작됩니다.',
+            '⚔️ Duel Room is live! Battle begins as soon as an opponent joins.',
+          ),
     );
   };
 
@@ -361,7 +382,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
     snsheroLiveNetwork.setDrawerOpen(false);
     flashStatus(
       'ok',
-      tr('⚔️ 대전방에 연결 중입니다... 곧 전장으로 이동합니다!', '⚔️ Connecting to Duel Room... Entering battlefield!'),
+      tr('⚔️ 대전방에 연결 중입니다... 곧 전장으로 이동합니다!', '⚔️ Connecting to Duel Room...'),
     );
   };
 
@@ -371,7 +392,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
       return (
         <div
           key={msg.id}
-          className="my-1 rounded-lg border border-sky-400/25 bg-sky-950/35 px-2.5 py-1.5 text-center text-[11px] font-bold text-sky-200"
+          className="mx-auto my-1 max-w-[90%] rounded-full bg-[#2a2a2a] px-3.5 py-1 text-center text-[12px] text-[#b4b4b4]"
         >
           {msg.text}
         </div>
@@ -383,16 +404,16 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
         <div
           key={msg.id}
           data-testid="chat-gold-gift-card"
-          className="my-1 rounded-xl border border-amber-300/60 bg-gradient-to-r from-amber-950/80 via-yellow-950/60 to-stone-950/90 p-2.5 text-amber-100 shadow-md"
+          className="rounded-2xl border border-amber-400/25 bg-[#2a251a] p-3 text-[#ececec]"
         >
-          <div className="flex items-center justify-between text-[10.5px] font-extrabold text-yellow-300">
-            <span className="flex items-center gap-1">
-              <HsGoldCoinIcon size={14} />
+          <div className="flex items-center justify-between text-xs font-medium text-amber-300">
+            <span className="flex items-center gap-1.5">
+              <HsGoldCoinIcon size={15} />
               <span>{tr('실시간 골드 선물', 'Live Gold Gift')}</span>
             </span>
-            <span className="text-amber-200/70">{formatShortTime(msg.timestamp)}</span>
+            <span className="text-[11px] text-[#9b9b9b]">{formatShortTime(msg.timestamp)}</span>
           </div>
-          <p className="mt-1 text-xs font-extrabold leading-snug text-white">{msg.text}</p>
+          <p className="mt-1.5 text-[14px] leading-snug text-white">{msg.text}</p>
         </div>
       );
     }
@@ -433,44 +454,46 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
             if (isInProgress) openSpectateOrResult('SPECTATE');
             else if (!isWaiting) openSpectateOrResult('RESULT');
           }}
-          className={`my-1 rounded-xl border-2 bg-gradient-to-b p-2.5 text-amber-50 shadow-lg transition ${
+          className={`rounded-2xl border p-3 transition ${
             isInProgress
-              ? 'cursor-pointer border-red-500/80 from-red-950/80 via-stone-950/95 to-black hover:border-red-400'
+              ? 'cursor-pointer border-rose-500/50 bg-[#2c1b1e] hover:border-rose-400'
               : !isWaiting
-                ? 'cursor-pointer border-amber-400/55 from-stone-900/95 via-stone-950 to-black hover:border-amber-300'
-                : 'border-rose-400/65 from-rose-950/85 via-stone-950/95 to-black'
+                ? 'cursor-pointer border-white/10 bg-[#262626] hover:border-white/25'
+                : 'border-white/15 bg-[#2a2a2a]'
           }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <img
               src={heroMeta.heroPortraitUrl}
               alt={heroInfo.name}
-              className="h-9 w-9 shrink-0 rounded-lg border border-amber-300/60 object-cover object-top"
+              className="h-10 w-10 shrink-0 rounded-full border border-white/20 object-cover object-top"
             />
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-1.5 text-[10.5px] font-black text-rose-300">
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
                 {isInProgress ? (
-                  <span className="inline-flex items-center gap-1 rounded-[4px] border border-white/80 bg-[#cc0000] px-1.5 py-0.5 text-[9.5px] font-black uppercase leading-none tracking-[0.12em] text-white shadow-[0_0_10px_rgba(220,38,38,0.85)]">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white">
                     <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-white" />
                     LIVE
                   </span>
                 ) : !isWaiting ? (
-                  <span className="rounded bg-amber-500/25 px-1.5 py-0.5 text-[9.5px] font-black text-amber-200">
-                    🏆 {tr('경기 종료', 'FINISHED')}
+                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-[#d4d4d4]">
+                    🏆 {tr('경기 종료', 'Finished')}
                   </span>
                 ) : (
-                  <span>⚔️ {tr('1:1 카드덱 대전방', '1v1 Deck Duel Room')}</span>
+                  <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] text-emerald-300">
+                    ⚔️ {tr('대전 대기 중', 'Open Duel')}
+                  </span>
                 )}
-                <span className="rounded bg-amber-500/25 px-1.5 py-0.5 text-yellow-200">
+                <span className="rounded-full bg-white/10 px-2 py-0.5 text-amber-300">
                   {duelMeta.stakeGold > 0
-                    ? tr(`내기 ${duelMeta.stakeGold}G`, `${duelMeta.stakeGold}G Wager`)
+                    ? `${duelMeta.stakeGold.toLocaleString()}G`
                     : tr('친선 0G', 'Friendly')}
                 </span>
               </div>
-              <div className="truncate text-xs font-extrabold text-white">
+              <div className="mt-0.5 truncate text-[14px] font-semibold text-white">
                 {duelMeta.title}
               </div>
-              <div className="truncate text-[10.5px] font-bold text-amber-200/80">
+              <div className="truncate text-xs text-[#9b9b9b]">
                 {isInProgress && liveRoom?.guestName
                   ? `${duelMeta.hostName} vs ${liveRoom.guestName}`
                   : matchResult
@@ -481,7 +504,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
           </div>
 
           {isJoinable && liveRoom ? (
-            <div className="mt-2 flex items-center gap-1.5">
+            <div className="mt-2.5 flex items-center gap-2">
               <button
                 type="button"
                 data-testid={`chat-join-duel-btn-${liveRoom.roomId}`}
@@ -489,25 +512,36 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                   e.stopPropagation();
                   handleJoinDuelRoom(liveRoom);
                 }}
-                className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-emerald-300/80 bg-emerald-700 px-3 py-1.5 text-xs font-extrabold text-white shadow hover:bg-emerald-600"
+                className="flex min-h-[42px] flex-1 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-xs font-semibold text-[#171717] transition hover:bg-[#e5e5e5]"
               >
                 <Swords className="h-3.5 w-3.5" />
-                <span>{tr('내 카드덱으로 즉시 대결!', 'Battle with My Deck!')}</span>
+                <span>{tr('내 카드덱으로 즉시 입장', 'Join & Battle')}</span>
               </button>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActiveTab('DUEL');
+                  setActiveFilter('DUEL');
                 }}
-                className="min-h-[44px] rounded-lg border border-amber-300/40 bg-stone-900 px-2.5 text-[11px] font-extrabold text-amber-200 hover:bg-stone-800"
+                className="min-h-[42px] rounded-full border border-white/15 bg-[#212121] px-3 text-xs font-medium text-[#ececec] hover:bg-[#333333]"
               >
                 {tr('덱 변경', 'Deck')}
               </button>
             </div>
           ) : isMyWaitingRoom ? (
-            <div className="mt-1.5 text-[10.5px] font-bold text-emerald-300">
-              {tr('내가 개설한 대전방 · 도전자 대기 중', 'Your room · Waiting for challenger')}
+            <div className="mt-2 flex items-center justify-between text-xs text-emerald-300">
+              <span>{tr('내 대전방 대기 중 — 상대 입장 시 시작', 'Waiting for opponent to join')}</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  snsheroLiveNetwork.cancelDuelRoom(duelMeta.roomId);
+                  onProfileChanged?.();
+                }}
+                className="rounded-full border border-white/15 px-2.5 py-1 text-[11px] text-[#d4d4d4] hover:bg-white/10"
+              >
+                {tr('닫기', 'Cancel')}
+              </button>
             </div>
           ) : isInProgress ? (
             <button
@@ -517,10 +551,10 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                 e.stopPropagation();
                 openSpectateOrResult('SPECTATE');
               }}
-              className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg border border-red-300/80 bg-gradient-to-r from-[#b91c1c] to-[#991b1b] px-3 py-1.5 text-xs font-extrabold text-white shadow hover:brightness-110"
+              className="mt-2.5 flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-full bg-rose-600 px-3 text-xs font-semibold text-white hover:bg-rose-500"
             >
               <Eye className="h-4 w-4" />
-              <span>{tr('대전 진행 중 · 관전 모드로 보기', 'Match Live · Watch in Spectator Mode')}</span>
+              <span>{tr('실시간 관전하기', 'Watch Live Match')}</span>
             </button>
           ) : (
             <button
@@ -530,21 +564,36 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                 e.stopPropagation();
                 openSpectateOrResult('RESULT');
               }}
-              className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg border border-amber-300/60 bg-stone-900/95 px-3 py-1.5 text-xs font-extrabold text-amber-200 shadow hover:bg-stone-800"
+              className="mt-2.5 flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-full border border-white/10 bg-[#212121] px-3 text-xs font-medium text-[#d4d4d4] hover:bg-[#303030]"
             >
-              <Trophy className="h-3.5 w-3.5 text-yellow-300" />
+              <Trophy className="h-3.5 w-3.5 text-amber-300" />
               <span>
                 {matchResult
                   ? matchResult.winnerSide === 'DRAW'
-                    ? tr('경기 종료 (무승부) · 결과 보기', 'Match Ended (Draw) · View Result')
-                    : tr(
-                        `경기 종료 (${matchResult.winnerName} 승리) · 결과 보기`,
-                        `Ended (${matchResult.winnerName} Won) · View Result`,
-                      )
-                  : tr('종료된 방 · 경기 결과 보기', 'Closed Room · View Match Result')}
+                    ? tr('무승부 · 결과 보기', 'Draw · View Result')
+                    : tr(`${matchResult.winnerName} 승리 · 결과 보기`, `${matchResult.winnerName} Won · View Result`)
+                  : tr('경기 결과 보기', 'View Match Result')}
               </span>
             </button>
           )}
+        </div>
+      );
+    }
+
+    // Standard TEXT message: My messages right-aligned (#2f2f2f pill); Other users clickable to open Gold Gift / Live Duel sheet!
+    if (isMine) {
+      return (
+        <div
+          key={msg.id}
+          data-testid="live-chat-message-item"
+          className="flex flex-col items-end"
+        >
+          <div className="max-w-[82%] break-words rounded-3xl bg-[#2f2f2f] px-4 py-2.5 text-[15px] leading-relaxed text-[#ececec]">
+            {msg.text}
+          </div>
+          <span className="mt-0.5 pr-1 text-[10.5px] text-[#7a7a7a]">
+            {formatShortTime(msg.timestamp)}
+          </span>
         </div>
       );
     }
@@ -553,337 +602,326 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
       <div
         key={msg.id}
         data-testid="live-chat-message-item"
-        className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}
+        className="flex items-start gap-2.5"
       >
-        <div className="mb-0.5 flex flex-wrap items-center gap-1 text-[10px] font-bold text-stone-400">
-          <span>{msg.senderBadge}</span>
-          {msg.guildTag && (
-            <span className="rounded bg-emerald-900/80 px-1 py-0.2 text-[9.5px] font-black text-emerald-200">
-              [{msg.guildTag}]
-            </span>
-          )}
-          <span className={isMine ? 'text-sky-300 font-extrabold' : 'text-amber-200 font-extrabold'}>
-            {msg.senderName}
-          </span>
-          <span>· {formatShortTime(msg.timestamp)}</span>
-          {!isMine && (
-            <>
-              <button
-                type="button"
-                onClick={() =>
-                  openGoldGiftForPeer({
-                    peerId: msg.senderId,
-                    nickname: msg.senderName,
-                  })
-                }
-                className="ml-1 rounded border border-amber-400/45 bg-amber-950/75 px-1.5 py-0.5 text-[9.5px] font-extrabold text-yellow-200 hover:bg-amber-900"
-              >
-                🪙 {tr('골드선물', 'Gift')}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  openDuelInviteForPeer(
-                    { peerId: msg.senderId, nickname: msg.senderName },
-                    msg.scope,
-                  )
-                }
-                className="rounded border border-rose-400/45 bg-rose-950/75 px-1.5 py-0.5 text-[9.5px] font-extrabold text-rose-200 hover:bg-rose-900"
-              >
-                ⚔️ {tr('대결', 'Duel')}
-              </button>
-            </>
-          )}
-        </div>
-        <div
-          className={`max-w-[88%] break-words rounded-2xl px-3 py-1.5 text-xs font-bold leading-relaxed shadow ${
-            isMine
-              ? 'rounded-br-sm border border-sky-400/50 bg-sky-900/85 text-sky-50'
-              : 'rounded-bl-sm border border-stone-700 bg-stone-900/95 text-amber-50'
-          }`}
+        <button
+          type="button"
+          data-testid="chat-user-btn"
+          onClick={() =>
+            openUserActionSheet({
+              peerId: msg.senderId,
+              nickname: msg.senderName,
+              badgeIcon: msg.senderBadge,
+              guildTag: msg.guildTag,
+              scope: msg.scope,
+            })
+          }
+          title={tr(`${msg.senderName} 클릭: 골드선물 / 실시간 대전`, `Tap ${msg.senderName}: Gift Gold / Live Duel`)}
+          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/15 bg-[#2f2f2f] text-sm transition hover:border-white/40 hover:bg-[#3a3a3a]"
         >
-          {msg.text}
+          {msg.senderBadge}
+        </button>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              data-testid="chat-user-btn"
+              onClick={() =>
+                openUserActionSheet({
+                  peerId: msg.senderId,
+                  nickname: msg.senderName,
+                  badgeIcon: msg.senderBadge,
+                  guildTag: msg.guildTag,
+                  scope: msg.scope,
+                })
+              }
+              className="text-[13px] font-semibold text-white underline-offset-2 hover:text-sky-300 hover:underline"
+            >
+              {msg.senderName}
+            </button>
+            {msg.guildTag && (
+              <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                [{msg.guildTag}]
+              </span>
+            )}
+            <span className="text-[11px] text-[#7a7a7a]">{formatShortTime(msg.timestamp)}</span>
+          </div>
+          <div className="mt-0.5 break-words text-[15px] leading-relaxed text-[#ececec]">
+            {msg.text}
+          </div>
         </div>
       </div>
     );
   };
 
-  const liveBadgeNumber = Math.max(1, snap.onlineCount);
   const openRoomsCount = snap.openRooms.filter((r) => r.status === 'WAITING').length;
 
   if (isNarrationActive) return null;
 
-  // Flush to bottom-right corner identically with bottom-left Kadan Chatbot so cards stay unobstructed
-  const positionClasses = 'fixed bottom-0.5 right-1 z-[126] sm:bottom-1 sm:right-2';
-
-  return (
-    <div
-      ref={rootRef}
-      data-testid="live-community-chat-root"
-      className={`pointer-events-none ${positionClasses} flex flex-col items-end select-none`}
-    >
-      {/* Celebratory Incoming Gold Gift Toast */}
-      {incomingGoldToast && (
+  // Render ChatGPT-unified Fullscreen Mobile / Floating Desktop Live Chat via Portal
+  const liveDrawerNode =
+    snap.drawerOpen &&
+    (() => {
+      const content = (
         <div
-          data-testid="live-gold-received-toast"
-          className="pointer-events-auto mb-2 flex max-w-[300px] items-center gap-2.5 rounded-2xl border-2 border-yellow-300 bg-gradient-to-r from-amber-950 via-yellow-900/95 to-stone-950 px-3.5 py-2.5 text-amber-50 shadow-[0_14px_34px_rgba(0,0,0,0.9)]"
-        >
-          <HsGoldCoinIcon size={26} />
-          <div className="min-w-0 flex-1 text-xs">
-            <div className="font-black text-yellow-300">
-              +{incomingGoldToast.amount.toLocaleString()}G {tr('골드 선물 도착!', 'Gold Gift Received!')}
-            </div>
-            <div className="truncate text-[11px] font-bold text-amber-100">
-              {tr(
-                `${incomingGoldToast.fromName}님 선물 · 보유 ${incomingGoldToast.newGold.toLocaleString()}G`,
-                `From ${incomingGoldToast.fromName} · Now ${incomingGoldToast.newGold.toLocaleString()}G`,
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Live Chat, Guild, Gold & Duel Room Drawer */}
-      {snap.drawerOpen && (
-        <div
+          ref={drawerRef}
           onClick={(e) => e.stopPropagation()}
           data-testid="live-chat-drawer"
-          className="pointer-events-auto mb-2 flex h-[510px] max-h-[calc(100dvh-116px)] w-[346px] max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-2xl border-2 border-sky-400/70 bg-[#0b111c]/98 text-slate-100 shadow-[0_22px_52px_rgba(0,0,0,0.94),0_0_24px_rgba(56,189,248,0.22)] sm:h-[560px] sm:w-[400px]"
+          role="dialog"
+          aria-modal="true"
+          aria-label={tr('실시간 라이브 채팅', 'Live Community Chat')}
+          style={{ fontFamily: FONT_STACK }}
+          className="fixed inset-0 z-[140] flex h-[100dvh] w-full flex-col overflow-hidden rounded-none bg-[#212121] text-[#ececec] sm:inset-auto sm:bottom-20 sm:right-4 sm:h-[640px] sm:max-h-[82dvh] sm:w-[440px] sm:rounded-3xl sm:border sm:border-white/10 sm:shadow-[0_24px_64px_rgba(0,0,0,0.75)]"
         >
           {/* Top Header */}
-          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-700/80 bg-gradient-to-r from-slate-900 via-[#0f1b2e] to-slate-950 px-3 py-2">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-                <span className="truncate text-xs font-black tracking-tight text-white sm:text-[13px]">
-                  {tr('실시간 라이브 채팅 · 결투장', 'Live Chat · Guild & Duel Hub')}
-                </span>
-                <span
-                  data-testid="drawer-online-count-pill"
-                  className="shrink-0 rounded-full border border-emerald-400/50 bg-emerald-950/90 px-2 py-0.5 text-[10px] font-black text-emerald-300"
-                >
-                  {tr(`실시간 ${liveBadgeNumber}명`, `${liveBadgeNumber} Live`)}
-                </span>
+          <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3.5 sm:px-4">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/15 bg-[#2f2f2f] text-sky-300">
+                <MessageCircleMore className="h-4 w-4" />
               </div>
-
-              {/* Nickname & Owned Gold Row */}
-              <div className="mt-1 flex items-center gap-1.5 text-[10.5px]">
-                {editingNick ? (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      snsheroLiveNetwork.updateNickname(nickDraft);
-                      setEditingNick(false);
-                    }}
-                    className="flex items-center gap-1"
-                  >
-                    <input
-                      type="text"
-                      value={nickDraft}
-                      onChange={(e) => setNickDraft(e.target.value)}
-                      maxLength={18}
-                      className="h-8 w-32 rounded border border-sky-400 bg-slate-950 px-1.5 text-[16px] font-bold text-white focus:outline-none sm:h-6 sm:w-28 sm:text-[11px]"
-                    />
-                    <button
-                      type="submit"
-                      className="rounded bg-sky-600 px-2 py-0.5 text-[10px] font-extrabold text-white"
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-[15px] font-semibold text-white">
+                    {tr('라이브 채팅', 'Live Chat')}
+                  </span>
+                  <span
+                    className={`inline-block h-2 w-2 rounded-full ${
+                      snap.transportState === 'LIVE_GLOBAL' ? 'bg-emerald-400' : 'bg-amber-400'
+                    }`}
+                  />
+                  {editingNick ? (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        snsheroLiveNetwork.updateNickname(nickDraft);
+                        setEditingNick(false);
+                      }}
+                      className="flex items-center gap-1"
                     >
-                      {tr('저장', 'Save')}
+                      <input
+                        type="text"
+                        value={nickDraft}
+                        onChange={(e) => setNickDraft(e.target.value)}
+                        maxLength={16}
+                        autoFocus
+                        className="w-24 rounded-lg border border-white/20 bg-[#2f2f2f] px-2 py-0.5 text-[16px] text-white focus:outline-none sm:text-xs"
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-lg bg-white px-2 py-0.5 text-[11px] font-semibold text-[#171717]"
+                      >
+                        OK
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNickDraft(snap.nickname);
+                        setEditingNick(true);
+                      }}
+                      className="inline-flex items-center gap-1 truncate rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-[#d4d4d4] hover:bg-white/15"
+                    >
+                      <span className="max-w-[84px] truncate">{snap.nickname}</span>
+                      <Edit3 className="h-2.5 w-2.5 shrink-0" />
                     </button>
-                  </form>
-                ) : (
-                  <button
-                    type="button"
-                    data-testid="live-edit-nickname-btn"
-                    onClick={() => {
-                      setNickDraft(snap.nickname);
-                      setEditingNick(true);
-                    }}
-                    className="inline-flex items-center gap-1 rounded bg-slate-800/90 px-1.5 py-0.5 font-bold text-sky-200 hover:bg-slate-700"
-                  >
-                    <span>{snap.nickname}</span>
-                    <Edit3 className="h-2.5 w-2.5 opacity-80" />
-                  </button>
-                )}
-
-                <span className="text-slate-500">|</span>
-                <span
-                  data-testid="live-drawer-my-gold"
-                  className="inline-flex items-center gap-1 font-extrabold text-yellow-300"
-                >
-                  <HsGoldCoinIcon size={13} />
-                  <span>{profile.gold.toLocaleString()}G</span>
-                </span>
-                <button
-                  type="button"
-                  title={tr('내 플레이어 ID 복사 (골드 선물 받기용)', 'Copy My Player ID')}
-                  onClick={() => {
-                    navigator.clipboard?.writeText(snap.peerId).catch(() => {});
-                    flashStatus('ok', tr(`내 ID(${snap.peerId}) 복사 완료!`, `Copied ID (${snap.peerId})!`));
-                  }}
-                  className="ml-auto inline-flex items-center gap-0.5 rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[9.5px] font-bold text-slate-300 hover:text-white"
-                >
-                  <span>ID:{snap.peerId.slice(0, 7)}</span>
-                  <Copy className="h-2.5 w-2.5" />
-                </button>
+                  )}
+                </div>
               </div>
             </div>
 
-            <button
-              type="button"
-              data-testid="live-chat-close-btn"
-              onClick={() => {
-                hsAudio.playSfx('ui_click', 0.5);
-                snsheroLiveNetwork.setDrawerOpen(false);
-              }}
-              aria-label={tr('실시간 채팅 닫기', 'Close Live Chat')}
-              className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-slate-600/80 bg-slate-900 text-slate-200 hover:bg-slate-800"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Primary 4-Feature Navigation Tabs */}
-          <div className="grid shrink-0 grid-cols-4 gap-1 border-b border-slate-800 bg-slate-950/95 p-1.5">
-            <button
-              type="button"
-              data-testid="live-tab-GLOBAL"
-              onClick={() => setActiveTab('GLOBAL')}
-              className={`flex min-h-[44px] flex-col items-center justify-center rounded-xl border text-[10.5px] font-extrabold transition ${
-                activeTab === 'GLOBAL'
-                  ? 'border-sky-400 bg-sky-900/75 text-white shadow'
-                  : 'border-slate-800 bg-slate-900/70 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <MessageCircleMore className="mb-0.5 h-3.5 w-3.5 text-sky-300" />
-              <span>{tr('전체채팅', 'Global')}</span>
-            </button>
-
-            <button
-              type="button"
-              data-testid="live-tab-GUILD"
-              onClick={() => setActiveTab('GUILD')}
-              className={`flex min-h-[44px] flex-col items-center justify-center rounded-xl border text-[10.5px] font-extrabold transition ${
-                activeTab === 'GUILD'
-                  ? 'border-emerald-400 bg-emerald-900/75 text-white shadow'
-                  : 'border-slate-800 bg-slate-900/70 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <Shield className="mb-0.5 h-3.5 w-3.5 text-emerald-300" />
-              <span>
-                {snap.currentGuild
-                  ? `[${snap.currentGuild.tag}]`
-                  : tr('길드채팅', 'Guild')}
+            <div className="flex shrink-0 items-center gap-1">
+              <span className="hidden items-center gap-1 rounded-full bg-[#2f2f2f] px-2.5 py-1 text-xs font-medium text-amber-300 sm:inline-flex">
+                <HsGoldCoinIcon size={13} />
+                <span>{profile.gold.toLocaleString()}G</span>
               </span>
-            </button>
+              <button
+                type="button"
+                data-testid="live-online-peers-toggle"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click', 0.6);
+                  setOnlinePanelOpen((v) => !v);
+                }}
+                className={`inline-flex min-h-[38px] items-center gap-1 rounded-full px-2.5 text-xs font-medium transition ${
+                  onlinePanelOpen
+                    ? 'bg-white text-[#171717]'
+                    : 'bg-[#2f2f2f] text-[#ececec] hover:bg-[#3a3a3a]'
+                }`}
+              >
+                <Users className="h-3.5 w-3.5" />
+                <span>{snap.onlineCount}</span>
+              </button>
+              <button
+                type="button"
+                data-testid="live-chat-close-btn"
+                onClick={() => {
+                  hsAudio.playSfx('ui_click', 0.55);
+                  setOnlinePanelOpen(false);
+                  setSelectedUser(null);
+                  snsheroLiveNetwork.setDrawerOpen(false);
+                }}
+                aria-label={tr('라이브 채팅 닫기', 'Close Live Chat')}
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-[#b4b4b4] transition hover:bg-[#2f2f2f] hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </header>
 
-            <button
-              type="button"
-              data-testid="live-tab-DUEL"
-              onClick={() => setActiveTab('DUEL')}
-              className={`relative flex min-h-[44px] flex-col items-center justify-center rounded-xl border text-[10.5px] font-extrabold transition ${
-                activeTab === 'DUEL'
-                  ? 'border-rose-400 bg-rose-900/75 text-white shadow'
-                  : 'border-slate-800 bg-slate-900/70 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <Swords className="mb-0.5 h-3.5 w-3.5 text-rose-300" />
-              <span>{tr('대전방', 'Duel Room')}</span>
-              {openRoomsCount > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-black text-white">
-                  {openRoomsCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              data-testid="live-tab-GOLD"
-              onClick={() => setActiveTab('GOLD')}
-              className={`flex min-h-[44px] flex-col items-center justify-center rounded-xl border text-[10.5px] font-extrabold transition ${
-                activeTab === 'GOLD'
-                  ? 'border-amber-400 bg-amber-900/75 text-white shadow'
-                  : 'border-slate-800 bg-slate-900/70 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <Coins className="mb-0.5 h-3.5 w-3.5 text-yellow-300" />
-              <span>{tr('골드선물', 'Send Gold')}</span>
-            </button>
+          {/* 3 Filter Tabs: 전체채팅 (Default) / 길드채팅 / 대전방 */}
+          <div
+            data-testid="live-chat-filter-bar"
+            className="flex shrink-0 items-center gap-1.5 border-b border-white/10 bg-[#1b1b1b] px-3.5 py-2"
+          >
+            {(
+              [
+                {
+                  id: 'GLOBAL',
+                  icon: '💬',
+                  label: tr('전체채팅', 'Global Chat'),
+                  testId: 'live-filter-global',
+                },
+                {
+                  id: 'GUILD',
+                  icon: '🛡️',
+                  label: snap.currentGuild
+                    ? `[${snap.currentGuild.tag}] ${tr('길드', 'Guild')}`
+                    : tr('길드채팅', 'Guild Chat'),
+                  testId: 'live-filter-guild',
+                },
+                {
+                  id: 'DUEL',
+                  icon: '⚔️',
+                  label:
+                    openRoomsCount > 0
+                      ? `${tr('대전방', 'Duel')} (${openRoomsCount})`
+                      : tr('대전방', 'Duel Rooms'),
+                  testId: 'live-filter-duel',
+                },
+              ] as const
+            ).map((f) => {
+              const active = activeFilter === f.id;
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  data-testid={f.testId}
+                  onClick={() => {
+                    hsAudio.playSfx('ui_click', 0.6);
+                    setOnlinePanelOpen(false);
+                    setActiveFilter(f.id);
+                    if (f.id === 'GLOBAL') {
+                      snsheroLiveNetwork.clearUnreadCount();
+                    }
+                  }}
+                  className={`flex min-h-[36px] flex-1 items-center justify-center gap-1 rounded-full px-2.5 text-xs font-medium transition ${
+                    active
+                      ? 'bg-white text-[#171717]'
+                      : 'bg-[#2a2a2a] text-[#b4b4b4] hover:bg-[#333333] hover:text-white'
+                  }`}
+                >
+                  <span>{f.icon}</span>
+                  <span className="truncate">{f.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Transient Feedback Banner */}
+          {/* Status Feedback Banner */}
           {statusBanner && (
             <div
-              data-testid="live-status-banner"
-              className={`shrink-0 px-3 py-1.5 text-xs font-extrabold ${
+              data-testid="live-chat-status-banner"
+              className={`shrink-0 px-4 py-2 text-xs font-medium ${
                 statusBanner.kind === 'ok'
-                  ? 'bg-emerald-900/90 text-emerald-100'
-                  : 'bg-rose-900/90 text-rose-100'
+                  ? 'bg-emerald-950/90 text-emerald-200'
+                  : 'bg-rose-950/90 text-rose-200'
               }`}
             >
               {statusBanner.text}
             </div>
           )}
 
-          {/* ==================== TAB 1: GLOBAL LIVE CHAT ==================== */}
-          {activeTab === 'GLOBAL' && (
-            <div className="flex min-h-0 flex-1 flex-col">
-              {/* Online Peers Strip */}
-              <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto border-b border-slate-800/90 bg-slate-900/75 px-2.5 py-1.5">
-                <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-extrabold text-emerald-300">
-                  <Users className="h-3 w-3" />
-                  <span>{tr(`접속 ${liveBadgeNumber}`, `${liveBadgeNumber} Online`)}:</span>
+          {/* Collapsible Online Users Roster (Click Any User -> Gold Gift / Direct Duel!) */}
+          {onlinePanelOpen && (
+            <div
+              data-testid="live-online-peers-drawer"
+              className="max-h-56 shrink-0 space-y-1.5 overflow-y-auto border-b border-white/10 bg-[#1a1a1a] px-3.5 py-2.5"
+            >
+              <div className="flex items-center justify-between text-xs text-[#9b9b9b]">
+                <span>
+                  {tr(
+                    `현재 접속자 (${snap.onlinePeers.length}명) — 클릭하여 골드선물·대전신청`,
+                    `Online (${snap.onlinePeers.length}) — Tap player to Gift or Duel`,
+                  )}
                 </span>
-                {snap.onlinePeers.map((peer: LivePeerPresence) => {
-                  const isSelf = peer.peerId === snap.peerId;
-                  return (
+                <span className="text-amber-300">🪙 {profile.gold.toLocaleString()}G</span>
+              </div>
+              {otherOnlinePeers.length === 0 ? (
+                <div className="rounded-2xl bg-[#2a2a2a] py-3 text-center text-xs text-[#9b9b9b]">
+                  {tr(
+                    '다른 모험가의 접속을 기다리고 있습니다.',
+                    'Waiting for other adventurers to come online.',
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                  {otherOnlinePeers.map((peer) => (
                     <button
                       key={peer.peerId}
                       type="button"
-                      data-testid={`online-peer-chip-${peer.peerId}`}
-                      disabled={isSelf}
-                      onClick={() => openGoldGiftForPeer(peer)}
-                      title={
-                        isSelf
-                          ? tr('내 프로필', 'You')
-                          : tr('클릭하여 골드 선물하기', 'Click to gift Gold')
+                      data-testid={`online-peer-btn-${peer.peerId}`}
+                      onClick={() =>
+                        openUserActionSheet({
+                          peerId: peer.peerId,
+                          nickname: peer.nickname,
+                          badgeIcon: peer.badgeIcon,
+                          guildTag: peer.guildTag,
+                          scope: activeFilter === 'GUILD' ? 'GUILD' : 'GLOBAL',
+                        })
                       }
-                      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-extrabold ${
-                        isSelf
-                          ? 'border-sky-400/50 bg-sky-950/70 text-sky-200'
-                          : 'cursor-pointer border-amber-400/45 bg-slate-800 text-amber-100 hover:border-yellow-300'
-                      }`}
+                      className="flex min-h-[44px] items-center gap-2 rounded-2xl border border-white/10 bg-[#2a2a2a] px-3 py-2 text-left transition hover:border-white/30 hover:bg-[#333333]"
                     >
-                      <span>{peer.badgeIcon}</span>
-                      {peer.guildTag && (
-                        <span className="text-emerald-300">[{peer.guildTag}]</span>
-                      )}
-                      <span>{peer.nickname}</span>
-                      {!isSelf && <span className="text-yellow-300">🪙</span>}
+                      <span className="text-base">{peer.badgeIcon}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-xs font-semibold text-white">
+                          {peer.nickname}
+                        </div>
+                        <div className="text-[10.5px] text-[#9b9b9b]">
+                          {peer.guildTag ? `[${peer.guildTag}] · ` : ''}
+                          {peer.rank === 0 ? 'Legend' : `Rank ${peer.rank}`}
+                        </div>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-amber-200">
+                        ⚔ · 🪙
+                      </span>
                     </button>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-              {/* Global Messages List */}
+          {/* ==================== FILTER 1: GLOBAL CHAT (DEFAULT) ==================== */}
+          {activeFilter === 'GLOBAL' && (
+            <div className="flex min-h-0 flex-1 flex-col">
               <div
                 ref={chatScrollRef}
                 data-testid="global-chat-feed"
-                className="flex-1 space-y-2 overflow-y-auto p-3"
+                className="flex-1 space-y-3.5 overflow-y-auto px-4 py-4"
               >
                 {snap.globalMessages.length === 0 ? (
-                  <div className="flex h-full flex-col items-center justify-center text-center text-xs text-slate-400">
-                    <MessageCircleMore className="mb-2 h-8 w-8 text-sky-400/60" />
-                    <p className="font-extrabold text-slate-200">
+                  <div className="flex min-h-full flex-col items-center justify-center py-8 text-center">
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-[#2f2f2f] text-sky-300">
+                      <MessageCircleMore className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-base font-semibold text-white">
+                      {tr('전체 실시간 채팅에 오신 것을 환영합니다', 'Welcome to Live Global Chat')}
+                    </h3>
+                    <p className="mt-1 max-w-xs text-[13px] leading-relaxed text-[#9b9b9b]">
                       {tr(
-                        '실시간 전체 대화방에 오신 것을 환영합니다!',
-                        'Welcome to SNSHero Real-Time Global Chat!',
-                      )}
-                    </p>
-                    <p className="mt-1 text-[11px] leading-relaxed">
-                      {tr(
-                        '접속 중인 유저들과 실시간 대화, 골드 선물, 길드 모집, 1:1 카드덱 대전을 바로 시작해 보세요!',
-                        'Chat live with players, send Gold gifts, join Guilds, or host a 1v1 Deck Duel!',
+                        '메시지를 보내거나 상대방 닉네임을 클릭해 골드 선물·실시간 1:1 대전을 신청해 보세요.',
+                        'Chat live or tap any player name to send Gold or challenge them to a 1v1 Duel.',
                       )}
                     </p>
                   </div>
@@ -892,54 +930,52 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                 )}
               </div>
 
-              {/* Global Input Bar */}
-              <form
-                onSubmit={handleGlobalSubmit}
-                className="flex shrink-0 items-center gap-1.5 border-t border-slate-800 bg-slate-950 p-2"
-              >
-                <button
-                  type="button"
-                  title={tr('대전방 만들기', 'Create Duel Room')}
-                  onClick={() => setActiveTab('DUEL')}
-                  className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-rose-400/50 bg-rose-950/75 text-rose-200 hover:bg-rose-900"
+              {/* ChatGPT-Style Pill Input Bar */}
+              <div className="shrink-0 px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-1.5 sm:px-4 sm:pb-3.5">
+                <form
+                  onSubmit={handleGlobalSubmit}
+                  className="flex items-center gap-1.5 rounded-[26px] border border-white/12 bg-[#2f2f2f] py-1.5 pl-4 pr-1.5 focus-within:border-white/25"
                 >
-                  <Swords className="h-4 w-4" />
-                </button>
-                <input
-                  type="text"
-                  data-testid="global-chat-input"
-                  value={globalInput}
-                  onChange={(e) => setGlobalInput(e.target.value)}
-                  maxLength={240}
-                  placeholder={tr('실시간 메시지 입력...', 'Type a live message...')}
-                  className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 text-[16px] font-bold text-white placeholder:text-slate-500 focus:border-sky-400 focus:outline-none sm:text-xs"
-                />
-                <button
-                  type="submit"
-                  data-testid="global-chat-send-btn"
-                  className="flex min-h-[44px] min-w-[52px] shrink-0 items-center justify-center gap-1 rounded-xl border border-sky-300/70 bg-sky-600 px-3 text-xs font-extrabold text-white hover:bg-sky-500"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  <span>{tr('전송', 'Send')}</span>
-                </button>
-              </form>
+                  <input
+                    type="text"
+                    data-testid="global-chat-input"
+                    value={globalInput}
+                    onChange={(e) => setGlobalInput(e.target.value)}
+                    maxLength={240}
+                    placeholder={tr(
+                      '전체채팅 메시지 입력... (닉네임 클릭으로 대전/선물)',
+                      'Message Global Chat... (Tap name to Duel/Gift)',
+                    )}
+                    className="min-h-[40px] min-w-0 flex-1 bg-transparent text-[16px] text-[#ececec] placeholder:text-[#8e8e8e] focus:outline-none sm:text-[15px]"
+                  />
+                  <button
+                    type="submit"
+                    data-testid="global-chat-send-btn"
+                    disabled={!globalInput.trim()}
+                    aria-label={tr('전송', 'Send')}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#171717] transition hover:bg-[#e5e5e5] disabled:cursor-not-allowed disabled:bg-[#4f4f4f] disabled:text-[#212121]"
+                  >
+                    <ArrowUp className="h-4 w-4 stroke-[2.5]" />
+                  </button>
+                </form>
+              </div>
             </div>
           )}
 
-          {/* ==================== TAB 2: GUILD & GUILD CHAT ==================== */}
-          {activeTab === 'GUILD' && (
+          {/* ==================== FILTER 2: GUILD CHAT & GUILDS ==================== */}
+          {activeFilter === 'GUILD' && (
             <div className="flex min-h-0 flex-1 flex-col">
               {!snap.currentGuild ? (
-                <div className="flex-1 space-y-3 overflow-y-auto p-3">
-                  <div className="flex items-center justify-between">
+                <div className="flex-1 space-y-3 overflow-y-auto p-4">
+                  <div className="flex items-center justify-between gap-2">
                     <div>
-                      <h4 className="text-xs font-black text-emerald-300">
+                      <h4 className="text-sm font-semibold text-white">
                         🛡️ {tr('길드 가입 또는 새 길드 창설', 'Join or Create a Guild')}
                       </h4>
-                      <p className="text-[10.5px] font-bold text-slate-400">
+                      <p className="text-xs text-[#9b9b9b]">
                         {tr(
-                          '길드 전용 실시간 채팅창, 길드원 골드 지원, 길드 내전을 즐기세요!',
-                          'Unlock private Guild Chat, member Gold support & Guild scrims!',
+                          '길드 전용 채팅방, 골드 지원, 길드 내전을 즐길 수 있습니다.',
+                          'Unlock private Guild chat, Gold gifts & Guild scrims.',
                         )}
                       </p>
                     </div>
@@ -947,7 +983,7 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                       type="button"
                       data-testid="toggle-create-guild-btn"
                       onClick={() => setShowCreateGuild((v) => !v)}
-                      className="inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded-xl border border-emerald-400/70 bg-emerald-800 px-2.5 text-[11px] font-extrabold text-white hover:bg-emerald-700"
+                      className="inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-full bg-white px-3.5 text-xs font-semibold text-[#171717] hover:bg-[#e5e5e5]"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>{tr('길드 창설', 'New Guild')}</span>
@@ -958,33 +994,33 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                     <form
                       onSubmit={handleCreateGuild}
                       data-testid="create-guild-form"
-                      className="space-y-2 rounded-xl border border-emerald-400/50 bg-emerald-950/40 p-2.5"
+                      className="space-y-2.5 rounded-2xl border border-white/10 bg-[#2a2a2a] p-3"
                     >
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {GUILD_ICONS.map((ic) => (
                           <button
                             key={ic}
                             type="button"
                             onClick={() => setGuildIconDraft(ic)}
-                            className={`h-8 w-8 rounded-lg border text-sm ${
+                            className={`h-8 w-8 rounded-full border text-sm ${
                               guildIconDraft === ic
-                                ? 'border-emerald-300 bg-emerald-800'
-                                : 'border-slate-700 bg-slate-900'
+                                ? 'border-white bg-white/20'
+                                : 'border-white/10 bg-[#212121]'
                             }`}
                           >
                             {ic}
                           </button>
                         ))}
                       </div>
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-2">
                         <input
                           type="text"
                           data-testid="guild-tag-input"
                           value={guildTagDraft}
                           onChange={(e) => setGuildTagDraft(e.target.value.toUpperCase())}
                           maxLength={5}
-                          placeholder={tr('태그 (예: HERO)', 'Tag (HERO)')}
-                          className="min-h-[44px] w-28 rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-extrabold text-emerald-200 placeholder:text-slate-500 sm:text-xs"
+                          placeholder={tr('태그 (HERO)', 'Tag')}
+                          className="min-h-[42px] w-28 rounded-xl border border-white/10 bg-[#212121] px-3 text-[16px] font-semibold text-white placeholder:text-[#7a7a7a] focus:outline-none sm:text-xs"
                         />
                         <input
                           type="text"
@@ -992,8 +1028,8 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                           value={guildNameDraft}
                           onChange={(e) => setGuildNameDraft(e.target.value)}
                           maxLength={22}
-                          placeholder={tr('길드 이름 (2자 이상)', 'Guild Name')}
-                          className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:text-xs"
+                          placeholder={tr('길드 이름', 'Guild Name')}
+                          className="min-h-[42px] min-w-0 flex-1 rounded-xl border border-white/10 bg-[#212121] px-3 text-[16px] text-white placeholder:text-[#7a7a7a] focus:outline-none sm:text-xs"
                         />
                       </div>
                       <input
@@ -1002,27 +1038,27 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                         onChange={(e) => setGuildDescDraft(e.target.value)}
                         maxLength={50}
                         placeholder={tr('길드 한줄 소개 (선택)', 'Guild motto (optional)')}
-                        className="min-h-[44px] w-full rounded-lg border border-slate-700 bg-slate-950 px-2.5 text-[16px] text-slate-200 placeholder:text-slate-500 sm:min-h-[40px] sm:text-xs"
+                        className="min-h-[42px] w-full rounded-xl border border-white/10 bg-[#212121] px-3 text-[16px] text-white placeholder:text-[#7a7a7a] focus:outline-none sm:text-xs"
                       />
                       <button
                         type="submit"
                         data-testid="guild-create-submit-btn"
-                        className="min-h-[44px] w-full rounded-xl border border-emerald-300 bg-emerald-600 text-xs font-black text-white hover:bg-emerald-500"
+                        className="min-h-[44px] w-full rounded-full bg-white text-xs font-semibold text-[#171717] hover:bg-[#e5e5e5]"
                       >
-                        🛡️ {tr('길드 창설 및 길드채팅 입장', 'Create Guild & Enter Chat')}
+                        {tr('길드 창설 및 입장', 'Create & Enter Guild')}
                       </button>
                     </form>
                   )}
 
-                  {/* Join by Guild Code / Tag */}
-                  <div className="flex gap-1.5">
+                  {/* Join by Code / Tag */}
+                  <div className="flex gap-2">
                     <input
                       type="text"
                       data-testid="guild-code-join-input"
                       value={guildJoinCode}
                       onChange={(e) => setGuildJoinCode(e.target.value)}
-                      placeholder={tr('초대코드 또는 길드태그로 가입', 'Join by Guild Tag or Code')}
-                      className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:text-xs"
+                      placeholder={tr('초대코드 또는 길드태그 입력', 'Enter Guild Tag or Code')}
+                      className="min-h-[42px] min-w-0 flex-1 rounded-full border border-white/10 bg-[#2f2f2f] px-4 text-[16px] text-white placeholder:text-[#8e8e8e] focus:outline-none sm:text-xs"
                     />
                     <button
                       type="button"
@@ -1035,28 +1071,27 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                           setGuildJoinCode('');
                         }
                       }}
-                      className="min-h-[44px] shrink-0 rounded-xl border border-sky-400/60 bg-sky-800 px-3 text-xs font-extrabold text-white hover:bg-sky-700"
+                      className="min-h-[42px] shrink-0 rounded-full bg-[#2f2f2f] px-4 text-xs font-semibold text-white hover:bg-[#3a3a3a]"
                     >
-                      {tr('코드 가입', 'Join')}
+                      {tr('가입', 'Join')}
                     </button>
                   </div>
 
-                  {/* Public Guild Directory */}
                   <div className="space-y-2">
                     {snap.availableGuilds.map((g) => (
                       <div
                         key={g.id}
-                        className="flex items-center justify-between gap-2 rounded-xl border border-slate-700/90 bg-slate-900/90 p-2.5"
+                        className="flex items-center justify-between gap-2.5 rounded-2xl border border-white/10 bg-[#2a2a2a] p-3"
                       >
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 text-xs font-black text-white">
+                          <div className="flex items-center gap-1.5 text-sm font-semibold text-white">
                             <span>{g.icon}</span>
-                            <span className="rounded bg-emerald-900/90 px-1.5 py-0.5 text-[10px] text-emerald-300">
+                            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-emerald-300">
                               [{g.tag}]
                             </span>
                             <span className="truncate">{g.name}</span>
                           </div>
-                          <p className="mt-0.5 truncate text-[10.5px] font-bold text-slate-400">
+                          <p className="mt-0.5 truncate text-xs text-[#9b9b9b]">
                             {isKo ? g.descriptionKo : g.descriptionEn}
                           </p>
                         </div>
@@ -1067,9 +1102,9 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                             hsAudio.playSfx('ui_click', 0.75);
                             snsheroLiveNetwork.joinGuild(g);
                           }}
-                          className="min-h-[44px] shrink-0 rounded-xl border border-emerald-400/70 bg-emerald-700 px-3 text-xs font-extrabold text-white hover:bg-emerald-600"
+                          className="min-h-[40px] shrink-0 rounded-full bg-white px-3.5 text-xs font-semibold text-[#171717] hover:bg-[#e5e5e5]"
                         >
-                          {tr('가입', 'Join')}
+                          {tr('입장', 'Join')}
                         </button>
                       </div>
                     ))}
@@ -1077,28 +1112,26 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                 </div>
               ) : (
                 <>
-                  {/* Active Guild Top Bar */}
-                  <div className="flex shrink-0 flex-wrap items-center justify-between gap-1.5 border-b border-emerald-500/30 bg-emerald-950/45 px-2.5 py-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 text-xs font-black text-emerald-200">
-                        <span>{snap.currentGuild.icon}</span>
-                        <span>[{snap.currentGuild.tag}]</span>
-                        <span className="truncate text-white">{snap.currentGuild.name}</span>
-                        <span className="rounded-full bg-emerald-900 px-1.5 py-0.5 text-[9.5px] text-emerald-200">
-                          {tr(`접속 ${Math.max(1, guildOnlinePeers.length)}명`, `${Math.max(1, guildOnlinePeers.length)} Online`)}
-                        </span>
-                      </div>
+                  {/* Active Guild Header Bar */}
+                  <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#1a1a1a] px-3.5 py-2">
+                    <div className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-white">
+                      <span>{snap.currentGuild.icon}</span>
+                      <span className="text-emerald-300">[{snap.currentGuild.tag}]</span>
+                      <span className="truncate">{snap.currentGuild.name}</span>
+                      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-[#b4b4b4]">
+                        {Math.max(1, guildOnlinePeers.length)}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => {
                           setDuelScope('GUILD');
-                          setActiveTab('DUEL');
+                          setActiveFilter('DUEL');
                         }}
-                        className="rounded-lg border border-rose-400/50 bg-rose-950/80 px-2 py-1 text-[10px] font-extrabold text-rose-200 hover:bg-rose-900"
+                        className="rounded-full bg-[#2f2f2f] px-2.5 py-1 text-[11px] text-[#ececec] hover:bg-[#3a3a3a]"
                       >
-                        ⚔️ {tr('길드내전', 'Guild Duel')}
+                        ⚔️ {tr('길드내전', 'Duel')}
                       </button>
                       <button
                         type="button"
@@ -1107,37 +1140,37 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                           flashStatus(
                             'ok',
                             tr(
-                              `길드 태그 [${snap.currentGuild?.tag}] 복사 완료!`,
-                              `Copied Guild Tag [${snap.currentGuild?.tag}]!`,
+                              `길드 태그 [${snap.currentGuild?.tag}] 복사 완료`,
+                              `Copied [${snap.currentGuild?.tag}]`,
                             ),
                           );
                         }}
-                        className="rounded-lg border border-emerald-400/40 bg-emerald-950 px-2 py-1 text-[10px] font-extrabold text-emerald-200"
+                        className="rounded-full bg-[#2f2f2f] px-2.5 py-1 text-[11px] text-[#ececec] hover:bg-[#3a3a3a]"
                       >
-                        {tr('코드복사', 'Code')}
+                        {tr('코드', 'Code')}
                       </button>
                       <button
                         type="button"
                         data-testid="guild-leave-btn"
                         onClick={() => snsheroLiveNetwork.leaveGuild()}
-                        className="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-[10px] font-bold text-slate-300 hover:bg-slate-800"
+                        className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-[#9b9b9b] hover:bg-white/10 hover:text-white"
                       >
                         {tr('탈퇴', 'Leave')}
                       </button>
                     </div>
                   </div>
 
-                  {/* Guild Chat Feed */}
+                  {/* Guild Feed */}
                   <div
                     ref={guildScrollRef}
                     data-testid="guild-chat-feed"
-                    className="flex-1 space-y-2 overflow-y-auto p-3"
+                    className="flex-1 space-y-3.5 overflow-y-auto px-4 py-4"
                   >
                     {snap.guildMessages.length === 0 ? (
-                      <div className="py-10 text-center text-xs font-bold text-slate-400">
+                      <div className="py-12 text-center text-xs text-[#9b9b9b]">
                         {tr(
-                          '길드원들과 첫 인사를 나누고 골드 지원·길드 내전을 즐겨보세요!',
-                          'Say hello to your Guildmates, gift Gold, or start a Guild Duel!',
+                          '길드원들과 인사를 나누고 골드 선물·길드 내전을 즐겨보세요.',
+                          'Say hello to Guildmates or start a Guild Duel.',
                         )}
                       </div>
                     ) : (
@@ -1145,48 +1178,51 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                     )}
                   </div>
 
-                  {/* Guild Chat Input */}
-                  <form
-                    onSubmit={handleGuildSubmit}
-                    className="flex shrink-0 items-center gap-1.5 border-t border-slate-800 bg-slate-950 p-2"
-                  >
-                    <input
-                      type="text"
-                      data-testid="guild-chat-input"
-                      value={guildInput}
-                      onChange={(e) => setGuildInput(e.target.value)}
-                      maxLength={240}
-                      placeholder={tr(
-                        `[${snap.currentGuild.tag}] 길드 채팅 입력...`,
-                        `Message [${snap.currentGuild.tag}] Guild...`,
-                      )}
-                      className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-emerald-500/40 bg-slate-900 px-3 text-[16px] font-bold text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none sm:text-xs"
-                    />
-                    <button
-                      type="submit"
-                      data-testid="guild-chat-send-btn"
-                      className="flex min-h-[44px] min-w-[52px] shrink-0 items-center justify-center gap-1 rounded-xl border border-emerald-300/70 bg-emerald-600 px-3 text-xs font-extrabold text-white hover:bg-emerald-500"
+                  {/* Guild Composer */}
+                  <div className="shrink-0 px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-1.5 sm:px-4 sm:pb-3.5">
+                    <form
+                      onSubmit={handleGuildSubmit}
+                      className="flex items-center gap-1.5 rounded-[26px] border border-white/12 bg-[#2f2f2f] py-1.5 pl-4 pr-1.5 focus-within:border-white/25"
                     >
-                      <Send className="h-3.5 w-3.5" />
-                      <span>{tr('전송', 'Send')}</span>
-                    </button>
-                  </form>
+                      <input
+                        type="text"
+                        data-testid="guild-chat-input"
+                        value={guildInput}
+                        onChange={(e) => setGuildInput(e.target.value)}
+                        maxLength={240}
+                        placeholder={tr(
+                          `[${snap.currentGuild.tag}] 길드 채팅 입력...`,
+                          `Message [${snap.currentGuild.tag}] Guild...`,
+                        )}
+                        className="min-h-[40px] min-w-0 flex-1 bg-transparent text-[16px] text-[#ececec] placeholder:text-[#8e8e8e] focus:outline-none sm:text-[15px]"
+                      />
+                      <button
+                        type="submit"
+                        data-testid="guild-chat-send-btn"
+                        disabled={!guildInput.trim()}
+                        aria-label={tr('전송', 'Send')}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#171717] transition hover:bg-[#e5e5e5] disabled:cursor-not-allowed disabled:bg-[#4f4f4f] disabled:text-[#212121]"
+                      >
+                        <ArrowUp className="h-4 w-4 stroke-[2.5]" />
+                      </button>
+                    </form>
+                  </div>
                 </>
               )}
             </div>
           )}
 
-          {/* ==================== TAB 3: LIVE 1v1 DECK DUEL ROOMS ==================== */}
-          {activeTab === 'DUEL' && (
-            <div className="flex-1 space-y-3 overflow-y-auto p-3">
-              {/* My 30-Card Deck Selector (applies to BOTH creating a room & joining a room!) */}
-              <div className="rounded-xl border border-amber-400/50 bg-slate-900/95 p-2.5">
+          {/* ==================== FILTER 3: DUEL ROOMS ==================== */}
+          {activeFilter === 'DUEL' && (
+            <div className="flex-1 space-y-3 overflow-y-auto p-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+              {/* Deck Picker */}
+              <div className="rounded-2xl border border-white/10 bg-[#2a2a2a] p-3">
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="live-pvp-deck-select"
-                    className="text-[11px] font-black text-amber-200"
+                    className="text-xs font-semibold text-white"
                   >
-                    🃏 {tr('출전할 내 30장 카드덱 선택', 'Choose Your 30-Card Deck')}
+                    🃏 {tr('출전할 내 30장 카드덱', 'Your 30-Card Deck')}
                   </label>
                   {onOpenCollection && (
                     <button
@@ -1195,19 +1231,18 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                         snsheroLiveNetwork.setDrawerOpen(false);
                         onOpenCollection();
                       }}
-                      className="text-[10.5px] font-extrabold text-sky-300 underline hover:text-sky-200"
+                      className="text-xs font-medium text-sky-300 hover:underline"
                     >
-                      {tr('내 덱 편집 ›', 'Edit Decks ›')}
+                      {tr('덱 편집 ›', 'Edit Decks ›')}
                     </button>
                   )}
                 </div>
-
                 <select
                   id="live-pvp-deck-select"
                   data-testid="live-pvp-deck-select"
                   value={selectedDeck?.id || ''}
                   onChange={(e) => setSelectedDeckId(e.target.value)}
-                  className="mt-1.5 min-h-[44px] w-full rounded-xl border border-amber-400/45 bg-slate-950 px-2.5 text-[16px] font-extrabold text-white focus:border-amber-300 focus:outline-none sm:text-xs"
+                  className="mt-2 min-h-[42px] w-full rounded-xl border border-white/10 bg-[#212121] px-3 text-[16px] text-white focus:outline-none sm:text-xs"
                 >
                   {decks.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -1217,19 +1252,19 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                 </select>
               </div>
 
-              {/* Host New Duel Room Box */}
-              <div className="space-y-2 rounded-xl border border-rose-400/50 bg-rose-950/25 p-2.5">
+              {/* Host Duel Room */}
+              <div className="space-y-2.5 rounded-2xl border border-white/10 bg-[#2a2a2a] p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-rose-200">
-                    ⚔️ {tr('실시간 1:1 대전방 만들기', 'Host a Live 1v1 Duel Room')}
+                  <span className="text-xs font-semibold text-white">
+                    ⚔️ {tr('실시간 1:1 대전방 개설', 'Host Live 1v1 Duel Room')}
                   </span>
                   {duelTargetPeer && (
-                    <span className="inline-flex items-center gap-1 rounded bg-rose-900 px-1.5 py-0.5 text-[10px] font-extrabold text-rose-100">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] text-white">
                       <span>vs {duelTargetPeer.nickname}</span>
                       <button
                         type="button"
                         onClick={() => setDuelTargetPeer(null)}
-                        className="ml-0.5 text-rose-200 hover:text-white"
+                        className="ml-1 text-[#b4b4b4] hover:text-white"
                       >
                         ✕
                       </button>
@@ -1243,60 +1278,50 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                   value={duelTitleDraft}
                   onChange={(e) => setDuelTitleDraft(e.target.value)}
                   maxLength={36}
-                  placeholder={tr(
-                    '방 제목 (비워두면 자동 생성)',
-                    'Room title (optional)',
-                  )}
-                  className="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:min-h-[42px] sm:text-xs"
+                  placeholder={tr('방 제목 (비워두면 자동 생성)', 'Room title (optional)')}
+                  className="min-h-[42px] w-full rounded-xl border border-white/10 bg-[#212121] px-3 text-[16px] text-white placeholder:text-[#7a7a7a] focus:outline-none sm:text-xs"
                 />
 
-                {/* Stake Gold Pills */}
-                <div>
-                  <div className="mb-1 text-[10.5px] font-bold text-slate-300">
-                    {tr('승부 방식 (친선 0G 또는 골드 내기)', 'Match Stake (Friendly 0G or Gold Wager)')}
-                  </div>
-                  <div className="grid grid-cols-6 gap-1">
-                    {STAKE_OPTIONS.map((st) => (
-                      <button
-                        key={st}
-                        type="button"
-                        onClick={() => setDuelStakeGold(st)}
-                        className={`min-h-[38px] rounded-lg border text-[10.5px] font-extrabold transition ${
-                          duelStakeGold === st
-                            ? 'border-yellow-300 bg-amber-600 text-stone-950'
-                            : 'border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800'
-                        }`}
-                      >
-                        {st === 0 ? tr('친선', 'Free') : `${st}G`}
-                      </button>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-6 gap-1.5">
+                  {STAKE_OPTIONS.map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setDuelStakeGold(st)}
+                      className={`min-h-[38px] rounded-full text-xs font-medium transition ${
+                        duelStakeGold === st
+                          ? 'bg-white text-[#171717]'
+                          : 'bg-[#212121] text-[#b4b4b4] hover:bg-[#333333]'
+                      }`}
+                    >
+                      {st === 0 ? tr('친선', 'Free') : `${st}G`}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Scope Toggle if in Guild */}
                 {snap.currentGuild && (
                   <div className="grid grid-cols-2 gap-1.5">
                     <button
                       type="button"
                       onClick={() => setDuelScope('GLOBAL')}
-                      className={`min-h-[38px] rounded-lg border text-[11px] font-extrabold ${
+                      className={`min-h-[38px] rounded-full text-xs font-medium ${
                         duelScope === 'GLOBAL'
-                          ? 'border-sky-400 bg-sky-900/80 text-white'
-                          : 'border-slate-700 bg-slate-900 text-slate-400'
+                          ? 'bg-white text-[#171717]'
+                          : 'bg-[#212121] text-[#b4b4b4]'
                       }`}
                     >
-                      🌐 {tr('전체 공개 대전방', 'Public Room')}
+                      🌐 {tr('전체 공개방', 'Public Room')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setDuelScope('GUILD')}
-                      className={`min-h-[38px] rounded-lg border text-[11px] font-extrabold ${
+                      className={`min-h-[38px] rounded-full text-xs font-medium ${
                         duelScope === 'GUILD'
-                          ? 'border-emerald-400 bg-emerald-900/80 text-white'
-                          : 'border-slate-700 bg-slate-900 text-slate-400'
+                          ? 'bg-emerald-500 text-[#171717]'
+                          : 'bg-[#212121] text-[#b4b4b4]'
                       }`}
                     >
-                      🛡️ [{snap.currentGuild.tag}] {tr('길드 내전방', 'Guild Room')}
+                      🛡️ [{snap.currentGuild.tag}] {tr('길드방', 'Guild Room')}
                     </button>
                   </div>
                 )}
@@ -1304,14 +1329,12 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                 {myHostedWaitingRoom ? (
                   <div
                     data-testid="hosted-waiting-room-banner"
-                    className="space-y-2 rounded-xl border border-emerald-400/70 bg-emerald-950/60 p-2.5"
+                    className="space-y-2 rounded-xl border border-emerald-400/35 bg-emerald-950/40 p-2.5"
                   >
-                    <div className="text-xs font-black text-emerald-200">
-                      🟢 {tr('내 대전방 대기 중 — 상대 입장 시 자동 시작!', 'Your Duel Room is Open — Auto-starts on join!')}
+                    <div className="text-xs font-semibold text-emerald-300">
+                      🟢 {tr('내 대전방 대기 중 — 상대 입장 시 즉시 시작', 'Room Open — Auto-starts on join')}
                     </div>
-                    <div className="text-[11px] font-bold text-white">
-                      {myHostedWaitingRoom.title}
-                    </div>
+                    <div className="text-xs text-white">{myHostedWaitingRoom.title}</div>
                     <button
                       type="button"
                       data-testid="cancel-duel-room-btn"
@@ -1319,40 +1342,35 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                         snsheroLiveNetwork.cancelDuelRoom(myHostedWaitingRoom.roomId);
                         onProfileChanged?.();
                       }}
-                      className="min-h-[44px] w-full rounded-xl border border-rose-400/60 bg-rose-900/80 text-xs font-extrabold text-rose-100 hover:bg-rose-800"
+                      className="min-h-[40px] w-full rounded-full border border-white/15 bg-[#212121] text-xs font-medium text-rose-300 hover:bg-rose-950/60"
                     >
-                      ✕ {tr('대전방 닫기', 'Cancel Duel Room')}
+                      {tr('대전방 닫기', 'Cancel Duel Room')}
                     </button>
                   </div>
                 ) : (
                   <button
                     type="button"
                     data-testid="create-duel-room-btn"
-                    onClick={handleCreateDuelRoom}
-                    className="flex min-h-[46px] w-full items-center justify-center gap-1.5 rounded-xl border border-rose-300 bg-gradient-to-r from-rose-600 to-amber-600 text-xs font-black text-white shadow-lg hover:brightness-110"
+                    onClick={() => handleCreateDuelRoom()}
+                    className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-full bg-white text-xs font-semibold text-[#171717] transition hover:bg-[#e5e5e5]"
                   >
                     <Swords className="h-4 w-4" />
-                    <span>
-                      {tr(
-                        '내 카드덱으로 대전방 개설 & 채팅 공유',
-                        'Create Duel Room with My Deck',
-                      )}
-                    </span>
+                    <span>{tr('내 덱으로 대전방 개설', 'Create Duel Room')}</span>
                   </button>
                 )}
               </div>
 
-              {/* Active Open Rooms List */}
+              {/* Open Waiting Rooms */}
               <div className="space-y-2">
-                <div className="text-xs font-black text-slate-200">
-                  🔥 {tr(`실시간 열린 대전방 (${openRoomsCount})`, `Open Duel Rooms (${openRoomsCount})`)}
+                <div className="text-xs font-semibold text-[#d4d4d4]">
+                  🔥 {tr(`열린 대전방 (${openRoomsCount})`, `Open Duel Rooms (${openRoomsCount})`)}
                 </div>
 
                 {openRoomsCount === 0 ? (
-                  <div className="rounded-xl border border-slate-800 bg-slate-900/60 py-6 text-center text-xs font-bold text-slate-400">
+                  <div className="rounded-2xl border border-white/10 bg-[#2a2a2a]/60 py-6 text-center text-xs text-[#9b9b9b]">
                     {tr(
-                      '현재 대기 중인 대전방이 없습니다. 위 버튼으로 첫 대전방을 만들어 보세요!',
-                      'No waiting Duel Rooms right now. Host one above to invite challengers!',
+                      '현재 대기 중인 대전방이 없습니다. 위에서 방을 만들거나 채팅에서 상대를 클릭해 대결하세요.',
+                      'No open rooms right now. Host above or tap any player in chat to duel.',
                     )}
                   </div>
                 ) : (
@@ -1366,36 +1384,36 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                         <div
                           key={room.roomId}
                           data-testid={`open-duel-room-${room.roomId}`}
-                          className="flex items-center justify-between gap-2 rounded-xl border border-rose-400/45 bg-slate-900/95 p-2.5"
+                          className="flex items-center justify-between gap-2.5 rounded-2xl border border-white/10 bg-[#2a2a2a] p-3"
                         >
                           <img
                             src={heroMeta.heroPortraitUrl}
                             alt={heroInfo.name}
-                            className="h-10 w-10 shrink-0 rounded-lg border border-amber-300/60 object-cover object-top"
+                            className="h-10 w-10 shrink-0 rounded-full border border-white/20 object-cover object-top"
                           />
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-xs font-extrabold text-white">
+                            <div className="truncate text-xs font-semibold text-white">
                               {room.title}
                             </div>
-                            <div className="truncate text-[10.5px] font-bold text-amber-200/85">
+                            <div className="truncate text-[11px] text-[#9b9b9b]">
                               {room.hostName} · {heroInfo.className} ·{' '}
                               {room.stakeGold > 0
-                                ? tr(`내기 ${room.stakeGold}G`, `${room.stakeGold}G`)
+                                ? `${room.stakeGold.toLocaleString()}G`
                                 : tr('친선 0G', 'Free')}
                             </div>
                           </div>
                           {isMyRoom ? (
-                            <span className="shrink-0 rounded-lg bg-emerald-950 px-2.5 py-1.5 text-[10.5px] font-extrabold text-emerald-300">
-                              {tr('대기 중...', 'Waiting...')}
+                            <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-[11px] text-emerald-300">
+                              {tr('대기 중', 'Waiting')}
                             </span>
                           ) : (
                             <button
                               type="button"
                               data-testid={`join-duel-room-btn-${room.roomId}`}
                               onClick={() => handleJoinDuelRoom(room)}
-                              className="min-h-[44px] shrink-0 rounded-xl border border-emerald-300 bg-emerald-600 px-3 text-xs font-black text-white shadow hover:bg-emerald-500"
+                              className="min-h-[40px] shrink-0 rounded-full bg-white px-3.5 text-xs font-semibold text-[#171717] hover:bg-[#e5e5e5]"
                             >
-                              ⚔️ {tr('참전!', 'Battle!')}
+                              {tr('입장', 'Join')}
                             </button>
                           )}
                         </div>
@@ -1404,14 +1422,14 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                 )}
               </div>
 
-              {/* Live In-Progress Matches (Spectatable) */}
+              {/* Live In-Progress Rooms */}
               {snap.openRooms.some((r) => r.status === 'IN_PROGRESS') && (
                 <div className="space-y-2 pt-1">
-                  <div className="flex items-center gap-1.5 text-xs font-black text-rose-200">
-                    <span className="inline-flex items-center gap-1 rounded-[4px] border border-white/80 bg-[#cc0000] px-1.5 py-0.5 text-[9.5px] font-black uppercase leading-none tracking-[0.12em] text-white">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-300">
+                    <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white">
                       LIVE
                     </span>
-                    <span>{tr('진행 중인 대전 (관전 가능)', 'Live Matches (Spectate)')}</span>
+                    <span>{tr('진행 중인 대전 (관전)', 'Live Matches (Spectate)')}</span>
                   </div>
                   {snap.openRooms
                     .filter((r) => r.status === 'IN_PROGRESS')
@@ -1422,22 +1440,19 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                         <div
                           key={room.roomId}
                           data-testid={`live-duel-room-${room.roomId}`}
-                          className="flex items-center justify-between gap-2 rounded-xl border border-red-400/55 bg-red-950/30 p-2.5"
+                          className="flex items-center justify-between gap-2.5 rounded-2xl border border-rose-500/40 bg-[#2c1b1e] p-3"
                         >
                           <img
                             src={heroMeta.heroPortraitUrl}
                             alt={heroInfo.name}
-                            className="h-10 w-10 shrink-0 rounded-lg border border-red-300/60 object-cover object-top"
+                            className="h-10 w-10 shrink-0 rounded-full border border-rose-300/40 object-cover object-top"
                           />
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-xs font-extrabold text-white">
+                            <div className="truncate text-xs font-semibold text-white">
                               {room.title}
                             </div>
-                            <div className="truncate text-[10.5px] font-bold text-amber-200/85">
-                              {room.hostName} vs {room.guestName || tr('도전자', 'Challenger')} ·{' '}
-                              {room.stakeGold > 0
-                                ? tr(`내기 ${room.stakeGold}G`, `${room.stakeGold}G`)
-                                : tr('친선 0G', 'Free')}
+                            <div className="truncate text-[11px] text-[#b4b4b4]">
+                              {room.hostName} vs {room.guestName || tr('도전자', 'Challenger')}
                             </div>
                           </div>
                           <button
@@ -1456,10 +1471,9 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                                 stakeGold: room.stakeGold,
                                 initialMode: 'SPECTATE',
                                 liveRoom: room,
-                                matchResult: snap.matchResults[room.roomId],
                               });
                             }}
-                            className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-xl border border-red-300 bg-[#b91c1c] px-3 text-xs font-black text-white shadow hover:bg-red-600"
+                            className="inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-full bg-rose-600 px-3 text-xs font-semibold text-white hover:bg-rose-500"
                           >
                             <Eye className="h-3.5 w-3.5" />
                             <span>{tr('관전', 'Watch')}</span>
@@ -1469,234 +1483,337 @@ export const LiveCommunityChatWidget: React.FC<LiveCommunityChatWidgetProps> = (
                     })}
                 </div>
               )}
+
+              {/* Finished Match Results */}
+              {Object.values(snap.matchResults).length > 0 && (
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#d4d4d4]">
+                    <Trophy className="h-3.5 w-3.5 text-amber-300" />
+                    <span>{tr('최근 종료된 대전 결과', 'Recent Match Results')}</span>
+                  </div>
+                  {(Object.values(snap.matchResults) as LiveDuelMatchResult[])
+                    .sort((a, b) => b.finishedAt - a.finishedAt)
+                    .slice(0, 6)
+                    .map((res) => (
+                      <button
+                        key={res.roomId}
+                        type="button"
+                        onClick={() => {
+                          hsAudio.playSfx('ui_click', 0.65);
+                          setSpectatorTarget({
+                            roomId: res.roomId,
+                            title: res.title,
+                            hostPeerId: res.hostPeerId,
+                            hostName: res.hostName,
+                            hostHeroClass: res.hostHeroClass,
+                            guestName: res.guestName,
+                            guestHeroClass: res.guestHeroClass,
+                            stakeGold: res.stakeGold,
+                            initialMode: 'RESULT',
+                            matchResult: res,
+                          });
+                        }}
+                        className="flex w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#2a2a2a] px-3.5 py-2.5 text-left hover:border-white/25"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs font-semibold text-white">
+                            {res.winnerSide === 'DRAW'
+                              ? tr(`🤝 무승부 (${res.hostName} vs ${res.guestName})`, `🤝 Draw (${res.hostName} vs ${res.guestName})`)
+                              : tr(`🏆 ${res.winnerName} 승리!`, `🏆 ${res.winnerName} Won!`)}
+                          </div>
+                          <div className="truncate text-[11px] text-[#9b9b9b]">
+                            {res.title} · {res.turnCount}
+                            {tr('턴', 'T')}
+                          </div>
+                        </div>
+                        <span className="shrink-0 text-xs text-amber-300">
+                          {tr('결과 ›', 'View ›')}
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* ==================== TAB 4: PEER-TO-PEER GOLD GIFTING ==================== */}
-          {activeTab === 'GOLD' && (
-            <div className="flex-1 space-y-3 overflow-y-auto p-3">
-              <form
-                onSubmit={handleSendGold}
-                data-testid="send-gold-form"
-                className="space-y-2.5 rounded-xl border border-amber-400/55 bg-amber-950/20 p-3"
+          {/* ==================== CLICK-USER ACTION SHEET (GOLD GIFT / REALTIME DUEL) ==================== */}
+          {selectedUser && (
+            <div
+              data-testid="live-user-action-sheet"
+              onClick={() => setSelectedUser(null)}
+              className="absolute inset-0 z-30 flex items-end justify-center bg-black/65 p-3 backdrop-blur-xs sm:items-center"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-sm rounded-3xl border border-white/15 bg-[#262626] p-4 shadow-2xl"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-yellow-300">
-                    🪙 {tr('다른 유저에게 골드 선물하기', 'Gift Gold to Another Player')}
-                  </span>
-                  <span className="text-[11px] font-extrabold text-amber-200">
-                    {tr(`보유: ${profile.gold.toLocaleString()}G`, `Owned: ${profile.gold.toLocaleString()}G`)}
-                  </span>
+                {/* Target User Profile Header */}
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-[#2f2f2f] text-lg">
+                      {selectedUser.badgeIcon || '🛡️'}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate text-[15px] font-semibold text-white">
+                        {selectedUser.nickname}
+                      </div>
+                      <div className="text-xs text-[#9b9b9b]">
+                        {selectedUser.guildTag ? `[${selectedUser.guildTag}] · ` : ''}
+                        {tr('상호작용 선택', 'Player Interaction')}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUser(null)}
+                    aria-label={tr('닫기', 'Close')}
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#b4b4b4] hover:bg-white/10 hover:text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
 
-                {/* Select Online Recipient */}
-                <div>
-                  <div className="mb-1 text-[10.5px] font-bold text-slate-300">
-                    {tr('실시간 접속 유저 선택', 'Pick an Online Player')}
-                  </div>
-                  {otherOnlinePeers.length === 0 ? (
-                    <div className="rounded-lg border border-slate-800 bg-slate-900/70 px-2.5 py-2 text-[11px] font-bold text-slate-400">
-                      {tr(
-                        '다른 브라우저/기기로 접속한 유저가 나타나면 클릭해 바로 선택하거나 아래에 상대 ID를 입력하세요.',
-                        'Online players appear here automatically, or enter a Player ID below.',
-                      )}
+                {/* Action Mode Tabs: Realtime Duel vs Gold Gift */}
+                <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-full bg-[#1b1b1b] p-1">
+                  <button
+                    type="button"
+                    data-testid="user-action-duel-tab"
+                    onClick={() => setUserActionMode('DUEL')}
+                    className={`min-h-[38px] rounded-full text-xs font-semibold transition ${
+                      userActionMode === 'DUEL'
+                        ? 'bg-white text-[#171717]'
+                        : 'text-[#b4b4b4] hover:text-white'
+                    }`}
+                  >
+                    ⚔️ {tr('실시간 대전', 'Live Duel')}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="user-action-gold-tab"
+                    onClick={() => setUserActionMode('GOLD')}
+                    className={`min-h-[38px] rounded-full text-xs font-semibold transition ${
+                      userActionMode === 'GOLD'
+                        ? 'bg-white text-[#171717]'
+                        : 'text-[#b4b4b4] hover:text-white'
+                    }`}
+                  >
+                    🪙 {tr('골드 선물', 'Gift Gold')}
+                  </button>
+                </div>
+
+                {userActionMode === 'DUEL' ? (
+                  <div className="mt-3 space-y-2.5">
+                    <div>
+                      <label className="mb-1 block text-xs text-[#b4b4b4]">
+                        {tr('내 30장 카드덱', 'Your 30-Card Deck')}
+                      </label>
+                      <select
+                        value={selectedDeck?.id || ''}
+                        onChange={(e) => setSelectedDeckId(e.target.value)}
+                        className="min-h-[42px] w-full rounded-xl border border-white/10 bg-[#1b1b1b] px-3 text-[16px] text-white focus:outline-none sm:text-xs"
+                      >
+                        {decks.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {getDeckDisplayLabel(d)} ({d.cards.length}/30)
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5">
-                      {otherOnlinePeers.map((peer) => {
-                        const selected = goldTargetPeerId === peer.peerId;
-                        return (
+                    <div>
+                      <div className="mb-1 text-xs text-[#b4b4b4]">
+                        {tr('판돈 선택 (친선 / 골드)', 'Wager (Friendly / Gold)')}
+                      </div>
+                      <div className="grid grid-cols-6 gap-1">
+                        {STAKE_OPTIONS.map((st) => (
                           <button
-                            key={peer.peerId}
+                            key={st}
                             type="button"
-                            data-testid={`gold-recipient-chip-${peer.peerId}`}
-                            onClick={() => {
-                              setGoldTargetPeerId(peer.peerId);
-                              setGoldTargetName(peer.nickname);
-                            }}
-                            className={`min-h-[38px] rounded-xl border px-2.5 py-1 text-[11px] font-extrabold transition ${
-                              selected
-                                ? 'border-yellow-300 bg-amber-600 text-stone-950 shadow'
-                                : 'border-slate-700 bg-slate-900 text-amber-100 hover:border-amber-400'
+                            onClick={() => setDuelStakeGold(st)}
+                            className={`min-h-[36px] rounded-full text-[11px] font-medium ${
+                              duelStakeGold === st
+                                ? 'bg-white text-[#171717]'
+                                : 'bg-[#1b1b1b] text-[#b4b4b4] hover:bg-[#333333]'
                             }`}
                           >
-                            {peer.badgeIcon} {peer.nickname}
+                            {st === 0 ? tr('친선', 'Free') : `${st}G`}
                           </button>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Direct ID Input */}
-                <input
-                  type="text"
-                  data-testid="gold-target-id-input"
-                  value={goldTargetPeerId}
-                  onChange={(e) => setGoldTargetPeerId(e.target.value)}
-                  placeholder={tr('받는 유저 ID (예: u_abcd12)', 'Recipient Player ID (e.g. u_abcd12)')}
-                  className="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:text-xs"
-                />
-
-                {/* Amount Presets & Input */}
-                <div>
-                  <div className="mb-1 grid grid-cols-5 gap-1">
-                    {GOLD_GIFT_PRESETS.map((amt) => (
-                      <button
-                        key={amt}
-                        type="button"
-                        data-testid={`gold-preset-${amt}`}
-                        onClick={() => setGoldAmount(amt)}
-                        className={`min-h-[38px] rounded-lg border text-[11px] font-extrabold ${
-                          goldAmount === amt
-                            ? 'border-yellow-300 bg-amber-600 text-stone-950'
-                            : 'border-slate-700 bg-slate-900 text-amber-200 hover:bg-slate-800'
-                        }`}
-                      >
-                        {amt}G
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="number"
-                    min={1}
-                    max={Math.max(1, profile.gold)}
-                    data-testid="gold-amount-input"
-                    value={goldAmount}
-                    onChange={(e) => setGoldAmount(Math.max(1, Number(e.target.value) || 1))}
-                    className="min-h-[44px] w-full rounded-xl border border-amber-400/50 bg-slate-950 px-3 text-[16px] font-black text-yellow-300 sm:text-xs"
-                  />
-                </div>
-
-                <input
-                  type="text"
-                  data-testid="gold-note-input"
-                  value={goldNote}
-                  onChange={(e) => setGoldNote(e.target.value)}
-                  maxLength={60}
-                  placeholder={tr('응원 메시지 (선택, 예: 전설 뽑으세요!)', 'Optional note (e.g. Good luck on packs!)')}
-                  className="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 text-[16px] font-bold text-white placeholder:text-slate-500 sm:min-h-[42px] sm:text-xs"
-                />
-
-                <button
-                  type="submit"
-                  data-testid="send-gold-submit-btn"
-                  className="flex min-h-[46px] w-full items-center justify-center gap-1.5 rounded-xl border border-yellow-200 bg-gradient-to-r from-amber-500 to-yellow-600 text-xs font-black text-stone-950 shadow-lg hover:brightness-110"
-                >
-                  <HsGoldCoinIcon size={16} />
-                  <span>
-                    {tr(
-                      `${goldAmount.toLocaleString()}G 즉시 선물하기`,
-                      `Send ${goldAmount.toLocaleString()}G Now`,
-                    )}
-                  </span>
-                </button>
-              </form>
-
-              {/* Recent Gold Transfer Log */}
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-black text-slate-300">
-                  📜 {tr('최근 골드 선물 내역', 'Recent Gold Transfers')}
-                </div>
-                {hsStorage.getGoldGiftHistory().length === 0 ? (
-                  <div className="rounded-xl border border-slate-800 bg-slate-900/50 py-4 text-center text-[11px] font-bold text-slate-500">
-                    {tr('아직 주고받은 골드 선물 내역이 없습니다.', 'No Gold transfers yet.')}
+                    <button
+                      type="button"
+                      data-testid="user-action-duel-submit"
+                      onClick={() =>
+                        handleCreateDuelRoom({
+                          peerId: selectedUser.peerId,
+                          nickname: selectedUser.nickname,
+                        })
+                      }
+                      className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-full bg-white text-xs font-semibold text-[#171717] transition hover:bg-[#e5e5e5]"
+                    >
+                      <Swords className="h-4 w-4" />
+                      <span>
+                        {tr(
+                          `${selectedUser.nickname}님에게 대전 신청`,
+                          `Challenge ${selectedUser.nickname}`,
+                        )}
+                      </span>
+                    </button>
                   </div>
                 ) : (
-                  hsStorage
-                    .getGoldGiftHistory()
-                    .slice(0, 10)
-                    .map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/80 px-2.5 py-1.5 text-[11px] font-bold"
-                      >
-                        <span className="truncate text-slate-200">
-                          {entry.direction === 'SENT'
-                            ? `↗ ${entry.counterpartyName}`
-                            : `↙ ${entry.counterpartyName}`}
-                        </span>
-                        <span
-                          className={
-                            entry.direction === 'SENT'
-                              ? 'font-black text-rose-300'
-                              : 'font-black text-emerald-300'
-                          }
+                  <div className="mt-3 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs text-[#b4b4b4]">
+                      <span>{tr('보낼 골드 선택', 'Select Gold Amount')}</span>
+                      <span className="font-semibold text-amber-300">
+                        {tr(`보유 ${profile.gold.toLocaleString()}G`, `${profile.gold.toLocaleString()}G Owned`)}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1">
+                      {GOLD_GIFT_PRESETS.map((amt) => (
+                        <button
+                          key={amt}
+                          type="button"
+                          onClick={() => setGoldAmount(amt)}
+                          className={`min-h-[38px] rounded-full text-xs font-medium ${
+                            goldAmount === amt
+                              ? 'bg-white text-[#171717]'
+                              : 'bg-[#1b1b1b] text-[#b4b4b4] hover:bg-[#333333]'
+                          }`}
                         >
-                          {entry.direction === 'SENT' ? '-' : '+'}
-                          {entry.amount.toLocaleString()}G
-                        </span>
-                      </div>
-                    ))
+                          {amt}G
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      value={goldNote}
+                      onChange={(e) => setGoldNote(e.target.value)}
+                      maxLength={60}
+                      placeholder={tr('응원 한마디 (선택)', 'Gift note (optional)')}
+                      className="min-h-[42px] w-full rounded-xl border border-white/10 bg-[#1b1b1b] px-3 text-[16px] text-white placeholder:text-[#7a7a7a] focus:outline-none sm:text-xs"
+                    />
+                    <button
+                      type="button"
+                      data-testid="send-gold-submit-btn"
+                      onClick={() =>
+                        handleSendGoldToUser(selectedUser.peerId, selectedUser.nickname)
+                      }
+                      className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-full bg-amber-400 text-xs font-semibold text-[#171717] transition hover:bg-amber-300"
+                    >
+                      <Coins className="h-4 w-4" />
+                      <span>
+                        {tr(
+                          `${goldAmount.toLocaleString()}G 선물하기`,
+                          `Send ${goldAmount.toLocaleString()}G`,
+                        )}
+                      </span>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
           )}
         </div>
+      );
+
+      if (typeof document !== 'undefined') {
+        return createPortal(content, document.body);
+      }
+      return content;
+    })();
+
+  // Flush to bottom-right corner identically with bottom-left Kadan Chatbot so cards stay unobstructed
+  const positionClasses = 'fixed bottom-0.5 right-1 z-[126] sm:bottom-1 sm:right-2';
+
+  return (
+    <div
+      ref={rootRef}
+      data-testid="live-chat-root"
+      className={`pointer-events-none ${positionClasses} flex flex-col items-end`}
+    >
+      {/* Incoming Gold Toast Banner */}
+      {incomingGoldToast && (
+        <div
+          data-testid="incoming-gold-toast"
+          className="pointer-events-auto mb-1.5 max-w-[270px] rounded-2xl border border-amber-300/60 bg-[#212121]/95 px-3 py-2 text-xs font-semibold text-amber-100 shadow-2xl"
+        >
+          🪙{' '}
+          {tr(
+            `${incomingGoldToast.fromName}님이 ${incomingGoldToast.amount.toLocaleString()}G를 선물했습니다!`,
+            `${incomingGoldToast.fromName} sent you ${incomingGoldToast.amount.toLocaleString()}G!`,
+          )}
+        </div>
       )}
 
-      {/* Bottom-Right Compact Real Live Chat Floating Icon Button + Real-Time Count Badge */}
+      {liveDrawerNode}
+
+      {/* Bottom-Right Compact Live Chat Trigger Button (Shows ONLY Global Unread Count; Removed when 0) */}
       <button
         type="button"
         data-testid="live-chat-trigger-btn"
         onClick={(e) => {
           e.stopPropagation();
           hsAudio.playSfx('ui_click', 0.75);
-          snsheroLiveNetwork.setDrawerOpen(!snap.drawerOpen);
+          if (!snap.drawerOpen) {
+            setActiveFilter('GLOBAL');
+            setSelectedUser(null);
+            snsheroLiveNetwork.setDrawerOpen(true);
+          } else {
+            snsheroLiveNetwork.setDrawerOpen(false);
+          }
         }}
-        aria-label={tr(
-          `실시간 라이브 채팅 열기 (현재 ${liveBadgeNumber}명 대화 중)`,
-          `Open Real-Time Live Chat (${liveBadgeNumber} active)`,
-        )}
+        aria-label={
+          snap.unreadCount > 0
+            ? tr(`라이브 채팅 열기 (읽지 않은 전체채팅 ${snap.unreadCount}건)`, `Open Live Chat (${snap.unreadCount} unread)`)
+            : tr('라이브 채팅 열기', 'Open Live Chat')
+        }
         className="pointer-events-auto group relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-end focus:outline-none"
       >
-        {/* Compact Modern Real Chat Icon Orb */}
         <div
-          className={`relative flex h-[40px] w-[40px] items-center justify-center rounded-full border-2 shadow-[0_6px_16px_rgba(0,0,0,0.9),0_0_12px_rgba(14,165,233,0.4)] transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[48px] sm:w-[48px] ${
+          className={`relative flex h-[40px] w-[40px] items-center justify-center rounded-full border-2 shadow-[0_6px_16px_rgba(0,0,0,0.9)] transition-transform duration-150 group-hover:scale-108 group-active:scale-95 sm:h-[48px] sm:w-[48px] ${
             snap.drawerOpen
-              ? 'border-sky-200 bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-900 text-white'
-              : 'border-sky-300/90 bg-gradient-to-br from-sky-600 via-[#0e3460] to-[#081529] text-white'
+              ? 'border-white bg-white text-[#171717]'
+              : 'border-white/25 bg-[#212121] text-white'
           }`}
         >
-          <MessageCircleMore className="h-5 w-5 stroke-[2.3] drop-shadow sm:h-6 sm:w-6" />
+          <MessageCircleMore className="h-5 w-5 stroke-[2.2] sm:h-6 sm:w-6" />
 
-          {/* Top-Left Pulsing Green Live Dot */}
-          <span className="pointer-events-none absolute left-0 top-0 flex h-2.5 w-2.5 items-center justify-center rounded-full border border-slate-950 bg-emerald-400 shadow-[0_0_6px_#34d399]">
-            <span className="h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
-          </span>
-
-          {/* Top-Right Real-Time Live Conversation / Unread Count Badge */}
-          <span
-            data-testid="live-chat-count-badge"
-            className={`pointer-events-none absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border px-1 text-[9.5px] font-black leading-none shadow-md ${
-              snap.unreadCount > 0
-                ? 'animate-bounce border-white bg-rose-600 text-white'
-                : 'border-emerald-100 bg-emerald-600 text-white'
-            }`}
-          >
-            {snap.unreadCount > 0 ? `+${snap.unreadCount}` : liveBadgeNumber}
-          </span>
+          {/* Strict Global Chat Unread Badge: COMPLETELY REMOVED when unreadCount === 0 */}
+          {snap.unreadCount > 0 && (
+            <span
+              data-testid="live-chat-count-badge"
+              className="pointer-events-none absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border border-[#212121] bg-rose-600 px-1 text-[10px] font-black leading-none text-white shadow-md"
+            >
+              {snap.unreadCount > 99 ? '99+' : snap.unreadCount}
+            </span>
+          )}
         </div>
 
-        {/* Compact Live Conversation Pill Under the Real Chat Icon */}
         <div
           data-testid="live-chat-pill-label"
-          className="mt-0.5 flex items-center gap-0.5 rounded-full border border-sky-300/80 bg-[#081322]/95 px-1.5 py-0.5 text-[8.5px] font-extrabold leading-none text-sky-100 shadow-[0_3px_8px_rgba(0,0,0,0.92)] transition group-hover:border-white sm:px-2 sm:text-[9.5px]"
+          className="mt-0.5 flex items-center gap-1 rounded-full border border-white/20 bg-[#212121]/95 px-1.5 py-0.5 text-[8.5px] font-bold leading-none text-[#ececec] shadow-[0_3px_8px_rgba(0,0,0,0.92)] transition group-hover:border-white/50 sm:px-2 sm:text-[9.5px]"
         >
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          <span>
-            {tr(`실시간 ${liveBadgeNumber}`, `Live ${liveBadgeNumber}`)}
-          </span>
+          <span>{tr('라이브 채팅', 'Live Chat')}</span>
         </div>
       </button>
 
-      {spectatorTarget && (
-        <LiveSpectatorModal
-          target={spectatorTarget}
-          liveResult={snap.matchResults[spectatorTarget.roomId]}
-          onClose={() => setSpectatorTarget(null)}
-        />
-      )}
+      {spectatorTarget &&
+        (typeof document !== 'undefined' ? (
+          createPortal(
+            <LiveSpectatorModal
+              target={spectatorTarget}
+              liveResult={snap.matchResults[spectatorTarget.roomId]}
+              onClose={() => setSpectatorTarget(null)}
+            />,
+            document.body,
+          )
+        ) : (
+          <LiveSpectatorModal
+            target={spectatorTarget}
+            liveResult={snap.matchResults[spectatorTarget.roomId]}
+            onClose={() => setSpectatorTarget(null)}
+          />
+        ))}
     </div>
   );
 };
