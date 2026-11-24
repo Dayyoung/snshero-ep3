@@ -1856,3 +1856,14 @@
     - 상위 목표(Why)·대상(Who)·완료 기준(Success)·제약 조건(Constraint) 중 누락이 있어 방향이 달라질 수 있는 요청은 계획·코드 작성 전 `interview-me` 선행 실행
     - 인터뷰 확정 시 목표(Why)와 제외 범위(Out of scope)를 파일로 저장한 뒤 새 세션 구현을 위해 턴 종료
   - `AGENTS.md`, `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 보류).
+
+## 2026-11-24 09:17 (KST) — SNSHero 스튜디오 애니메이션 EP01~EP40 전 40화(960컷) 100% 완결
+- **작업 내용**: 변경된 웹툰 이미지 기반 EP21~EP40 키프레임 재정리 및 Google Flow Veo 3.1 Lite 컷신 동영상 생성·다운로드·Frame-0 MAE(`< 25.0`) 1:1 검증·마스터링 완료 → **EP01~EP40 전 40화(960컷, 100%) 완결**.
+- **파이프라인 개선**:
+  - `scripts/studio_anime/batch_match_and_verify.py` 신규 추가 (4컷 병렬 배치 1회 통합 Frame-0 MAE 매칭·저장·`flow_status.json` 갱신).
+  - Swarm 미사용 단일 에이전트 + 1화당 `Flash` 컨텍스트 리셋 모드로 속도·안정성·토큰 효율 최적화.
+- **최종 전수 검증 결과 (`Missing count: 0`)**:
+  - 16:9 본편 MP4 (`1280x720`, `24fps`, `-14 LUFS`, 3-Act BGM 크로스페이드): **40/40편 완료** (총 `4.28 GB`)
+  - 9:16 풀스크린 쇼츠 MP4 (`1080x1920`, 무텍스트 + `eng`/`kor` 소프트 자막 내장): **40/40편 완료** (총 `6.35 GB`)
+  - 한/영 자막 SRT (`EN.srt`, `KO.srt`): **80개 파일 완료** (편당 18큐)
+  - `dist/studio-anime/` 외부 재생 심볼릭 링크 및 `/Users/dayyoung/Desktop/내문서/movie/` 복사 완료.
