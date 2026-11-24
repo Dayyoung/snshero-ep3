@@ -1881,3 +1881,12 @@
       - `/free-deckbuilder-game/` & `/en/free-deckbuilder-game/` (무료 덱빌딩 스토리 RPG)
     - `VideoGame` + `FAQPage` JSON-LD, 반응형 비교표, KO/EN 언어별 스크린샷 분기(`guide_0*.webp` vs `guide_en_0*.webp`), 공식 포털 백링크(`itch.io` · `IndieDB` · `GitHub`), 9대 종족 내부 링크 적용 및 [`public/sitemap.xml`](file:///Users/dayyoung/project/snshero/public/sitemap.xml) (총 200 URL) 반영.
   - **검증**: `npx tsc --noEmit && npm run build` 0에러 통과 및 Python Playwright 데스크톱(`1280×800`)·모바일(`390×844`) 6종 전수 `200 OK` · 가로 스크롤 0 · 버튼 높이 `46px` · 콘솔/네트워크 에러 0건 확인. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-24 10:28 KST] [gd.games용 GDevelop 5 네이티브 프로모션 미니 데모 (`SNSHero Card Duel Demo`) 구축 및 프리뷰 검증]
+- **작업자**: `Antigravity Assistant`
+- **배경 및 의도**: [`docs/intent/gd-games-gdevelop-demo.md`](file:///Users/dayyoung/project/snshero/docs/intent/gd-games-gdevelop-demo.md) — `gd.games` CSP `frame-src` 차단으로 외부 iframe 임베드가 불가하므로, 플랫폼 규정을 준수하는 GDevelop 5 네이티브 프로모션 미니 데모 제작.
+- **구현 내역**:
+  - 로컬 GDevelop 5 프로젝트 패키지 생성: [`gdevelop/snshero-promo/game.json`](file:///Users/dayyoung/project/snshero/gdevelop/snshero-promo/game.json), [`gdevelop/snshero-promo/snshero_events.js`](file:///Users/dayyoung/project/snshero/gdevelop/snshero-promo/snshero_events.js), `gdevelop/snshero-promo/assets/` (눈히어로 고유 일러스트·UI·오디오 28종 변환/패키징, 원작 리소스 미사용).
+  - 열려 있는 `https://editor.gdevelop.io/` 클라우드 프로젝트 **`SNSHero Card Duel Demo`** (`1280×720` 가로 16:9 반응형)에 6개 오브젝트(`Bg`, `Logo`, `Unit`, `Card`, `UiElem`, `GameText`), 22종 이미지 리소스, 6종 BGM/SFX 오디오 프리로드 및 이벤트 스크립트 반영·저장 완료.
+  - 플레이 루프: **엘윈 성소 무료 카드팩 오픈(이바르·포세이돈·새벽별 성광폭발) → 2턴 퀵 카드 듀얼(심연 기사 루시안·강철 허수아비·뇌신 vs 카단·펜릴 드로우·설원 치유) → 승리 모달 & `snshero.com/game.html` 본편 CTA + 한/영(`EN / 한국어`) 실시간 전환**.
+- **검증**: `node --check gdevelop/snshero-promo/snshero_events.js` 통과 및 `editor.gdevelop.io` GDevelop Preview(`browser_sw_preview`) 실플레이 E2E 검증 완료(팩 오픈 → 1턴/2턴 전투 → 승리/한·영 전환/CTA 렌더링 전 구간 정상 동작 확인). 로컬 `git commit` 완료 (`git push` 및 `gd.games` 공개 발행은 사용자 검수 후 수동 진행).

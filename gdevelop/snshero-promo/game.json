@@ -1,0 +1,1287 @@
+{
+  "firstLayout": "MainDemo",
+  "gdVersion": {
+    "build": 287,
+    "major": 5,
+    "minor": 6,
+    "revision": 0
+  },
+  "initialGDVersion": "5.6.287",
+  "properties": {
+    "adaptGameResolutionAtRuntime": true,
+    "antialiasingMode": "MSAA",
+    "antialisingEnabledOnMobile": false,
+    "folderProject": false,
+    "orientation": "landscape",
+    "packageName": "com.snshero.carddueldemo",
+    "pixelsRounding": false,
+    "projectUuid": "32dc20fd-9454-48cd-98fe-222a3aa16b0b",
+    "scaleMode": "linear",
+    "sizeOnStartupMode": "adaptWidth",
+    "templateSlug": "",
+    "version": "1.0.0",
+    "name": "SNSHero Card Duel Demo",
+    "description": "Open a free Elwin Sanctuary Hero Pack and battle Abyssal Knight Lucian in a 2-turn quick duel! Play all 382 cards at snshero.com.",
+    "author": "SNSHero",
+    "windowWidth": 1280,
+    "windowHeight": 720,
+    "latestCompilationDirectory": "",
+    "maxFPS": 60,
+    "minFPS": 20,
+    "verticalSync": false,
+    "platformSpecificAssets": {},
+    "loadingScreen": {
+      "backgroundColor": 658204,
+      "backgroundFadeInDuration": 0.2,
+      "backgroundImageResourceName": "",
+      "gdevelopLogoStyle": "light",
+      "logoAndProgressFadeInDuration": 0.2,
+      "logoAndProgressLogoFadeInDelay": 0,
+      "minDuration": 1,
+      "progressBarColor": 16565003,
+      "progressBarHeight": 20,
+      "progressBarMaxWidth": 240,
+      "progressBarMinWidth": 40,
+      "progressBarWidthPercent": 30,
+      "showGDevelopSplash": true,
+      "showProgressBar": true
+    },
+    "watermark": {
+      "placement": "bottom-left",
+      "showWatermark": true
+    },
+    "authorIds": [],
+    "authorUsernames": [],
+    "categories": [
+      "card-game",
+      "strategy"
+    ],
+    "playableDevices": [
+      "desktop",
+      "mobile"
+    ],
+    "extensionProperties": [],
+    "platforms": [
+      {
+        "name": "GDevelop JS platform"
+      }
+    ],
+    "currentPlatform": "GDevelop JS platform"
+  },
+  "resources": {
+    "resources": [
+      {
+        "alwaysLoaded": false,
+        "file": "assets/bg_pack_altar.jpg",
+        "kind": "image",
+        "metadata": "",
+        "name": "bg_pack_altar.jpg",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/bg_arena_snow.jpg",
+        "kind": "image",
+        "metadata": "",
+        "name": "bg_arena_snow.jpg",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/logo_en.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "logo_en.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/logo_ko.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "logo_ko.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/hero_kadan.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "hero_kadan.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/boss_lucian.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "boss_lucian.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/minion_scarecrow.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "minion_scarecrow.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/cardback_sanctuary.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "cardback_sanctuary.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/card_ivar.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "card_ivar.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/card_poseidon.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "card_poseidon.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/card_holyblast.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "card_holyblast.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/card_fenrir.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "card_fenrir.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/card_raijin.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "card_raijin.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_btn_gold.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_btn_gold.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_btn_crimson.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_btn_crimson.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_btn_slate.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_btn_slate.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_panel_dark.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_panel_dark.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_card_glow.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_card_glow.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_slash_fx.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_slash_fx.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_badge_hp.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_badge_hp.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_badge_atk.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_badge_atk.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "alwaysLoaded": false,
+        "file": "assets/ui_mana_gem.png",
+        "kind": "image",
+        "metadata": "",
+        "name": "ui_mana_gem.png",
+        "smoothed": true,
+        "userAdded": true
+      },
+      {
+        "file": "assets/bgm_duel.mp3",
+        "kind": "audio",
+        "metadata": "",
+        "name": "bgm_duel.mp3",
+        "preloadAsMusic": true,
+        "preloadAsSound": false,
+        "preloadInCache": false,
+        "userAdded": true
+      },
+      {
+        "file": "assets/sfx_pack_open.mp3",
+        "kind": "audio",
+        "metadata": "",
+        "name": "sfx_pack_open.mp3",
+        "preloadAsMusic": false,
+        "preloadAsSound": true,
+        "preloadInCache": false,
+        "userAdded": true
+      },
+      {
+        "file": "assets/sfx_card_flip.mp3",
+        "kind": "audio",
+        "metadata": "",
+        "name": "sfx_card_flip.mp3",
+        "preloadAsMusic": false,
+        "preloadAsSound": true,
+        "preloadInCache": false,
+        "userAdded": true
+      },
+      {
+        "file": "assets/sfx_card_place.mp3",
+        "kind": "audio",
+        "metadata": "",
+        "name": "sfx_card_place.mp3",
+        "preloadAsMusic": false,
+        "preloadAsSound": true,
+        "preloadInCache": false,
+        "userAdded": true
+      },
+      {
+        "file": "assets/sfx_attack.mp3",
+        "kind": "audio",
+        "metadata": "",
+        "name": "sfx_attack.mp3",
+        "preloadAsMusic": false,
+        "preloadAsSound": true,
+        "preloadInCache": false,
+        "userAdded": true
+      },
+      {
+        "file": "assets/sfx_victory.mp3",
+        "kind": "audio",
+        "metadata": "",
+        "name": "sfx_victory.mp3",
+        "preloadAsMusic": false,
+        "preloadAsSound": true,
+        "preloadInCache": false,
+        "userAdded": true
+      }
+    ]
+  },
+  "objects": [],
+  "objectsFolderStructure": {
+    "folderName": "__ROOT"
+  },
+  "objectsGroups": [],
+  "variables": [],
+  "layouts": [
+    {
+      "b": 28,
+      "disableInputWhenNotFocused": true,
+      "mangledName": "MainDemo",
+      "name": "MainDemo",
+      "r": 10,
+      "renderer3DWorldScale": 100,
+      "standardSortMethod": true,
+      "stopSoundsOnStartup": true,
+      "title": "SNSHero: Card Duel Demo",
+      "v": 15,
+      "uiSettings": {
+        "grid": false,
+        "gridType": "rectangular",
+        "gridWidth": 32,
+        "gridHeight": 32,
+        "gridDepth": 32,
+        "gridOffsetX": 0,
+        "gridOffsetY": 0,
+        "gridOffsetZ": 0,
+        "gridColor": 10401023,
+        "gridAlpha": 0.8,
+        "snap": false,
+        "zoomFactor": 0.875,
+        "windowMask": false,
+        "selectedLayer": "",
+        "gameEditorMode": "instances-editor"
+      },
+      "objectsGroups": [],
+      "variables": [],
+      "instances": [],
+      "objects": [
+        {
+          "assetStoreId": "",
+          "name": "Bg",
+          "persistentUuid": "231e8300-179b-484b-add0-68fdf88f1a1e",
+          "type": "Sprite",
+          "updateIfNotVisible": false,
+          "variables": [],
+          "effects": [],
+          "behaviors": [],
+          "animations": [
+            {
+              "name": "",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "bg_pack_altar.jpg",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "bg_arena_snow.jpg",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "assetStoreId": "",
+          "name": "Logo",
+          "persistentUuid": "6e451043-a7a5-446a-9008-0b7b2ec85bb0",
+          "type": "Sprite",
+          "updateIfNotVisible": false,
+          "variables": [],
+          "effects": [],
+          "behaviors": [],
+          "animations": [
+            {
+              "name": "en",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "logo_en.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "ko",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "logo_ko.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "assetStoreId": "",
+          "name": "Unit",
+          "persistentUuid": "7339f43f-2682-469a-90fe-fd4ada155da9",
+          "type": "Sprite",
+          "updateIfNotVisible": false,
+          "variables": [],
+          "effects": [],
+          "behaviors": [],
+          "animations": [
+            {
+              "name": "hero_kadan",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "hero_kadan.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "boss_lucian",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "boss_lucian.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "minion_scarecrow",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "minion_scarecrow.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "assetStoreId": "",
+          "name": "Card",
+          "persistentUuid": "62264d39-b1bd-43e9-a326-e7095e49bca3",
+          "type": "Sprite",
+          "updateIfNotVisible": false,
+          "variables": [],
+          "effects": [],
+          "behaviors": [],
+          "animations": [
+            {
+              "name": "back_sanctuary",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "cardback_sanctuary.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "_ivar",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "card_ivar.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "_poseidon",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "card_poseidon.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "_holyblast",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "card_holyblast.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "_fenrir",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "card_fenrir.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "_raijin",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "card_raijin.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "assetStoreId": "",
+          "name": "UiElem",
+          "persistentUuid": "4837f242-8b61-4f75-8242-d9297ad3277d",
+          "type": "Sprite",
+          "updateIfNotVisible": false,
+          "variables": [],
+          "effects": [],
+          "behaviors": [],
+          "animations": [
+            {
+              "name": "btn_gold",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_btn_gold.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "btn_crimson",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_btn_crimson.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "btn_slate",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_btn_slate.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "panel_dark",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_panel_dark.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "card_glow",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_card_glow.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "slash_fx",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_slash_fx.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "badge_hp",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_badge_hp.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "badge_atk",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_badge_atk.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "mana_gem",
+              "useMultipleDirections": false,
+              "directions": [
+                {
+                  "looping": false,
+                  "timeBetweenFrames": 0.08,
+                  "sprites": [
+                    {
+                      "hasCustomCollisionMask": false,
+                      "image": "ui_mana_gem.png",
+                      "points": [],
+                      "originPoint": {
+                        "name": "origine",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "centerPoint": {
+                        "automatic": true,
+                        "name": "centre",
+                        "x": 0,
+                        "y": 0
+                      },
+                      "customCollisionMask": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "assetStoreId": "",
+          "bold": true,
+          "italic": false,
+          "name": "GameText",
+          "persistentUuid": "cb2a359f-b2b8-44e0-a3a6-f951463be36b",
+          "smoothed": true,
+          "type": "TextObject::Text",
+          "underlined": false,
+          "variables": [],
+          "effects": [],
+          "behaviors": [],
+          "string": "Text",
+          "font": "",
+          "textAlignment": "left",
+          "characterSize": 20,
+          "color": {
+            "b": 0,
+            "g": 0,
+            "r": 0
+          },
+          "content": {
+            "bold": true,
+            "isOutlineEnabled": true,
+            "isShadowEnabled": false,
+            "italic": false,
+            "outlineColor": "10;15;28",
+            "outlineThickness": 2,
+            "shadowAngle": 90,
+            "shadowBlurRadius": 2,
+            "shadowColor": "0;0;0",
+            "shadowDistance": 4,
+            "shadowOpacity": 127,
+            "smoothed": true,
+            "underlined": false,
+            "text": "Text",
+            "font": "",
+            "textAlignment": "left",
+            "verticalTextAlignment": "top",
+            "characterSize": 20,
+            "lineHeight": 0,
+            "color": "0;0;0"
+          }
+        }
+      ],
+      "objectsFolderStructure": {
+        "folderName": "__ROOT",
+        "children": [
+          {
+            "objectName": "Bg"
+          },
+          {
+            "objectName": "Logo"
+          },
+          {
+            "objectName": "Unit"
+          },
+          {
+            "objectName": "Card"
+          },
+          {
+            "objectName": "UiElem"
+          },
+          {
+            "objectName": "GameText"
+          }
+        ]
+      },
+      "events": [
+        {
+          "type": "BuiltinCommonInstructions::Standard",
+          "conditions": [
+            {
+              "type": {
+                "value": "SceneJustBegins"
+              },
+              "parameters": [
+                ""
+              ]
+            }
+          ],
+          "actions": [
+            {
+              "type": {
+                "value": "PreloadMusic"
+              },
+              "parameters": [
+                "",
+                "bgm_duel.mp3"
+              ]
+            },
+            {
+              "type": {
+                "value": "PreloadSound"
+              },
+              "parameters": [
+                "",
+                "sfx_pack_open.mp3"
+              ]
+            },
+            {
+              "type": {
+                "value": "PreloadSound"
+              },
+              "parameters": [
+                "",
+                "sfx_card_flip.mp3"
+              ]
+            },
+            {
+              "type": {
+                "value": "PreloadSound"
+              },
+              "parameters": [
+                "",
+                "sfx_card_place.mp3"
+              ]
+            },
+            {
+              "type": {
+                "value": "PreloadSound"
+              },
+              "parameters": [
+                "",
+                "sfx_attack.mp3"
+              ]
+            },
+            {
+              "type": {
+                "value": "PreloadSound"
+              },
+              "parameters": [
+                "",
+                "sfx_victory.mp3"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "BuiltinCommonInstructions::JsCode",
+          "inlineCode": "// SNSHero: Card Duel Demo — GDevelop 5 Runtime Event Script\n// Target resolution: 1280x720 (Landscape 16:9, responsive)\n// Uses GDevelop Cloud objects: Bg, Logo, Unit, Card, UiElem, GameText\n// Uses GDevelop Cloud audio: bgm_duel.mp3, sfx_pack_open.mp3, sfx_card_flip.mp3, sfx_card_place.mp3, sfx_attack.mp3, sfx_victory.mp3\n\n(function (runtimeScene) {\n  const W = 1280;\n  const H = 720;\n  const CTA_URL = \"https://snshero.com/game.html?utm_source=gdgames&utm_medium=promo_demo\";\n\n  // Helper to get/init persistent scene state\n  if (!runtimeScene._snsDemo) {\n    runtimeScene._snsDemo = {\n      initialized: false,\n      lang: \"en\",\n      phase: \"PACK_IDLE\", // PACK_IDLE | PACK_REVEAL | DUEL | RESULT\n      phaseTime: 0,\n      prevDown: false,\n      bgmStarted: false,\n      // Pack reveal\n      packOpenedAt: 0,\n      flipped: [false, false, false],\n      // Duel state\n      turn: 1,\n      isPlayerTurn: true,\n      mana: 3,\n      maxMana: 3,\n      heroPowerUsed: false,\n      playerHp: 15,\n      playerMaxHp: 15,\n      bossHp: 14,\n      bossMaxHp: 14,\n      selectedMinionIdx: -1,\n      enemyStepTimer: 0,\n      enemyStepPhase: 0,\n      bannerTimer: 0,\n      bannerEn: \"\",\n      bannerKo: \"\",\n      shakeTime: 0,\n      shakeAmp: 0,\n      resultWin: false,\n      hand: [],\n      playerBoard: [],\n      enemyBoard: [],\n      fxList: [],\n      lungeAnim: null,\n      pool: { sprites: [], texts: [] },\n      clickZones: [],\n    };\n  }\n\n  const S = runtimeScene._snsDemo;\n  const dt = Math.min(0.05, runtimeScene.getElapsedTime() / 1000 || 0.016);\n  S.phaseTime += dt;\n  if (S.bannerTimer > 0) S.bannerTimer = Math.max(0, S.bannerTimer - dt);\n  if (S.shakeTime > 0) S.shakeTime = Math.max(0, S.shakeTime - dt);\n\n  const CARDS = {\n    ivar: {\n      id: \"ivar\",\n      anim: \"_ivar\",\n      type: \"MINION\",\n      cost: 2,\n      atk: 4,\n      hp: 4,\n      charge: true,\n      nameEn: \"Ivar, Arcane Duke\",\n      nameKo: \"마도공작 이바르\",\n      descEn: \"Charge (Attacks right away)\",\n      descKo: \"돌진 (소환 즉시 공격)\",\n    },\n    poseidon: {\n      id: \"poseidon\",\n      anim: \"_poseidon\",\n      type: \"MINION\",\n      cost: 3,\n      atk: 5,\n      hp: 6,\n      charge: false,\n      nameEn: \"Poseidon, Sea Lord\",\n      nameKo: \"바다신 포세이돈\",\n      descEn: \"Abyssal Guardian (5/6)\",\n      descKo: \"심연의 수호신 (5/6)\",\n    },\n    holyblast: {\n      id: \"holyblast\",\n      anim: \"_holyblast\",\n      type: \"SPELL\",\n      cost: 2,\n      dmg: 6,\n      heal: 3,\n      nameEn: \"Dawnstar Blast\",\n      nameKo: \"새벽별 성광폭발\",\n      descEn: \"Deal 6 to ALL & Heal +3\",\n      descKo: \"적 전체 6 피해 & 치유 +3\",\n    },\n    fenrir: {\n      id: \"fenrir\",\n      anim: \"_fenrir\",\n      type: \"MINION\",\n      cost: 4,\n      atk: 6,\n      hp: 6,\n      charge: true,\n      nameEn: \"Fenrir, Frost King\",\n      nameKo: \"빙결늑대왕 펜릴\",\n      descEn: \"Charge · Frost Finisher\",\n      descKo: \"돌진 · 설원 피니셔\",\n    },\n  };\n\n  function tr(en, ko) {\n    return S.lang === \"ko\" ? ko : en;\n  }\n\n  function playSfx(name, vol) {\n    try {\n      runtimeScene.getSoundManager().playSound(name, false, vol || 80, 1);\n    } catch (e) {}\n  }\n\n  function ensureBgm() {\n    if (S.bgmStarted) return;\n    S.bgmStarted = true;\n    try {\n      runtimeScene.getSoundManager().playMusicOnChannel(\"bgm_duel.mp3\", 0, true, 32, 1);\n    } catch (e) {}\n  }\n\n  function setBanner(en, ko, duration) {\n    S.bannerEn = en;\n    S.bannerKo = ko;\n    S.bannerTimer = duration || 2.6;\n  }\n\n  function spawnPopup(x, y, text, color) {\n    S.fxList.push({ kind: \"text\", x, y, text, color: color || \"254;240;138\", t: 0, maxT: 0.9 });\n  }\n\n  function spawnSlash(x, y) {\n    S.fxList.push({ kind: \"slash\", x, y, t: 0, maxT: 0.36 });\n  }\n\n  function triggerShake(amp, time) {\n    S.shakeAmp = Math.max(S.shakeAmp, amp);\n    S.shakeTime = Math.max(S.shakeTime, time);\n  }\n\n  function startPackAltar() {\n    S.phase = \"PACK_IDLE\";\n    S.phaseTime = 0;\n    S.flipped = [false, false, false];\n    S.bannerTimer = 0;\n  }\n\n  function openPack() {\n    ensureBgm();\n    playSfx(\"sfx_pack_open.mp3\", 85);\n    S.phase = \"PACK_REVEAL\";\n    S.phaseTime = 0;\n    S.packOpenedAt = 0;\n    S.flipped = [false, false, false];\n    triggerShake(6, 0.22);\n  }\n\n  function startDuel() {\n    ensureBgm();\n    playSfx(\"sfx_card_place.mp3\", 80);\n    S.phase = \"DUEL\";\n    S.phaseTime = 0;\n    S.turn = 1;\n    S.isPlayerTurn = true;\n    S.mana = 3;\n    S.maxMana = 3;\n    S.heroPowerUsed = false;\n    S.playerHp = 15;\n    S.playerMaxHp = 15;\n    S.bossHp = 14;\n    S.bossMaxHp = 14;\n    S.selectedMinionIdx = -1;\n    S.enemyStepTimer = 0;\n    S.enemyStepPhase = 0;\n    S.lungeAnim = null;\n    S.hand = [\n      { ...CARDS.ivar },\n      { ...CARDS.poseidon },\n      { ...CARDS.holyblast },\n    ];\n    S.playerBoard = [];\n    S.enemyBoard = [\n      {\n        uid: \"scarecrow\",\n        objType: \"Unit\",\n        anim: \"minion_scarecrow\",\n        nameEn: \"Iron Scarecrow\",\n        nameKo: \"강철 허수아비\",\n        atk: 2,\n        hp: 4,\n        maxHp: 4,\n      },\n    ];\n    setBanner(\n      \"Turn 1: Play a card from your hand!\",\n      \"1턴: 손패에서 카드를 클릭해 소환하거나 시전하세요!\",\n      3.5\n    );\n  }\n\n  function finishGame(win) {\n    S.phase = \"RESULT\";\n    S.phaseTime = 0;\n    S.resultWin = win;\n    S.selectedMinionIdx = -1;\n    if (win) {\n      playSfx(\"sfx_victory.mp3\", 90);\n      triggerShake(10, 0.35);\n    } else {\n      playSfx(\"sfx_attack.mp3\", 85);\n    }\n  }\n\n  function checkEndConditions() {\n    if (S.bossHp <= 0) {\n      S.bossHp = 0;\n      finishGame(true);\n      return true;\n    }\n    if (S.playerHp <= 0) {\n      S.playerHp = 0;\n      finishGame(false);\n      return true;\n    }\n    return false;\n  }\n\n  function playHandCard(idx) {\n    if (!S.isPlayerTurn || S.phase !== \"DUEL\") return;\n    const card = S.hand[idx];\n    if (!card) return;\n    if (S.mana < card.cost) {\n      setBanner(\"Not enough Mana!\", \"마나가 부족합니다!\", 1.8);\n      return;\n    }\n    S.mana -= card.cost;\n    S.hand.splice(idx, 1);\n    S.selectedMinionIdx = -1;\n\n    if (card.type === \"MINION\") {\n      playSfx(\"sfx_card_place.mp3\", 85);\n      const newMinion = {\n        uid: card.id + \"_\" + Math.random().toString(36).slice(2, 6),\n        objType: \"Card\",\n        anim: card.anim,\n        nameEn: card.nameEn,\n        nameKo: card.nameKo,\n        atk: card.atk,\n        hp: card.hp,\n        maxHp: card.hp,\n        canAttack: !!card.charge,\n      };\n      S.playerBoard.push(newMinion);\n      if (card.charge) {\n        setBanner(\n          card.nameEn + \" has Charge! Click it to attack!\",\n          card.nameKo + \" 돌진! 클릭한 뒤 적을 공격하세요!\",\n          2.8\n        );\n      } else {\n        setBanner(\n          \"Summoned \" + card.nameEn + \"!\",\n          card.nameKo + \" 소환 완료!\",\n          2.0\n        );\n      }\n    } else if (card.type === \"SPELL\") {\n      playSfx(\"sfx_attack.mp3\", 95);\n      triggerShake(9, 0.3);\n      // AoE damage to all enemy minions + Boss Lucian, plus Heal Hero\n      const dmg = card.dmg;\n      for (let i = S.enemyBoard.length - 1; i >= 0; i--) {\n        const em = S.enemyBoard[i];\n        em.hp -= dmg;\n        const pos = getEnemyBoardPos(i, S.enemyBoard.length);\n        spawnSlash(pos.x, pos.y);\n        spawnPopup(pos.x, pos.y - 35, \"-\" + dmg, \"252;165;165\");\n        if (em.hp <= 0) {\n          S.enemyBoard.splice(i, 1);\n        }\n      }\n      S.bossHp = Math.max(0, S.bossHp - dmg);\n      spawnSlash(640, 120);\n      spawnPopup(640, 70, \"-\" + dmg + \"!\", \"254;240;138\");\n\n      const oldHp = S.playerHp;\n      S.playerHp = Math.min(S.playerMaxHp, S.playerHp + card.heal);\n      const healed = S.playerHp - oldHp;\n      if (healed > 0) {\n        spawnPopup(180, 520, \"+\" + healed + \" HP\", \"74;222;128\");\n      }\n      setBanner(\n        \"Dawnstar Holy Blast! -\" + dmg + \" to ALL enemies!\",\n        \"새벽별 성광폭발! 적 전체 피해 \" + dmg + \"!\",\n        2.6\n      );\n      checkEndConditions();\n    }\n  }\n\n  function useHeroPower() {\n    if (!S.isPlayerTurn || S.phase !== \"DUEL\" || S.heroPowerUsed) return;\n    if (S.mana < 2) {\n      setBanner(\"Need 2 Mana for Snowfield Heal!\", \"설원 치유에는 마나 2가 필요합니다!\", 1.8);\n      return;\n    }\n    S.mana -= 2;\n    S.heroPowerUsed = true;\n    playSfx(\"sfx_card_place.mp3\", 80);\n    const oldHp = S.playerHp;\n    S.playerHp = Math.min(S.playerMaxHp, S.playerHp + 3);\n    spawnPopup(180, 520, \"+\" + (S.playerHp - oldHp || 3) + \" HP\", \"74;222;128\");\n    setBanner(\"Snowfield Heal: Restored 3 HP!\", \"설원 치유: 생명력 +3 회복!\", 2.0);\n  }\n\n  function attackWithMinion(mIdx, targetType, enemyIdx) {\n    const m = S.playerBoard[mIdx];\n    if (!m || !m.canAttack) return;\n    m.canAttack = false;\n    S.selectedMinionIdx = -1;\n    playSfx(\"sfx_attack.mp3\", 90);\n    triggerShake(8, 0.24);\n\n    const srcPos = getPlayerBoardPos(mIdx, S.playerBoard.length);\n    if (targetType === \"BOSS\") {\n      S.lungeAnim = { sx: srcPos.x, sy: srcPos.y, tx: 640, ty: 120, t: 0, maxT: 0.24, uid: m.uid };\n      S.bossHp = Math.max(0, S.bossHp - m.atk);\n      spawnSlash(640, 120);\n      spawnPopup(640, 70, \"-\" + m.atk + \"!\", \"254;240;138\");\n      setBanner(m.nameEn + \" strikes Boss Lucian for \" + m.atk + \"!\", m.nameKo + \" 공격! 루시안 -\" + m.atk + \"!\", 2.2);\n      checkEndConditions();\n    } else if (targetType === \"MINION\") {\n      const em = S.enemyBoard[enemyIdx];\n      if (!em) return;\n      const dstPos = getEnemyBoardPos(enemyIdx, S.enemyBoard.length);\n      S.lungeAnim = { sx: srcPos.x, sy: srcPos.y, tx: dstPos.x, ty: dstPos.y, t: 0, maxT: 0.24, uid: m.uid };\n      em.hp -= m.atk;\n      m.hp -= em.atk;\n      spawnSlash(dstPos.x, dstPos.y);\n      spawnPopup(dstPos.x, dstPos.y - 30, \"-\" + m.atk, \"252;165;165\");\n      if (em.atk > 0) {\n        spawnPopup(srcPos.x, srcPos.y - 30, \"-\" + em.atk, \"252;165;165\");\n      }\n      if (em.hp <= 0) S.enemyBoard.splice(enemyIdx, 1);\n      if (m.hp <= 0) S.playerBoard.splice(mIdx, 1);\n      setBanner(\"Minion clash!\", \"하수인 격돌!\", 1.8);\n    }\n  }\n\n  function endPlayerTurn() {\n    if (!S.isPlayerTurn || S.phase !== \"DUEL\") return;\n    S.isPlayerTurn = false;\n    S.selectedMinionIdx = -1;\n    S.enemyStepPhase = 0;\n    S.enemyStepTimer = 0.55;\n    playSfx(\"sfx_card_flip.mp3\", 70);\n    setBanner(\"Abyssal Knight Lucian's Turn...\", \"심연 기사 루시안의 턴...\", 2.2);\n  }\n\n  function stepEnemyTurn() {\n    S.enemyStepTimer -= dt;\n    if (S.enemyStepTimer > 0) return;\n\n    if (S.enemyStepPhase === 0) {\n      // Enemy minions attack Hero Kadan\n      if (S.enemyBoard.length > 0) {\n        let totalDmg = 0;\n        for (const em of S.enemyBoard) {\n          totalDmg += em.atk;\n        }\n        if (totalDmg > 0) {\n          playSfx(\"sfx_attack.mp3\", 85);\n          triggerShake(7, 0.22);\n          S.playerHp = Math.max(0, S.playerHp - totalDmg);\n          spawnSlash(180, 565);\n          spawnPopup(180, 510, \"-\" + totalDmg + \"!\", \"248;113;113\");\n          if (checkEndConditions()) return;\n        }\n      }\n      S.enemyStepPhase = 1;\n      S.enemyStepTimer = 0.65;\n      return;\n    }\n\n    if (S.enemyStepPhase === 1) {\n      // Boss Lucian summons Thunder God Raijin on Turn 1 (or Abyssal Strike on Turn 2+)\n      if (S.turn === 1 && S.enemyBoard.length < 3) {\n        playSfx(\"sfx_card_place.mp3\", 85);\n        S.enemyBoard.push({\n          uid: \"raijin_\" + S.turn,\n          objType: \"Card\",\n          anim: \"_raijin\",\n          nameEn: \"Thunder God Raijin\",\n          nameKo: \"천둥괴신 뇌신\",\n          atk: 4,\n          hp: 4,\n          maxHp: 4,\n        });\n        setBanner(\"Lucian summons Thunder God Raijin (4/4)!\", \"루시안이 천둥괴신 뇌신(4/4)을 소환했습니다!\", 2.5);\n      } else {\n        playSfx(\"sfx_attack.mp3\", 80);\n        S.playerHp = Math.max(0, S.playerHp - 3);\n        spawnSlash(180, 565);\n        spawnPopup(180, 510, \"-3!\", \"248;113;113\");\n        setBanner(\"Lucian casts Abyssal Bolt (-3 HP)!\", \"루시안의 심연 암흑탄 (-3 HP)!\", 2.2);\n        if (checkEndConditions()) return;\n      }\n      S.enemyStepPhase = 2;\n      S.enemyStepTimer = 0.75;\n      return;\n    }\n\n    // Start next Player Turn!\n    S.turn += 1;\n    S.isPlayerTurn = true;\n    S.maxMana = Math.min(10, S.turn * 3);\n    S.mana = S.maxMana;\n    S.heroPowerUsed = false;\n    for (const pm of S.playerBoard) {\n      pm.canAttack = true;\n    }\n    if (S.turn === 2) {\n      S.hand.push({ ...CARDS.fenrir });\n      playSfx(\"sfx_card_flip.mp3\", 85);\n      setBanner(\n        \"Turn 2: Drew Fenrir, Frost King (6/6 Charge)! Finish Lucian!\",\n        \"2턴: 빙결늑대왕 펜릴(6/6 돌진) 드로우! 루시안을 쓰러트리세요!\",\n        3.8\n      );\n    } else {\n      playSfx(\"sfx_card_flip.mp3\", 75);\n      setBanner(\"Turn \" + S.turn + \": Your move!\", S.turn + \"턴: 공격하세요!\", 2.4);\n    }\n  }\n\n  function getEnemyBoardPos(idx, total) {\n    const gap = 175;\n    const startX = 640 - ((total - 1) * gap) / 2;\n    return { x: startX + idx * gap, y: 254 };\n  }\n\n  function getPlayerBoardPos(idx, total) {\n    const gap = 175;\n    const startX = 640 - ((total - 1) * gap) / 2;\n    return { x: startX + idx * gap, y: 418 };\n  }\n\n  // --- Object Pool Render Helpers ---\n  function beginFrameRender() {\n    S.clickZones = [];\n    for (const sp of S.pool.sprites) {\n      sp.used = false;\n    }\n    for (const tx of S.pool.texts) {\n      tx.used = false;\n    }\n  }\n\n  function drawSprite(objName, animName, cx, cy, w, h, z, opts) {\n    let slot = S.pool.sprites.find((s) => !s.used && s.objName === objName);\n    if (!slot) {\n      const obj = runtimeScene.createObject(objName);\n      if (!obj) return null;\n      slot = { objName, obj, used: true };\n      S.pool.sprites.push(slot);\n    }\n    slot.used = true;\n    const o = slot.obj;\n    o.hide(false);\n    if (typeof animName === \"number\") {\n      if (o.getAnimationIndex() !== animName) {\n        o.setAnimationIndex(animName);\n      }\n    } else if (o.getAnimationName() !== animName) {\n      o.setAnimationName(animName);\n    }\n    o.pauseAnimation();\n    o.setWidth(w);\n    o.setHeight(h);\n    o.setPosition(cx - w / 2, cy - h / 2);\n    o.setZOrder(z);\n    o.setOpacity(opts && opts.opacity !== undefined ? opts.opacity : 255);\n    o.setAngle(opts && opts.angle !== undefined ? opts.angle : 0);\n    if (opts && opts.onClick) {\n      S.clickZones.push({ obj: o, z, fn: opts.onClick });\n    }\n    return o;\n  }\n\n  function drawText(str, cx, cy, wrapW, size, color, z, opts) {\n    let slot = S.pool.texts.find((t) => !t.used);\n    if (!slot) {\n      const obj = runtimeScene.createObject(\"GameText\");\n      if (!obj) return null;\n      slot = { obj, used: true };\n      S.pool.texts.push(slot);\n    }\n    slot.used = true;\n    const t = slot.obj;\n    t.hide(false);\n    t.setString(String(str));\n    t.setCharacterSize(size || 20);\n    t.setColor(color || \"255;255;255\");\n    t.setBold(opts && opts.bold !== undefined ? opts.bold : true);\n    t.setTextAlignment((opts && opts.align) || \"center\");\n    t.setWrapping(true);\n    t.setWrappingWidth(wrapW || 400);\n    t.setOutline(\"10;15;28\", (opts && opts.outline) !== undefined ? opts.outline : 3);\n    t.setOutlineEnabled(true);\n    t.setOpacity(opts && opts.opacity !== undefined ? opts.opacity : 255);\n    t.setZOrder(z);\n    const align = (opts && opts.align) || \"center\";\n    const xPos = align === \"left\" ? cx : align === \"right\" ? cx - wrapW : cx - wrapW / 2;\n    t.setPosition(xPos, cy - (size || 20) * 0.62);\n    return t;\n  }\n\n  function endFrameRender() {\n    for (const sp of S.pool.sprites) {\n      if (!sp.used) sp.obj.hide(true);\n    }\n    for (const tx of S.pool.texts) {\n      if (!tx.used) tx.obj.hide(true);\n    }\n  }\n\n  // --- Update Lunge & FX ---\n  if (S.lungeAnim) {\n    S.lungeAnim.t += dt;\n    if (S.lungeAnim.t >= S.lungeAnim.maxT) {\n      S.lungeAnim = null;\n    }\n  }\n  for (let i = S.fxList.length - 1; i >= 0; i--) {\n    S.fxList[i].t += dt;\n    if (S.fxList[i].t >= S.fxList[i].maxT) {\n      S.fxList.splice(i, 1);\n    }\n  }\n\n  if (S.phase === \"DUEL\" && !S.isPlayerTurn) {\n    stepEnemyTurn();\n  }\n\n  // Camera shake offset\n  const sx = S.shakeTime > 0 ? (Math.random() - 0.5) * 2 * S.shakeAmp : 0;\n  const sy = S.shakeTime > 0 ? (Math.random() - 0.5) * 2 * S.shakeAmp : 0;\n  try {\n    const layer = runtimeScene.getLayer(\"\");\n    layer.setCameraX(W / 2 + sx);\n    layer.setCameraY(H / 2 + sy);\n  } catch (e) {}\n\n  // --- Render Current Phase ---\n  beginFrameRender();\n\n  // Language Toggle (always top-right)\n  drawSprite(\"UiElem\", \"btn_slate\", 1185, 36, 150, 40, 80, {\n    onClick: () => {\n      S.lang = S.lang === \"en\" ? \"ko\" : \"en\";\n      playSfx(\"sfx_card_flip.mp3\", 55);\n    },\n  });\n  drawText(S.lang === \"en\" ? \"🌐 EN / 한국어\" : \"🌐 한국어 / EN\", 1185, 36, 145, 16, \"226;232;240\", 81);\n\n  if (S.phase === \"PACK_IDLE\" || S.phase === \"PACK_REVEAL\") {\n    drawSprite(\"Bg\", 0, 640, 360, 1280, 720, 0);\n    const bob = Math.sin(S.phaseTime * 2.4) * 5;\n    drawSprite(\"Logo\", S.lang === \"ko\" ? \"ko\" : \"en\", 640, 84 + bob * 0.5, 340, 112, 10);\n\n    if (S.phase === \"PACK_IDLE\") {\n      drawText(\n        tr(\"ELWIN SANCTUARY HERO PACK · FREE PREVIEW\", \"엘윈 성소 영웅 카드팩 · 무료 체험판\"),\n        640,\n        172,\n        820,\n        24,\n        \"253;224;71\",\n        12\n      );\n      const pulse = 1 + Math.sin(S.phaseTime * 4) * 0.04;\n      drawSprite(\"UiElem\", \"card_glow\", 640, 375 + bob, 290 * pulse, 395 * pulse, 15, {\n        opacity: 185 + Math.sin(S.phaseTime * 4) * 55,\n      });\n      drawSprite(\"Card\", \"back_sanctuary\", 640, 375 + bob, 246 * pulse, 342 * pulse, 20, {\n        onClick: openPack,\n      });\n      drawSprite(\"UiElem\", \"btn_gold\", 640, 616, 390, 66, 25, {\n        onClick: openPack,\n      });\n      drawText(\n        tr(\"✨ TAP TO OPEN FREE PACK!\", \"✨ 터치하여 무료 카드팩 열기!\"),\n        640,\n        616,\n        370,\n        22,\n        \"255;255;255\",\n        26\n      );\n    } else {\n      // PACK_REVEAL\n      const revealCards = [CARDS.ivar, CARDS.poseidon, CARDS.holyblast];\n      const revealTimes = [0.1, 0.42, 0.74];\n      const xs = [300, 640, 980];\n      drawText(\n        tr(\"🎉 HEROIC CARDS UNLOCKED!\", \"🎉 전설 & 시그니처 카드 획득!\"),\n        640,\n        166,\n        760,\n        26,\n        \"253;224;71\",\n        15\n      );\n      for (let i = 0; i < 3; i++) {\n        const c = revealCards[i];\n        const unlocked = S.phaseTime >= revealTimes[i];\n        if (unlocked && !S.flipped[i]) {\n          S.flipped[i] = true;\n          playSfx(\"sfx_card_flip.mp3\", 85);\n        }\n        const cy = 355 + Math.sin(S.phaseTime * 2.5 + i) * 4;\n        if (unlocked) {\n          drawSprite(\"UiElem\", \"card_glow\", xs[i], cy, 260, 355, 18, { opacity: 190 });\n          drawSprite(\"Card\", c.anim, xs[i], cy, 224, 310, 20);\n          drawText(tr(c.nameEn, c.nameKo), xs[i], 534, 240, 19, \"255;255;255\", 22);\n          drawText(tr(c.descEn, c.descKo), xs[i], 560, 250, 14, \"148;163;184\", 22);\n        } else {\n          drawSprite(\"Card\", \"back_sanctuary\", xs[i], cy, 224, 310, 20);\n        }\n      }\n      if (S.phaseTime >= 0.9) {\n        const btnPulse = 1 + Math.sin(S.phaseTime * 4) * 0.03;\n        drawSprite(\"UiElem\", \"btn_gold\", 640, 640, 410 * btnPulse, 68 * btnPulse, 30, {\n          onClick: startDuel,\n        });\n        drawText(\n          tr(\"⚔ ENTER QUICK DUEL →\", \"⚔ 퀵 듀얼 출격하기 →\"),\n          640,\n          640,\n          390,\n          24,\n          \"255;255;255\",\n          31\n        );\n      }\n    }\n  } else if (S.phase === \"DUEL\" || S.phase === \"RESULT\") {\n    drawSprite(\"Bg\", 1, 640, 360, 1280, 720, 0);\n\n    // Top-left mini logo\n    drawSprite(\"Logo\", S.lang === \"ko\" ? \"ko\" : \"en\", 132, 46, 210, 70, 10);\n\n    // Top Boss Lucian\n    const bossTargeted = S.isPlayerTurn && S.selectedMinionIdx >= 0;\n    if (bossTargeted) {\n      drawSprite(\"UiElem\", \"card_glow\", 640, 104, 168, 168, 12, {\n        opacity: 190 + Math.sin(S.phaseTime * 8) * 60,\n      });\n    }\n    drawSprite(\"Unit\", \"boss_lucian\", 640, 104, 132, 132, 15, {\n      onClick: () => {\n        if (S.isPlayerTurn && S.selectedMinionIdx >= 0) {\n          attackWithMinion(S.selectedMinionIdx, \"BOSS\", -1);\n        }\n      },\n    });\n    drawSprite(\"UiElem\", \"badge_hp\", 708, 136, 54, 54, 20);\n    drawText(S.bossHp, 708, 137, 58, 23, \"255;255;255\", 21);\n    drawText(\n      tr(\"Abyssal Knight Lucian\", \"심연 기사 루시안\") + (bossTargeted ? tr(\"  [CLICK TO ATTACK!]\", \"  [클릭해 공격!]\") : \"\"),\n      640,\n      24,\n      540,\n      20,\n      bossTargeted ? \"253;224;71\" : \"248;250;252\",\n      22\n    );\n\n    // Enemy Board Minions\n    for (let i = 0; i < S.enemyBoard.length; i++) {\n      const em = S.enemyBoard[i];\n      const pos = getEnemyBoardPos(i, S.enemyBoard.length);\n      if (bossTargeted) {\n        drawSprite(\"UiElem\", \"card_glow\", pos.x, pos.y, 140, 158, 14, {\n          opacity: 180 + Math.sin(S.phaseTime * 8) * 60,\n        });\n      }\n      const ew = em.objType === \"Unit\" ? 128 : 112;\n      const eh = em.objType === \"Unit\" ? 128 : 140;\n      drawSprite(em.objType, em.anim, pos.x, pos.y, ew, eh, 16, {\n        onClick: () => {\n          if (S.isPlayerTurn && S.selectedMinionIdx >= 0) {\n            attackWithMinion(S.selectedMinionIdx, \"MINION\", i);\n          }\n        },\n      });\n      drawSprite(\"UiElem\", \"badge_atk\", pos.x - 42, pos.y + 48, 42, 42, 22);\n      drawText(em.atk, pos.x - 42, pos.y + 47, 42, 19, \"255;255;255\", 23);\n      drawSprite(\"UiElem\", \"badge_hp\", pos.x + 42, pos.y + 48, 42, 42, 22);\n      drawText(em.hp, pos.x + 42, pos.y + 47, 42, 19, \"255;255;255\", 23);\n      drawText(tr(em.nameEn, em.nameKo), pos.x, pos.y - 76, 160, 14, \"254;202;202\", 24);\n    }\n\n    // Player Board Minions\n    for (let i = 0; i < S.playerBoard.length; i++) {\n      const pm = S.playerBoard[i];\n      let pos = getPlayerBoardPos(i, S.playerBoard.length);\n      if (S.lungeAnim && S.lungeAnim.uid === pm.uid) {\n        const p = S.lungeAnim.t / S.lungeAnim.maxT;\n        const k = p < 0.5 ? p * 2 : (1 - p) * 2;\n        pos = {\n          x: pos.x + (S.lungeAnim.tx - S.lungeAnim.sx) * k * 0.78,\n          y: pos.y + (S.lungeAnim.ty - S.lungeAnim.sy) * k * 0.78,\n        };\n      }\n      const isSelected = S.selectedMinionIdx === i;\n      if (S.isPlayerTurn && pm.canAttack) {\n        drawSprite(\"UiElem\", \"card_glow\", pos.x, pos.y, isSelected ? 156 : 138, isSelected ? 178 : 158, 14, {\n          opacity: isSelected ? 255 : 170 + Math.sin(S.phaseTime * 6) * 55,\n        });\n      }\n      const w = isSelected ? 124 : 112;\n      const h = isSelected ? 156 : 140;\n      drawSprite(pm.objType, pm.anim, pos.x, pos.y, w, h, isSelected ? 25 : 17, {\n        onClick: () => {\n          if (!S.isPlayerTurn || S.phase !== \"DUEL\") return;\n          if (!pm.canAttack) {\n            setBanner(\"This minion already attacked or is summoning!\", \"이번 턴에 이미 공격했거나 소환 대기 중입니다!\", 1.8);\n            return;\n          }\n          if (S.selectedMinionIdx === i) {\n            S.selectedMinionIdx = -1;\n          } else {\n            S.selectedMinionIdx = i;\n            playSfx(\"sfx_card_flip.mp3\", 60);\n            setBanner(\"Now click Enemy Minion or Boss Lucian!\", \"공격할 적 하수인 또는 보스 루시안을 클릭하세요!\", 2.5);\n          }\n        },\n      });\n      drawSprite(\"UiElem\", \"badge_atk\", pos.x - 42, pos.y + 48, 42, 42, 26);\n      drawText(pm.atk, pos.x - 42, pos.y + 47, 42, 19, \"255;255;255\", 27);\n      drawSprite(\"UiElem\", \"badge_hp\", pos.x + 42, pos.y + 48, 42, 42, 26);\n      drawText(pm.hp, pos.x + 42, pos.y + 47, 42, 19, \"255;255;255\", 27);\n      if (pm.canAttack && S.isPlayerTurn) {\n        drawText(isSelected ? tr(\"⚔ READY!\", \"⚔ 조준중!\") : tr(\"CLICK TO ATTACK\", \"클릭해 공격\"), pos.x, pos.y - 76, 160, 14, \"134;239;172\", 28);\n      }\n    }\n\n    // Player Hero Kadan (bottom-left)\n    drawSprite(\"Unit\", \"hero_kadan\", 136, 580, 144, 144, 18);\n    drawSprite(\"UiElem\", \"badge_hp\", 206, 616, 56, 56, 22);\n    drawText(S.playerHp, 206, 617, 60, 24, \"255;255;255\", 23);\n    drawText(tr(\"Hero Kadan\", \"영웅 카단\"), 136, 666, 180, 18, \"226;232;240\", 24);\n\n    // Hero Power button\n    const canHeroPower = S.isPlayerTurn && !S.heroPowerUsed && S.mana >= 2;\n    drawSprite(\"UiElem\", \"btn_slate\", 312, 594, 154, 64, 20, {\n      opacity: canHeroPower ? 255 : 130,\n      onClick: useHeroPower,\n    });\n    drawText(\n      tr(\"✨ Heal +3\\n(2 Mana)\", \"✨ 설원 치유 +3\\n(2 마나)\"),\n      312,\n      584,\n      146,\n      15,\n      canHeroPower ? \"134;239;172\" : \"148;163;184\",\n      21\n    );\n\n    // Player Hand (bottom center)\n    const hCount = S.hand.length;\n    const hGap = 150;\n    const hStartX = 670 - ((hCount - 1) * hGap) / 2;\n    for (let i = 0; i < hCount; i++) {\n      const c = S.hand[i];\n      const cx = hStartX + i * hGap;\n      const cy = 588;\n      const playable = S.isPlayerTurn && S.mana >= c.cost;\n      if (playable) {\n        drawSprite(\"UiElem\", \"card_glow\", cx, cy, 146, 198, 19, {\n          opacity: 165 + Math.sin(S.phaseTime * 5 + i) * 55,\n        });\n      }\n      drawSprite(\"Card\", c.anim, cx, cy, 124, 174, 21, {\n        opacity: playable ? 255 : 175,\n        onClick: () => playHandCard(i),\n      });\n      // Cost crystal top-left\n      drawSprite(\"UiElem\", \"mana_gem\", cx - 44, cy - 68, 36, 36, 23);\n      drawText(c.cost, cx - 44, cy - 68, 34, 18, \"255;255;255\", 24);\n      if (c.type === \"MINION\") {\n        drawSprite(\"UiElem\", \"badge_atk\", cx - 40, cy + 68, 34, 34, 23);\n        drawText(c.atk, cx - 40, cy + 68, 34, 15, \"255;255;255\", 24);\n        drawSprite(\"UiElem\", \"badge_hp\", cx + 40, cy + 68, 34, 34, 23);\n        drawText(c.hp, cx + 40, cy + 68, 34, 15, \"255;255;255\", 24);\n      } else {\n        drawText(tr(\"SPELL\", \"주문\"), cx, cy + 70, 110, 14, \"253;224;71\", 24);\n      }\n      drawText(tr(c.nameEn, c.nameKo), cx, cy + 95, 144, 14, \"255;255;255\", 24);\n    }\n\n    // Mana & End Turn (bottom-right)\n    drawSprite(\"UiElem\", \"mana_gem\", 1076, 514, 38, 38, 22);\n    drawText(\n      tr(\"MANA \", \"마나 \") + S.mana + \" / \" + S.maxMana,\n      1158,\n      514,\n      150,\n      22,\n      \"147;197;253\",\n      22\n    );\n    const hasMoves =\n      S.isPlayerTurn &&\n      (S.hand.some((c) => c.cost <= S.mana) || S.playerBoard.some((m) => m.canAttack));\n    drawSprite(\"UiElem\", S.isPlayerTurn && !hasMoves ? \"btn_gold\" : \"btn_crimson\", 1138, 588, 200, 64, 25, {\n      opacity: S.isPlayerTurn ? 255 : 130,\n      onClick: endPlayerTurn,\n    });\n    drawText(\n      S.isPlayerTurn ? tr(\"END TURN ⏭\", \"턴 종료 ⏭\") : tr(\"ENEMY TURN...\", \"상대 턴...\"),\n      1138,\n      588,\n      190,\n      20,\n      \"255;255;255\",\n      26\n    );\n\n    // Status Banner\n    if (S.bannerTimer > 0 && S.phase === \"DUEL\") {\n      drawSprite(\"UiElem\", \"btn_slate\", 640, 352, 680, 44, 40, { opacity: 220 });\n      drawText(tr(S.bannerEn, S.bannerKo), 640, 352, 660, 18, \"253;224;71\", 41);\n    }\n\n    // Active Combat FX (slashes & popups)\n    for (const fx of S.fxList) {\n      const p = fx.t / fx.maxT;\n      if (fx.kind === \"slash\") {\n        const sc = 0.7 + p * 0.75;\n        drawSprite(\"UiElem\", \"slash_fx\", fx.x, fx.y, 190 * sc, 190 * sc, 55, {\n          opacity: (1 - p) * 255,\n          angle: p * 35,\n        });\n      } else if (fx.kind === \"text\") {\n        drawText(fx.text, fx.x, fx.y - p * 44, 180, 30, fx.color, 58, {\n          opacity: (1 - p * p) * 255,\n        });\n      }\n    }\n\n    // Victory / Defeat CTA Modal\n    if (S.phase === \"RESULT\") {\n      drawSprite(\"UiElem\", \"panel_dark\", 640, 360, 820, 460, 60);\n      drawSprite(\"Logo\", S.lang === \"ko\" ? \"ko\" : \"en\", 640, 206, 260, 86, 62);\n      drawText(\n        S.resultWin\n          ? tr(\"🏆 VICTORY! LUCIAN DEFEATED!\", \"🏆 승리! 심연 기사 루시안 격파!\")\n          : tr(\"💀 DEFEATED! TRY AGAIN!\", \"💀 패배! 다시 도전하세요!\"),\n        640,\n        292,\n        740,\n        32,\n        S.resultWin ? \"253;224;71\" : \"248;113;113\",\n        63\n      );\n      drawText(\n        tr(\n          \"Play the FULL version FREE: 382 Cards, 40 Story Episodes & 110 Mini-Games!\",\n          \"SNSHero 본편을 100% 무료로 플레이하세요: 382장 카드 · 40화 스토리 보스전!\"\n        ),\n        640,\n        352,\n        740,\n        20,\n        \"226;232;240\",\n        63\n      );\n      drawSprite(\"UiElem\", \"btn_gold\", 640, 444, 520, 70, 65, {\n        onClick: () => {\n          playSfx(\"sfx_card_place.mp3\", 80);\n          try {\n            gdjs.evtTools.window.openURL(CTA_URL, runtimeScene);\n          } catch (e) {\n            if (typeof window !== \"undefined\") window.open(CTA_URL, \"_blank\");\n          }\n        },\n      });\n      drawText(\n        tr(\"🔥 PLAY FULL GAME ON SNSHERO.COM →\", \"🔥 SNSHERO.COM 본편 바로가기 →\"),\n        640,\n        444,\n        500,\n        21,\n        \"255;255;255\",\n        66\n      );\n      drawSprite(\"UiElem\", \"btn_slate\", 640, 532, 240, 52, 65, {\n        onClick: startPackAltar,\n      });\n      drawText(tr(\"↻ PLAY DEMO AGAIN\", \"↻ 데모 다시 플레이\"), 640, 532, 220, 18, \"226;232;240\", 66);\n    }\n  }\n\n  endFrameRender();\n\n  // --- Handle Click / Tap Input (Top-most ZOrder wins) ---\n  const input = runtimeScene.getGame().getInputManager();\n  const isDown = input.isMouseButtonPressed(0) || input.getAllTouchIdentifiers().length > 0;\n  const justClicked = isDown && !S.prevDown;\n  S.prevDown = isDown;\n\n  if (justClicked) {\n    S.clickZones.sort((a, b) => b.z - a.z);\n    for (const zone of S.clickZones) {\n      if (zone.obj.cursorOnObject()) {\n        zone.fn();\n        break;\n      }\n    }\n  }\n})(runtimeScene);\n",
+          "parameterObjects": "",
+          "useStrict": true,
+          "eventsSheetExpanded": true
+        }
+      ],
+      "layers": [
+        {
+          "ambientLightColorB": 200,
+          "ambientLightColorG": 200,
+          "ambientLightColorR": 200,
+          "camera2DPlaneMaxDrawingDistance": 5000,
+          "camera3DFarPlaneDistance": 10000,
+          "camera3DFieldOfView": 45,
+          "camera3DNearPlaneDistance": 3,
+          "cameraType": "",
+          "followBaseLayerCamera": false,
+          "isLightingLayer": false,
+          "isLocked": false,
+          "name": "",
+          "renderingType": "",
+          "visibility": true,
+          "cameras": [
+            {
+              "defaultSize": true,
+              "defaultViewport": true,
+              "height": 0,
+              "viewportBottom": 1,
+              "viewportLeft": 0,
+              "viewportRight": 1,
+              "viewportTop": 0,
+              "width": 0
+            }
+          ],
+          "effects": []
+        }
+      ],
+      "behaviorsSharedData": [
+        {
+          "name": "Effect",
+          "type": "EffectCapability::EffectBehavior"
+        },
+        {
+          "name": "Opacity",
+          "type": "OpacityCapability::OpacityBehavior"
+        },
+        {
+          "name": "Scale",
+          "type": "ScalableCapability::ScalableBehavior"
+        },
+        {
+          "name": "Text",
+          "type": "TextContainerCapability::TextContainerBehavior"
+        }
+      ]
+    }
+  ],
+  "layoutsFolderStructure": {
+    "folderName": "__ROOT",
+    "children": [
+      {
+        "itemName": "MainDemo"
+      }
+    ]
+  },
+  "externalEvents": [],
+  "externalEventsFolderStructure": {
+    "folderName": "__ROOT"
+  },
+  "testsFolderStructure": {
+    "folderName": "__ROOT"
+  },
+  "eventsFunctionsExtensions": [],
+  "externalLayouts": [],
+  "externalLayoutsFolderStructure": {
+    "folderName": "__ROOT"
+  }
+}
