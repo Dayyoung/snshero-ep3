@@ -1948,3 +1948,11 @@
      - 통합 영문 자막: `output/studio_anime/SNSHero_Full_Anime_EP01_EP40_EN.srt` (`719개` 큐, 인트로/간지/xfade 오프셋 정밀 반영)
      - 챕터 타임스탬프: `output/studio_anime/SNSHero_Full_Anime_EP01_EP40_EN_chapters.json` (`42개` 챕터)
 - **검증**: `ffprobe` 스트림 규격(`h264 High 1280x720 24fps`, `aac 48000Hz stereo`) 및 최종 MP4에서 직접 추출한 13개 핵심 프레임(인트로·인물·라이선스·장소/시간 간지·엔딩 몽타주·엔딩 라이선스) 시각 검수 완료. 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-24 12:15 KST] [SNSHero 영문 풀버전 애니메이션 인트로·엔딩 BGM을 스토리모드 엔딩 크레딧 테마로 교체]
+- **작업자**: `Antigravity Assistant`
+- **수정 스크립트**: [`scripts/studio_anime/build_full_anime_en.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/build_full_anime_en.py)
+- **변경 내역**:
+  - 기존 `collection.mp3` 대신 스토리모드 40화 엔딩 크레딧 전용 오케스트라 하프·피아노 선율([`src/hearthstone/audio.ts`](file:///Users/dayyoung/project/snshero/src/hearthstone/audio.ts#L2109-L2262) `startEndingCreditsMusic()`의 8마디 서정적 카논 진행 `Cmaj7 → G/B → Am7 → Em7 → Fmaj7 → C/E → Dm7 → Gsus4→G`)을 `synthesize_story_ending_bgm()`으로 48kHz 스테레오 PCM 합성 후 `-14 LUFS` 2-pass 정규화하여 인트로와 엔딩에 적용.
+  - 기존 영상 레이어를 재사용해 인트로·엔딩 오디오만 고속 교체하는 `--rebuild-intro-ending` 옵션 추가.
+- **검증**: `SNSHero_Full_Anime_EP01_EP40_EN_16x9.mp4` (`5655.84초 / 94.26분`, V=`5655.82s`, A=`5655.84s`), 인트로(`LUFS=-14.03`, `TruePeak=-2.84 dBTP`) 및 엔딩(`LUFS=-14.02`, `TruePeak=-2.84 dBTP`) 클리핑 없음 확인. 로컬 `git commit` 완료 (`git push` 보류).

@@ -3,7 +3,7 @@
 SNSHero Full-Length English Feature Animation Builder (EP01 - EP40)
 Combines all 40 English 16:9 anime episodes with:
   1. Cinematic Intro:
-     - Orchestral BGM (collection.mp3 crossfaded & loudnormed to -14 LUFS)
+     - Story-mode ending credits orchestral harp & piano BGM (Canon progression, -14 LUFS)
      - Opening title card with SNSHero English brand logo
      - 12 Major Novel Character introduction cards (Ken Burns artwork + sharp serif typography)
      - Closing Intro Production & IP License card (SNSHero.com)
@@ -12,7 +12,7 @@ Combines all 40 English 16:9 anime episodes with:
      - Same location + time passage -> Black interstitial card ("Moments later...", etc.)
      - Same location + continuous action -> Smooth 0.6s video/audio xfade bridge
   3. Cinematic Ending:
-     - Orchestral BGM (collection.mp3 crossfaded & loudnormed to -14 LUFS)
+     - Story-mode ending credits orchestral harp & piano BGM (Canon progression, -14 LUFS)
      - Epilogue title card ("THE END")
      - 14-cut crossfading montage of Kadan, Silia & companions across the 40-episode journey
      - Final Production & IP License card (SNSHero.com)
@@ -20,6 +20,7 @@ Combines all 40 English 16:9 anime episodes with:
 
 Usage:
   python3 scripts/studio_anime/build_full_anime_en.py
+  python3 scripts/studio_anime/build_full_anime_en.py --rebuild-intro-ending
   python3 scripts/studio_anime/build_full_anime_en.py --force-rebuild
 """
 
@@ -31,10 +32,12 @@ import os
 import re
 import subprocess
 import sys
+import wave
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -467,47 +470,187 @@ AUDIO_ENCODE_FLAGS = [
 ]
 
 
-def prepare_looped_bgm(target_duration: float, out_wav: Path) -> None:
-    """Create a seamless crossfaded orchestral BGM bed with fade-in/out and -14 LUFS loudness."""
-    bgm_dur = get_duration(BGM_PATH)
-    xf = 2.5
-    # Calculate how many copies needed to cover target_duration
-    step = max(5.0, bgm_dur - xf)
-    copies = 1
-    while (bgm_dur + (copies - 1) * step) < (target_duration + 2.0):
-        copies += 1
+def _triangle_wave(phase: np.ndarray) -> np.ndarray:
+    """Band-clean triangle wave in [-1, 1] matching WebAudio OscillatorNode('triangle')."""
+    frac = (phase / (2.0 * np.pi)) % 1.0
+    return 4.0 * np.abs(frac - 0.5) - 1.0
+
+
+def synthesize_story_ending_bgm(target_duration: float, out_wav: Path) -> None:
+    """
+    Synthesize the Story Mode Ending Credits theme (src/hearthstone/audio.ts:startEndingCreditsMusic)
+    — 8-bar lyrical Canon progression (Cmaj7 -> G/B -> Am7 -> Em7 -> Fmaj7 -> C/E -> Dm7 -> Gsus4->G)
+    with warm string pad, gentle harp arpeggio, and crystalline bell/piano melody at 48kHz stereo,
+    then normalize to -14 LUFS matching the anime episodes.
+    """
+    sr = 48000
+    step_sec = 0.42
+    bar_sec = step_sec * 8.0
+    total_samples = int(np.ceil((target_duration + 0.5) * sr))
+    left = np.zeros(total_samples, dtype=np.float64)
+    right = np.zeros(total_samples, dtype=np.float64)
+
+    bars: List[Dict[str, Any]] = [
+        {  # Cmaj7
+            "pad": [130.81, 196.0, 246.94, 329.63],
+            "arp": [261.63, 329.63, 392.0, 493.88, 523.25, 493.88, 392.0, 329.63],
+            "melody": [659.25, None, 587.33, None, 523.25, None, 493.88, 523.25],
+        },
+        {  # G/B
+            "pad": [123.47, 196.0, 293.66, 392.0],
+            "arp": [246.94, 293.66, 392.0, 493.88, 587.33, 493.88, 392.0, 293.66],
+            "melody": [587.33, None, 493.88, None, 392.0, None, 440.0, 493.88],
+        },
+        {  # Am7
+            "pad": [110.0, 164.81, 220.0, 329.63],
+            "arp": [220.0, 261.63, 329.63, 392.0, 440.0, 392.0, 329.63, 261.63],
+            "melody": [523.25, None, 493.88, None, 440.0, None, 392.0, 440.0],
+        },
+        {  # Em7
+            "pad": [164.81, 246.94, 293.66, 392.0],
+            "arp": [196.0, 246.94, 293.66, 392.0, 493.88, 392.0, 293.66, 246.94],
+            "melody": [493.88, None, 392.0, None, 329.63, None, 392.0, 493.88],
+        },
+        {  # Fmaj7
+            "pad": [174.61, 220.0, 261.63, 329.63],
+            "arp": [174.61, 220.0, 261.63, 329.63, 349.23, 329.63, 261.63, 220.0],
+            "melody": [523.25, None, 587.33, None, 659.25, None, 587.33, 523.25],
+        },
+        {  # C/E
+            "pad": [164.81, 196.0, 261.63, 329.63],
+            "arp": [196.0, 261.63, 329.63, 392.0, 523.25, 392.0, 329.63, 261.63],
+            "melody": [523.25, None, 493.88, None, 392.0, None, 440.0, 523.25],
+        },
+        {  # Dm7
+            "pad": [146.83, 220.0, 261.63, 349.23],
+            "arp": [220.0, 261.63, 293.66, 349.23, 440.0, 349.23, 293.66, 261.63],
+            "melody": [587.33, None, 523.25, None, 440.0, None, 493.88, 523.25],
+        },
+        {  # Gsus4 -> G
+            "pad": [196.0, 246.94, 293.66, 392.0],
+            "arp": [196.0, 246.94, 293.66, 392.0, 493.88, 587.33, 493.88, 392.0],
+            "melody": [587.33, None, 659.25, None, 587.33, None, 493.88, None],
+        },
+    ]
+
+    # Precompute reusable envelope shapes
+    pad_dur = step_sec * 8.2
+    pad_n = int(round(pad_dur * sr))
+    t_pad = np.arange(pad_n, dtype=np.float64) / sr
+    pad_env = np.empty(pad_n, dtype=np.float64)
+    a_end = 0.55
+    s_end = step_sec * 7.2
+    d_end = step_sec * 8.1
+    m1 = t_pad <= a_end
+    m2 = (t_pad > a_end) & (t_pad <= s_end)
+    m3 = (t_pad > s_end) & (t_pad <= d_end)
+    m4 = t_pad > d_end
+    pad_env[m1] = 0.0001 + (0.11 - 0.0001) * (t_pad[m1] / a_end)
+    pad_env[m2] = 0.11 + (0.08 - 0.11) * ((t_pad[m2] - a_end) / (s_end - a_end))
+    pad_env[m3] = 0.08 * np.power(0.0001 / 0.08, (t_pad[m3] - s_end) / (d_end - s_end))
+    pad_env[m4] = 0.0
+
+    arp_dur = 1.1
+    arp_n = int(round(arp_dur * sr))
+    t_arp = np.arange(arp_n, dtype=np.float64) / sr
+    arp_env = np.zeros(arp_n, dtype=np.float64)
+    aa_end = 0.03
+    ad_end = 1.05
+    am1 = t_arp <= aa_end
+    am2 = (t_arp > aa_end) & (t_arp <= ad_end)
+    arp_env[am1] = 0.0001 + (0.14 - 0.0001) * (t_arp[am1] / aa_end)
+    arp_env[am2] = 0.14 * np.power(0.0001 / 0.14, (t_arp[am2] - aa_end) / (ad_end - aa_end))
+
+    mel_dur = 1.5
+    mel_n = int(round(mel_dur * sr))
+    t_mel = np.arange(mel_n, dtype=np.float64) / sr
+    mel_env = np.zeros(mel_n, dtype=np.float64)
+    ma_end = 0.025
+    md_end = 1.45
+    mm1 = t_mel <= ma_end
+    mm2 = (t_mel > ma_end) & (t_mel <= md_end)
+    mel_env[mm1] = 0.0001 + (0.22 - 0.0001) * (t_mel[mm1] / ma_end)
+    mel_env[mm2] = 0.22 * np.power(0.0001 / 0.22, (t_mel[mm2] - ma_end) / (md_end - ma_end))
+
+    num_bars = int(np.ceil(target_duration / bar_sec)) + 1
+    for bar_idx in range(num_bars):
+        bar = bars[bar_idx % len(bars)]
+        bar_start_sec = bar_idx * bar_sec
+        s0 = int(round(bar_start_sec * sr))
+        if s0 >= total_samples:
+            break
+
+        # Warm string pad with slight stereo width per voice
+        end_p = min(total_samples, s0 + pad_n)
+        plen = end_p - s0
+        for p_idx, freq in enumerate(bar["pad"]):
+            sig = np.sin(2.0 * np.pi * freq * t_pad[:plen]) * pad_env[:plen]
+            pan = 0.42 + 0.16 * (p_idx / max(1, len(bar["pad"]) - 1))
+            left[s0:end_p] += sig * np.sqrt(1.0 - pan)
+            right[s0:end_p] += sig * np.sqrt(pan)
+
+        # Gentle harp arpeggio & crystalline piano/bell melody
+        for step_idx, freq in enumerate(bar["arp"]):
+            ts = int(round((bar_start_sec + step_idx * step_sec) * sr))
+            if ts >= total_samples:
+                break
+            end_a = min(total_samples, ts + arp_n)
+            alen = end_a - ts
+            arp_sig = _triangle_wave(2.0 * np.pi * freq * t_arp[:alen]) * arp_env[:alen]
+            pan_a = 0.38 if step_idx % 2 == 0 else 0.62
+            left[ts:end_a] += arp_sig * np.sqrt(1.0 - pan_a)
+            right[ts:end_a] += arp_sig * np.sqrt(pan_a)
+
+            mel = bar["melody"][step_idx]
+            if mel:
+                end_m = min(total_samples, ts + mel_n)
+                mlen = end_m - ts
+                fund = np.sin(2.0 * np.pi * mel * t_mel[:mlen])
+                harm = 0.05 * _triangle_wave(2.0 * np.pi * (mel * 2.0) * t_mel[:mlen])
+                mel_sig = (fund + harm) * mel_env[:mlen]
+                left[ts:end_m] += mel_sig * 0.72
+                right[ts:end_m] += mel_sig * 0.72
+
+    # Trim to exact target_duration and add gentle stereo hall sheen + fade in/out
+    exact_n = int(round(target_duration * sr))
+    left = left[:exact_n]
+    right = right[:exact_n]
+
+    # Subtle cross-channel room reflection (24ms / 37ms at -18dB)
+    d1, d2 = int(0.024 * sr), int(0.037 * sr)
+    l_wet = left.copy()
+    r_wet = right.copy()
+    if exact_n > d2:
+        l_wet[d1:] += 0.12 * right[:-d1]
+        r_wet[d2:] += 0.12 * left[:-d2]
+
+    # Soft peak safety & fade in (1.2s) / fade out (2.5s)
+    peak = max(float(np.max(np.abs(l_wet))), float(np.max(np.abs(r_wet))), 1e-6)
+    if peak > 0.88:
+        scale = 0.88 / peak
+        l_wet *= scale
+        r_wet *= scale
+
+    fade_in_n = min(exact_n, int(round(1.2 * sr)))
+    fade_out_n = min(exact_n, int(round(2.5 * sr)))
+    if fade_in_n > 0:
+        env_in = np.linspace(0.0, 1.0, fade_in_n)
+        l_wet[:fade_in_n] *= env_in
+        r_wet[:fade_in_n] *= env_in
+    if fade_out_n > 0:
+        env_out = np.linspace(1.0, 0.0, fade_out_n)
+        l_wet[-fade_out_n:] *= env_out
+        r_wet[-fade_out_n:] *= env_out
+
+    stereo = np.stack([l_wet, r_wet], axis=1)
+    pcm = np.clip(np.round(stereo * 32767.0), -32768, 32767).astype(np.int16)
 
     raw_wav = out_wav.with_suffix(".raw.wav")
-    cmd = ["ffmpeg", "-y", "-v", "error"]
-    for _ in range(copies):
-        cmd.extend(["-i", str(BGM_PATH)])
-
-    fc_parts = []
-    for i in range(copies):
-        fc_parts.append(f"[{i}:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[a{i}]")
-
-    if copies == 1:
-        merged_label = "[a0]"
-    else:
-        prev = "[a0]"
-        for i in range(1, copies):
-            out_lbl = f"[ax{i}]" if i < copies - 1 else "[amerged]"
-            fc_parts.append(f"{prev}[a{i}]acrossfade=d={xf:.2f}:c1=tri:c2=tri{out_lbl}")
-            prev = out_lbl
-        merged_label = "[amerged]"
-
-    fade_out_st = max(0.5, target_duration - 2.5)
-    fc_parts.append(
-        f"{merged_label}atrim=0:{target_duration:.4f},asetpts=PTS-STARTPTS,"
-        f"afade=t=in:st=0:d=1.2,afade=t=out:st={fade_out_st:.4f}:d=2.5[bgm]"
-    )
-    cmd.extend([
-        "-filter_complex", ";".join(fc_parts),
-        "-map", "[bgm]",
-        "-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2",
-        str(raw_wav),
-    ])
-    run_cmd(cmd, check=True)
+    with wave.open(str(raw_wav), "wb") as wf:
+        wf.setnchannels(2)
+        wf.setsampwidth(2)
+        wf.setframerate(sr)
+        wf.writeframes(pcm.tobytes())
 
     # Two-pass loudnorm to -14 LUFS matching episodes
     m_res = run_cmd(
@@ -543,6 +686,7 @@ def build_sequence_video(
     seq_work: Path,
     fade_in_start: float = 0.7,
     fade_out_end: float = 1.0,
+    reuse_video_only: bool = False,
 ) -> float:
     """
     Build a crossfaded video sequence (Intro or Ending) with Ken Burns artwork + sharp overlays + BGM.
@@ -552,82 +696,84 @@ def build_sequence_video(
     Returns actual ffprobe duration.
     """
     seq_work.mkdir(parents=True, exist_ok=True)
-    clip_paths: List[Path] = []
-
-    for idx, item in enumerate(items):
-        dur = float(item["duration"])
-        frames = int(round(dur * FPS))
-        cpath = seq_work / f"slide_{idx:02d}.mp4"
-        if item["type"] == "card":
-            cmd = [
-                "ffmpeg", "-y", "-v", "error",
-                "-loop", "1", "-framerate", str(FPS), "-i", str(item["card_png"]),
-                "-t", f"{dur:.4f}",
-                "-vf", f"scale={WIDTH}:{HEIGHT},fps={FPS},format=yuv420p",
-                "-c:v", "libx264", "-preset", "fast", "-crf", "16", "-pix_fmt", "yuv420p",
-                str(cpath),
-            ]
-        else:
-            # Animate artwork gently behind crisp static RGBA overlay
-            zoom_dir = "in" if idx % 2 == 0 else "out"
-            if zoom_dir == "in":
-                z_expr = f"1.0+0.055*on/{max(1, frames - 1)}"
-            else:
-                z_expr = f"1.055-0.055*on/{max(1, frames - 1)}"
-            fc = (
-                f"[0:v]scale=2560:1440:force_original_aspect_ratio=increase,crop=2560:1440,"
-                f"zoompan=z='{z_expr}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={WIDTH}x{HEIGHT}:fps={FPS}[bg];"
-                f"[bg][1:v]overlay=0:0:shortest=1,format=yuv420p[v]"
-            )
-            cmd = [
-                "ffmpeg", "-y", "-v", "error",
-                "-i", str(item["art_path"]),
-                "-loop", "1", "-framerate", str(FPS), "-i", str(item["overlay_png"]),
-                "-filter_complex", fc,
-                "-map", "[v]",
-                "-t", f"{dur:.4f}",
-                "-c:v", "libx264", "-preset", "fast", "-crf", "16", "-pix_fmt", "yuv420p",
-                str(cpath),
-            ]
-        run_cmd(cmd, check=True)
-        clip_paths.append(cpath)
-
-    # Chain slides with xfade
-    durs = [get_duration(p) for p in clip_paths]
-    cmd = ["ffmpeg", "-y", "-v", "error"]
-    for p in clip_paths:
-        cmd.extend(["-i", str(p)])
-
-    fc_parts = []
-    cur_dur = durs[0]
-    prev_lbl = "[0:v]"
-    for i in range(1, len(clip_paths)):
-        offset = max(0.0, cur_dur - XFADE_SEC)
-        out_lbl = f"[vx{i}]" if i < len(clip_paths) - 1 else "[vx_all]"
-        fc_parts.append(
-            f"{prev_lbl}[{i}:v]xfade=transition=fade:duration={XFADE_SEC:.4f}:offset={offset:.4f}{out_lbl}"
-        )
-        cur_dur = offset + durs[i]
-        prev_lbl = out_lbl
-
-    fade_out_st = max(0.5, cur_dur - fade_out_end)
-    fc_parts.append(
-        f"{prev_lbl}fade=t=in:st=0:d={fade_in_start:.2f},fade=t=out:st={fade_out_st:.4f}:d={fade_out_end:.2f},format=yuv420p[vout]"
-    )
-
     silent_video = seq_work / "video_only.mp4"
-    cmd.extend([
-        "-filter_complex", ";".join(fc_parts),
-        "-map", "[vout]",
-        "-r", str(FPS),
-        "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p",
-        str(silent_video),
-    ])
-    run_cmd(cmd, check=True)
+
+    if not (reuse_video_only and silent_video.is_file()):
+        clip_paths: List[Path] = []
+
+        for idx, item in enumerate(items):
+            dur = float(item["duration"])
+            frames = int(round(dur * FPS))
+            cpath = seq_work / f"slide_{idx:02d}.mp4"
+            if item["type"] == "card":
+                cmd = [
+                    "ffmpeg", "-y", "-v", "error",
+                    "-loop", "1", "-framerate", str(FPS), "-i", str(item["card_png"]),
+                    "-t", f"{dur:.4f}",
+                    "-vf", f"scale={WIDTH}:{HEIGHT},fps={FPS},format=yuv420p",
+                    "-c:v", "libx264", "-preset", "fast", "-crf", "16", "-pix_fmt", "yuv420p",
+                    str(cpath),
+                ]
+            else:
+                # Animate artwork gently behind crisp static RGBA overlay
+                zoom_dir = "in" if idx % 2 == 0 else "out"
+                if zoom_dir == "in":
+                    z_expr = f"1.0+0.055*on/{max(1, frames - 1)}"
+                else:
+                    z_expr = f"1.055-0.055*on/{max(1, frames - 1)}"
+                fc = (
+                    f"[0:v]scale=2560:1440:force_original_aspect_ratio=increase,crop=2560:1440,"
+                    f"zoompan=z='{z_expr}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={WIDTH}x{HEIGHT}:fps={FPS}[bg];"
+                    f"[bg][1:v]overlay=0:0:shortest=1,format=yuv420p[v]"
+                )
+                cmd = [
+                    "ffmpeg", "-y", "-v", "error",
+                    "-i", str(item["art_path"]),
+                    "-loop", "1", "-framerate", str(FPS), "-i", str(item["overlay_png"]),
+                    "-filter_complex", fc,
+                    "-map", "[v]",
+                    "-t", f"{dur:.4f}",
+                    "-c:v", "libx264", "-preset", "fast", "-crf", "16", "-pix_fmt", "yuv420p",
+                    str(cpath),
+                ]
+            run_cmd(cmd, check=True)
+            clip_paths.append(cpath)
+
+        # Chain slides with xfade
+        durs = [get_duration(p) for p in clip_paths]
+        cmd = ["ffmpeg", "-y", "-v", "error"]
+        for p in clip_paths:
+            cmd.extend(["-i", str(p)])
+
+        fc_parts = []
+        cur_dur = durs[0]
+        prev_lbl = "[0:v]"
+        for i in range(1, len(clip_paths)):
+            offset = max(0.0, cur_dur - XFADE_SEC)
+            out_lbl = f"[vx{i}]" if i < len(clip_paths) - 1 else "[vx_all]"
+            fc_parts.append(
+                f"{prev_lbl}[{i}:v]xfade=transition=fade:duration={XFADE_SEC:.4f}:offset={offset:.4f}{out_lbl}"
+            )
+            cur_dur = offset + durs[i]
+            prev_lbl = out_lbl
+
+        fade_out_st = max(0.5, cur_dur - fade_out_end)
+        fc_parts.append(
+            f"{prev_lbl}fade=t=in:st=0:d={fade_in_start:.2f},fade=t=out:st={fade_out_st:.4f}:d={fade_out_end:.2f},format=yuv420p[vout]"
+        )
+
+        cmd.extend([
+            "-filter_complex", ";".join(fc_parts),
+            "-map", "[vout]",
+            "-r", str(FPS),
+            "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p",
+            str(silent_video),
+        ])
+        run_cmd(cmd, check=True)
 
     actual_v_dur = get_duration(silent_video)
-    bgm_wav = seq_work / "bgm_norm.wav"
-    prepare_looped_bgm(actual_v_dur, bgm_wav)
+    bgm_wav = seq_work / "bgm_story_ending_norm.wav"
+    synthesize_story_ending_bgm(actual_v_dur, bgm_wav)
 
     # Mux final sequence matching exact EP01-EP40 stream specs
     run_cmd(
@@ -647,13 +793,17 @@ def build_sequence_video(
     return get_duration(out_mp4)
 
 
-def build_intro(out_mp4: Path, force: bool = False) -> float:
+def build_intro(out_mp4: Path, force: bool = False, reuse_video_only: bool = False) -> float:
     if out_mp4.is_file() and not force:
         return get_duration(out_mp4)
 
     print("[1/5] Building Intro sequence...")
     seq_work = WORK_DIR / "intro"
     seq_work.mkdir(parents=True, exist_ok=True)
+    if reuse_video_only and (seq_work / "video_only.mp4").is_file():
+        dur = build_sequence_video([], out_mp4, seq_work, fade_in_start=0.8, fade_out_end=1.0, reuse_video_only=True)
+        print(f"      Intro ready (reused video + Story Ending BGM): {dur:.2f}s -> {out_mp4.name}")
+        return dur
 
     items: List[Dict[str, Any]] = []
 
@@ -697,13 +847,17 @@ def build_intro(out_mp4: Path, force: bool = False) -> float:
     return dur
 
 
-def build_ending(out_mp4: Path, force: bool = False) -> float:
+def build_ending(out_mp4: Path, force: bool = False, reuse_video_only: bool = False) -> float:
     if out_mp4.is_file() and not force:
         return get_duration(out_mp4)
 
     print("[4/5] Building Ending sequence...")
     seq_work = WORK_DIR / "ending"
     seq_work.mkdir(parents=True, exist_ok=True)
+    if reuse_video_only and (seq_work / "video_only.mp4").is_file():
+        dur = build_sequence_video([], out_mp4, seq_work, fade_in_start=0.9, fade_out_end=1.4, reuse_video_only=True)
+        print(f"      Ending ready (reused video + Story Ending BGM): {dur:.2f}s -> {out_mp4.name}")
+        return dur
 
     items: List[Dict[str, Any]] = []
 
@@ -892,6 +1046,7 @@ def collect_shifted_srt_blocks(ep: int, ep_start: float, ep_dur: float) -> List[
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build SNSHero Full-Length EN Feature Animation (EP01-EP40)")
     parser.add_argument("--force-rebuild", action="store_true", help="Regenerate cached intro/ending/transitions/chains")
+    parser.add_argument("--rebuild-intro-ending", action="store_true", help="Regenerate intro & ending audio/mux while reusing transitions & chains")
     args = parser.parse_args()
 
     # Verify all 40 inputs exist
@@ -902,10 +1057,12 @@ def main() -> int:
 
     WORK_DIR.mkdir(parents=True, exist_ok=True)
     force = args.force_rebuild
+    force_ie = args.force_rebuild or args.rebuild_intro_ending
+    reuse_vo = args.rebuild_intro_ending and not args.force_rebuild
 
     # 1. Intro
     intro_mp4 = WORK_DIR / "00_intro_en.mp4"
-    intro_dur = build_intro(intro_mp4, force=force)
+    intro_dur = build_intro(intro_mp4, force=force_ie, reuse_video_only=reuse_vo)
 
     # 2. Transitions
     print("[2/5] Building episode transition cards...")
@@ -958,7 +1115,7 @@ def main() -> int:
 
     # 4. Ending
     ending_mp4 = WORK_DIR / "99_ending_en.mp4"
-    ending_dur = build_ending(ending_mp4, force=force)
+    ending_dur = build_ending(ending_mp4, force=force_ie, reuse_video_only=reuse_vo)
 
     # 5. Assemble concat list, compute timeline offsets, merge
     print("[5/5] Concatenating full feature animation, unified SRT & chapters...")
