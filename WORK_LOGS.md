@@ -2,6 +2,14 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-24 10:50 KST] [GDevelop 네이티브 프로모션 데모(`SNSHero Card Duel Demo`) gd.games 공개 출시 완료]
+- **출시 정보 (`https://gd.games/snshero/snshero-card-duel-demo`)**:
+  - GDevelop 5 클라우드(`editor.gdevelop.io`)에서 `SNSHero Card Duel Demo` 빌드 발행 후 공개 설정 완료 (`Gd.games에서 공개`).
+  - 커버 썸네일(`gdevelop/snshero-promo/thumbnail.jpg`, 1280×720), 영문 게임 설명, 방향(`가로 보기`), 제어 장치(`터치(모바일)`), 장르 3종(`전략` / `롤플레잉(RPG)` / `어드벤처`), 가시성(`검색 및 프로필에서 표시됨`) 적용 및 저장.
+- **라이브 검증**:
+  - Chrome에서 실제 공개 페이지 `https://gd.games/snshero/snshero-card-duel-demo` 접속 확인: 게임 iframe(`games.gdevelop-app.com`) 및 1280×720 캔버스 정상 렌더링, `frame-src` / CSP 차단 오류 0건, 팩 개봉 제단 및 `EN / 한국어` 토글 버튼 정상 표시 확인.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-23 17:44 KST] [보가트 도박장 진입 설명 및 준비 화면 대폭 단순화 · 시작 버튼 상시 노출 개선]
 - **개선 내역 (`src/hearthstone/screens/HeroDeckSelectScreen.tsx`)**:
   - **진입 나레이션 단순화 (`BogartNarrationOverlay`)**: 장황하던 2문단 경고 문구를 친근한 핵심 1줄(`랜덤 30장 덱 · 주사위 자동 배팅 · 승리 2배 · 무료 구제`)로 축약하고, 상단 경고 배지와 입장 버튼을 부담 없는 안내 톤(`🎲 도박장 입장`)으로 정리.
