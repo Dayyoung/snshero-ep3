@@ -48,9 +48,9 @@ CHANNEL_ID = "UCA6QmKiPstbiyBUHtnSMxyA"
 TMP_CHROME_DIR = Path("/tmp/yt_studio_snshero_anime_profile6")
 PROFILE_DIR_NAME = "Profile 6"
 
-PLAYLIST_TITLE_DEFAULT = "SNSHero: Kadan's Journey | Official Studio Anime (EP01–EP20)"
+PLAYLIST_TITLE_DEFAULT = "SNSHero: Kadan's Journey | Official Studio Anime (EP01–EP40)"
 PLAYLIST_DESC_DEFAULT = (
-    "Official dark-fantasy Studio Anime series of SNSHero: Kadan's Journey (Episodes 01–20).\n"
+    "Official dark-fantasy Studio Anime complete series of SNSHero: Kadan's Journey (Episodes 01–40).\n"
     "Dynamic cel-shaded action, voice-acted English episodes with official 10-language metadata.\n\n"
     "🎁 FREE PLAYER REWARDS — Claim free starter card packs, daily free summons, and collect 382 tactical cards with zero download!\n"
     "⚔️ Play the anime's story battles right now in your browser: https://snshero.com"
@@ -63,40 +63,40 @@ PLAYLIST_LOCALIZATIONS: Dict[str, Dict[str, str]] = {
         "description": PLAYLIST_DESC_DEFAULT,
     },
     "ko": {
-        "title": "눈히어로: 카단의 여정 | 공식 스튜디오 애니메이션 (1화~20화)",
-        "description": "『눈히어로: 카단의 여정』 공식 다크 판타지 스튜디오 애니메이션 1화~20화 정주행 재생목록입니다.\n🎁 지금 접속 시 무료 스타터 카드팩 · 매일 무료 소환 · 382종 전략 카드 수집 보상 즉시 지급!\n⚔️ 무설치 웹 카드 RPG & 40화 보스전 바로 플레이: https://snshero.com",
+        "title": "눈히어로: 카단의 여정 | 공식 스튜디오 애니메이션 (1화~40화 완결)",
+        "description": "『눈히어로: 카단의 여정』 공식 다크 판타지 스튜디오 애니메이션 1화~40화 전편 정주행 재생목록입니다.\n🎁 지금 접속 시 무료 스타터 카드팩 · 매일 무료 소환 · 382종 전략 카드 수집 보상 즉시 지급!\n⚔️ 무설치 웹 카드 RPG & 40화 보스전 바로 플레이: https://snshero.com",
     },
     "ja": {
-        "title": "SNSHero：カダンの旅｜公式スタジオアニメ（第1話〜第20話）",
-        "description": "ダークファンタジー『SNSHero：カダンの旅』公式アニメーション第1話〜第20話。\n🎁 今すぐプレイで無料スターターパック＆毎日無料召喚・382枚のカード報酬をゲット！\n⚔️ インストール不要・無料ブラウザカードRPG：https://snshero.com",
+        "title": "SNSHero：カダンの旅｜公式スタジオアニメ（第1話〜第40話・完結）",
+        "description": "ダークファンタジー『SNSHero：カダンの旅』公式アニメーション第1話〜第40話全話完全版。\n🎁 今すぐプレイで無料スターターパック＆毎日無料召喚・382枚のカード報酬をゲット！\n⚔️ インストール不要・無料ブラウザカードRPG：https://snshero.com",
     },
     "zh-Hans": {
-        "title": "SNSHero：卡丹的旅程｜官方工作室动画（第1集–第20集）",
-        "description": "暗黑奇幻《SNSHero：卡丹的旅程》官方动画第1集至第20集完整合集。\n🎁 立即畅玩领取免费新手卡包、每日免费召唤与382张策略卡牌奖励！\n⚔️ 免安装网页卡牌RPG立即开战：https://snshero.com",
+        "title": "SNSHero：卡丹的旅程｜官方工作室动画（第1集–第40集 完结）",
+        "description": "暗黑奇幻《SNSHero：卡丹的旅程》官方动画第1集至第40集完整全集。\n🎁 立即畅玩领取免费新手卡包、每日免费召唤与382张策略卡牌奖励！\n⚔️ 免安装网页卡牌RPG立即开战：https://snshero.com",
     },
     "zh-Hant": {
-        "title": "SNSHero：卡丹的旅程｜官方工作室動畫（第1集–第20集）",
-        "description": "暗黑奇幻《SNSHero：卡丹的旅程》官方動畫第1集至第20集完整合集。\n🎁 立即暢玩領取免費新手卡包、每日免費召喚與382張策略卡牌獎勵！\n⚔️ 免安裝網頁卡牌RPG立即開戰：https://snshero.com",
+        "title": "SNSHero：卡丹的旅程｜官方工作室動畫（第1集–第40集 完結）",
+        "description": "暗黑奇幻《SNSHero：卡丹的旅程》官方動畫第1集至第40集完整全集。\n🎁 立即暢玩領取免費新手卡包、每日免費召喚與382張策略卡牌獎勵！\n⚔️ 免安裝網頁卡牌RPG立即開戰：https://snshero.com",
     },
     "es": {
-        "title": "SNSHero: El Viaje de Kadan | Anime Oficial de Estudio (EP01–EP20)",
-        "description": "Serie oficial de anime de fantasía oscura SNSHero: El Viaje de Kadan (Episodios 1 al 20).\n🎁 ¡RECOMPENSAS GRATIS! Reclama sobres iniciales, invocaciones diarias gratis y 382 cartas tácticas.\n⚔️ Juega gratis sin descargas en tu navegador: https://snshero.com",
+        "title": "SNSHero: El Viaje de Kadan | Anime Oficial de Estudio (EP01–EP40)",
+        "description": "Serie completa oficial de anime de fantasía oscura SNSHero: El Viaje de Kadan (Episodios 1 al 40).\n🎁 ¡RECOMPENSAS GRATIS! Reclama sobres iniciales, invocaciones diarias gratis y 382 cartas tácticas.\n⚔️ Juega gratis sin descargas en tu navegador: https://snshero.com",
     },
     "fr": {
-        "title": "SNSHero : Le Voyage de Kadan | Anime Officiel de Studio (EP01–EP20)",
-        "description": "Série animée officielle de dark fantasy SNSHero : Le Voyage de Kadan (Épisodes 1 à 20).\n🎁 RÉCOMPENSES GRATUITES : packs de départ offerts, invocations gratuites chaque jour et 382 cartes tactiques !\n⚔️ Jouez gratuitement sans téléchargement : https://snshero.com",
+        "title": "SNSHero : Le Voyage de Kadan | Anime Officiel de Studio (EP01–EP40)",
+        "description": "Série animée complète officielle de dark fantasy SNSHero : Le Voyage de Kadan (Épisodes 1 à 40).\n🎁 RÉCOMPENSES GRATUITES : packs de départ offerts, invocations gratuites chaque jour et 382 cartes tactiques !\n⚔️ Jouez gratuitement sans téléchargement : https://snshero.com",
     },
     "de": {
-        "title": "SNSHero: Kadans Reise | Offizielle Studio-Anime-Serie (EP01–EP20)",
-        "description": "Offizielle Dark-Fantasy-Anime-Serie SNSHero: Kadans Reise (Folgen 1–20).\n🎁 GRATIS-BELOHNUNGEN: Hol dir kostenlose Starter-Kartenpacks, tägliche Gratis-Beschwörungen & 382 Karten!\n⚔️ Jetzt kostenlos ohne Download im Browser spielen: https://snshero.com",
+        "title": "SNSHero: Kadans Reise | Offizielle Studio-Anime-Serie (EP01–EP40)",
+        "description": "Offizielle komplette Dark-Fantasy-Anime-Serie SNSHero: Kadans Reise (Folgen 1–40).\n🎁 GRATIS-BELOHNUNGEN: Hol dir kostenlose Starter-Kartenpacks, tägliche Gratis-Beschwörungen & 382 Karten!\n⚔️ Jetzt kostenlos ohne Download im Browser spielen: https://snshero.com",
     },
     "id": {
-        "title": "SNSHero: Perjalanan Kadan | Anime Studio Resmi (EP01–EP20)",
-        "description": "Serial anime fantasi gelap resmi SNSHero: Perjalanan Kadan (Episode 1–20).\n🎁 HADIAH GRATIS: Klaim paket kartu pemula, summon gratis harian, & koleksi 382 kartu taktis!\n⚔️ Mainkan langsung di browser tanpa install: https://snshero.com",
+        "title": "SNSHero: Perjalanan Kadan | Anime Studio Resmi (EP01–EP40)",
+        "description": "Serial anime fantasi gelap resmi lengkap SNSHero: Perjalanan Kadan (Episode 1–40).\n🎁 HADIAH GRATIS: Klaim paket kartu pemula, summon gratis harian, & koleksi 382 kartu taktis!\n⚔️ Mainkan langsung di browser tanpa install: https://snshero.com",
     },
     "vi": {
-        "title": "SNSHero: Hành Trình Của Kadan | Anime Studio Chính Thức (Tập 01–20)",
-        "description": "Loạt phim hoạt hình giả tưởng đen tối chính thức SNSHero: Hành Trình Của Kadan (Tập 1–20).\n🎁 QUÀ TẶNG MIỄN PHÍ: Nhận gói thẻ tân thủ, triệu hồi miễn phí mỗi ngày & sưu tập 382 thẻ chiến thuật!\n⚔️ Chơi ngay trên trình duyệt không cần tải: https://snshero.com",
+        "title": "SNSHero: Hành Trình Của Kadan | Anime Studio Chính Thức (Tập 01–40)",
+        "description": "Trọn bộ phim hoạt hình giả tưởng đen tối chính thức SNSHero: Hành Trình Của Kadan (Tập 1–40).\n🎁 QUÀ TẶNG MIỄN PHÍ: Nhận gói thẻ tân thủ, triệu hồi miễn phí mỗi ngày & sưu tập 382 thẻ chiến thuật!\n⚔️ Chơi ngay trên trình duyệt không cần tải: https://snshero.com",
     },
 }
 
@@ -342,6 +342,246 @@ EP_TITLES_10LANG: Dict[int, Dict[str, str]] = {
         "id": "Ombak yang Menelan Kapal Bunga",
         "vi": "Con Sóng Nuốt Chửng Thuyền Hoa",
     },
+    21: {
+        "en": "Betrayal Aboard the Burning Ship",
+        "ko": "불탄 배의 흔적",
+        "ja": "燃える船上の裏切り",
+        "zh-Hans": "燃烧之船上的背叛",
+        "zh-Hant": "燃燒之船上的背叛",
+        "es": "Traición a Bordo del Barco en Llamas",
+        "fr": "Trahison à Bord du Navire en Flammes",
+        "de": "Verrat an Bord des Brennenden Schiffes",
+        "id": "Pengkhianatan di Atas Kapal Terbakar",
+        "vi": "Sự Phản Bội Trên Con Tàu Cháy",
+    },
+    22: {
+        "en": "Four on a Deserted Island",
+        "ko": "무인도의 투석기",
+        "ja": "無人島の四人",
+        "zh-Hans": "荒岛四人",
+        "zh-Hant": "荒島四人",
+        "es": "Cuatro en una Isla Desierta",
+        "fr": "Quatre sur une Île Déserte",
+        "de": "Vier auf einer Verlassenen Insel",
+        "id": "Empat Orang di Pulau Terpencil",
+        "vi": "Bốn Người Trên Đảo Hoang",
+    },
+    23: {
+        "en": "The Record Sleeping in the Cave",
+        "ko": "석굴의 기록",
+        "ja": "石窟に眠る記録",
+        "zh-Hans": "沉睡在石窟中的记录",
+        "zh-Hant": "沉睡在石窟中的記錄",
+        "es": "El Registro que Duerme en la Cueva",
+        "fr": "Le Récit Endormi dans la Grotte",
+        "de": "Die in der Höhle Schlummernde Chronik",
+        "id": "Catatan yang Tertidur di Dalam Gua",
+        "vi": "Ghi Chép Ngủ Yên Trong Hang Đá",
+    },
+    24: {
+        "en": "Seven Nights in the Sealed Chamber",
+        "ko": "봉인된 석실",
+        "ja": "封印された石室の七夜",
+        "zh-Hans": "封印石室的七个夜晚",
+        "zh-Hant": "封印石室的七個夜晚",
+        "es": "Siete Noches en la Cámara Sellada",
+        "fr": "Sept Nuits dans la Chambre Scellée",
+        "de": "Sieben Nächte in der Versiegelten Kammer",
+        "id": "Tujuh Malam di Ruang Tersegel",
+        "vi": "Bảy Đêm Trong Mật Thất Bị Phong Ấn",
+    },
+    25: {
+        "en": "Night of the False Wedding",
+        "ko": "거짓된 혼례",
+        "ja": "偽りの婚礼の夜",
+        "zh-Hans": "虚假婚礼之夜",
+        "zh-Hant": "虛假婚禮之夜",
+        "es": "Noche de la Falsa Boda",
+        "fr": "La Nuit des Fausses Noces",
+        "de": "Nacht der Falschen Hochzeit",
+        "id": "Malam Pernikahan Palsu",
+        "vi": "Đêm Hôn Lễ Giả Dối",
+    },
+    26: {
+        "en": "Open Door, Closed Heart",
+        "ko": "열린 문, 닫힌 마음",
+        "ja": "開かれた扉、閉ざされた心",
+        "zh-Hans": "敞开的门，紧闭的心",
+        "zh-Hant": "敞開的門，緊閉的心",
+        "es": "Puerta Abierta, Corazón Cerrado",
+        "fr": "Porte Ouverte, Cœur Fermé",
+        "de": "Offene Tür, Verschlossenes Herz",
+        "id": "Pintu Terbuka, Hati Tertutup",
+        "vi": "Cánh Cửa Mở, Trái Tim Đóng Kín",
+    },
+    27: {
+        "en": "Between Two Promises",
+        "ko": "두 개의 약속 사이에서",
+        "ja": "二つの約束の間で",
+        "zh-Hans": "两个承诺之间",
+        "zh-Hant": "兩個承諾之間",
+        "es": "Entre Dos Promesas",
+        "fr": "Entre Deux Promesses",
+        "de": "Zwischen Zwei Versprechen",
+        "id": "Di Antara Dua Janji",
+        "vi": "Giữa Hai Lời Hứa",
+    },
+    28: {
+        "en": "Revolt of the Jade Council",
+        "ko": "비취 평의회의 반란",
+        "ja": "翡翠評議会の反乱",
+        "zh-Hans": "翡翠议会的叛乱",
+        "zh-Hant": "翡翠議會的叛亂",
+        "es": "La Revuelta del Consejo de Jade",
+        "fr": "La Révolte du Conseil de Jade",
+        "de": "Der Aufstand des Jaderats",
+        "id": "Pemberontakan Dewan Giok",
+        "vi": "Cuộc Nổi Loạn Của Hội Đồng Ngọc Bích",
+    },
+    29: {
+        "en": "Queen of the Wind",
+        "ko": "바람의 여왕",
+        "ja": "風の女王",
+        "zh-Hans": "风之女王",
+        "zh-Hant": "風之女王",
+        "es": "La Reina del Viento",
+        "fr": "La Reine du Vent",
+        "de": "Die Königin des Windes",
+        "id": "Ratu Angin",
+        "vi": "Nữ Hoàng Của Gió",
+    },
+    30: {
+        "en": "Poison at the Four Gates",
+        "ko": "네 수문의 맹독",
+        "ja": "四つの水門の猛毒",
+        "zh-Hans": "四道水门的剧毒",
+        "zh-Hant": "四道水門的劇毒",
+        "es": "Veneno en las Cuatro Puertas",
+        "fr": "Poison aux Quatre Portes",
+        "de": "Gift an den Vier Toren",
+        "id": "Racun di Empat Gerbang",
+        "vi": "Độc Dược Tại Tứ Môn",
+    },
+    31: {
+        "en": "The Hand That Wagered Everything",
+        "ko": "내기에 건 손",
+        "ja": "すべてを賭けた手",
+        "zh-Hans": "孤注一掷之手",
+        "zh-Hant": "孤注一擲之手",
+        "es": "La Mano que lo Apostó Todo",
+        "fr": "La Main qui a Tout Misé",
+        "de": "Die Hand, die Alles Wette",
+        "id": "Tangan yang Mempertaruhkan Segalanya",
+        "vi": "Bàn Tay Đánh Cược Tất Cả",
+    },
+    32: {
+        "en": "Echo of First Love",
+        "ko": "첫사랑의 메아리",
+        "ja": "初恋の残響",
+        "zh-Hans": "初恋的回响",
+        "zh-Hant": "初戀的迴響",
+        "es": "El Eco del Primer Amor",
+        "fr": "L'Écho du Premier Amour",
+        "de": "Echo der Ersten Liebe",
+        "id": "Gema Cinta Pertama",
+        "vi": "Tiếng Vọng Tình Đầu",
+    },
+    33: {
+        "en": "Grudge of the Black Marsh",
+        "ko": "검은 늪",
+        "ja": "黒き沼の怨念",
+        "zh-Hans": "黑沼之怨",
+        "zh-Hant": "黑沼之怨",
+        "es": "El Rencor del Pantano Negro",
+        "fr": "La Rancune du Marais Noir",
+        "de": "Der Groll des Schwarzen Sumpfes",
+        "id": "Dendam Rawa Hitam",
+        "vi": "Oán Hận Đầm Lầy Đen",
+    },
+    34: {
+        "en": "The Fallen Wind Isle",
+        "ko": "쓰러진 바람섬",
+        "ja": "陥落した風の島",
+        "zh-Hans": "陷落的风之岛",
+        "zh-Hant": "陷落的風之島",
+        "es": "La Isla del Viento Caída",
+        "fr": "L'Île du Vent Déchue",
+        "de": "Die Gefallene Windinsel",
+        "id": "Pulau Angin yang Runtuh",
+        "vi": "Đảo Gió Thất Thủ",
+    },
+    35: {
+        "en": "Mistaken in the Fog",
+        "ko": "안개 속의 착각",
+        "ja": "霧の中の錯覚",
+        "zh-Hans": "迷雾中的错觉",
+        "zh-Hant": "迷霧中的錯覺",
+        "es": "Confusión en la Niebla",
+        "fr": "Méprise dans le Brouillard",
+        "de": "Täuschung im Nebel",
+        "id": "Kekeliruan di Dalam Kabut",
+        "vi": "Nhầm Lẫn Trong Sương Mù",
+    },
+    36: {
+        "en": "Map of the Cross-Shaped Scar",
+        "ko": "십자 흉터의 지도",
+        "ja": "十字傷の地図",
+        "zh-Hans": "十字伤疤的地图",
+        "zh-Hant": "十字傷疤的地圖",
+        "es": "El Mapa de la Cicatriz en Cruz",
+        "fr": "La Carte de la Cicatrice en Croix",
+        "de": "Die Karte der Kreuznarbe",
+        "id": "Peta Bekas Luka Salib",
+        "vi": "Bản Đồ Vết Sẹo Chữ Thập",
+    },
+    37: {
+        "en": "War of the Conqueror King",
+        "ko": "패왕의 전쟁",
+        "ja": "覇王の戦争",
+        "zh-Hans": "霸王之战",
+        "zh-Hant": "霸王之戰",
+        "es": "La Guerra del Rey Conquistador",
+        "fr": "La Guerre du Roi Conquérant",
+        "de": "Der Krieg des Erobererkönigs",
+        "id": "Perang Raja Penakluk",
+        "vi": "Cuộc Chiến Của Bá Vương",
+    },
+    38: {
+        "en": "Three Silk Seals",
+        "ko": "세 개의 명주 봉인",
+        "ja": "三つの絹の封印",
+        "zh-Hans": "三道丝绸封印",
+        "zh-Hant": "三道絲綢封印",
+        "es": "Los Tres Sellos de Seda",
+        "fr": "Les Trois Sceaux de Soie",
+        "de": "Drei Seidensiegel",
+        "id": "Tiga Segel Sutra",
+        "vi": "Ba Phong Ấn Lụa",
+    },
+    39: {
+        "en": "The World Worth Protecting",
+        "ko": "지킬 만한 가치가 있는 세상",
+        "ja": "守る価値のある世界",
+        "zh-Hans": "值得守护的世界",
+        "zh-Hant": "值得守護的世界",
+        "es": "Un Mundo que Merece Ser Protegido",
+        "fr": "Un Monde Qui Mérite d'Être Protégé",
+        "de": "Eine Welt, die Es Wert Ist, Beschützt zu Werden",
+        "id": "Dunia yang Layak Dilindungi",
+        "vi": "Thế Giới Đáng Để Bảo Vệ",
+    },
+    40: {
+        "en": "One Who Is Not Called a Hero",
+        "ko": "영웅이라 불리지 않는 자",
+        "ja": "英雄と呼ばれない者",
+        "zh-Hans": "不被称作英雄之人",
+        "zh-Hant": "不被稱作英雄之人",
+        "es": "Aquel a Quien No Llaman Héroe",
+        "fr": "Celui Qu'on N'Appelle Pas Héros",
+        "de": "Der, den Man Keinen Helden Nennt",
+        "id": "Dia yang Tidak Disebut Pahlawan",
+        "vi": "Kẻ Không Được Gọi Là Anh Hùng",
+    },
 }
 
 LANG_DESC_TEMPLATES: Dict[str, str] = {
@@ -441,16 +681,30 @@ def ensure_thumbnails(start_ep: int, end_ep: int) -> None:
             im.convert("RGB").resize((1280, 720), Image.Resampling.LANCZOS).save(dst, "JPEG", quality=92)
 
 
-def ensure_playlist(yt, state: dict) -> str:
+def ensure_playlist(yt, state: dict, update_meta: bool = False) -> str:
     if state.get("playlistId"):
         pl_id = state["playlistId"]
         try:
             chk = yt.playlists().list(part="snippet,status", id=pl_id).execute()
             if chk.get("items"):
                 log(f"Reusing existing playlist: {pl_id}")
+                if update_meta:
+                    yt.playlists().update(
+                        part="snippet,localizations",
+                        body={
+                            "id": pl_id,
+                            "snippet": {
+                                "title": PLAYLIST_TITLE_DEFAULT,
+                                "description": PLAYLIST_DESC_DEFAULT,
+                                "defaultLanguage": "en",
+                            },
+                            "localizations": PLAYLIST_LOCALIZATIONS,
+                        },
+                    ).execute()
+                    log(f"Updated playlist {pl_id} metadata & 10-language localizations to EP01–EP40")
                 return pl_id
-        except Exception:
-            pass
+        except Exception as e:
+            log(f"Warning checking/updating playlist {pl_id}: {e}")
 
     # Search existing playlists on channel to prevent duplicates
     resp = yt.playlists().list(part="snippet", channelId=CHANNEL_ID, maxResults=50).execute()
@@ -702,8 +956,9 @@ def apply_api_postprocess(
     tags: List[str],
     existing_pl_vids: set,
     upload_captions: bool = False,
+    upload_thumbnail: bool = False,
 ) -> dict:
-    res = {"localized": False, "inPlaylist": False, "captions": []}
+    res = {"localized": False, "inPlaylist": False, "captions": [], "thumbnailSet": False}
 
     # 1. Apply 10-language localizations + defaultLanguage="en" + tags + categoryId="1" (Film & Animation)
     for attempt in range(3):
@@ -750,6 +1005,20 @@ def apply_api_postprocess(
             log(f"[EP{ep:02d}] Added to playlist {playlist_id}")
         except HttpError as e:
             log(f"[EP{ep:02d}] Warning: playlist insert failed: {e}")
+
+    # 2b. Optional custom 1280x720 thumbnail via API (50 units/video)
+    if upload_thumbnail:
+        thumb_path = THUMB_DIR / f"ep{ep:02d}_thumb.jpg"
+        if thumb_path.exists():
+            try:
+                yt.thumbnails().set(
+                    videoId=video_id,
+                    media_body=MediaFileUpload(str(thumb_path), mimetype="image/jpeg"),
+                ).execute()
+                res["thumbnailSet"] = True
+                log(f"[EP{ep:02d}] Set custom 1280x720 thumbnail via API ({video_id})")
+            except HttpError as e:
+                log(f"[EP{ep:02d}] Warning: thumbnail set failed: {e}")
 
     # 3. Optional EN & KO captions via API (only if requested; costs 400 units/track)
     if upload_captions:
@@ -803,17 +1072,19 @@ def fetch_existing_playlist_videos(yt, playlist_id: str) -> set:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Upload EP01-EP20 SNSHero Studio Anime with 10-language localizations & playlist")
+    parser = argparse.ArgumentParser(description="Upload EP01-EP40 SNSHero Studio Anime with 10-language localizations & playlist")
     parser.add_argument("--start", type=int, default=1)
-    parser.add_argument("--end", type=int, default=20)
+    parser.add_argument("--end", type=int, default=40)
     parser.add_argument("--captions", action="store_true", help="Also upload EN/KO SRT captions via API (400 units each)")
+    parser.add_argument("--thumbnails", action="store_true", help="Also upload custom 1280x720 thumbnails via API (50 units each)")
     parser.add_argument("--api-only-postprocess", action="store_true", help="Skip browser upload and run API localizations/playlist only for already-uploaded IDs")
+    parser.add_argument("--update-playlist-meta", action="store_true", help="Update existing playlist title/desc/localizations to EP01-EP40")
     args = parser.parse_args()
 
     state = load_state()
     ensure_thumbnails(args.start, args.end)
     yt = get_youtube_client()
-    playlist_id = ensure_playlist(yt, state)
+    playlist_id = ensure_playlist(yt, state, update_meta=args.update_playlist_meta)
     existing_pl_vids = fetch_existing_playlist_videos(yt, playlist_id)
 
     pending_eps = []
@@ -873,10 +1144,10 @@ def main():
         info = state["episodes"].get(ep_key)
         if not info or not info.get("videoId"):
             continue
-        if not info.get("localized") or not info.get("inPlaylist"):
+        if not info.get("localized") or not info.get("inPlaylist") or (args.thumbnails and not info.get("thumbnailSet")):
             yt_title, yt_desc, localizations, tags = build_episode_metadata(ep)
             post = apply_api_postprocess(
-                yt, playlist_id, ep, info["videoId"], yt_title, yt_desc, localizations, tags, existing_pl_vids, args.captions
+                yt, playlist_id, ep, info["videoId"], yt_title, yt_desc, localizations, tags, existing_pl_vids, args.captions, args.thumbnails
             )
             info.update(post)
             save_state(state)

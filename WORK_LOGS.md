@@ -1910,3 +1910,15 @@
     - `SNSHero_Search_TCG_KR` (`24487212616`): `ENABLED` (`ELIGIBLE`) · 일 예산 `₩10,000` · 최대 CPC 상한 `₩1,500` · 종료일 `2026-11-27 23:59:59`
     - `SNSHero_Search_TCG_EN` (`24475998192`): `PAUSED` → `ENABLED` (`ELIGIBLE`) · 일 예산 `₩10,000` · 최대 CPC 상한 `₩1,200` · 종료일 `2026-11-27 23:59:59`
   - `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 보류).
+
+## [2026-11-24 11:24 KST] [SNSHero 스튜디오 애니메이션 EP21~EP40 16:9 본편 20편 + 9:16 쇼츠 20편 유튜브 업로드 · 10개국어 메타데이터 · 공식 재생목록 40화 완결 업데이트]
+- **작업자**: `Antigravity Assistant`
+- **대상 채널**: `@snshero` (`UCA6QmKiPstbiyBUHtnSMxyA`)
+- **업로드 및 후처리 내역**:
+  - **스크립트 확장**: [`scripts/studio_anime/upload_youtube_20eps_multilang.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/upload_youtube_20eps_multilang.py) 및 [`scripts/studio_anime/upload_youtube_20shorts_multilang.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/upload_youtube_20shorts_multilang.py)에 EP21~EP40 10개국어(`en, ko, ja, zh-Hans, zh-Hant, es, fr, de, id, vi`) 제목·설명 사전, `--update-playlist-meta`, `--thumbnails` 옵션 확장 및 상태 기록 유틸리티 [`scripts/studio_anime/record_yt_upload.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/record_yt_upload.py) 추가.
+  - **16:9 본편 20편 (EP21~EP40)** 공개 업로드 + 1280×720 커스텀 썸네일 20종 적용 + 10개국어 `localizations` 적용 완료 (`output/studio_anime/youtube_20eps_upload_state.json`, 누적 40/40편).
+  - **9:16 쇼츠 20편 (EP21~EP40)** 공개 업로드 + 10개국어 `localizations` 적용 완료 (`output/studio_anime/youtube_20shorts_upload_state.json`, 누적 40/40편).
+  - **공식 재생목록 2종 `EP01–EP40` 완결 업데이트 (YouTube Data API v3 실측 검증)**:
+    - 16:9 본편 재생목록 `PLTXFzLZKS4-4`: `SNSHero: Kadan's Journey | Official Studio Anime (EP01–EP40)` — **40 / 40편** (EP01→EP40 순서, 10개국어 로컬라이제이션 적용 완료)
+    - 9:16 쇼츠 재생목록 `PLD2SN5QckvaE`: `SNSHero: Kadan's Journey | Official Studio Anime Shorts (EP01–EP40)` — **40 / 40편** (EP01→EP40 순서, 10개국어 로컬라이제이션 적용 완료)
+- **검증**: YouTube Data API v3 라이브 조회 결과 두 재생목록 모두 40개 항목 및 10개국어 로컬라이제이션 정상 반영 확인. 로컬 `git commit` 완료 (`git push` 보류).

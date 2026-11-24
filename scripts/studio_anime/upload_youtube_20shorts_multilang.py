@@ -26,9 +26,9 @@ OUT_ROOT = base.OUT_ROOT
 CHANNEL_ID = base.CHANNEL_ID
 STATE_PATH = OUT_ROOT / "youtube_20shorts_upload_state.json"
 
-SHORTS_PLAYLIST_TITLE = "SNSHero: Kadan's Journey | Official Studio Anime Shorts (EP01–EP20)"
+SHORTS_PLAYLIST_TITLE = "SNSHero: Kadan's Journey | Official Studio Anime Shorts (EP01–EP40)"
 SHORTS_PLAYLIST_DESC = (
-    "Official 9:16 full-screen Studio Anime Shorts of SNSHero: Kadan's Journey (Episodes 01–20).\n"
+    "Official 9:16 full-screen Studio Anime Shorts complete series of SNSHero: Kadan's Journey (Episodes 01–40).\n"
     "Watch in vertical full-screen with English & Korean subtitle tracks!\n\n"
     "🎁 FREE PLAYER REWARDS — Claim free starter card packs, daily free summons, and collect 382 tactical cards with zero download!\n"
     "⚔️ Play the anime's story battles FREE right now in your browser: https://snshero.com\n"
@@ -41,40 +41,40 @@ SHORTS_PLAYLIST_LOCALIZATIONS: Dict[str, Dict[str, str]] = {
         "description": SHORTS_PLAYLIST_DESC,
     },
     "ko": {
-        "title": "눈히어로: 카단의 여정 | 공식 스튜디오 애니메이션 쇼츠 (1화~20화)",
-        "description": "『눈히어로: 카단의 여정』 공식 9:16 풀스크린 스튜디오 애니메이션 쇼츠 1화~20화 재생목록!\n🎁 지금 접속 시 무료 스타터 카드팩 · 매일 무료 소환 · 382종 전략 카드 수집 보상 즉시 지급!\n⚔️ 무설치 웹 카드 RPG 바로 플레이: https://snshero.com #Shorts",
+        "title": "눈히어로: 카단의 여정 | 공식 스튜디오 애니메이션 쇼츠 (1화~40화 완결)",
+        "description": "『눈히어로: 카단의 여정』 공식 9:16 풀스크린 스튜디오 애니메이션 쇼츠 1화~40화 전편 재생목록!\n🎁 지금 접속 시 무료 스타터 카드팩 · 매일 무료 소환 · 382종 전략 카드 수집 보상 즉시 지급!\n⚔️ 무설치 웹 카드 RPG 바로 플레이: https://snshero.com #Shorts",
     },
     "ja": {
-        "title": "SNSHero：カダンの旅｜公式スタジオアニメ Shorts（第1話〜第20話）",
-        "description": "『SNSHero：カダンの旅』公式9:16縦型フルスクリーンアニメShorts第1話〜第20話！\n🎁 今すぐプレイで無料スターターパック＆毎日無料召喚・382枚のカード報酬をゲット！\n⚔️ 無料ブラウザカードRPG：https://snshero.com #Shorts",
+        "title": "SNSHero：カダンの旅｜公式スタジオアニメ Shorts（第1話〜第40話・完結）",
+        "description": "『SNSHero：カダンの旅』公式9:16縦型フルスクリーンアニメShorts第1話〜第40話全話！\n🎁 今すぐプレイで無料スターターパック＆毎日無料召喚・382枚のカード報酬をゲット！\n⚔️ 無料ブラウザカードRPG：https://snshero.com #Shorts",
     },
     "zh-Hans": {
-        "title": "SNSHero：卡丹的旅程｜官方工作室动画 Shorts（第1集–第20集）",
-        "description": "《SNSHero：卡丹的旅程》官方9:16全屏竖版动画Shorts第1集至第20集！\n🎁 立即畅玩领取免费新手卡包、每日免费召唤与382张策略卡牌奖励！\n⚔️ 免安装网页卡牌RPG立即开战：https://snshero.com #Shorts",
+        "title": "SNSHero：卡丹的旅程｜官方工作室动画 Shorts（第1集–第40集 完结）",
+        "description": "《SNSHero：卡丹的旅程》官方9:16全屏竖版动画Shorts第1集至第40集全集！\n🎁 立即畅玩领取免费新手卡包、每日免费召唤与382张策略卡牌奖励！\n⚔️ 免安装网页卡牌RPG立即开战：https://snshero.com #Shorts",
     },
     "zh-Hant": {
-        "title": "SNSHero：卡丹的旅程｜官方工作室動畫 Shorts（第1集–第20集）",
-        "description": "《SNSHero：卡丹的旅程》官方9:16全螢幕直式動畫Shorts第1集至第20集！\n🎁 立即暢玩領取免費新手卡包、每日免費召喚與382張策略卡牌獎勵！\n⚔️ 免安裝網頁卡牌RPG立即開戰：https://snshero.com #Shorts",
+        "title": "SNSHero：卡丹的旅程｜官方工作室動畫 Shorts（第1集–第40集 完結）",
+        "description": "《SNSHero：卡丹的旅程》官方9:16全螢幕直式動畫Shorts第1集至第40集全集！\n🎁 立即暢玩領取免費新手卡包、每日免費召喚與382張策略卡牌獎勵！\n⚔️ 免安裝網頁卡牌RPG立即開戰：https://snshero.com #Shorts",
     },
     "es": {
-        "title": "SNSHero: El Viaje de Kadan | Anime Oficial Shorts (EP01–EP20)",
-        "description": "Shorts oficiales en pantalla completa 9:16 de SNSHero: El Viaje de Kadan (EP01–EP20).\n🎁 ¡RECOMPENSAS GRATIS! Sobres iniciales, invocaciones diarias gratis y 382 cartas tácticas.\n⚔️ Juega gratis en tu navegador: https://snshero.com #Shorts",
+        "title": "SNSHero: El Viaje de Kadan | Anime Oficial Shorts (EP01–EP40)",
+        "description": "Shorts oficiales en pantalla completa 9:16 de SNSHero: El Viaje de Kadan (EP01–EP40).\n🎁 ¡RECOMPENSAS GRATIS! Sobres iniciales, invocaciones diarias gratis y 382 cartas tácticas.\n⚔️ Juega gratis en tu navegador: https://snshero.com #Shorts",
     },
     "fr": {
-        "title": "SNSHero : Le Voyage de Kadan | Anime Officiel Shorts (EP01–EP20)",
-        "description": "Shorts officiels plein écran 9:16 de SNSHero : Le Voyage de Kadan (EP01–EP20).\n🎁 RÉCOMPENSES GRATUITES : packs de départ offerts, invocations quotidiennes et 382 cartes !\n⚔️ Jouez gratuitement sans téléchargement : https://snshero.com #Shorts",
+        "title": "SNSHero : Le Voyage de Kadan | Anime Officiel Shorts (EP01–EP40)",
+        "description": "Shorts officiels plein écran 9:16 de SNSHero : Le Voyage de Kadan (EP01–EP40).\n🎁 RÉCOMPENSES GRATUITES : packs de départ offerts, invocations quotidiennes et 382 cartes !\n⚔️ Jouez gratuitement sans téléchargement : https://snshero.com #Shorts",
     },
     "de": {
-        "title": "SNSHero: Kadans Reise | Offizielle Anime Shorts (EP01–EP20)",
-        "description": "Offizielle 9:16 Vollbild-Anime-Shorts zu SNSHero: Kadans Reise (Folgen 1–20).\n🎁 GRATIS-BELOHNUNGEN: Kostenlose Starter-Packs, tägliche Beschwörungen & 382 Karten!\n⚔️ Jetzt kostenlos im Browser spielen: https://snshero.com #Shorts",
+        "title": "SNSHero: Kadans Reise | Offizielle Anime Shorts (EP01–EP40)",
+        "description": "Offizielle 9:16 Vollbild-Anime-Shorts zu SNSHero: Kadans Reise (Folgen 1–40).\n🎁 GRATIS-BELOHNUNGEN: Kostenlose Starter-Packs, tägliche Beschwörungen & 382 Karten!\n⚔️ Jetzt kostenlos im Browser spielen: https://snshero.com #Shorts",
     },
     "id": {
-        "title": "SNSHero: Perjalanan Kadan | Anime Resmi Shorts (EP01–EP20)",
-        "description": "Anime Shorts layar penuh 9:16 resmi SNSHero: Perjalanan Kadan (EP01–EP20).\n🎁 HADIAH GRATIS: Paket kartu pemula, summon gratis harian & 382 kartu taktis!\n⚔️ Mainkan langsung di browser: https://snshero.com #Shorts",
+        "title": "SNSHero: Perjalanan Kadan | Anime Resmi Shorts (EP01–EP40)",
+        "description": "Anime Shorts layar penuh 9:16 resmi SNSHero: Perjalanan Kadan (EP01–EP40).\n🎁 HADIAH GRATIS: Paket kartu pemula, summon gratis harian & 382 kartu taktis!\n⚔️ Mainkan langsung di browser: https://snshero.com #Shorts",
     },
     "vi": {
-        "title": "SNSHero: Hành Trình Của Kadan | Anime Chính Thức Shorts (Tập 01–20)",
-        "description": "Anime Shorts toàn màn hình 9:16 chính thức SNSHero: Hành Trình Của Kadan (Tập 1–20).\n🎁 QUÀ TẶNG MIỄN PHÍ: Gói thẻ tân thủ, triệu hồi miễn phí mỗi ngày & 382 thẻ chiến thuật!\n⚔️ Chơi ngay trên trình duyệt: https://snshero.com #Shorts",
+        "title": "SNSHero: Hành Trình Của Kadan | Anime Chính Thức Shorts (Tập 01–40)",
+        "description": "Anime Shorts toàn màn hình 9:16 chính thức SNSHero: Hành Trình Của Kadan (Tập 1–40).\n🎁 QUÀ TẶNG MIỄN PHÍ: Gói thẻ tân thủ, triệu hồi miễn phí mỗi ngày & 382 thẻ chiến thuật!\n⚔️ Chơi ngay trên trình duyệt: https://snshero.com #Shorts",
     },
 }
 
@@ -93,16 +93,30 @@ def save_state(state: dict) -> None:
     STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def ensure_shorts_playlist(yt, state: dict) -> str:
+def ensure_shorts_playlist(yt, state: dict, update_meta: bool = False) -> str:
     if state.get("playlistId"):
         pl_id = state["playlistId"]
         try:
             chk = yt.playlists().list(part="snippet,status", id=pl_id).execute()
             if chk.get("items"):
                 base.log(f"Reusing existing Shorts playlist: {pl_id}")
+                if update_meta:
+                    yt.playlists().update(
+                        part="snippet,localizations",
+                        body={
+                            "id": pl_id,
+                            "snippet": {
+                                "title": SHORTS_PLAYLIST_TITLE,
+                                "description": SHORTS_PLAYLIST_DESC,
+                                "defaultLanguage": "en",
+                            },
+                            "localizations": SHORTS_PLAYLIST_LOCALIZATIONS,
+                        },
+                    ).execute()
+                    base.log(f"Updated Shorts playlist {pl_id} metadata & 10-language localizations to EP01–EP40")
                 return pl_id
-        except Exception:
-            pass
+        except Exception as e:
+            base.log(f"Warning checking/updating Shorts playlist {pl_id}: {e}")
 
     resp = yt.playlists().list(part="snippet", channelId=CHANNEL_ID, maxResults=50).execute()
     for it in resp.get("items", []):
@@ -180,17 +194,18 @@ def build_shorts_metadata(ep: int) -> Tuple[str, str, Dict[str, Dict[str, str]],
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Init 10-language Shorts playlist and run API post-processing for EP01-EP20 Shorts")
+    parser = argparse.ArgumentParser(description="Init 10-language Shorts playlist and run API post-processing for EP01-EP40 Shorts")
     parser.add_argument("--start", type=int, default=1)
-    parser.add_argument("--end", type=int, default=20)
+    parser.add_argument("--end", type=int, default=40)
     parser.add_argument("--init-playlist", action="store_true")
     parser.add_argument("--api-only-postprocess", action="store_true")
     parser.add_argument("--force-relocalize", action="store_true")
+    parser.add_argument("--update-playlist-meta", action="store_true")
     args = parser.parse_args()
 
     state = load_state()
     yt = base.get_youtube_client()
-    playlist_id = ensure_shorts_playlist(yt, state)
+    playlist_id = ensure_shorts_playlist(yt, state, update_meta=args.update_playlist_meta)
 
     if args.init_playlist and not args.api_only_postprocess:
         print(f"PLAYLIST_ID={playlist_id}")
