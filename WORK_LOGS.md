@@ -2031,3 +2031,11 @@
     - `id`: https://youtu.be/6iDo9dYcp7g (`lang=id/id`, `public`, `playlist=True`)
     - `vi`: https://youtu.be/gdS-kRrZJdQ (`lang=vi/vi`, `public`, `playlist=True`)
 - **검증**: `upload_youtube_full_anime_10lang.py --verify-only` 라이브 API 조회로 10편 모두 `privacyStatus=public` 및 `PLE-f8DoiXUSk` 편입 확인 완료. 상태 저장: `output/studio_anime/youtube_full_anime_10lang_state.json`. 로컬 `git commit` 완료 (`git push` 미실행).
+
+## [2026-11-25 08:59 KST] [SNSHero 10개국어 풀버전 애니메이션 재생목록(@snshero 홈 탭 최상단 노출) 설정 완료]
+- **작업자**: `Antigravity Assistant`
+- **대상 채널**: `@snshero` (`UCA6QmKiPstbiyBUHtnSMxyA`)
+- **적용 내역**:
+  - **플레이리스트 확인**: [`PLE-f8DoiXUSk`](https://www.youtube.com/playlist?list=PLE-f8DoiXUSk) (`SNSHero: The Chronicles of Kadan | Full-Length Feature Anime (10 Languages)`, `public`) 내에 10개 공식 언어(`en, ko, ja, zh-Hans, zh-Hant, es, fr, de, id, vi`) 풀버전 애니메이션 10편 모두 `public` · `processed` 상태로 정상 정렬 포함됨을 재검증.
+  - **채널 홈 탭(`channelSections`) 노출 등록**: YouTube Data API v3 `channelSections().insert`로 `PLE-f8DoiXUSk` (`type=singleplaylist`)를 채널 홈 탭 **최상단(`position: 0`, 섹션 ID `UCA6QmKiPstbiyBUHtnSMxyA.__WLXNpu6u8`)** 에 추가하고 기존 홈 탭 섹션 3개(`position: 1~3`)와 함께 총 4개 섹션 정상 조회 검증 완료.
+- **로컬 커밋**: `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 미실행).
