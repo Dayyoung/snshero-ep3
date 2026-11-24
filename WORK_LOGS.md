@@ -2010,3 +2010,24 @@
   - `ID`: `4.051 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.99`, main `-14.84/-14.26`, end `-12.38 LUFS` | TP `-1.22 dBTP` (PASS)
   - `VI`: `4.050 GB` | `719` cues | V/A diff `0.0204s` | intro `-13.96`, main `-14.84/-14.28`, end `-12.24 LUFS` | TP `-1.23 dBTP` (PASS)
 - **로컬 커밋**: `scripts/studio_anime/build_full_anime_multilang_dub.py`, `docs/intent/full-anime-10lang-dubbing.md`, `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 미실행).
+
+## [2026-11-24 16:43 KST] [SNSHero 풀버전 애니메이션(EP01–EP40) 10개 공식 언어별 유튜브 공개 업로드 & 전용 재생목록 완결]
+- **작업자**: `Antigravity Assistant`
+- **대상 채널**: `@snshero` (`UCA6QmKiPstbiyBUHtnSMxyA`)
+- **신규 스크립트**: [`scripts/studio_anime/upload_youtube_full_anime_10lang.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/upload_youtube_full_anime_10lang.py)
+- **업로드 및 후처리 내역**:
+  - **업로드 방식**: YouTube Data API v3 Resumable Upload(`16 MB` 청크)로 영문판(`en`)·한글판(`ko`)을 최우선 업로드한 뒤 나머지 8개 언어 순차 완결.
+  - **언어별 맞춤 구성**: 각 언어별 제목(41~91자)·시놉시스·42개 챕터 타임스탬프(`00:00:00`~`01:33:26`)·태그·`defaultLanguage`/`defaultAudioLanguage` 설정 및 커스텀 1280×720 썸네일(`output/studio_anime/thumbs/full_anime_{TAG}_thumb.jpg`) 적용.
+  - **전용 10개국어 극장판 재생목록**: `PLE-f8DoiXUSk` (`https://www.youtube.com/playlist?list=PLE-f8DoiXUSk`) 생성 및 10편 전수 편입 완료.
+  - **업로드 완료 목록 (10/10 공개 완료)**:
+    - `en`: https://youtu.be/APgGrlOB1YM (`lang=en/en`, `public`, `playlist=True`)
+    - `ko`: https://youtu.be/_UDOR4OrbGU (`lang=ko/ko`, `public`, `playlist=True`)
+    - `ja`: https://youtu.be/tCgOH4c4KDU (`lang=ja/ja`, `public`, `playlist=True`)
+    - `zh-Hans`: https://youtu.be/QlYUT1X341I (`lang=zh-CN/zh-CN`, `public`, `playlist=True`)
+    - `zh-Hant`: https://youtu.be/09GNG3h8erY (`lang=zh-TW/zh-TW`, `public`, `playlist=True`)
+    - `es`: https://youtu.be/QD_Na6OP2XA (`lang=es/es`, `public`, `playlist=True`)
+    - `fr`: https://youtu.be/fknrmP9MATY (`lang=fr/fr`, `public`, `playlist=True`)
+    - `de`: https://youtu.be/FJX7DnhZNpI (`lang=de/de`, `public`, `playlist=True`)
+    - `id`: https://youtu.be/6iDo9dYcp7g (`lang=id/id`, `public`, `playlist=True`)
+    - `vi`: https://youtu.be/gdS-kRrZJdQ (`lang=vi/vi`, `public`, `playlist=True`)
+- **검증**: `upload_youtube_full_anime_10lang.py --verify-only` 라이브 API 조회로 10편 모두 `privacyStatus=public` 및 `PLE-f8DoiXUSk` 편입 확인 완료. 상태 저장: `output/studio_anime/youtube_full_anime_10lang_state.json`. 로컬 `git commit` 완료 (`git push` 미실행).
