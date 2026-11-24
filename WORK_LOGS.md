@@ -2,6 +2,25 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-24 12:51 KST] [프로모션 페이지 전면 최신화 — 40화 공식 애니메이션·쇼츠 링크 교체, 최신 인게임 스크린샷(KO/EN) & 설명 반영, 풀보이스 소개 삭제]
+- **개선 내역 (`src/promo/PromoApp.tsx`, `index.html`, `src/i18n/locales/*.ts`, `public/hs-assets/screenshots/*`)**:
+  - **공식 트레일러 링크 & UI 교체 (`#intro`)**:
+    - 에피소드 40화 애니메이션 플레이리스트(`https://www.youtube.com/watch?v=1GSJN4yTUKM&list=PLTXFzLZKS4-4&pp=sAgC`) 및 쇼츠 리스트(`https://www.youtube.com/watch?v=tPp7lV79hLA&list=PLD2SN5QckvaE&pp=sAgC`)로 교체하고, 트레일러 2개 탭(`40화 애니메이션` / `40화 쇼츠`) 및 전용 썸네일(`promo_anime_playlist.webp`, `promo_anime_shorts.webp`) 반영.
+  - **카단의 여정 핵심 시스템 최신화 (`#latest`)**:
+    - 40화 스토리(웹툰 극장 · 카단 눈보라 + 실리아 3종[공격·방어·회복] 순차 합동 필살기 · 40화 엔딩 후 무한 환생 모드), 3장=3배 각성, 382종 & 첫 접속 무료 3팩+250G+160가루 및 첫 10팩 전설 확정 설명으로 최신화.
+    - 최신 인게임 스크린샷(`ingame_story_theater_{ko,en}.webp`, `ingame_collection_awake_{ko,en}.webp`, `ingame_pack_altar_{ko,en}.webp`) 6종 캡처 및 한·영 분기 적용.
+  - **3대 핵심 게임 모드 최신화 (`#modes`)**:
+    - 스토리모드, LIVE 실시간 랭킹대전(관전·채팅 · 공정 1배 룰), 보가트의 도박장(일반 100~1,200G / 숙련 ×10배 1,000~12,000G · 주사위 자동 베팅 · 100% 랜덤 30장 덱 · 2배 골드) 최신 규칙 반영 및 한·영 스크린샷(`ingame_ranked_battle_{ko,en}.webp`, `ingame_bogart_{ko,en}.webp`) 교체.
+  - **공식 웹소설 · 웹툰 · 애니메이션 · 채널 개편 (`#universe`)**:
+    - 기존 `제1화 풀보이스 미리보기` 카드 및 `mediaTheaterOpen` 모달을 완전 삭제하고, 4컬럼(웹소설 / 풀컬러 웹툰 / 40화 공식 애니메이션 / 40화 애니메이션 쇼츠) 및 외부 링크 2종 반영.
+  - **기타 최신화 & 다국어 동기화**:
+    - Hero 부제목(`3팩 + 250G + 160가루`), `#features`, Footer 및 `index.html` 메타/JSON-LD/SEO 텍스트 내 구버전 풀보이스·구버전 보가트 금액 문구 정리.
+    - 8개 추가 언어팩(`ja`, `zh-CN`, `zh-TW`, `es`, `fr`, `de`, `pt`, `ru`)에 신규/수정 문구 40개 키 번역 누락 없이 반영.
+- **검증**:
+  - `npm run build` 에러 0건 통과.
+  - Playwright E2E 검증(KO & EN × 데스크톱 `1280×800` / 모바일 `390×844` 4조합): 가로 오버플로우 0건, 깨진 이미지 0건, 트레일러 탭/유튜브 링크 2종 정확성, `#latest`·`#modes` KO/EN 스크린샷 분기, `#universe` 4개 카드 및 링크, `풀보이스`/`Voiced` 미노출 전수 통과.
+- **상태**: 로컬 `git commit` 완료 (`git push` 미실행 · 사용자 수동 푸시 대기).
+
 ## [2026-11-24 12:35 KST] [실시간 라이브 채팅 고도화 — ChatGPT/모던 풀스크린 UI · 전체채팅 미읽음 배지 전용화 · 사용자 클릭 대전/골드선물 액션시트]
 - **요청 및 개선 내역**:
   - **전체채팅 미읽음 숫자 전용화 (`src/hearthstone/services/snsheroLiveNetwork.ts`)**: `unreadCount`가 오직 전체채팅(`GLOBAL`) 미읽음 메시지만 카운트하도록 변경하고 `clearUnreadCount()` 추가(길드 메시지·골드 토스트로 배지가 오르지 않도록 분리).

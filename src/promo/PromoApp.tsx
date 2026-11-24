@@ -58,8 +58,10 @@ import { PromoCard, getPromoRaceLabel, getPromoRarityLabel } from './PromoCard';
 
 type FeatureTabId = 'story' | 'awake' | 'pack';
 
-const YOUTUBE_PLAYLIST_URL_KO = 'https://www.youtube.com/playlist?list=PLVch67W9z4TA';
-const YOUTUBE_PLAYLIST_URL_EN = 'https://www.youtube.com/playlist?list=PLFvV2raCoFww';
+const ANIME_PLAYLIST_URL =
+  'https://www.youtube.com/watch?v=1GSJN4yTUKM&list=PLTXFzLZKS4-4&pp=sAgC';
+const ANIME_SHORTS_PLAYLIST_URL =
+  'https://www.youtube.com/watch?v=tPp7lV79hLA&list=PLD2SN5QckvaE&pp=sAgC';
 
 export const PromoApp: React.FC = () => {
   const { lang, setLang } = useHeroLanguage();
@@ -111,12 +113,11 @@ export const PromoApp: React.FC = () => {
   const [zoomedCard, setZoomedCard] = useState<ClassicCardDef | null>(null);
   const [rhythmPreviewMsg, setRhythmPreviewMsg] = useState<string | null>(null);
 
-  // Pre-Game Free Pack Modal & Ep.1 Mini Theater Modal
+  // Pre-Game Free Pack Modal
   const [promoPackModalOpen, setPromoPackModalOpen] = useState(false);
   const [promoPackCards, setPromoPackCards] = useState<
     { card: ClassicCardDef; isGolden: boolean }[] | null
   >(null);
-  const [mediaTheaterOpen, setMediaTheaterOpen] = useState(false);
 
   const handleOpenPromoPrePack = () => {
     if (cards.length === 0) return;
@@ -215,33 +216,37 @@ export const PromoApp: React.FC = () => {
     () => [
       {
         id: 'story',
-        title: tr('40화 풀보이스 스토리', '40-EP Voiced Story'),
+        title: tr('40화 스토리 & 무한 환생', '40-EP Story & Reincarnation'),
         eyebrow: tr('카단의 여정', "Kadan's Journey"),
         headline: tr(
-          '5컷 웹툰 극장 & 40화 보스 레이드',
-          '5-Panel Webtoon Theater & 40 Boss Raids',
+          '웹툰 극장 · 40화 보스 레이드 & 합동 필살기',
+          'Webtoon Theater · 40 Bosses & Dual Ultimates',
         ),
         desc: tr(
-          '매 화 성우 내레이션과 웹툰 연출을 감상하고 원작 적장들과 대결하세요. 5화마다 보스 카드팩이 지급되며 40화 완주 시 무한 환생 모드가 열립니다.',
-          'Enjoy studio-voiced webtoon cutscenes before every boss duel. Earn bonus Card Packs every 5 episodes and unlock Infinite Reincarnation at Episode 40.',
+          '매 화 웹툰 극장과 함께 40명의 원작 보스를 공략하고, 카단 눈보라 + 실리아 3종(공격·방어·회복) 바람 필살기를 순차 발동하세요. 5화마다 보스 카드팩이 지급되며 40화 엔딩 크레딧 완주 시 무한 환생 모드가 열립니다.',
+          'Clear 40 original story bosses with webtoon cutscenes and unleash Kadan Blizzard followed by Silia’s 3 Wind Ultimates (Attack, Defense, Heal). Earn Boss Packs every 5 episodes and unlock Infinite Reincarnation after Ep.40.',
         ),
-        imageUrl: '/hs-assets/screenshots/ingame_story_theater.png?v=20261116',
+        imageUrl: isKo
+          ? '/hs-assets/screenshots/ingame_story_theater_ko.webp'
+          : '/hs-assets/screenshots/ingame_story_theater_en.webp',
         ctaText: tr('스토리모드 시작', 'Play Story Mode'),
         ctaHref: '/game?mode=story&ep=1&theater=on',
       },
       {
         id: 'awake',
         title: tr('3장 = 3배 각성', '3 Copies = 3x Power'),
-        eyebrow: tr('여정 전용 성장 법칙', 'Story-Only Scaling'),
+        eyebrow: tr('스토리 전용 성장 법칙', 'Story-Only Scaling'),
         headline: tr(
-          '동일 카드 3장 보유 시 공·체 3배 폭증',
-          'Hold 3+ Copies for 3x Attack & Health',
+          '동일 카드 3장 보유 시 공·체 3배 폭증 (×3·×4)',
+          'Hold 3+ Copies for 3x Attack & Health (3x/4x)',
         ),
         desc: tr(
-          '스토리모드에서는 중복 카드를 3장 이상 모으면 공격력과 생명력이 보유 장수 배율(×3, ×4)로 강화됩니다. 랭킹전·도박장은 공정한 1배 룰로 진행됩니다.',
-          'In Story Mode, owning 3+ copies multiplies minion & weapon stats (3x, 4x) to break through tough bosses, while Ranked & Bogart keep fair 1x rules.',
+          '스토리모드에서는 중복 카드를 3장 이상 모으면 하수인·무기의 공격력과 생명력이 보유 장수 배율(×3, ×4)로 폭증합니다. 실시간 랭킹대전과 보가트의 도박장은 공정한 1배 룰로 진행됩니다.',
+          'In Story Mode, owning 3+ copies multiplies minion & weapon stats (3x, 4x) to break through tough bosses, while Ranked Arena & Bogart’s Hall keep fair 1x rules.',
         ),
-        imageUrl: '/hs-assets/screenshots/ingame_collection_awake.png?v=20261116',
+        imageUrl: isKo
+          ? '/hs-assets/screenshots/ingame_collection_awake_ko.webp'
+          : '/hs-assets/screenshots/ingame_collection_awake_en.webp',
         ctaText: tr('내 카드첩 보기', 'Open Collection'),
         ctaHref: '/game?mode=collection',
       },
@@ -250,61 +255,41 @@ export const PromoApp: React.FC = () => {
         title: tr('382종 & 전설 천장', '382 Cards & Pity'),
         eyebrow: tr('9종족 225장 + 중립 157장', '9 Factions + Neutral'),
         headline: tr(
-          '첫 10팩 내 전설 확정 & 24K 황금 포일',
-          'Legendary in First 10 Packs & 24K Foil',
+          '첫 접속 무료 3팩+250G+160가루 & 첫 10팩 전설 확정',
+          '3 Free Packs + 250G + 160 Dust & 10-Pack Legendary Pity',
         ),
         desc: tr(
-          '신규 접속 즉시 무료 3팩이 지급되며 첫 10팩 이내 첫 전설 카드가 100% 확정됩니다. 여분 카드는 가루로 추출해 원하는 전설을 직접 제작하세요.',
-          'Start with 3 Free Packs and a guaranteed Legendary within your first 10 packs. Disenchant extras into Dust to craft any card you want.',
+          '신규 접속 즉시 무료 3팩 + 250골드 + 160가루가 지급되며 첫 10팩 이내 전설 카드가 100% 확정됩니다. 여분 카드는 가루로 추출해 원하는 24K 전설 카드를 직접 제작하세요.',
+          'Start with 3 Free Packs, 250 Gold & 160 Dust plus a guaranteed Legendary within your first 10 packs. Disenchant extras into Dust to craft any card you want.',
         ),
-        imageUrl: '/hs-assets/screenshots/ingame_pack_altar.png?v=20261116',
+        imageUrl: isKo
+          ? '/hs-assets/screenshots/ingame_pack_altar_ko.webp'
+          : '/hs-assets/screenshots/ingame_pack_altar_en.webp',
         ctaText: tr('무료 3팩 개봉하기', 'Open 3 Free Packs'),
         ctaHref: '/game',
       },
     ],
-    [lang],
+    [lang, isKo],
   );
 
-  const youtubePlaylistUrl = isKo ? YOUTUBE_PLAYLIST_URL_KO : YOUTUBE_PLAYLIST_URL_EN;
-
   const trailerClips = useMemo(
-    () =>
-      isKo
-        ? [
-            {
-              id: 'ep1',
-              label: '제1화',
-              youtubeId: 'KOf8IAic2QY',
-            },
-            {
-              id: 'ep8',
-              label: '제8화',
-              youtubeId: 'BIHe4MrtCIw',
-            },
-            {
-              id: 'ep15',
-              label: '제15화',
-              youtubeId: 'LHHngbtkJwg',
-            },
-          ]
-        : [
-            {
-              id: 'ep1',
-              label: 'EP.1',
-              youtubeId: 'q6-w_dz8Hbs',
-            },
-            {
-              id: 'ep8',
-              label: 'EP.8',
-              youtubeId: 'GQ3_HDM-bW8',
-            },
-            {
-              id: 'ep15',
-              label: 'EP.15',
-              youtubeId: 'qFsQnrjnv4E',
-            },
-          ],
-    [isKo],
+    () => [
+      {
+        id: 'anime',
+        label: tr('40화 애니메이션', '40-EP Anime'),
+        youtubeId: '1GSJN4yTUKM',
+        listId: 'PLTXFzLZKS4-4',
+        thumb: '/hs-assets/screenshots/promo_anime_playlist.webp',
+      },
+      {
+        id: 'shorts',
+        label: tr('40화 쇼츠', '40-EP Shorts'),
+        youtubeId: 'tPp7lV79hLA',
+        listId: 'PLD2SN5QckvaE',
+        thumb: '/hs-assets/screenshots/promo_anime_shorts.webp',
+      },
+    ],
+    [lang],
   );
 
   const selectedHero = CLASSIC_HEROES[selectedHeroClass];
@@ -550,8 +535,8 @@ export const PromoApp: React.FC = () => {
 
             <p className="promo-outline mt-2.5 max-w-xl text-sm font-bold leading-relaxed text-amber-100/95 sm:text-base">
               {tr(
-                '설치 없는 382종 판타지 전략 웹 TCG · 첫 접속 무료 3팩 + 250골드 즉시 지급',
-                'Zero-Install 382-Card Fantasy Web TCG · Claim 3 Free Packs + 250 Gold Instantly',
+                '설치 없는 382종 판타지 전략 웹 TCG · 첫 접속 무료 3팩 + 250골드 + 160가루 즉시 지급',
+                'Zero-Install 382-Card Fantasy Web TCG · Claim 3 Free Packs + 250 Gold + 160 Dust Instantly',
               )}
             </p>
 
@@ -639,8 +624,8 @@ export const PromoApp: React.FC = () => {
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-amber-100/85 sm:text-base">
                 {tr(
-                  '물·불·바람·땅·인간·언데드·엘프·드워프·동물 9대 종족의 수호자와 382종 고유 카드로 나만의 덱을 완성하고, 풀보이스 원작 서사를 직접 돌파하세요.',
-                  'Command champions from 9 elemental & fantasy factions with 382 original cards, and battle through a studio-voiced 40-episode fantasy saga.',
+                  '물·불·바람·땅·인간·언데드·엘프·드워프·동물 9대 종족의 수호자와 382종 고유 카드로 나만의 덱을 완성하고, 40부작 원작 스토리와 공식 애니메이션의 서사를 직접 돌파하세요.',
+                  'Command champions from 9 elemental & fantasy factions with 382 original cards, and play through the 40-episode fantasy saga & official anime.',
                 )}
               </p>
               <div className="mt-5 grid grid-cols-2 gap-2.5 text-xs font-extrabold">
@@ -654,10 +639,10 @@ export const PromoApp: React.FC = () => {
                 </div>
                 <div className="rounded-xl border border-amber-400/30 bg-black/45 p-3">
                   <div className="text-base text-sky-300 sm:text-lg">
-                    {tr('40부작 풀보이스', '40 Voiced EPs')}
+                    {tr('40부작 스토리 & 애니', '40-EP Story & Anime')}
                   </div>
                   <div className="mt-0.5 text-amber-100/75">
-                    {tr('5컷 웹툰 스토리 극장', '5-Panel Webtoon Theater')}
+                    {tr('웹툰 극장 · 무한 환생 모드', 'Webtoon Theater · Reincarnation')}
                   </div>
                 </div>
               </div>
@@ -671,9 +656,9 @@ export const PromoApp: React.FC = () => {
                 <div className="relative aspect-video w-full overflow-hidden bg-black">
                   {trailerFacadePlaying ? (
                     <iframe
-                      key={`${lang}-${activeClip.youtubeId}`}
-                      src={`https://www.youtube-nocookie.com/embed/${activeClip.youtubeId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : 'https://snshero.com')}`}
-                      title={`${tr('눈히어로 공식 웹툰', 'SNSHero Official Webtoon')} - ${activeClip.label}`}
+                      key={`${lang}-${activeClip.youtubeId}-${activeClip.listId}`}
+                      src={`https://www.youtube-nocookie.com/embed/${activeClip.youtubeId}?list=${activeClip.listId}&autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : 'https://snshero.com')}`}
+                      title={`${tr('눈히어로 공식 애니메이션', 'SNSHero Official Anime')} - ${activeClip.label}`}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       referrerPolicy="strict-origin-when-cross-origin"
                       allowFullScreen
@@ -687,42 +672,44 @@ export const PromoApp: React.FC = () => {
                       className="group relative flex h-full w-full cursor-pointer flex-col items-center justify-center overflow-hidden bg-stone-950 text-center"
                     >
                       <img
-                        src={
-                          activeClip.id === 'ep1'
-                            ? '/webtoon-assets/episode_01/scene_01.webp'
-                            : activeClip.id === 'ep8'
-                              ? '/hs-assets/screenshots/ingame_story_theater.png?v=20261116'
-                              : '/webtoon-assets/episode_01/scene_14.webp'
-                        }
+                        src={activeClip.thumb}
                         alt=""
                         aria-hidden="true"
                         loading="lazy"
                         decoding="async"
-                        className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-300 group-hover:scale-105 group-hover:opacity-90"
+                        className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-300 group-hover:scale-105 group-hover:opacity-95"
                       />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/35" />
                       <span className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-amber-300 bg-amber-500/95 text-xl font-black text-stone-950 shadow-xl transition group-hover:scale-110">
                         ▶
                       </span>
                       <span className="relative z-10 mt-2.5 rounded-full border border-amber-300/60 bg-black/75 px-3.5 py-1 text-xs font-extrabold text-amber-100">
-                        {tr(
-                          `공식 웹툰 트레일러 재생 (${activeClip.label})`,
-                          `Play Official Trailer (${activeClip.label})`,
-                        )}
+                        {`${tr('공식 애니메이션 트레일러 재생', 'Play Official Anime Trailer')} (${activeClip.label})`}
                       </span>
                     </button>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/40 bg-[#1a0f07] px-3 py-2">
-                  <a
-                    href={youtubePlaylistUrl}
-                    data-testid="promo-youtube-playlist-link"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-extrabold text-amber-300 underline decoration-amber-400/50 underline-offset-4 hover:text-amber-200"
-                  >
-                    {isKo ? 'YouTube 재생목록 ↗' : 'YouTube Playlist ↗'}
-                  </a>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <a
+                      href={ANIME_PLAYLIST_URL}
+                      data-testid="promo-youtube-playlist-link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-extrabold text-amber-300 underline decoration-amber-400/50 underline-offset-4 hover:text-amber-200"
+                    >
+                      {tr('40화 애니메이션 플레이리스트 ↗', '40-EP Anime Playlist ↗')}
+                    </a>
+                    <a
+                      href={ANIME_SHORTS_PLAYLIST_URL}
+                      data-testid="promo-youtube-shorts-link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-extrabold text-sky-300 underline decoration-sky-400/50 underline-offset-4 hover:text-sky-200"
+                    >
+                      {tr('40화 쇼츠 리스트 ↗', '40-EP Shorts Playlist ↗')}
+                    </a>
+                  </div>
                   <div className="flex gap-1.5">
                     {trailerClips.map((clip, idx) => (
                       <button
@@ -866,16 +853,16 @@ export const PromoApp: React.FC = () => {
                   icon: <Swords className="h-6 w-6 text-emerald-300" />,
                   title: tr('카단의 기세 & 합동 필살기', "Kadan's Spirit & Dual Ultimate"),
                   desc: tr(
-                    '스토리 자동플레이 중 연타(+1)·초록 정박(+10)으로 100을 채우고 불타오른 기세 버튼을 누르면 카단 눈보라 + 실리아 바람풍 연속 필살기가 작렬합니다.',
-                    'In Story Auto-Play, charge to 100 via mash (+1) or green beat (+10), then tap the blazing orb to unleash Kadan Blizzard + Silia Windstorm!',
+                    '스토리모드에서 카단의 창성 눈보라가 먼저 작렬한 뒤 실리아의 3종(공격·방어·회복) 바람 필살기가 순차 발동되어 보스 전장을 압도합니다.',
+                    'In Story Mode, Kadan’s Frost Blizzard strikes first, followed sequentially by Silia’s 3 pure Wind Ultimates (Attack, Defense, Heal).',
                   ),
                 },
                 {
                   icon: <Shield className="h-6 w-6 text-purple-300" />,
                   title: tr('모바일·PC 최적화', 'Mobile & Desktop Ready'),
                   desc: tr(
-                    '스마트폰 한 손 조작, 전체화면 PWA, 데미지 비례 진동과 성우 음성을 지원합니다.',
-                    'Optimized for one-handed mobile play, fullscreen PWA, haptics, and voice acting.',
+                    '스마트폰 한 손 조작, 전체화면 PWA, AI 카단 챗봇, 실시간 관전·채팅과 10개 언어 자동 전환을 지원합니다.',
+                    'Optimized for one-handed mobile play, fullscreen PWA, AI Kadan Chatbot, live spectating & chat, and 10 languages.',
                   ),
                 },
               ].map((pillar) => (
@@ -1321,41 +1308,43 @@ export const PromoApp: React.FC = () => {
               {[
                 {
                   id: 'story',
-                  badge: tr('풀보이스 · 3장=3배 각성', 'Voiced · 3x Awakening'),
-                  title: tr('스토리모드 (40화 성우 풀보이스)', 'Story Mode · 40화 스토리모드'),
+                  badge: tr('40화 웹툰 극장 · 3장=3배 각성', '40-EP Webtoon · 3x Awakening'),
+                  title: tr('스토리모드 (카단의 여정 40화)', "Story Mode · Kadan's Journey (40 EPs)"),
                   desc: tr(
-                    '5컷 웹툰 극장과 함께 40명의 원작 보스를 격파하세요. 5화마다 보스 팩이 지급됩니다.',
-                    'Clear 40 voiced story bosses with 3x Awakened cards and earn Boss Packs every 5 episodes.',
+                    '카단·실리아 합동 필살기와 3배 각성 덱으로 40명의 원작 보스를 격파하세요. 5화마다 보스 팩 보상, 40화 엔딩 후 무한 환생 모드가 해금됩니다.',
+                    'Defeat 40 story bosses with 3x Awakened decks and Kadan + Silia sequential ultimates. Earn Boss Packs every 5 episodes and unlock Infinite Reincarnation at Ep.40.',
                   ),
-                  img: '/hs-assets/screenshots/ingame_story_theater.png?v=20261116',
+                  img: isKo
+                    ? '/hs-assets/screenshots/ingame_story_theater_ko.webp'
+                    : '/hs-assets/screenshots/ingame_story_theater_en.webp',
                   href: '/game?mode=story&ep=1&theater=on',
                   cta: tr('스토리 출격', 'Play Story'),
                 },
                 {
                   id: 'ranked',
-                  badge: tr('공정 1배 룰 · 공식 전적', 'Fair 1x · Official Ladder'),
-                  title: tr('온라인형 랭킹대전 (Ranked Arena)', 'Ranked Arena · 실시간 랭크 아레나'),
+                  badge: tr('LIVE 실시간 대전 · 공정 1배 룰', 'LIVE PvP · Fair 1x Rules'),
+                  title: tr('실시간 랭킹대전 (Ranked Arena)', 'Ranked Arena · Live PvP Ladder'),
                   desc: tr(
-                    '실시간 도전자와 정통 1배 룰로 겨루며, 오직 랭킹전 결과만 공식 승률·순위에 기록됩니다.',
-                    'Compete under fair 1x rules against live-style challengers to climb the Official Ladder.',
+                    'LIVE 방 매칭·실시간 관전·채팅과 함께 공정한 1배 룰로 승부하세요. 오직 랭킹대전 결과만 공식 승률과 시즌 순위에 기록됩니다.',
+                    'Compete in LIVE PvP rooms with live spectating & chat under fair 1x rules. Only Ranked Arena matches count toward your official ladder rating.',
                   ),
                   img: isKo
-                    ? '/hs-assets/screenshots/ingame_ranked_battle_ko.png?v=20261116'
-                    : '/hs-assets/screenshots/ingame_ranked_battle.png?v=20261116',
+                    ? '/hs-assets/screenshots/ingame_ranked_battle_ko.webp'
+                    : '/hs-assets/screenshots/ingame_ranked_battle_en.webp',
                   href: '/game?mode=ranked',
                   cta: tr('랭킹전 입장', 'Enter Ranked'),
                 },
                 {
                   id: 'bogart',
-                  badge: tr('1~1,000G 베팅 · 100% 랜덤덱', '1–1,000G Bet · Random Deck'),
-                  title: tr('보가트의 도박장 (Bogart\'s Hall)', "Bogart's Hall · 보가트의 도박장"),
+                  badge: tr('일반 100~1,200G / 숙련 ×10 · 랜덤덱', 'Normal 100–1.2K / Expert ×10 · Random'),
+                  title: tr("보가트의 도박장 (Bogart's Hall)", "Bogart's Hall · Gold Wager Duel"),
                   desc: tr(
-                    '카드 보유량과 무관하게 매 판 30장 랜덤덱으로 승부하고 승리 시 판돈 2배 골드를 획득합니다.',
-                    'Wager 1–1,000G with 100% Random 30-Card Decks and win 2x Gold on victory.',
+                    '카드 보유량과 무관하게 매 판 100% 랜덤 30장 덱과 주사위 자동 베팅으로 승부하고, 승리 시 베팅 골드의 2배를 즉시 획득합니다.',
+                    'Wager via auto-dice (100–1,200G Normal / 1K–12K Expert ×10) with 100% random 30-card decks and win 2x Gold instantly.',
                   ),
                   img: isKo
-                    ? '/hs-assets/screenshots/ingame_bogart_slider_ko.webp'
-                    : '/hs-assets/screenshots/ingame_bogart_slider_en.webp',
+                    ? '/hs-assets/screenshots/ingame_bogart_ko.webp'
+                    : '/hs-assets/screenshots/ingame_bogart_en.webp',
                   href: '/game?mode=bogart',
                   cta: tr('도박장 입장', "Enter Bogart's Hall"),
                 },
@@ -1536,7 +1525,7 @@ export const PromoApp: React.FC = () => {
         <div className="hs-promo-divider" />
 
         {/* =====================================================================
-            12. Official Novel, Webtoon & Channels (#universe — All Visible)
+            12. Official Novel, Webtoon, Anime & Channels (#universe — All Visible)
         ===================================================================== */}
         <section id="universe" className="bg-[#0b101d] py-12 sm:py-16">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -1545,11 +1534,14 @@ export const PromoApp: React.FC = () => {
                 SNSHERO UNIVERSE
               </div>
               <h2 className="mt-1 text-2xl font-black text-white sm:text-4xl">
-                {tr('공식 웹소설 · 웹툰 · 채널', 'Official Novel, Webtoon & Channels')}
+                {tr(
+                  '공식 웹소설 · 웹툰 · 애니메이션 · 채널',
+                  'Official Novel, Webtoon, Anime & Channels',
+                )}
               </h2>
             </div>
 
-            <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <a
                 href="/book.html"
                 className="group overflow-hidden rounded-2xl border border-slate-700/80 bg-[#12192c] transition hover:-translate-y-1 hover:border-amber-400/70"
@@ -1600,14 +1592,16 @@ export const PromoApp: React.FC = () => {
                 </div>
               </a>
 
-              <button
-                type="button"
-                onClick={() => setMediaTheaterOpen(true)}
-                className="group cursor-pointer overflow-hidden rounded-2xl border border-amber-400/50 bg-[#12192c] text-left transition hover:-translate-y-1 hover:border-yellow-300"
+              <a
+                href={ANIME_PLAYLIST_URL}
+                data-testid="promo-universe-anime-card"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group overflow-hidden rounded-2xl border border-amber-400/50 bg-[#12192c] transition hover:-translate-y-1 hover:border-yellow-300"
               >
                 <div className="aspect-[16/9] overflow-hidden bg-black">
                   <img
-                    src="/webtoon-assets/episode_01/scene_01.webp"
+                    src="/hs-assets/screenshots/promo_anime_playlist.webp"
                     alt=""
                     aria-hidden="true"
                     loading="lazy"
@@ -1618,13 +1612,41 @@ export const PromoApp: React.FC = () => {
                 <div className="p-4">
                   <div className="flex items-center gap-2 text-sm font-extrabold text-amber-200">
                     <Sparkles className="h-4 w-4 text-yellow-300" />
-                    <span>{tr('제1화 풀보이스 미리보기', 'EP.1 Voiced Preview')}</span>
+                    <span>{tr('에피소드 40화 애니메이션', '40-EP Official Anime')}</span>
                   </div>
                   <p className="mt-1 text-xs text-slate-300/80">
-                    {tr('5컷 웹툰 + 성우 내레이션 감상', '5 panels + studio voice sample')}
+                    {tr('전 40화 16:9 풀 애니메이션 플레이리스트', 'All 40 full 16:9 episodes playlist')}
                   </p>
                 </div>
-              </button>
+              </a>
+
+              <a
+                href={ANIME_SHORTS_PLAYLIST_URL}
+                data-testid="promo-universe-shorts-card"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group overflow-hidden rounded-2xl border border-sky-400/50 bg-[#12192c] transition hover:-translate-y-1 hover:border-sky-300"
+              >
+                <div className="aspect-[16/9] overflow-hidden bg-black">
+                  <img
+                    src="/hs-assets/screenshots/promo_anime_shorts.webp"
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-sm font-extrabold text-sky-200">
+                    <Flame className="h-4 w-4 text-sky-300" />
+                    <span>{tr('에피소드 40화 애니메이션 쇼츠', '40-EP Anime Shorts')}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-300/80">
+                    {tr('핵심 명장면 9:16 숏폼 40편 몰아보기', '40 vertical 9:16 highlight Shorts')}
+                  </p>
+                </div>
+              </a>
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs font-extrabold">
@@ -1653,13 +1675,22 @@ export const PromoApp: React.FC = () => {
                 {tr('문피아 ↗', 'Munpia ↗')}
               </a>
               <a
-                href={youtubePlaylistUrl}
+                href={ANIME_PLAYLIST_URL}
                 data-testid="promo-youtube-channel-link"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="min-h-[38px] inline-flex items-center rounded-full border border-slate-700 bg-[#12192c] px-4 py-1.5 text-amber-100 transition hover:border-amber-300"
               >
-                {isKo ? 'YouTube (@snshero) ↗' : 'YouTube EN (@snshero) ↗'}
+                {tr('40화 애니메이션 플레이리스트 ↗', '40-EP Anime Playlist ↗')}
+              </a>
+              <a
+                href={ANIME_SHORTS_PLAYLIST_URL}
+                data-testid="promo-youtube-shorts-channel-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[38px] inline-flex items-center rounded-full border border-slate-700 bg-[#12192c] px-4 py-1.5 text-sky-200 transition hover:border-sky-300"
+              >
+                {tr('40화 애니메이션 쇼츠 ↗', '40-EP Anime Shorts ↗')}
               </a>
               <a
                 href="https://github.com/Dayyoung/snshero"
@@ -1745,7 +1776,7 @@ export const PromoApp: React.FC = () => {
               id="kr-official-directory"
               className="mx-auto mt-4 max-w-3xl text-[11px] leading-relaxed text-stone-400"
             >
-              눈히어로 · 엘윈마을의 영웅들 · 카단의 여정 (SNSHero.com) — 9대 종족 382종 무설치 정통 전략 웹 TCG · 첫 방문 무료 3팩+250G+160가루 · 40화 성우 풀보이스 스토리 모드(3장=3배 각성) · 보가트의 도박장(1~1,000G 랜덤 30장 덱) · 실시간 랭크 아레나
+              눈히어로 · 엘윈마을의 영웅들 · 카단의 여정 (SNSHero.com) — 9대 종족 382종 무설치 정통 전략 웹 TCG · 첫 방문 무료 3팩+250G+160가루 · 40화 웹툰 극장 스토리 모드(3장=3배 각성 · 무한 환생) · 공식 40화 애니메이션 &amp; 쇼츠 · LIVE 실시간 랭크 아레나 · 보가트의 도박장(일반 100~1,200G / 숙련 1,000~12,000G 랜덤 30장 덱)
             </p>
             <p className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] text-stone-400">
               <span>
@@ -1965,72 +1996,6 @@ export const PromoApp: React.FC = () => {
               >
                 <span>{tr('5장 수령 & 게임 시작하기 →', 'Claim Cards & Start Playing →')}</span>
               </a>
-            </div>
-          </div>
-        )}
-
-        {/* =====================================================================
-            Ep.1 Voiced Webtoon Mini Theater Modal
-        ===================================================================== */}
-        {mediaTheaterOpen && (
-          <div
-            onClick={() => setMediaTheaterOpen(false)}
-            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-sm"
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="hs-promo-gold-frame relative w-full max-w-3xl rounded-3xl bg-[#150d07] p-5 text-amber-50 sm:p-7"
-            >
-              <button
-                type="button"
-                onClick={() => setMediaTheaterOpen(false)}
-                aria-label={tr('닫기', 'Close')}
-                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-400/50 bg-black/50 text-amber-200 hover:bg-black"
-              >
-                <X className="h-4 w-4" />
-              </button>
-              <h3 className="text-xl font-black text-white sm:text-2xl">
-                {tr('제1화 · 성우 풀보이스 & 웹툰 미리보기', 'EP.1 · Voiced Webtoon Preview')}
-              </h3>
-              <div className="mt-3 rounded-xl border border-amber-500/35 bg-black/50 p-3">
-                <audio
-                  controls
-                  preload="none"
-                  src="/hs-assets/snshero-audio/story/ep01_cut1.mp3"
-                  className="w-full"
-                />
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-                {[0, 1, 2, 3, 4].map((idx) => (
-                  <div
-                    key={idx}
-                    className="overflow-hidden rounded-xl border border-amber-500/30 bg-black"
-                  >
-                    <img
-                      src={`/webtoon-assets/episode_01/scene_0${idx}.webp`}
-                      alt={`EP1 Panel ${idx + 1}`}
-                      className="aspect-[3/4] w-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                <a
-                  href={appendAttributionToGameUrl('/game?mode=story&ep=1')}
-                  onClick={() => trackHeroEvent('hero_promo_cta_click', { cta_id: 'theater_ep1_play', lang })}
-                  className="hs-promo-cta-purple inline-flex min-h-[44px] items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold"
-                >
-                  <span>{tr('제1화 전장 입장 →', 'Play Ep.1 Now →')}</span>
-                </a>
-                <div className="flex gap-3 text-xs font-bold text-amber-200/80">
-                  <a href="/book.html?ep=1" className="underline hover:text-amber-100">
-                    {tr('웹소설 보기', 'Read Novel')}
-                  </a>
-                  <a href="/webtoon.html?ep=1" className="underline hover:text-amber-100">
-                    {tr('웹툰 보기', 'Read Webtoon')}
-                  </a>
-                </div>
-              </div>
             </div>
           </div>
         )}
