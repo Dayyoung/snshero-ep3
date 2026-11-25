@@ -2,6 +2,14 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-26 08:34 KST] [SNSHero - "Catchy Vibe" (Official Music Video) `video (6).mp4` 교체 업로드 및 기존 영상 제거]
+- **원본 파일**: `/Users/dayyoung/Desktop/video (6).mp4` (`1280×720`, `24fps`, `179.58s`, `163 MB`, 오디오 평균 `-17.3 dB` / 피크 `-0.9 dB`)
+- **교체 및 검증 내역**:
+  - 기존 영상 `o0L1g6rpWb4` 삭제(`videos.delete`) 완료 및 신규 영상 `scVf2DFbUF4` (`https://youtu.be/scVf2DFbUF4`) 업로드 완료.
+  - 제목/설명 영문 표기(`SNSHero - "Catchy Vibe" (Official Music Video)`), `Music (10)`, 공개(`public`), 태그 10종 적용.
+  - `video (6).mp4` 하이라이트 프레임(`t=168s` 네온 윙·파형 컷) 기반 Star Breather 스타일 커스텀 1280×720 썸네일(`output/studio_anime/thumbs/catchy_vibe_official_mv_thumb.jpg`) 제작·적용 완료.
+  - OST 플레이리스트 `PLHzEvdw9NA3c` (`SNSHero Official Game OST & Anime Theme Songs`, position 1) 재등록 및 목록 검증 완료.
+
 ## [2026-11-26 08:09 KST] [SNSHero - "Catchy Vibe" (Official Music Video) 유튜브 업로드 및 OST 플레이리스트 등록]
 - **원본 파일**: `/Users/dayyoung/Desktop/SNSHero - Catchy Vibe (Official Music Video).mp4` (`1280×720`, `24fps`, `179.58s`, `165 MB`, 오디오 평균 `-17.3 dB` / 피크 `-0.9 dB`)
 - **업로드 및 플레이리스트 내역**:
