@@ -2,6 +2,17 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-25 09:08 KST] [SNSHero "Star Breather" 16:9 풀버전 애니메이션 오프닝(OP) 공식 뮤직비디오 제작 완료]
+- **의도서**: `docs/intent/star-breather-anime-op-mv.md` (100% 애니메이션 비주얼 · 실사 가수 컷 전면 제외 · 기존 자산 + HyperFrames 코드 기반 모션그래픽)
+- **작업 내역 (`output/studio_anime/star_breather_op_hf/`)**:
+  - **오디오 추출 및 비트/보컬 타이밍 분석**: `~/Desktop/SNSHero - Star Breather .mp4`에서 오디오(181.248s, 48kHz 스테레오, 110.0 BPM, 9개 음악 섹션: Intro → Verse 1 → Pre-Chorus 1 → Chorus 1 → Interlude → Verse 2 → Pre-Chorus 2 → Final Chorus → Outro) 추출 및 전 구간 가사·온셋 싱크 매핑.
+  - **자산 선별·매핑**: `output/studio_anime/ep01_en`~`ep40_en` 959개 컷 중 핵심 서사/사쿠가 액션 클립 54종 선별, `theme_song_characters/` 14인 애니메이션 캐릭터 PNG(cutouts 14종, upper-hd 9종, busts 14종) 및 영문 브랜드 로고(`public/hs-assets/brand/logo-en.webp`) 매핑 (실사 여가수 PNG 2종 제외).
+  - **HyperFrames 10-컴포지션 구성 & 렌더링**: 9개 씬 + 1개 영문 가사 모션그래픽 트랙(`lyrics-overlay`)을 구성해 `1920×1080` @ `24fps` 풀버전 MP4(`320.0 MB`, `181.25s`, H.264/AAC) 렌더링 완료.
+- **검증 및 산출물**:
+  - `npx hyperframes check --json` 오류 0건 통과 및 실제 렌더링된 MP4 디코딩 프레임(인트로·타이틀·14인 캐릭터 쇼케이스·전투 컷·가사·엔드카드) 시각 검수 완료(초반 플래시 `immediateRender: false` 수정 후 재렌더링 검증).
+  - `ffprobe`/`volumedetect` 검증: `1920×1080`, `24fps`, `181.25s`, 오디오 평균 `-17.2 dB` / 피크 `-1.1 dB`.
+  - 최종 저장: `output/studio_anime/SNSHero_Star_Breather_Anime_OP.mp4` 및 `/Users/dayyoung/Desktop/SNSHero - Star Breather (Anime OP).mp4`.
+
 ## [2026-11-24 12:51 KST] [프로모션 페이지 전면 최신화 — 40화 공식 애니메이션·쇼츠 링크 교체, 최신 인게임 스크린샷(KO/EN) & 설명 반영, 풀보이스 소개 삭제]
 - **개선 내역 (`src/promo/PromoApp.tsx`, `index.html`, `src/i18n/locales/*.ts`, `public/hs-assets/screenshots/*`)**:
   - **공식 트레일러 링크 & UI 교체 (`#intro`)**:
