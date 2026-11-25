@@ -2046,3 +2046,18 @@
   - 플레이리스트 [`PLE-f8DoiXUSk`](https://www.youtube.com/playlist?list=PLE-f8DoiXUSk)의 다국어 오버라이드(`localizations`)를 제거해 모든 국가/언어 UI에서 기본 영문 제목(`SNSHero: The Chronicles of Kadan | Full-Length Feature Anime (10 Languages)`)과 영문 설명이 표시되도록 YouTube Data API v3로 갱신 및 검증 완료 (`defaultLanguage: en`, `localizations: ['en']`).
   - [`scripts/studio_anime/upload_youtube_full_anime_10lang.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/upload_youtube_full_anime_10lang.py)의 `ensure_playlist()` 역시 기본 영문 제목·설명만 설정하도록 수정.
 - **로컬 커밋**: `scripts/studio_anime/upload_youtube_full_anime_10lang.py`, `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 미실행).
+
+## [2026-11-25 09:04 KST] [GAME OST 플레이리스트(PLHzEvdw9NA3c) 생성 · 최근 OST 6편 정리 · @snshero 홈 탭 노출 완료]
+- **작업자**: `Antigravity Assistant`
+- **대상 채널**: `@snshero` (`UCA6QmKiPstbiyBUHtnSMxyA`)
+- **적용 내역**:
+  - **공개 영문 기본 플레이리스트 생성**: [`PLHzEvdw9NA3c`](https://www.youtube.com/playlist?list=PLHzEvdw9NA3c) (`SNSHero Official Game OST & Anime Theme Songs`, `privacy=public`, `defaultLanguage=en`).
+  - **최근 업로드된 게임 OST / 테마곡 6편 전수 편입 (Full MV·가사영상 우선 정렬)**:
+    1. https://youtu.be/UugJtcR3l6Q (`SNSHero: Kadan's Journey — "Star Breather" | Official Anime Theme Song (Full MV)`)
+    2. https://youtu.be/jHCXZQGPkak (`SNSHero - Catchy Vibe (Official Music Video)`)
+    3. https://youtu.be/dOpXZQRAvA0 (`SNSHero - Catchy Vibe (Official Full Lyric Video / 가사)`)
+    4. https://youtu.be/uDx2NwnS9LY (`SNSHero: Kadan's Journey — "Star Breather" (Official Anime Theme Song) #Shorts`)
+    5. https://youtu.be/KH8gJ8SOSaw (`SNSHero - Catchy Vibe (Official MV) #Shorts`)
+    6. https://youtu.be/DUcYQrlxMHM (`SNSHero Card Battle & Pack Opening Highlights (BGM: Catchy Vibe) #Shorts`)
+  - **채널 홈 탭 노출 등록**: `channelSections().insert`로 `PLHzEvdw9NA3c`를 홈 탭 **2번째 섹션(`position: 1`, ID `UCA6QmKiPstbiyBUHtnSMxyA.Zx4DA4xg9IM`)** 에 추가 완료 (`position: 0`의 10개국어 극장판 플레이리스트 `PLE-f8DoiXUSk` 바로 아래 노출, 총 5개 홈 탭 섹션 검증 완료).
+- **로컬 커밋**: `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 미실행).
