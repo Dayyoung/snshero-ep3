@@ -2,6 +2,14 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-25 09:24 KST] [SNSHero "Star Breather" Anime OP MV 타이틀 변경 및 상반신 오버레이 제거 재렌더링]
+- **수정 요청 반영 (`output/studio_anime/star_breather_op_hf/generate.py`)**:
+  - 초반 인트로·메인 타이틀 락업·마무리 엔드카드 타이틀을 **`SNSHero: Kadan's Journey — "Star Breather"`**로 통일 교체.
+  - 본편 씬 위에 겹쳐지던 대형 상반신/컷아웃 캐릭터 오버레이(`upper-hd` 등 `s1-kadan-hero`, `s2-*`, `s3-*`, `s4-*`, `s6-ignis-wrap`, `s7-lucian-wrap`, `s8-kadan-celia`)를 전부 제거하여 풀스크린 애니메이션 컷 가시성 극대화 (14인 캐릭터 쇼케이스 `scene-05-interlude` 및 흉상 배지 유지).
+- **재검증 & 산출물**:
+  - `npx hyperframes check --json` 전 항목 오류 0건 통과 후 `1920×1080` @ `24fps` (`322.3 MB`, `181.25s`, 오디오 `-17.2 dB` / 피크 `-1.1 dB`) 재렌더링 및 디코딩 프레임 시각 검수 완료.
+  - `output/studio_anime/SNSHero_Star_Breather_Anime_OP.mp4` 및 `/Users/dayyoung/Desktop/SNSHero - Star Breather (Anime OP).mp4` 최신 파일로 덮어쓰기 저장 완료.
+
 ## [2026-11-25 09:08 KST] [SNSHero "Star Breather" 16:9 풀버전 애니메이션 오프닝(OP) 공식 뮤직비디오 제작 완료]
 - **의도서**: `docs/intent/star-breather-anime-op-mv.md` (100% 애니메이션 비주얼 · 실사 가수 컷 전면 제외 · 기존 자산 + HyperFrames 코드 기반 모션그래픽)
 - **작업 내역 (`output/studio_anime/star_breather_op_hf/`)**:
