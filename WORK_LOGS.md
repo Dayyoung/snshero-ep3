@@ -5,7 +5,7 @@
 ## [2026-11-26 08:09 KST] [SNSHero - "Catchy Vibe" (Official Music Video) 유튜브 업로드 및 OST 플레이리스트 등록]
 - **원본 파일**: `/Users/dayyoung/Desktop/SNSHero - Catchy Vibe (Official Music Video).mp4` (`1280×720`, `24fps`, `179.58s`, `165 MB`, 오디오 평균 `-17.3 dB` / 피크 `-0.9 dB`)
 - **업로드 및 플레이리스트 내역**:
-  - 채널: `@snshero` (`UCA6QmKiPstbiyBUHtnSMxyA`) · 공개(`public`) · 카테고리 `Music (10)` · 기본 언어 `en` · 커스텀 썸네일(`output/studio_anime/thumbs/catchy_vibe_official_mv_thumb.jpg`)
+  - 채널: `@snshero` (`UCA6QmKiPstbiyBUHtnSMxyA`) · 공개(`public`) · 카테고리 `Music (10)` · 기본 언어 `en` · Star Breather 스타일 커스텀 1280×720 썸네일(`output/studio_anime/thumbs/catchy_vibe_official_mv_thumb.jpg`, Playfair Display + Montserrat + JetBrains Mono + `logo-en.webp`) 적용 완료
   - 영상 ID / URL: `o0L1g6rpWb4` (`https://youtu.be/o0L1g6rpWb4`)
   - 제목 (EN): `SNSHero - "Catchy Vibe" (Official Music Video)`
   - OST 플레이리스트 추가: `PLHzEvdw9NA3c` (`SNSHero Official Game OST & Anime Theme Songs`, position 1, 총 8개 항목)
