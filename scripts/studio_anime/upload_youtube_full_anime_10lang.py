@@ -496,9 +496,8 @@ def ensure_playlist(yt, state: dict) -> str:
             "defaultLanguage": "en",
         },
         "status": {"privacyStatus": "public"},
-        "localizations": PLAYLIST_LOCALIZATIONS,
     }
-    created = yt.playlists().insert(part="snippet,status,localizations", body=body).execute()
+    created = yt.playlists().insert(part="snippet,status", body=body).execute()
     pl_id = created["id"]
     state["playlistId"] = pl_id
     save_state(state)

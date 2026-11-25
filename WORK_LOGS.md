@@ -2039,3 +2039,10 @@
   - **플레이리스트 확인**: [`PLE-f8DoiXUSk`](https://www.youtube.com/playlist?list=PLE-f8DoiXUSk) (`SNSHero: The Chronicles of Kadan | Full-Length Feature Anime (10 Languages)`, `public`) 내에 10개 공식 언어(`en, ko, ja, zh-Hans, zh-Hant, es, fr, de, id, vi`) 풀버전 애니메이션 10편 모두 `public` · `processed` 상태로 정상 정렬 포함됨을 재검증.
   - **채널 홈 탭(`channelSections`) 노출 등록**: YouTube Data API v3 `channelSections().insert`로 `PLE-f8DoiXUSk` (`type=singleplaylist`)를 채널 홈 탭 **최상단(`position: 0`, 섹션 ID `UCA6QmKiPstbiyBUHtnSMxyA.__WLXNpu6u8`)** 에 추가하고 기존 홈 탭 섹션 3개(`position: 1~3`)와 함께 총 4개 섹션 정상 조회 검증 완료.
 - **로컬 커밋**: `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 미실행).
+
+## [2026-11-25 09:02 KST] [플레이리스트(PLE-f8DoiXUSk) 기본 영문 제목·설명 단일화 완료]
+- **작업자**: `Antigravity Assistant`
+- **적용 내역**:
+  - 플레이리스트 [`PLE-f8DoiXUSk`](https://www.youtube.com/playlist?list=PLE-f8DoiXUSk)의 다국어 오버라이드(`localizations`)를 제거해 모든 국가/언어 UI에서 기본 영문 제목(`SNSHero: The Chronicles of Kadan | Full-Length Feature Anime (10 Languages)`)과 영문 설명이 표시되도록 YouTube Data API v3로 갱신 및 검증 완료 (`defaultLanguage: en`, `localizations: ['en']`).
+  - [`scripts/studio_anime/upload_youtube_full_anime_10lang.py`](file:///Users/dayyoung/project/snshero/scripts/studio_anime/upload_youtube_full_anime_10lang.py)의 `ensure_playlist()` 역시 기본 영문 제목·설명만 설정하도록 수정.
+- **로컬 커밋**: `scripts/studio_anime/upload_youtube_full_anime_10lang.py`, `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 미실행).
