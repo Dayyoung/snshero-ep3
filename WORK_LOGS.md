@@ -2,6 +2,14 @@
 
 이 문서는 매시 정각 주기 스케줄러 및 수동 실행 시 스프레드시트 작업 동기화, 코드 수정 및 검증, 작업 내역을 기록하는 영구 로그입니다.
 
+## [2026-11-26 08:09 KST] [SNSHero - "Catchy Vibe" (Official Music Video) 유튜브 업로드 및 OST 플레이리스트 등록]
+- **원본 파일**: `/Users/dayyoung/Desktop/SNSHero - Catchy Vibe (Official Music Video).mp4` (`1280×720`, `24fps`, `179.58s`, `165 MB`, 오디오 평균 `-17.3 dB` / 피크 `-0.9 dB`)
+- **업로드 및 플레이리스트 내역**:
+  - 채널: `@snshero` (`UCA6QmKiPstbiyBUHtnSMxyA`) · 공개(`public`) · 카테고리 `Music (10)` · 기본 언어 `en` · 커스텀 썸네일(`output/studio_anime/thumbs/catchy_vibe_official_mv_thumb.jpg`)
+  - 영상 ID / URL: `o0L1g6rpWb4` (`https://youtu.be/o0L1g6rpWb4`)
+  - 제목 (EN): `SNSHero - "Catchy Vibe" (Official Music Video)`
+  - OST 플레이리스트 추가: `PLHzEvdw9NA3c` (`SNSHero Official Game OST & Anime Theme Songs`, position 1, 총 8개 항목)
+
 ## [2026-11-25 09:24 KST] [SNSHero "Star Breather" Anime OP MV 타이틀 변경 및 상반신 오버레이 제거 재렌더링]
 - **수정 요청 반영 (`output/studio_anime/star_breather_op_hf/generate.py`)**:
   - 초반 인트로·메인 타이틀 락업·마무리 엔드카드 타이틀을 **`SNSHero: Kadan's Journey — "Star Breather"`**로 통일 교체.
