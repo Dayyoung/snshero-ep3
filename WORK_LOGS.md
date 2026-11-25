@@ -9,6 +9,11 @@
 - **재검증 & 산출물**:
   - `npx hyperframes check --json` 전 항목 오류 0건 통과 후 `1920×1080` @ `24fps` (`322.3 MB`, `181.25s`, 오디오 `-17.2 dB` / 피크 `-1.1 dB`) 재렌더링 및 디코딩 프레임 시각 검수 완료.
   - `output/studio_anime/SNSHero_Star_Breather_Anime_OP.mp4` 및 `/Users/dayyoung/Desktop/SNSHero - Star Breather (Anime OP).mp4` 최신 파일로 덮어쓰기 저장 완료.
+  - **YouTube 업로드 & OST 플레이리스트 등록 완료**:
+    - 채널: `@snshero` (`UCA6QmKiPstbiyBUHtnSMxyA`) · 공개(`public`) · 카테고리 `Music (10)` · 커스텀 썸네일(`output/studio_anime/thumbs/star_breather_anime_op_thumb.jpg`)
+    - 영상 ID / URL: `QWLSJY4IAU8` (`https://youtu.be/QWLSJY4IAU8`)
+    - 제목: `SNSHero: Kadan's Journey — "Star Breather" | Official Anime OP (Full Version)` (영문 제목/설명/챕터/태그)
+    - OST 플레이리스트 추가: `PLHzEvdw9NA3c` (`SNSHero Official Game OST & Anime Theme Songs`, position 0)
 
 ## [2026-11-25 09:08 KST] [SNSHero "Star Breather" 16:9 풀버전 애니메이션 오프닝(OP) 공식 뮤직비디오 제작 완료]
 - **의도서**: `docs/intent/star-breather-anime-op-mv.md` (100% 애니메이션 비주얼 · 실사 가수 컷 전면 제외 · 기존 자산 + HyperFrames 코드 기반 모션그래픽)
