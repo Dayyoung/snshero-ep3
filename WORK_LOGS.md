@@ -2085,3 +2085,15 @@
     6. https://youtu.be/DUcYQrlxMHM (`SNSHero Card Battle & Pack Opening Highlights (BGM: Catchy Vibe) #Shorts`)
   - **채널 홈 탭 노출 등록**: `channelSections().insert`로 `PLHzEvdw9NA3c`를 홈 탭 **2번째 섹션(`position: 1`, ID `UCA6QmKiPstbiyBUHtnSMxyA.Zx4DA4xg9IM`)** 에 추가 완료 (`position: 0`의 10개국어 극장판 플레이리스트 `PLE-f8DoiXUSk` 바로 아래 노출, 총 5개 홈 탭 섹션 검증 완료).
 - **로컬 커밋**: `WORK_LOGS.md` 로컬 `git commit` 완료 (`git push` 미실행).
+
+---
+## [2026-11-25 16:28 KST] Google Ads 종료일 연장 · CPC 입찰 상한 해제 · 디스플레이(배너) 광고 개시
+- **대상 계정**: Google Ads `307-235-9722`
+- **기존 검색 캠페인 2건 개선 (노출 지연 해소)**:
+  - `SNSHero_Search_TCG_KR` (`24487212616`, 일 ₩10,000): 최대 CPC 입찰가 상한 해제(`cpc_bid_ceiling_micros = 0`), 종료일 연장(`2026-11-27` → `2026-12-07 23:59:59`)
+  - `SNSHero_Search_TCG_EN` (`24475998192`, 일 ₩10,000): 최대 CPC 입찰가 상한 해제(`cpc_bid_ceiling_micros = 0`), 종료일 연장(`2026-11-27` → `2026-12-07 23:59:59`)
+- **신규 디스플레이(배너) 캠페인 생성 및 게시**:
+  - `SNSHero_Display_Banner_KR` (`24546527504`, `ENABLED`): 일 예산 ₩15,000, 종료일 `2026-12-07 23:59:59`, 지역 대한민국 · 언어 한국어, 입찰 전략 클릭수 최대화(상한 없음)
+  - 타겟팅: 최적화 타겟팅 + 게임 관련 잠재고객 세그먼트 4종(`게임 이용자`, `롤플레잉 게임 팬`, `모험 및 전략 게임 팬`, `캐주얼 및 소셜 게임 이용자`)
+  - 반응형 디스플레이 광고(광고 효력 `좋음`): 랜딩 `https://snshero.com/game?open=pack3&lang=ko&utm_source=google_ads&utm_medium=display&utm_campaign=kr_banner_pack3`, 업체명 `눈히어로 SNSHero`, 제목 5개·긴 제목 1개·설명 4개, PNG 배너 이미지 3종(가로·정사각형·세로 7개 비율 슬롯) 및 `public/icon.png` 로고 등록 완료
+- **검증**: `google-ads-mcp` `search_search` API로 3개 캠페인 모두 `ENABLED`, 종료일 `2026-12-07 23:59:59`, `cpc_bid_ceiling_micros = 0` 정상 반영 확인
