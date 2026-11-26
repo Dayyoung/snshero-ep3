@@ -2113,3 +2113,16 @@
   - 타겟팅: 최적화 타겟팅 + 게임 관련 잠재고객 세그먼트 4종(`게임 이용자`, `롤플레잉 게임 팬`, `모험 및 전략 게임 팬`, `캐주얼 및 소셜 게임 이용자`)
   - 반응형 디스플레이 광고(광고 효력 `좋음`): 랜딩 `https://snshero.com/game?open=pack3&lang=ko&utm_source=google_ads&utm_medium=display&utm_campaign=kr_banner_pack3`, 업체명 `눈히어로 SNSHero`, 제목 5개·긴 제목 1개·설명 4개, PNG 배너 이미지 3종(가로·정사각형·세로 7개 비율 슬롯) 및 `public/icon.png` 로고 등록 완료
 - **검증**: `google-ads-mcp` `search_search` API로 3개 캠페인 모두 `ENABLED`, 종료일 `2026-12-07 23:59:59`, `cpc_bid_ceiling_micros = 0` 정상 반영 확인
+
+---
+## [2026-11-27 08:59 KST] Google Ads 공격적 수동 CPC 전환 · 종료일 2026-12-31 연장 · 고임팩트 배너 소재 업그레이드
+- **문제 원인 규명**:
+  - 3개 캠페인 모두 `APPROVED` 및 결제 크레딧 ₩50,000 정상 상태에서 0노출이 지속되던 핵심 원인은 `클릭수 최대화(TARGET_SPEND)` 자동 입찰의 콜드스타트 교착(`BIDDING_STRATEGY_LEARNING`) 및 디스플레이 전환 직후 기본 CPC `₩1` 하락 현상이었음.
+- **캠페인 3종 전면 개선 (종료일 `2026-12-31 23:59:59` 연장 + `MANUAL_CPC` 전환)**:
+  - `SNSHero_Display_Banner_KR` (`24546527504`): 일 예산 `₩25,000`, 입찰 `수동 CPC`, `Ad group 1` 기본 최대 CPC **`₩400`**, 종료일 `2026-12-31`
+  - `SNSHero_Search_TCG_KR` (`24487212616`): 일 예산 `₩15,000`, 입찰 `수동 CPC`, 양 광고그룹(`KR_01_무설치웹카드게임` · `KR_02_덱빌딩전략유사`) 기본 최대 CPC **`₩800`**, 종료일 `2026-12-31`, `KR_01`에 고검색량 확장검색 키워드 5종(`웹게임`, `카드게임`, `무료 게임`, `PC 게임 추천`, `온라인 카드게임`) 추가
+  - `SNSHero_Search_TCG_EN` (`24475998192`): 일 예산 `₩10,000`, 입찰 `수동 CPC`, 양 광고그룹(`EN_01_FreeBrowserTCG` · `EN_02_DeckbuilderAlt`) 기본 최대 CPC **`₩1,000`**, 종료일 `2026-12-31`
+- **디스플레이 배너 크리에이티브 전면 업그레이드 (`832626874243`, 총 14/15 비율 슬롯)**:
+  - AI 판타지 배너 2종([banner_legendary_pack_16x9.png](docs/ads/creatives/banner_legendary_pack_16x9.png), [banner_epic_duel_1x1.png](docs/ads/creatives/banner_epic_duel_1x1.png)) + 실제 인게임 스크린샷 2종([ingame_battle_mana.png](docs/ads/creatives/ingame_battle_mana.png), [ingame_packs.png](docs/ads/creatives/ingame_packs.png)) 추가 업로드
+  - 제목 5종 · 긴 제목 1종 · 설명 4종을 무료 3팩/10팩 확정 전설/하스스톤 감성/3장=3배 각성/설치 0초 고후킹 카피로 전면 교체
+- **검증**: `google-ads-mcp` `search_search` API로 3개 캠페인 `ENABLED` · `MANUAL_CPC` · `ELIGIBLE` · `end_date_time = 2026-12-31 23:59:59`, 광고그룹 CPC(₩400/₩800/₩1,000) 실측 검증 완료
