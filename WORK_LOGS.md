@@ -2126,3 +2126,15 @@
   - AI 판타지 배너 2종([banner_legendary_pack_16x9.png](docs/ads/creatives/banner_legendary_pack_16x9.png), [banner_epic_duel_1x1.png](docs/ads/creatives/banner_epic_duel_1x1.png)) + 실제 인게임 스크린샷 2종([ingame_battle_mana.png](docs/ads/creatives/ingame_battle_mana.png), [ingame_packs.png](docs/ads/creatives/ingame_packs.png)) 추가 업로드
   - 제목 5종 · 긴 제목 1종 · 설명 4종을 무료 3팩/10팩 확정 전설/하스스톤 감성/3장=3배 각성/설치 0초 고후킹 카피로 전면 교체
 - **검증**: `google-ads-mcp` `search_search` API로 3개 캠페인 `ENABLED` · `MANUAL_CPC` · `ELIGIBLE` · `end_date_time = 2026-12-31 23:59:59`, 광고그룹 CPC(₩400/₩800/₩1,000) 실측 검증 완료
+
+---
+## [2026-11-27 10:21 KST] Google Ads 보안 권한 축소 및 디스플레이 배너 `ONLINE_GAMBLING` 제한 해제 조치
+- **보안 설정 최적화**:
+  - `ga4-mcp-reader@gen-lang-client-0764739742.iam.gserviceaccount.com` 액세스 수준을 `표준(STANDARD)` → **`읽기 전용(Read-only)`** 으로 축소 (삭제 없이 `google-ads-mcp` 정상 조회 유지 확인)
+- **디스플레이 배너 `ONLINE_GAMBLING` 제한 원인 규명 및 전량 제거 (`24546527504` / `832626874243`)**:
+  - 원인: `banner_legendary_pack_16x9_1.9108.png`(정책: 온라인 도박 직접 지적), `ingame_packs.png`(팩 개봉 화면), `?open=pack3` URL 및 `팩 개봉/전설 확정/도전` 카피가 사행성/온라인 도박으로 오인되어 대한민국 게재 제한(`APPROVED_LIMITED`) 발생
+  - 조치:
+    - 문제 이미지(`banner_legendary_pack_16x9`, `ingame_packs`) 전면 제거 → 순수 판타지 배틀 아트·인게임 전투 스크린샷(`10/15` 슬롯)만 유지
+    - 최종 URL을 `https://snshero.com/game?lang=ko&utm_source=google_ads&utm_medium=display&utm_campaign=kr_banner_strategy`로 변경 (`?open=pack3` 제거)
+    - 제목 5종·긴 제목·설명 4종을 무설치 전략 덱빌딩 · 382종 카드 조합 · 40부작 성우 풀보이스 스토리 · 무료 AI 대전 소구로 전면 교체
+- **검증**: `google-ads-mcp` `search_search` 결과 `review_status: REVIEW_IN_PROGRESS`, `policy_topic_entries: []` 정상 진입 확인
