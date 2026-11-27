@@ -30,6 +30,165 @@ const GA_HEAD_SNIPPET = `  <!-- Google tag (gtag.js) - GA4 + Google Ads snshero.
     }
   </script>`;
 
+const FAVICON_VERSION = '20261127';
+const FAVICON_HEAD_SNIPPET = `  <link rel="icon" href="/favicon.ico?v=${FAVICON_VERSION}" sizes="48x48" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=${FAVICON_VERSION}" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png?v=${FAVICON_VERSION}" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png?v=${FAVICON_VERSION}" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/hs-assets/brand/pwa-icon-192.png?v=${FAVICON_VERSION}" />`;
+
+const GLOBAL_SHOWCASE_LOCALES = [
+  {
+    langCode: 'ja',
+    path: '/ja/',
+    hreflang: 'ja',
+    htmlLang: 'ja',
+    ogLocale: 'ja_JP',
+    label: '日本語',
+    title: 'SNSHero : カダンの旅 (눈히어로) — インストール不要・382種本格ファンタジー戦略Web TCG | 公式サイト',
+    description:
+      'ダウンロード・登録不要で今すぐブラウザで遊べる382種カード戦略TCG！初回無料3パック+250G+160ダスト即時支給、最初の10パック以内レジェンド100%確定。9種族ヒーロー・フルボイス40話ストーリー・ランクアリーナ搭載。',
+    h1: 'SNSHero : カダンの旅 — インストール不要・382種本格ファンタジー戦略Web TCG',
+    lead: 'ダウンロードや会員登録なしで、ブラウザから3秒で遊べる無料戦略カードゲーム。初回訪問で無料カードパック3個 + 250ゴールド + 160ダストを即時支給し、最初の10パック以内にレジェンドカードが100%確定で出現します。',
+    playCta: '⚡ 今すぐブラウザで無料プレイ (+3パック & 250G)',
+    gameHref: '/game?lang=ja',
+    guideHref: '/en/wiki/tip/',
+    codexHref: '/en/wiki/cards/',
+  },
+  {
+    langCode: 'zh-CN',
+    path: '/zh-cn/',
+    hreflang: 'zh-Hans',
+    htmlLang: 'zh-CN',
+    ogLocale: 'zh_CN',
+    label: '简体中文',
+    title: 'SNSHero : 卡丹的旅程 — 无需下载382张卡牌奇幻策略网页TCG | 官方网站',
+    description:
+      '无需安装和注册，浏览器3秒开玩382张卡牌策略TCG！首次进入即送3个免费卡包+250金币+160奥术尘，前10包必出传说卡牌。9大种族英雄、40章全语音剧情模式与实时天梯竞技场。',
+    h1: 'SNSHero : 卡丹的旅程 — 无需下载382张卡牌奇幻策略网页TCG',
+    lead: '无需下载客户端或注册账号，打开网页3秒即可畅玩382张卡牌策略对战！首次登录立即赠送3个免费卡包 + 250金币 + 160奥术之尘，前10个卡包100%保底获得传说卡牌。',
+    playCta: '⚡ 立即免费开玩 (+3免费卡包 & 250金币)',
+    gameHref: '/game?lang=zh-CN',
+    guideHref: '/en/wiki/tip/',
+    codexHref: '/en/wiki/cards/',
+  },
+  {
+    langCode: 'zh-TW',
+    path: '/zh-tw/',
+    hreflang: 'zh-Hant',
+    htmlLang: 'zh-TW',
+    ogLocale: 'zh_TW',
+    label: '繁體中文',
+    title: 'SNSHero : 卡丹的旅程 — 免下載382張卡牌奇幻策略網頁TCG | 官方網站',
+    description:
+      '免安裝免註冊，瀏覽器3秒即玩382張卡牌策略TCG！首次進入即贈3個免費卡包+250金幣+160塵，前10包必出傳說卡牌。9大種族英雄、40章全語音劇情與即時天梯競技場。',
+    h1: 'SNSHero : 卡丹的旅程 — 免下載382張卡牌奇幻策略網頁TCG',
+    lead: '免下載用戶端、免註冊帳號，瀏覽器開啟3秒即可體驗382張卡牌策略對戰！首次造訪立即獲贈3個免費卡包 + 250金幣 + 160魔塵，前10包100%必出傳說卡牌。',
+    playCta: '⚡ 立即免費暢玩 (+3免費卡包 & 250金幣)',
+    gameHref: '/game?lang=zh-TW',
+    guideHref: '/en/wiki/tip/',
+    codexHref: '/en/wiki/cards/',
+  },
+  {
+    langCode: 'es',
+    path: '/es/',
+    hreflang: 'es',
+    htmlLang: 'es',
+    ogLocale: 'es_ES',
+    label: 'Español',
+    title: 'SNSHero : El Viaje de Kadan — TCG Estratégico Web Gratis de 382 Cartas (Sin Descarga)',
+    description:
+      '¡Juega gratis en tu navegador sin descargar ni registrarte! Recibe 3 sobres gratis + 250 de Oro + 160 Polvo al instante, Legendaria garantizada en tus primeros 10 sobres, 9 facciones, 40 capítulos con voz y Arena Clasificatoria.',
+    h1: 'SNSHero : El Viaje de Kadan — TCG Estratégico Gratis en Navegador (382 Cartas)',
+    lead: 'Juega al instante en PC o móvil sin descargas ni registro. Al entrar recibes 3 sobres de cartas gratis + 250 de Oro + 160 Polvo Arcano, con una carta Legendaria 100% garantizada en tus primeros 10 sobres.',
+    playCta: '⚡ Jugar Gratis Ahora (+3 Sobres & 250 Oro)',
+    gameHref: '/game?lang=es',
+    guideHref: '/en/wiki/tip/',
+    codexHref: '/en/wiki/cards/',
+  },
+  {
+    langCode: 'fr',
+    path: '/fr/',
+    hreflang: 'fr',
+    htmlLang: 'fr',
+    ogLocale: 'fr_FR',
+    label: 'Français',
+    title: 'SNSHero : Le Voyage de Kadan — TCG Stratégique Gratuit sur Navigateur (382 Cartes)',
+    description:
+      "Jouez gratuitement dans votre navigateur sans téléchargement ni inscription ! 3 boosters gratuits + 250 Or + 160 Poussière offerts dès l'arrivée, Légendaire garantie dans les 10 premiers boosters, 9 factions et 40 chapitres doublés.",
+    h1: 'SNSHero : Le Voyage de Kadan — TCG Stratégique Gratuit sur Navigateur (382 Cartes)',
+    lead: "Jouez immédiatement sur navigateur PC ou mobile sans téléchargement ni compte requis. Recevez 3 boosters gratuits + 250 Or + 160 Poussière Arcanique dès l'entrée, avec une Légendaire garantie dans vos 10 premiers boosters.",
+    playCta: '⚡ Jouer Gratuitement (+3 Boosters & 250 Or)',
+    gameHref: '/game?lang=fr',
+    guideHref: '/en/wiki/tip/',
+    codexHref: '/en/wiki/cards/',
+  },
+  {
+    langCode: 'de',
+    path: '/de/',
+    hreflang: 'de',
+    htmlLang: 'de',
+    ogLocale: 'de_DE',
+    label: 'Deutsch',
+    title: 'SNSHero : Kadans Reise — Kostenloses 382-Karten Browser-Strategie-TCG (Ohne Download)',
+    description:
+      'Sofort kostenlos im Browser spielen ohne Download oder Anmeldung! 3 Gratis-Kartenpacks + 250 Gold + 160 Staub zum Start, garantierte Legendäre Karte in den ersten 10 Packs, 9 Fraktionen & 40 vertonte Story-Kapitel.',
+    h1: 'SNSHero : Kadans Reise — Kostenloses 382-Karten Browser-Strategie-TCG',
+    lead: 'Spiele sofort im Desktop- oder Mobilbrowser ohne Download und ohne Registrierung. Du erhältst direkt 3 Gratis-Kartenpacks + 250 Gold + 160 Arkanstaub sowie eine garantierte Legendäre Karte in deinen ersten 10 Packs.',
+    playCta: '⚡ Jetzt Kostenlos Spielen (+3 Packs & 250 Gold)',
+    gameHref: '/game?lang=de',
+    guideHref: '/en/wiki/tip/',
+    codexHref: '/en/wiki/cards/',
+  },
+  {
+    langCode: 'pt',
+    path: '/pt/',
+    hreflang: 'pt',
+    htmlLang: 'pt',
+    ogLocale: 'pt_BR',
+    label: 'Português',
+    title: 'SNSHero : A Jornada de Kadan — TCG Estratégico Grátis no Navegador (382 Cartas)',
+    description:
+      'Jogue grátis direto no navegador sem download ou cadastro! Ganhe 3 pacotes grátis + 250 Ouro + 160 Pó na hora, Lendária garantida nos primeiros 10 pacotes, 9 facções, 40 episódios dublados e Arena Ranqueada.',
+    h1: 'SNSHero : A Jornada de Kadan — TCG Estratégico Grátis no Navegador (382 Cartas)',
+    lead: 'Entre e jogue direto no navegador em PC ou celular sem download e sem cadastro. Receba na hora 3 pacotes grátis + 250 de Ouro + 160 de Pó Arcano, com carta Lendária 100% garantida nos primeiros 10 pacotes.',
+    playCta: '⚡ Jogar Grátis Agora (+3 Pacotes & 250 Ouro)',
+    gameHref: '/game?lang=pt',
+    guideHref: '/en/wiki/tip/',
+    codexHref: '/en/wiki/cards/',
+  },
+  {
+    langCode: 'ru',
+    path: '/ru/',
+    hreflang: 'ru',
+    htmlLang: 'ru',
+    ogLocale: 'ru_RU',
+    label: 'Русский',
+    title: 'SNSHero : Путь Кадана — Бесплатная браузерная ККИ на 382 карты (Без скачивания)',
+    description:
+      'Играйте бесплатно прямо в браузере без установки и регистрации! Сразу 3 бесплатных бустера + 250 золота + 160 пыли, гарантированная Легендарная карта в первых 10 бустерах, 9 фракций и 40 озвученных глав.',
+    h1: 'SNSHero : Путь Кадана — Бесплатная браузерная ККИ (382 карты, без установки)',
+    lead: 'Запускайте игру прямо в браузере на ПК или телефоне без скачивания и регистрации. При входе вы сразу получаете 3 бесплатных бустера + 250 золота + 160 пыли и гарантированную Легендарную карту в первых 10 бустерах.',
+    playCta: '⚡ Играть Бесплатно (+3 Бустера и 250 Золота)',
+    gameHref: '/game?lang=ru',
+    guideHref: '/en/wiki/tip/',
+    codexHref: '/en/wiki/cards/',
+  },
+];
+
+const SHOWCASE_HREFLANGS = [
+  { hreflang: 'ko', path: '/' },
+  { hreflang: 'en', path: '/en/' },
+  ...GLOBAL_SHOWCASE_LOCALES.map((l) => ({ hreflang: l.hreflang, path: l.path })),
+  { hreflang: 'x-default', path: '/en/' },
+];
+
+function renderHreflangLinks(alternates) {
+  return alternates
+    .map((a) => `<link rel="alternate" hreflang="${a.hreflang}" href="${SITE_ORIGIN}${a.path}" />`)
+    .join('\n  ');
+}
+
 const FACTIONS = [
   {
     slug: 'faction-human',
@@ -214,17 +373,19 @@ function writeHtmlFile(distDir, urlPath, html) {
   fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
 }
 
-function injectHreflangIntoExistingHtml(htmlPath, koUrl, enUrl) {
+function injectHreflangIntoExistingHtml(htmlPath, koUrl, enUrl, customAlternates = null) {
   if (!fs.existsSync(htmlPath)) return;
   let html = fs.readFileSync(htmlPath, 'utf8');
   const normKo = toCanonicalPath(koUrl);
   const normEn = toCanonicalPath(enUrl);
-  html = html.replace(/\s*<link rel="alternate" hreflang="(?:ko|en|x-default)"[^>]*>\s*/gi, '\n  ');
-  const tags = [
-    `<link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${normKo}" />`,
-    `<link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${normEn}" />`,
-    `<link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${normKo}" />`,
-  ].join('\n  ');
+  html = html.replace(/\s*<link rel="alternate" hreflang="[^"]*"[^>]*>\s*/gi, '\n  ');
+  const alternates =
+    customAlternates || [
+      { hreflang: 'ko', path: normKo },
+      { hreflang: 'en', path: normEn },
+      { hreflang: 'x-default', path: normEn },
+    ];
+  const tags = renderHreflangLinks(alternates);
   html = html.replace(/(<link rel="canonical"[^>]*>)/i, `$1\n  ${tags}`);
   fs.writeFileSync(htmlPath, html, 'utf8');
 }
@@ -314,8 +475,8 @@ ${GA_HEAD_SNIPPET}
   <link rel="canonical" href="${canonicalUrl}" />
   <link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${normKo}" />
   <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${normEn}" />
-  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${normKo}" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${normEn}" />
+${FAVICON_HEAD_SNIPPET}
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="${isKo ? '눈히어로 (SNSHero.com)' : 'SNSHero.com'}" />
   <meta property="og:locale" content="${isKo ? 'ko_KR' : 'en_US'}" />
@@ -385,11 +546,11 @@ ${GA_HEAD_SNIPPET}
 
 export function generateAllSeoPages({ rootDir, distDir, publicDir }) {
   const sitemapEntries = [];
-  const addSitemapPair = (koPath, enPath, priority = '0.8', changefreq = 'weekly') => {
+  const addSitemapPair = (koPath, enPath, priority = '0.8', changefreq = 'weekly', customAlternates = null) => {
     const normKo = toCanonicalPath(koPath);
     const normEn = toCanonicalPath(enPath);
-    sitemapEntries.push({ loc: normKo, koPath: normKo, enPath: normEn, priority, changefreq });
-    sitemapEntries.push({ loc: normEn, koPath: normKo, enPath: normEn, priority, changefreq });
+    sitemapEntries.push({ loc: normKo, koPath: normKo, enPath: normEn, priority, changefreq, alternates: customAlternates });
+    sitemapEntries.push({ loc: normEn, koPath: normKo, enPath: normEn, priority, changefreq, alternates: customAlternates });
   };
 
   // ── STEP 1: Recover 100% of Legacy Indexed Google URLs (Zero 404 Leaks) ──
@@ -424,18 +585,25 @@ export function generateAllSeoPages({ rootDir, distDir, publicDir }) {
     { file: 'wiki/tip/index.html', koPath: '/wiki/tip', enPath: '/en/wiki/tip', priority: '0.85', changefreq: 'weekly' },
   ];
   for (const p of corePairs) {
-    injectHreflangIntoExistingHtml(path.join(distDir, p.file), p.koPath, p.enPath);
+    const customAlts = p.koPath === '/' ? SHOWCASE_HREFLANGS : null;
+    injectHreflangIntoExistingHtml(path.join(distDir, p.file), p.koPath, p.enPath, customAlts);
     if (p.koPath === '/game') injectHreflangIntoExistingHtml(path.join(distDir, 'game.html'), p.koPath, p.enPath);
     if (p.koPath === '/book') injectHreflangIntoExistingHtml(path.join(distDir, 'book.html'), p.koPath, p.enPath);
     if (p.koPath === '/webtoon') injectHreflangIntoExistingHtml(path.join(distDir, 'webtoon.html'), p.koPath, p.enPath);
     if (p.koPath === '/sns') injectHreflangIntoExistingHtml(path.join(distDir, 'sns.html'), p.koPath, p.enPath);
     if (p.koPath === '/license') injectHreflangIntoExistingHtml(path.join(distDir, 'license.html'), p.koPath, p.enPath);
-    addSitemapPair(p.koPath, p.enPath, p.priority, p.changefreq);
+    addSitemapPair(p.koPath, p.enPath, p.priority, p.changefreq, customAlts);
   }
 
-  // Build /en (English Official Showcase) from dist/index.html assets
+  // Build /en/ (English Official Showcase, x-default) & 8 Country/Language Showcase Hubs
   const indexDistHtml = fs.readFileSync(path.join(distDir, 'index.html'), 'utf8');
   const indexAssets = extractAssetTags(indexDistHtml);
+  const showcaseLocaleNavLinks = [
+    '<a href="/">한국어 (/)</a>',
+    '<a href="/en/">English (/en/)</a>',
+    ...GLOBAL_SHOWCASE_LOCALES.map((l) => `<a href="${l.path}">${escHtml(l.label)} (${l.path})</a>`),
+  ].join(' · ');
+
   writeHtmlFile(
     distDir,
     '/en',
@@ -446,15 +614,12 @@ export function generateAllSeoPages({ rootDir, distDir, publicDir }) {
 ${GA_HEAD_SNIPPET}
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1b120b" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/hs-assets/brand/pwa-icon-192.png" />
+${FAVICON_HEAD_SNIPPET}
   <title>SNSHero : Kadan's Journey — Free 382-Card Browser Strategy TCG (No Download) | Official Site</title>
   <meta name="description" content="Play SNSHero (Heroes of Elwin Village) instantly in your browser with zero download or sign-up! Claim 3 Free Card Packs + 250 Gold + 160 Dust on arrival, guaranteed Legendary in first 10 packs, 40-episode voiced Story Mode (3 copies = 3x Awakened stats), Ranked Arena, and Bogart's Den." />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
   <link rel="canonical" href="${SITE_ORIGIN}/en/" />
-  <link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}/" />
-  <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}/en/" />
-  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}/" />
+  ${renderHreflangLinks(SHOWCASE_HREFLANGS)}
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="SNSHero.com" />
   <meta property="og:locale" content="en_US" />
@@ -490,12 +655,87 @@ ${GA_HEAD_SNIPPET}
       <nav aria-label="English Quick Links">
         <a href="/en/game/">Play Game Now</a> · <a href="/en/wiki/tip/">Strategy Guide</a> · <a href="/en/wiki/cards/">382-Card Codex</a> · <a href="/en/book/">40-Episode Web Novel</a> · <a href="/en/webtoon/">Full-Color Voice Webtoon</a> · <a href="/en/sns/">AI 1,000-Match Benchmark (/sns)</a>
       </nav>
+      <nav aria-label="Languages" style="margin-top:12px;">
+        ${showcaseLocaleNavLinks}
+      </nav>
     </main>
   </div>
   ${indexAssets.scripts}
 </body>
 </html>`,
   );
+
+  for (const loc of GLOBAL_SHOWCASE_LOCALES) {
+    sitemapEntries.push({
+      loc: loc.path,
+      koPath: '/',
+      enPath: '/en/',
+      priority: '0.95',
+      changefreq: 'daily',
+      alternates: SHOWCASE_HREFLANGS,
+    });
+    writeHtmlFile(
+      distDir,
+      loc.path,
+      `<!DOCTYPE html>
+<html lang="${loc.htmlLang}">
+<head>
+  <meta charset="UTF-8" />
+${GA_HEAD_SNIPPET}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1b120b" />
+${FAVICON_HEAD_SNIPPET}
+  <title>${escHtml(loc.title)}</title>
+  <meta name="description" content="${escHtml(loc.description)}" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <link rel="canonical" href="${SITE_ORIGIN}${loc.path}" />
+  ${renderHreflangLinks(SHOWCASE_HREFLANGS)}
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SNSHero.com" />
+  <meta property="og:locale" content="${loc.ogLocale}" />
+  <meta property="og:url" content="${SITE_ORIGIN}${loc.path}" />
+  <meta property="og:title" content="${escHtml(loc.title)}" />
+  <meta property="og:description" content="${escHtml(loc.description)}" />
+  <meta property="og:image" content="${SITE_ORIGIN}/hs-assets/screenshots/ingame_pack_altar.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${escHtml(loc.title)}" />
+  <meta name="twitter:description" content="${escHtml(loc.description)}" />
+  <meta name="twitter:image" content="${SITE_ORIGIN}/hs-assets/screenshots/ingame_pack_altar.png" />
+  <script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'VideoGame',
+    name: "SNSHero : Kadan's Journey",
+    url: `${SITE_ORIGIN}${loc.path}`,
+    genre: ['Collectible Card Game', 'Strategy', 'Browser Game'],
+    gamePlatform: ['Web Browser', 'Mobile Web', 'Desktop Web'],
+    applicationCategory: 'Game',
+    operatingSystem: 'Any',
+    inLanguage: loc.htmlLang,
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  })}</script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6937094123258335" crossorigin="anonymous"></script>
+  ${indexAssets.links}
+</head>
+<body style="margin:0;background:#090604;color:#f8ebd2;">
+  <div id="promo-root">
+    <main style="max-width:960px;margin:0 auto;padding:32px 20px;font-family:sans-serif;">
+      <h1>${escHtml(loc.h1)}</h1>
+      <p>${escHtml(loc.lead)}</p>
+      <p><a href="${loc.gameHref}" style="color:#fcd34d;font-weight:bold;">${escHtml(loc.playCta)}</a></p>
+      <nav aria-label="Quick Links">
+        <a href="${loc.guideHref}">Strategy Guide</a> · <a href="${loc.codexHref}">382-Card Codex</a> · <a href="/en/book/">40-Episode Web Novel</a> · <a href="/en/webtoon/">Full-Color Webtoon</a> · <a href="/en/sns/">AI Benchmark</a>
+      </nav>
+      <nav aria-label="Languages" style="margin-top:12px;">
+        ${showcaseLocaleNavLinks}
+      </nav>
+    </main>
+  </div>
+  ${indexAssets.scripts}
+</body>
+</html>`,
+    );
+  }
 
   // Build /en/game from dist/game/index.html
   const gameDistHtml = fs.readFileSync(path.join(distDir, 'game/index.html'), 'utf8');
@@ -608,14 +848,14 @@ ${GA_HEAD_SNIPPET}
 ${GA_HEAD_SNIPPET}
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1b120b" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
+${FAVICON_HEAD_SNIPPET}
   <title>${escHtml(title)}</title>
   <meta name="description" content="${escHtml(desc)}" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
   <link rel="canonical" href="${SITE_ORIGIN}${enPath}" />
   <link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${koPath}" />
   <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${enPath}" />
-  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${koPath}" />
+  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${enPath}" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="${escHtml(title)}" />
   <meta property="og:description" content="${escHtml(desc)}" />
@@ -683,14 +923,14 @@ ${GA_HEAD_SNIPPET}
 ${GA_HEAD_SNIPPET}
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1b120b" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
+${FAVICON_HEAD_SNIPPET}
   <title>${escHtml(fullTitle)}</title>
   <meta name="description" content="${escHtml(desc)}" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
   <link rel="canonical" href="${SITE_ORIGIN}${selfPath}" />
   <link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${koBookPath}" />
   <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${enBookPath}" />
-  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${koBookPath}" />
+  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${enBookPath}" />
   <meta property="og:type" content="article" />
   <meta property="og:title" content="${escHtml(fullTitle)}" />
   <meta property="og:description" content="${escHtml(desc)}" />
@@ -778,14 +1018,14 @@ ${GA_HEAD_SNIPPET}
 ${GA_HEAD_SNIPPET}
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1b120b" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
+${FAVICON_HEAD_SNIPPET}
   <title>${escHtml(fullTitle)}</title>
   <meta name="description" content="${escHtml(desc)}" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
   <link rel="canonical" href="${SITE_ORIGIN}${selfPath}" />
   <link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${koToonPath}" />
   <link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${enToonPath}" />
-  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${koToonPath}" />
+  <link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${enToonPath}" />
   <meta property="og:type" content="article" />
   <meta property="og:title" content="${escHtml(fullTitle)}" />
   <meta property="og:description" content="${escHtml(desc)}" />
@@ -1300,22 +1540,29 @@ ${GA_HEAD_SNIPPET}
     }
   }
 
-  // ── STEP 2D: Generate Complete Bilingual sitemap.xml (KO & EN with xhtml:link hreflang) ──
+  // ── STEP 2D: Generate Complete Multilingual sitemap.xml (10-Locale & Bilingual xhtml:link hreflang, English x-default) ──
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${sitemapEntries
-  .map(
-    (u) => `  <url>
+  .map((u) => {
+    const alts =
+      u.alternates || [
+        { hreflang: 'ko', path: u.koPath },
+        { hreflang: 'en', path: u.enPath },
+        { hreflang: 'x-default', path: u.enPath },
+      ];
+    const xhtmlLinks = alts
+      .map((a) => `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${SITE_ORIGIN}${a.path}" />`)
+      .join('\n');
+    return `  <url>
     <loc>${SITE_ORIGIN}${u.loc}</loc>
-    <xhtml:link rel="alternate" hreflang="ko" href="${SITE_ORIGIN}${u.koPath}" />
-    <xhtml:link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${u.enPath}" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${u.koPath}" />
+${xhtmlLinks}
     <lastmod>${TODAY_ISO}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>
-  </url>`,
-  )
+  </url>`;
+  })
   .join('\n')}
 </urlset>
 `;
@@ -1325,6 +1572,6 @@ ${sitemapEntries
   }
 
   console.log(
-    `[seo-generator] Generated ${legacyRedirects.length} legacy 200-redirect routes + ${sitemapEntries.length} canonical KO/EN SEO pages in sitemap.xml.`,
+    `[seo-generator] Generated ${legacyRedirects.length} legacy 200-redirect routes + ${sitemapEntries.length} canonical multilingual SEO pages in sitemap.xml.`,
   );
 }
