@@ -5,7 +5,7 @@
  *
  * Key Safeguards:
  *   1. Zero TagError: Never call adsbygoogle.push({}) on hidden/0-width containers (availableWidth=0 prevention).
- *   2. Zero 400 Bad Request: Never pass invalid dummy slot IDs; omit data-ad-slot if not registered.
+ *   2. Official Ad Unit Slot Binding: Attaches registered data-ad-slot IDs for horizontal (320x50) and vertical (160x600) placements.
  *   3. Zero duplicate page-level ads: Rely on single official async script tag in index.html/home.html.
  *   4. Zero screen obstruction: Keep ads in static containers (#adsense-desktop-left, #adsense-desktop-right, #adsense-mobile-top).
  *   5. Completely suppressed on '#play' gaming route to preserve pure 100dvh gameplay.
@@ -21,6 +21,10 @@ export interface AdSensePlacementResult {
 
 export const ADSENSE_CONFIG = {
   client: 'ca-pub-6937094123258335',
+  slots: {
+    horizontal: '2585767207',
+    vertical: '8628110578',
+  },
   storageKey: 'hero_ad_removed',
   breakpointPx: 1024,
   wideBreakpointPx: 1536,
@@ -97,6 +101,7 @@ function ensureInsTagInContainer(container: HTMLElement, format: 'vertical' | 'h
   ins = document.createElement('ins');
   ins.className = 'adsbygoogle';
   ins.setAttribute('data-ad-client', ADSENSE_CONFIG.client);
+  ins.setAttribute('data-ad-slot', ADSENSE_CONFIG.slots[format]);
 
   if (format === 'vertical') {
     ins.style.cssText = 'display:block; width:160px; min-height:600px; margin:0 auto;';
@@ -211,6 +216,8 @@ export function renderMobileTopBanner(_activeView?: string): string {
  */
 export function cleanupUncontainedAds(): void {
   if (typeof document === 'undefined') return;
+  // H5 보상형/전면 광고 재생 중에는 Ad Placement 오버레이(aswift/ins)를 보존한다.
+  if (document.body?.classList.contains('snshero-h5-ad-active')) return;
 
   try {
     const intrusiveSelectors = [

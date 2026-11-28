@@ -2153,3 +2153,18 @@
   - `SNSHero_Search_TCG_EN`: 노출 7 · 클릭 1 · 비용 ₩865 (`865000000` micros)
   - **합계**: 노출 25,034 · 클릭 322 · 비용 약 ₩80,942
 - **검증**: `google-ads-mcp` `search_search` API로 3개 활성 캠페인의 `campaign_budget.amount_micros`(`2500000000`, `1500000000`, `1000000000`) 반영 실측 검증 완료
+
+---
+## [2026-11-28 09:50 KST] AdSense 공식 슬롯 연동·H5 보상형 광고 보호 및 Google Ads 낭비 클릭 차단
+- **Google AdSense (`pub-6937094123258335`) 공식 디스플레이 광고 단위 2종 생성 및 코드 연동**:
+  - `SNSHero_Mobile_Top_Banner` (`320×50` 고정): `data-ad-slot="2585767207"`
+  - `SNSHero_Desktop_Side_Skyscraper` (`160×600` 고정): `data-ad-slot="8628110578"`
+  - [src/hearthstone/services/adsenseManager.ts](src/hearthstone/services/adsenseManager.ts): `ADSENSE_CONFIG.slots` 등록 및 `ensureInsTagInContainer()` 내 `data-ad-slot` 자동 바인딩, `cleanupUncontainedAds()`에 `.snshero-h5-ad-active` 보호 가드 추가
+  - [src/hearthstone/services/h5RewardedAds.ts](src/hearthstone/services/h5RewardedAds.ts): `setH5AdActive(true/false)` 생명주기 제어 추가 (`beforeAd`/`wrappedShow` 활성화, 모든 종료/오류 경로 해제)
+  - [game.html](game.html) · [index.html](index.html): `body:not(.snshero-h5-ad-active)` 선택자 가드 적용으로 H5 보상형/전면 광고 오버레이 정상 노출 보장
+- **Google Ads (`307-235-9722`) 단가 압축 및 낭비 노출·키워드 차단**:
+  - `SNSHero_Display_Banner_KR` (`24546527504`): 광고그룹 기본 최대 CPC `₩400 → ₩80` (`80000000` micros), **모바일 앱 카테고리 141개 전량 제외(`MOBILE_APP_CATEGORY`)**
+  - `SNSHero_Search_TCG_KR` (`24487212616`): 2개 광고그룹(`KR_01_무설치웹카드게임`, `KR_02_덱빌딩전략유사`) 기본 최대 CPC `₩800 → ₩400` (`400000000` micros), 구문검색 제외 키워드 6종(`"크레이지 게임"`, `"포키"`, `"poki"`, `"오목"`, `"스틱워"`, `"stick war"`) 추가 (누적 33건)
+- **검증**:
+  - `npm run build` 성공 (`✓ built in 6.83s`, 1,837 modules, 오류 0건)
+  - `google-ads-mcp` `search_search` API 교차 검증: `ad_group.cpc_bid_micros` (`80000000` / `400000000`), `campaign_criterion` 디스플레이 모바일 앱 제외 141건 및 검색 제외 키워드 33건(신규 6건 포함) 반영 확인

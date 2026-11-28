@@ -56,6 +56,12 @@ declare global {
 }
 
 let h5PreloadInitialized = false;
+const H5_AD_ACTIVE_CLASS = 'snshero-h5-ad-active';
+
+function setH5AdActive(active: boolean): void {
+  if (typeof document === 'undefined' || !document.body) return;
+  document.body.classList.toggle(H5_AD_ACTIVE_CLASS, active);
+}
 
 /**
  * Ensures Google Ad Placement API global queue shims exist on window.
@@ -144,6 +150,7 @@ export function requestRewardedGoldAd(callbacks: RewardedGoldCallbacks): void {
   const safetyTimer = window.setTimeout(() => {
     if (settled) return;
     settled = true;
+    setH5AdActive(false);
     restoreAudioIfSuspended();
     callbacks.onUnavailable('adblocker_timeout');
   }, 6500);
@@ -158,11 +165,13 @@ export function requestRewardedGoldAd(callbacks: RewardedGoldCallbacks): void {
       name: 'shop_gold_recharge',
       beforeAd: () => {
         clearSafetyTimer();
+        setH5AdActive(true);
         audioSuspended = true;
         hsAudio.suspendForAd();
         callbacks.onAdShowing?.();
       },
       afterAd: () => {
+        setH5AdActive(false);
         restoreAudioIfSuspended();
       },
       beforeReward: (showAdFn) => {
@@ -170,11 +179,13 @@ export function requestRewardedGoldAd(callbacks: RewardedGoldCallbacks): void {
         if (settled) return;
         const wrappedShow = () => {
           if (settled) return;
+          setH5AdActive(true);
           callbacks.onAdShowing?.();
           try {
             showAdFn();
           } catch {
             settled = true;
+            setH5AdActive(false);
             restoreAudioIfSuspended();
             callbacks.onUnavailable('error');
           }
@@ -182,12 +193,14 @@ export function requestRewardedGoldAd(callbacks: RewardedGoldCallbacks): void {
         const cancelPrompt = () => {
           if (settled) return;
           settled = true;
+          setH5AdActive(false);
           callbacks.onDismissed();
         };
         callbacks.onBeforeRewardPrompt(wrappedShow, cancelPrompt);
       },
       adViewed: () => {
         clearSafetyTimer();
+        setH5AdActive(false);
         restoreAudioIfSuspended();
         if (settled) return;
         settled = true;
@@ -200,6 +213,7 @@ export function requestRewardedGoldAd(callbacks: RewardedGoldCallbacks): void {
       },
       adDismissed: () => {
         clearSafetyTimer();
+        setH5AdActive(false);
         restoreAudioIfSuspended();
         if (settled) return;
         settled = true;
@@ -207,6 +221,7 @@ export function requestRewardedGoldAd(callbacks: RewardedGoldCallbacks): void {
       },
       adBreakDone: (placementInfo) => {
         clearSafetyTimer();
+        setH5AdActive(false);
         restoreAudioIfSuspended();
         if (settled) return;
         settled = true;
@@ -220,6 +235,7 @@ export function requestRewardedGoldAd(callbacks: RewardedGoldCallbacks): void {
     });
   } catch {
     clearSafetyTimer();
+    setH5AdActive(false);
     restoreAudioIfSuspended();
     if (!settled) {
       settled = true;

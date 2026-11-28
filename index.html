@@ -150,10 +150,10 @@
     }
     ins.adsbygoogle[data-anchor-status],
     ins.adsbygoogle[data-ad-status="unfilled"],
-    body > ins.adsbygoogle,
+    body:not(.snshero-h5-ad-active) > ins.adsbygoogle,
     body > .google-auto-placed,
-    body > div[id^="aswift_"],
-    body > iframe[id^="aswift_"],
+    body:not(.snshero-h5-ad-active) > div[id^="aswift_"],
+    body:not(.snshero-h5-ad-active) > iframe[id^="aswift_"],
     .grippy-host {
       display: none !important;
       pointer-events: none !important;
