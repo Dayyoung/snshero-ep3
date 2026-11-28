@@ -915,6 +915,10 @@ export const HearthstoneApp: React.FC = () => {
         {screen === 'BOX_HUB' && (
           <BoxHubScreen
             profile={profile}
+            onQuickStartFirstBattle={() => {
+              setGlobalAutoPlay(false);
+              launchJourneyBattle(undefined, true, false);
+            }}
             onSelectPlayMode={(m) => {
               setGlobalAutoPlay(false);
               if (m === 'TUTORIAL') {

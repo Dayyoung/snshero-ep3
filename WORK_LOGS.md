@@ -2168,3 +2168,18 @@
 - **검증**:
   - `npm run build` 성공 (`✓ built in 6.83s`, 1,837 modules, 오류 0건)
   - `google-ads-mcp` `search_search` API 교차 검증: `ad_group.cpc_bid_micros` (`80000000` / `400000000`), `campaign_criterion` 디스플레이 모바일 앱 제외 141건 및 검색 제외 키워드 33건(신규 6건 포함) 반영 확인
+
+---
+## [2026-11-28 11:46 KST] 온보딩 3초 첫 배틀 퀵스타트·실사이트 AdSense 슬롯 실측·EN 검색 최적화·포털 ZIP 빌드 완료
+- **온보딩 첫 배틀 전환율 개선**:
+  - [src/hearthstone/screens/BoxHubScreen.tsx](src/hearthstone/screens/BoxHubScreen.tsx): 첫 방문 시(`isFirstVisitGuide`) 최상단에 한·영 원클릭 퀵스타트 CTA(`hub-first-visit-quickstart`, `⚡ 3초 만에 첫 카드 배틀 바로 시작`)를 추가하고, 하단 `눈히어로 팩 개봉` 버튼 잠금 제한을 해제해 첫 방문자도 즉시 무료 3팩을 개봉 가능하도록 개선
+  - [src/hearthstone/HearthstoneApp.tsx](src/hearthstone/HearthstoneApp.tsx): `onQuickStartFirstBattle` 연결 (`launchJourneyBattle(undefined, true, false)`로 인트로 스킵 후 즉시 배틀 진입)
+- **실사이트(`https://snshero.com/game?lang=ko`) AdSense 공식 슬롯 실측 검증**:
+  - 데스크톱(`1512×694`): `adsense-desktop-left` / `adsense-desktop-right` 모두 `slot="8628110578"` · `adStatus="filled"` · `hasIframe=true`
+  - 모바일(`390×844`): `#adsense-mobile-top` (`390×52`) 내 `slot="2585767207"` · `adStatus="filled"` · `hasIframe=true`
+- **Google Ads 잔여 2건 정비 (`307-235-9722`)**:
+  - `SNSHero_Display_Banner_KR` (`24546527504`): 전환 목표가 `계정-기본`으로 설정되어 있으며 내부에 `참여` 목표(`hero_first_battle_started`, `hero_first_pack_opened` 모두 `전환 기록 중`)가 이미 포함되어 있음을 확인 (실제 디스플레이 유입의 첫 팩/배틀 도달 부재가 0전환 원인)
+  - `SNSHero_Search_TCG_EN` (`24475998192`): 2개 광고그룹(`EN_01_FreeBrowserTCG`, `EN_02_DeckbuilderAlt`) 기본 최대 CPC `₩1,000 → ₩400` (`400000000` micros) 하향 및 구문검색 제외 키워드 5종(`"stick war"`, `"nine men's morris"`, `"digimon"`, `"poki"`, `"crazy games"`) 추가(누적 25건)
+- **빌드·포털 ZIP·API 교차 검증**:
+  - `npm run build` (`✓ built in 7.43s`, 1,837 modules) 및 `node scripts/build-portal-zips.mjs` 통과 (`snshero-crazygames.zip` 133.6 MB, `snshero-itchio-iframe.zip` 1.32 KB, `snshero-itchio.zip` 106.84 MB 생성)
+  - `google-ads-mcp` `search_search`로 `24475998192` CPC `400000000` 및 제외 키워드 25건 반영 실측 확인

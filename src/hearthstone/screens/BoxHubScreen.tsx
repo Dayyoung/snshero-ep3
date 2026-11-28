@@ -31,6 +31,7 @@ import { GameMode, PlayerProfile } from '../types';
 export interface BoxHubScreenProps {
   profile: PlayerProfile;
   onSelectPlayMode: (mode: GameMode) => void;
+  onQuickStartFirstBattle?: () => void;
   onOpenCollection: () => void;
   onOpenPacks: () => void;
   onOpenQuestLog: () => void;
@@ -43,6 +44,7 @@ let hubBoxOpenedInSession = false;
 export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
   profile,
   onSelectPlayMode,
+  onQuickStartFirstBattle,
   onOpenCollection,
   onOpenPacks,
   onOpenQuestLog,
@@ -520,6 +522,30 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
 
             {/* 3 Identical-Height Beveled Ivory/Parchment Menu Plates */}
             <div className="relative z-10 flex w-full max-w-[218px] flex-col gap-2 sm:max-w-[248px] sm:gap-2.5">
+              {isFirstVisitGuide && (
+                <button
+                  type="button"
+                  data-testid="hub-first-visit-quickstart"
+                  onMouseEnter={() => hsAudio.playSfx('box_hover', 0.6)}
+                  onClick={() => {
+                    hsAudio.playSfx('box_press');
+                    hsStorage.markJourneyGuideDone();
+                    if (onQuickStartFirstBattle) {
+                      onQuickStartFirstBattle();
+                    } else {
+                      triggerModeTransition('TUTORIAL');
+                    }
+                  }}
+                  className="hs-mario-spring group relative flex min-h-[54px] w-full flex-col items-center justify-center rounded-2xl border-2 border-amber-200 bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 px-3 py-1.5 text-center text-stone-950 shadow-[0_6px_22px_rgba(245,158,11,0.75)] transition hover:brightness-105 sm:min-h-[60px] sm:px-4"
+                >
+                  <span className="hs-title whitespace-nowrap text-[14px] font-black leading-tight tracking-tight text-stone-950 sm:text-[16px]">
+                    ⚡ {tr('3초 만에 첫 카드 배틀 바로 시작', 'Start Your First Battle in 3s')}
+                  </span>
+                  <span className="mt-0.5 max-w-full truncate text-[9.5px] font-extrabold tracking-tight text-amber-950/90 sm:text-[10.5px]">
+                    {tr('튜토리얼 즉시 진입 · 첫 승 시 보너스 팩 지급', 'Instant Battle · Bonus Pack on First Win')}
+                  </span>
+                </button>
+              )}
               {/* 1. 실시간 랭킹대전 (1st Slot + CNN-Style LIVE Broadcast Badge) */}
               <button
                 type="button"
@@ -633,14 +659,12 @@ export const BoxHubScreen: React.FC<BoxHubScreenProps> = ({
           >
             <button
               type="button"
-              disabled={isFirstVisitGuide}
-              onMouseEnter={() => !isFirstVisitGuide && hsAudio.playSfx('box_hover', 0.5)}
+              onMouseEnter={() => hsAudio.playSfx('box_hover', 0.5)}
               onClick={() => {
-                if (isFirstVisitGuide) return;
                 hsAudio.playSfx('box_press');
                 onOpenPacks();
               }}
-              className={`hs-brass-btn relative flex min-h-[48px] items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-amber-100 sm:gap-2.5 sm:px-3 sm:py-2 ${lockedBtnStyle}`}
+              className="hs-brass-btn relative flex min-h-[48px] items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-amber-100 sm:gap-2.5 sm:px-3 sm:py-2"
             >
               {profile.packs > 0 && (
                 <span className="hs-num absolute -right-1.5 -top-1.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-red-200 bg-gradient-to-b from-red-500 to-red-800 px-1 text-[11px] text-white shadow-[0_3px_10px_rgba(220,38,38,0.85)] sm:-right-2 sm:-top-2 sm:h-6 sm:min-w-6 sm:px-1.5 sm:text-xs">
