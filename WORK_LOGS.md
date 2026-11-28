@@ -2138,3 +2138,18 @@
     - 최종 URL을 `https://snshero.com/game?lang=ko&utm_source=google_ads&utm_medium=display&utm_campaign=kr_banner_strategy`로 변경 (`?open=pack3` 제거)
     - 제목 5종·긴 제목·설명 4종을 무설치 전략 덱빌딩 · 382종 카드 조합 · 40부작 성우 풀보이스 스토리 · 무료 AI 대전 소구로 전면 교체
 - **검증**: `google-ads-mcp` `search_search` 결과 `review_status: REVIEW_IN_PROGRESS`, `policy_topic_entries: []` 정상 진입 확인
+
+---
+## [2026-11-28 09:27 KST] Google Ads 일일 총 예산 ₩5,000/일 하향 제한 (₩50,000 → ₩5,000)
+- **작업 배경**: 광고 집행 개시(11/27~11/28) 이후 기존 일일 총 예산 ₩50,000 기준으로 빠른 소진이 발생함에 따라, 기존 5:3:2 배분 비율을 유지한 채 일일 총 예산을 **₩5,000/일**로 1/10 축소 제한
+- **변경 내역 (`307-235-9722` 활성 캠페인 3건)**:
+  - `SNSHero_Display_Banner_KR` (`24546527504`): ₩25,000/일 → **₩2,500/일** (`2500000000` micros)
+  - `SNSHero_Search_TCG_KR` (`24487212616`): ₩15,000/일 → **₩1,500/일** (`1500000000` micros)
+  - `SNSHero_Search_TCG_EN` (`24475998192`): ₩10,000/일 → **₩1,000/일** (`1000000000` micros)
+  - **총 일일 예산 합계**: ₩50,000/일 → **₩5,000/일**
+- **조정 시점 누적 집행 실적 (11/27~11/28 오전 API 조회 기준)**:
+  - `SNSHero_Display_Banner_KR`: 노출 24,833 · 클릭 294 · 비용 ₩59,056 (`59055519907` micros)
+  - `SNSHero_Search_TCG_KR`: 노출 194 · 클릭 27 · 비용 ₩21,021 (`21021000000` micros)
+  - `SNSHero_Search_TCG_EN`: 노출 7 · 클릭 1 · 비용 ₩865 (`865000000` micros)
+  - **합계**: 노출 25,034 · 클릭 322 · 비용 약 ₩80,942
+- **검증**: `google-ads-mcp` `search_search` API로 3개 활성 캠페인의 `campaign_budget.amount_micros`(`2500000000`, `1500000000`, `1000000000`) 반영 실측 검증 완료
